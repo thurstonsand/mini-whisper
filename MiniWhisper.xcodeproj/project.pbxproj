@@ -1,0 +1,715 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		60292D072EF609BE009AD5D1 /* ASREngine in Frameworks */ = {isa = PBXBuildFile; productRef = 60292D062EF609BE009AD5D1 /* ASREngine */; };
+		60292D092EF609C2009AD5D1 /* AudioCapture in Frameworks */ = {isa = PBXBuildFile; productRef = 60292D082EF609C2009AD5D1 /* AudioCapture */; };
+		60292D0B2EF609C5009AD5D1 /* HotkeyListener in Frameworks */ = {isa = PBXBuildFile; productRef = 60292D0A2EF609C5009AD5D1 /* HotkeyListener */; };
+		60292D0D2EF609C7009AD5D1 /* TranscriptCleanup in Frameworks */ = {isa = PBXBuildFile; productRef = 60292D0C2EF609C7009AD5D1 /* TranscriptCleanup */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		60292CE32EF603C9009AD5D1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 60292CCD2EF603C8009AD5D1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 60292CD42EF603C8009AD5D1;
+			remoteInfo = MiniWhisper;
+		};
+		60292CED2EF603C9009AD5D1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 60292CCD2EF603C8009AD5D1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 60292CD42EF603C8009AD5D1;
+			remoteInfo = MiniWhisper;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		60292CD52EF603C8009AD5D1 /* MiniWhisper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MiniWhisper.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		60292CE22EF603C9009AD5D1 /* MiniWhisperTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MiniWhisperTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		60292CEC2EF603C9009AD5D1 /* MiniWhisperUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MiniWhisperUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		604379AA2EF60DC600B83635 /* ASREngine */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = ASREngine; sourceTree = "<group>"; };
+		604379AB2EF60DC600B83635 /* AudioCapture */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = AudioCapture; sourceTree = "<group>"; };
+		604379AC2EF60DC600B83635 /* HotkeyListener */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = HotkeyListener; sourceTree = "<group>"; };
+		604379AD2EF60DC600B83635 /* TranscriptCleanup */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = TranscriptCleanup; sourceTree = "<group>"; };
+		604379AF2EF6153500B83635 /* justfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = justfile; sourceTree = "<group>"; };
+		604379B02EF6153C00B83635 /* Bootstrap-Guide.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "Bootstrap-Guide.md"; sourceTree = "<group>"; };
+		604379B12EF6153C00B83635 /* Scaffolding.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Scaffolding.md; sourceTree = "<group>"; };
+		604379B32EF6153C00B83635 /* ideas.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ideas.md; sourceTree = "<group>"; };
+		604379B42EF6153C00B83635 /* Suggested starting point.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "Suggested starting point.md"; sourceTree = "<group>"; };
+		604379B72EF6154500B83635 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		604379B82EF6154C00B83635 /* .swift-format */ = {isa = PBXFileReference; lastKnownFileType = text; path = ".swift-format"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		60292D002EF60700009AD5D1 /* Exceptions for "MiniWhisper" folder in "MiniWhisper" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 60292CD42EF603C8009AD5D1 /* MiniWhisper */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		60292CD72EF603C8009AD5D1 /* MiniWhisper */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				60292D002EF60700009AD5D1 /* Exceptions for "MiniWhisper" folder in "MiniWhisper" target */,
+			);
+			path = MiniWhisper;
+			sourceTree = "<group>";
+		};
+		60292CE52EF603C9009AD5D1 /* MiniWhisperTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = MiniWhisperTests;
+			sourceTree = "<group>";
+		};
+		60292CEF2EF603C9009AD5D1 /* MiniWhisperUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = MiniWhisperUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		60292CD22EF603C8009AD5D1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				60292D092EF609C2009AD5D1 /* AudioCapture in Frameworks */,
+				60292D0B2EF609C5009AD5D1 /* HotkeyListener in Frameworks */,
+				60292D072EF609BE009AD5D1 /* ASREngine in Frameworks */,
+				60292D0D2EF609C7009AD5D1 /* TranscriptCleanup in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		60292CDF2EF603C9009AD5D1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		60292CE92EF603C9009AD5D1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		60292CCC2EF603C8009AD5D1 = {
+			isa = PBXGroup;
+			children = (
+				60292CD72EF603C8009AD5D1 /* MiniWhisper */,
+				60292CE52EF603C9009AD5D1 /* MiniWhisperTests */,
+				60292CEF2EF603C9009AD5D1 /* MiniWhisperUITests */,
+				60292D052EF609BE009AD5D1 /* Frameworks */,
+				60292CD62EF603C8009AD5D1 /* Products */,
+				604379AE2EF60DC600B83635 /* Packages */,
+				604379AF2EF6153500B83635 /* justfile */,
+				604379B62EF6153C00B83635 /* docs */,
+				604379B72EF6154500B83635 /* .gitignore */,
+				604379B82EF6154C00B83635 /* .swift-format */,
+			);
+			sourceTree = "<group>";
+		};
+		60292CD62EF603C8009AD5D1 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				60292CD52EF603C8009AD5D1 /* MiniWhisper.app */,
+				60292CE22EF603C9009AD5D1 /* MiniWhisperTests.xctest */,
+				60292CEC2EF603C9009AD5D1 /* MiniWhisperUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		60292D052EF609BE009AD5D1 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		604379AE2EF60DC600B83635 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				604379AA2EF60DC600B83635 /* ASREngine */,
+				604379AB2EF60DC600B83635 /* AudioCapture */,
+				604379AC2EF60DC600B83635 /* HotkeyListener */,
+				604379AD2EF60DC600B83635 /* TranscriptCleanup */,
+			);
+			path = Packages;
+			sourceTree = "<group>";
+		};
+		604379B22EF6153C00B83635 /* designs */ = {
+			isa = PBXGroup;
+			children = (
+				604379B02EF6153C00B83635 /* Bootstrap-Guide.md */,
+				604379B12EF6153C00B83635 /* Scaffolding.md */,
+			);
+			path = designs;
+			sourceTree = "<group>";
+		};
+		604379B52EF6153C00B83635 /* scratch */ = {
+			isa = PBXGroup;
+			children = (
+				604379B32EF6153C00B83635 /* ideas.md */,
+				604379B42EF6153C00B83635 /* Suggested starting point.md */,
+			);
+			path = scratch;
+			sourceTree = "<group>";
+		};
+		604379B62EF6153C00B83635 /* docs */ = {
+			isa = PBXGroup;
+			children = (
+				604379B22EF6153C00B83635 /* designs */,
+				604379B52EF6153C00B83635 /* scratch */,
+			);
+			path = docs;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		60292CD42EF603C8009AD5D1 /* MiniWhisper */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 60292CF62EF603C9009AD5D1 /* Build configuration list for PBXNativeTarget "MiniWhisper" */;
+			buildPhases = (
+				60292CD12EF603C8009AD5D1 /* Sources */,
+				60292CD22EF603C8009AD5D1 /* Frameworks */,
+				60292CD32EF603C8009AD5D1 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				60292CD72EF603C8009AD5D1 /* MiniWhisper */,
+			);
+			name = MiniWhisper;
+			packageProductDependencies = (
+				60292D062EF609BE009AD5D1 /* ASREngine */,
+				60292D082EF609C2009AD5D1 /* AudioCapture */,
+				60292D0A2EF609C5009AD5D1 /* HotkeyListener */,
+				60292D0C2EF609C7009AD5D1 /* TranscriptCleanup */,
+			);
+			productName = MiniWhisper;
+			productReference = 60292CD52EF603C8009AD5D1 /* MiniWhisper.app */;
+			productType = "com.apple.product-type.application";
+		};
+		60292CE12EF603C9009AD5D1 /* MiniWhisperTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 60292CF92EF603C9009AD5D1 /* Build configuration list for PBXNativeTarget "MiniWhisperTests" */;
+			buildPhases = (
+				60292CDE2EF603C9009AD5D1 /* Sources */,
+				60292CDF2EF603C9009AD5D1 /* Frameworks */,
+				60292CE02EF603C9009AD5D1 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				60292CE42EF603C9009AD5D1 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				60292CE52EF603C9009AD5D1 /* MiniWhisperTests */,
+			);
+			name = MiniWhisperTests;
+			packageProductDependencies = (
+			);
+			productName = MiniWhisperTests;
+			productReference = 60292CE22EF603C9009AD5D1 /* MiniWhisperTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		60292CEB2EF603C9009AD5D1 /* MiniWhisperUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 60292CFC2EF603C9009AD5D1 /* Build configuration list for PBXNativeTarget "MiniWhisperUITests" */;
+			buildPhases = (
+				60292CE82EF603C9009AD5D1 /* Sources */,
+				60292CE92EF603C9009AD5D1 /* Frameworks */,
+				60292CEA2EF603C9009AD5D1 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				60292CEE2EF603C9009AD5D1 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				60292CEF2EF603C9009AD5D1 /* MiniWhisperUITests */,
+			);
+			name = MiniWhisperUITests;
+			packageProductDependencies = (
+			);
+			productName = MiniWhisperUITests;
+			productReference = 60292CEC2EF603C9009AD5D1 /* MiniWhisperUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		60292CCD2EF603C8009AD5D1 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2620;
+				LastUpgradeCheck = 2620;
+				TargetAttributes = {
+					60292CD42EF603C8009AD5D1 = {
+						CreatedOnToolsVersion = 26.2;
+					};
+					60292CE12EF603C9009AD5D1 = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = 60292CD42EF603C8009AD5D1;
+					};
+					60292CEB2EF603C9009AD5D1 = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = 60292CD42EF603C8009AD5D1;
+					};
+				};
+			};
+			buildConfigurationList = 60292CD02EF603C8009AD5D1 /* Build configuration list for PBXProject "MiniWhisper" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 60292CCC2EF603C8009AD5D1;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 60292CD62EF603C8009AD5D1 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				60292CD42EF603C8009AD5D1 /* MiniWhisper */,
+				60292CE12EF603C9009AD5D1 /* MiniWhisperTests */,
+				60292CEB2EF603C9009AD5D1 /* MiniWhisperUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		60292CD32EF603C8009AD5D1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		60292CE02EF603C9009AD5D1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		60292CEA2EF603C9009AD5D1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		60292CD12EF603C8009AD5D1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		60292CDE2EF603C9009AD5D1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		60292CE82EF603C9009AD5D1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		60292CE42EF603C9009AD5D1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 60292CD42EF603C8009AD5D1 /* MiniWhisper */;
+			targetProxy = 60292CE32EF603C9009AD5D1 /* PBXContainerItemProxy */;
+		};
+		60292CEE2EF603C9009AD5D1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 60292CD42EF603C8009AD5D1 /* MiniWhisper */;
+			targetProxy = 60292CED2EF603C9009AD5D1 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		60292CF42EF603C9009AD5D1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		60292CF52EF603C9009AD5D1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		60292CF72EF603C9009AD5D1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 6JMB7W6NB4;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = YES;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MiniWhisper/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Mini Whisper";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "MiniWhisper needs microphone access to transcribe your speech.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.thurstonsand.MiniWhisper;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		60292CF82EF603C9009AD5D1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 6JMB7W6NB4;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = YES;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MiniWhisper/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Mini Whisper";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "MiniWhisper needs microphone access to transcribe your speech.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.thurstonsand.MiniWhisper;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		60292CFA2EF603C9009AD5D1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.thurstonsand.MiniWhisperTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MiniWhisper.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MiniWhisper";
+			};
+			name = Debug;
+		};
+		60292CFB2EF603C9009AD5D1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.thurstonsand.MiniWhisperTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MiniWhisper.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MiniWhisper";
+			};
+			name = Release;
+		};
+		60292CFD2EF603C9009AD5D1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.thurstonsand.MiniWhisperUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = MiniWhisper;
+			};
+			name = Debug;
+		};
+		60292CFE2EF603C9009AD5D1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.thurstonsand.MiniWhisperUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = MiniWhisper;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		60292CD02EF603C8009AD5D1 /* Build configuration list for PBXProject "MiniWhisper" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				60292CF42EF603C9009AD5D1 /* Debug */,
+				60292CF52EF603C9009AD5D1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		60292CF62EF603C9009AD5D1 /* Build configuration list for PBXNativeTarget "MiniWhisper" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				60292CF72EF603C9009AD5D1 /* Debug */,
+				60292CF82EF603C9009AD5D1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		60292CF92EF603C9009AD5D1 /* Build configuration list for PBXNativeTarget "MiniWhisperTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				60292CFA2EF603C9009AD5D1 /* Debug */,
+				60292CFB2EF603C9009AD5D1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		60292CFC2EF603C9009AD5D1 /* Build configuration list for PBXNativeTarget "MiniWhisperUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				60292CFD2EF603C9009AD5D1 /* Debug */,
+				60292CFE2EF603C9009AD5D1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		60292D062EF609BE009AD5D1 /* ASREngine */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ASREngine;
+		};
+		60292D082EF609C2009AD5D1 /* AudioCapture */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AudioCapture;
+		};
+		60292D0A2EF609C5009AD5D1 /* HotkeyListener */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = HotkeyListener;
+		};
+		60292D0C2EF609C7009AD5D1 /* TranscriptCleanup */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = TranscriptCleanup;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 60292CCD2EF603C8009AD5D1 /* Project object */;
+}

@@ -1,0 +1,25 @@
+# Xcode
+.build/
+DerivedData/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcworkspace/xcuserdata/
+
+# SwiftPM
+.swiftpm/
+Package.resolved
+
+# macOS
+.DS_Store
+
+# IDEs
+*.swp
+*~
+
+# Archives & build products
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# AI
+/docs/scratch

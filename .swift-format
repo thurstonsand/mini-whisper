@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "lineLength": 100,
+  "indentation": {
+    "spaces": 2
+  },
+  "tabWidth": 2,
+  "maximumBlankLines": 1,
+  "spacesBeforeEndOfLineComments": 2,
+  "respectsExistingLineBreaks": false,
+  "prioritizeKeepingFunctionOutputTogether": true,
+  "multilineTrailingCommaBehavior": "alwaysUsed",
+  "reflowMultilineStringLiterals": "onlyLinesOverLength",
+  "orderedImports": {
+    "includeConditionalImports": true
+  }
+}
