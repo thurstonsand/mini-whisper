@@ -1,5 +1,9 @@
 import SwiftUI
 
 @main struct MiniWhisperApp: App {
-  var body: some Scene { MenuBarExtra("MiniWhisper", systemImage: "waveform") { MenuBarView() } }
+  @State private var appState = AppState()
+
+  var body: some Scene {
+    MenuBarExtra("MiniWhisper", systemImage: "waveform") { MenuBarView(appState: appState) }
+  }
 }

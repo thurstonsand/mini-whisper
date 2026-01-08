@@ -1,18 +1,29 @@
 # MiniWhisper CLI Workflow
 
 scheme := "MiniWhisper"
-dest := "platform=macOS"
+dest := "platform=macOS,arch=arm64"
 derived_data := ".build/DerivedData"
 app_path := derived_data / "Build/Products/Debug" / scheme + ".app"
+xcb := "xcbeautify -q --disable-colored-output --disable-logging"
 
 # === App Targets ===
 
-# Build the app
+# Build the app (strict: warnings as errors, full concurrency checks)
 build:
     xcodebuild -scheme {{scheme}} \
         -destination '{{dest}}' \
         -derivedDataPath {{derived_data}} \
-        build
+        OTHER_SWIFT_FLAGS="-strict-concurrency=complete" \
+        GCC_TREAT_WARNINGS_AS_ERRORS=YES \
+        SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
+        build | {{xcb}}
+
+# Build without strict checks (faster iteration)
+build-quick:
+    xcodebuild -scheme {{scheme}} \
+        -destination '{{dest}}' \
+        -derivedDataPath {{derived_data}} \
+        build | {{xcb}}
 
 # Build and run the app
 run: build
@@ -23,7 +34,7 @@ test:
     xcodebuild -scheme {{scheme}} \
         -destination '{{dest}}' \
         -derivedDataPath {{derived_data}} \
-        test
+        test | {{xcb}}
 
 # === Package Targets (fast, no Xcode overhead) ===
 
@@ -55,20 +66,15 @@ format-check:
 
 # === Maintenance ===
 
+# Reset microphone permission (will prompt again on next launch)
+reset-permissions:
+    tccutil reset Microphone com.thurstonsand.MiniWhisper
+
+# Build and run with fresh permissions
+run-fresh: reset-permissions run
+
 # Remove build artifacts
 clean:
     rm -rf {{derived_data}}
     rm -rf .build
     for pkg in Packages/*/; do swift package --package-path "$pkg" clean; done
-
-# === Strict Build ===
-
-# Build with strict compiler warnings
-build-strict:
-    xcodebuild -scheme {{scheme}} \
-        -destination '{{dest}}' \
-        -derivedDataPath {{derived_data}} \
-        OTHER_SWIFT_FLAGS="-strict-concurrency=complete" \
-        GCC_TREAT_WARNINGS_AS_ERRORS=YES \
-        SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
-        build

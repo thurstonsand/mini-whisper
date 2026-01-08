@@ -2,6 +2,11 @@
 
 macOS menu bar dictation app using local whisper.cpp for speech-to-text.
 
+## Behavior
+
+I am brand new to Swift/MacOS development, so I would appreciate some extra explanations of things that you're doing, code that you're writing, decisions that you're making, and any other insights you can provide.
+However, I am an experienced developer with plenty of experience with other languages: Python, Scala, Golang. I understand the concepts, I'm just foreign to the world of Apple development.
+
 ## Commands (via justfile)
 
 - `just build` — build app
@@ -9,7 +14,9 @@ macOS menu bar dictation app using local whisper.cpp for speech-to-text.
 - `just test-packages` — fast package-only tests
 - `swift test --package-path Packages/AudioCapture --filter testName` — single test
 - `just format` — format code (swift-format)
-- `just build-strict` — build with strict concurrency + warnings as errors
+- `just run` — build and run app
+- `just run-fresh` — reset mic permission then build and run
+- `./scripts/capture_menu_screenshot [output.png]` — screenshot menu dropdown (app must be running)
 
 ## Architecture
 
