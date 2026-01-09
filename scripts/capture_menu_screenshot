@@ -2,18 +2,34 @@
 set -euo pipefail
 
 output="${1:-menu_screenshot.png}"
+# Ensure absolute path for output so AppleScript handles it correctly
+output_abs="$(cd "$(dirname "$output")" && pwd)/$(basename "$output")"
 
 osascript -e '
 tell application "System Events"
     tell process "MiniWhisper"
-        click menu bar item "waveform" of menu bar 2
+        -- Find strictly by identifier
+        try
+            set targetItem to (first menu bar item of menu bar 2 whose value of attribute "AXIdentifier" is "MiniWhisperStatusItem")
+        on error
+            error "Could not find MiniWhisper status item. Ensure the app is running."
+        end try
+
+        click targetItem
         delay 0.2
-        set theMenu to menu 1 of menu bar item "waveform" of menu bar 2
+        set theMenu to menu 1 of targetItem
         set {x, y} to position of theMenu
         set {w, h} to size of theMenu
-        return "" & x & "," & y & "," & w & "," & h
+
+        set rectArg to "" & x & "," & y & "," & w & "," & h
     end tell
+
+    -- Capture screenshot (blocking)
+    do shell script "screencapture -R " & rectArg & " " & quoted form of "'"$output_abs"'"
+
+    -- Close menu (Escape)
+    key code 53
 end tell
-' | xargs -I {} screencapture -R {} "$output"
+'
 
 echo "Saved to $output"

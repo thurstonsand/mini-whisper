@@ -19,7 +19,7 @@ A step-by-step guide to scaffolding a macOS menu bar dictation app using **only 
 | Testing            | Swift Testing + XCTest      | Xcode 16               |
 | Formatting         | `swift format`              | Swift toolchain        |
 | Package management | SwiftPM (local packages)    | Swift toolchain        |
-| UI framework       | SwiftUI + MenuBarExtra      | macOS 13+              |
+| UI framework       | SwiftUI + NSStatusItem      | macOS 13+              |
 | ASR engine         | whisper.cpp XCFramework     | External (intentional) |
 
 ---
@@ -30,8 +30,10 @@ A step-by-step guide to scaffolding a macOS menu bar dictation app using **only 
 mini-whisper/
 ├── MiniWhisper.xcodeproj/          # Xcode project (app shell)
 ├── MiniWhisper/                    # App target source
-│   ├── App.swift                   # @main entry point
-│   ├── MenuBarView.swift           # MenuBarExtra UI
+│   ├── MiniWhisperApp.swift        # @main entry point + AppDelegate
+│   ├── MenuBarController.swift     # NSStatusItem menu
+│   ├── RecordingStore.swift        # Recording + permission state
+│   ├── SettingsStore.swift         # Settings model
 │   ├── Info.plist
 │   └── MiniWhisper.entitlements
 ├── Packages/                       # Local SwiftPM packages
@@ -274,58 +276,72 @@ Create `.swift-format` at project root:
 
 ## Phase 3: Minimal Hello World Menu Bar App
 
-### Step 3.1: Replace App.swift
+### Step 3.1: Replace MiniWhisperApp.swift
 
-Replace `MiniWhisper/App.swift`:
+Replace `MiniWhisper/MiniWhisperApp.swift`:
 
 ```swift
 import SwiftUI
 
 @main
 struct MiniWhisperApp: App {
-    var body: some Scene {
-        MenuBarExtra("MiniWhisper", systemImage: "waveform") {
-            MenuBarView()
-        }
-        .menuBarExtraStyle(.window)
+  @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+
+  var body: some Scene {
+    Settings {
+      Text("Settings placeholder")
+        .frame(width: 300, height: 200)
     }
+  }
+}
+
+@MainActor
+final class AppDelegate: NSObject, NSApplicationDelegate {
+  private var menuBarController: MenuBarController?
+
+  func applicationDidFinishLaunching(_ notification: Notification) {
+    menuBarController = MenuBarController()
+  }
 }
 ```
 
-### Step 3.2: Create MenuBarView.swift
+### Step 3.2: Create MenuBarController.swift
 
-Create `MiniWhisper/MenuBarView.swift`:
+Create `MiniWhisper/MenuBarController.swift`:
 
 ```swift
 import SwiftUI
 
-struct MenuBarView: View {
-    @State private var isListening = false
+@MainActor
+final class MenuBarController {
+  private var statusItem: NSStatusItem?
 
-    var body: some View {
-        VStack(spacing: 12) {
-            Text(isListening ? "Listening..." : "Ready")
-                .font(.headline)
+  init() {
+    setupStatusItem()
+  }
 
-            Button(isListening ? "Stop" : "Start") {
-                isListening.toggle()
-            }
-            .keyboardShortcut(.return, modifiers: [])
+  private func setupStatusItem() {
+    statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+    statusItem?.button?.image = NSImage(
+      systemSymbolName: "waveform",
+      accessibilityDescription: "MiniWhisper"
+    )
+    statusItem?.menu = buildMenu()
+  }
 
-            Divider()
-
-            Button("Quit") {
-                NSApplication.shared.terminate(nil)
-            }
-            .keyboardShortcut("q", modifiers: .command)
-        }
-        .padding()
-        .frame(width: 200)
-    }
-}
-
-#Preview {
-    MenuBarView()
+  private func buildMenu() -> NSMenu {
+    let menu = NSMenu()
+    menu.addItem(NSMenuItem(title: "Ready", action: nil, keyEquivalent: ""))
+    menu.addItem(.separator())
+    menu.addItem(
+      NSMenuItem(
+        title: "Quit",
+        action: #selector(NSApplication.terminate(_:)),
+        keyEquivalent: "q"
+      )
+    )
+    return menu
+  }
 }
 ```
 

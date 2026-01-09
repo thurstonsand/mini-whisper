@@ -25,8 +25,9 @@ That combo gives you the closest thing macOS has to a dependency-free, maintaina
 
 ### Menu-bar app scaffolding (no third-party libs)
 
-- Build as a **SwiftUI menu bar app** (MenuBarExtra) and set `LSUIElement=true` to keep it out of Dock/app switcher. ([Nil Coalescing][1])
-  (If you hit MenuBarExtra limitations, you can always drop to `NSStatusItem` later—but start SwiftUI-first.)
+- Build as a **SwiftUI menu bar app** using `NSStatusItem` and set `LSUIElement=true` to keep it out of Dock/app
+  switcher. ([Nil Coalescing][1])
+  (MenuBarExtra is a simpler starting point, but `NSStatusItem` gives more control and is what the app uses now.)
 
 ### whisper.cpp integration scaffolding you can copy
 
@@ -84,7 +85,7 @@ Caveat: those CoreML artifacts remove the _runtime dependency_ problem (CoreML i
 ## 3) The shortest path to a usable skeleton (actionable plan)
 
 1. Create Xcode macOS App (SwiftUI) **with Unit Tests + UI Tests enabled**.
-2. Convert to a menu-bar-only UX (`MenuBarExtra`, `LSUIElement=true`). ([Nil Coalescing][1])
+2. Convert to a menu-bar-only UX (`NSStatusItem`, `LSUIElement=true`). ([Nil Coalescing][1])
 3. Add local SwiftPM packages for core modules (AudioIO/ASRCore/CleanupClient/Hotkeys).
 4. Bring in whisper.cpp as an **XCFramework** (build script + embed). ([Hugging Face][2])
 5. Start with **`base.en-q5_1`** as your default model and benchmark; keep `tiny.en-q5_1` as your “low-latency mode.” ([Hugging Face][5])

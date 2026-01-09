@@ -20,7 +20,7 @@ However, I am an experienced developer with plenty of experience with other lang
 
 ## Architecture
 
-- `MiniWhisper/` — SwiftUI app target (thin shell, MenuBarExtra)
+- `MiniWhisper/` — SwiftUI app target (thin shell, NSStatusItem menu)
 - `Packages/AudioCapture` — AVAudioEngine mic capture, ring buffer, VAD
 - `Packages/ASREngine` — transcription protocol + whisper.cpp wrapper
 - `Packages/TranscriptCleanup` — optional LLM cleanup client

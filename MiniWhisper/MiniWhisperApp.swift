@@ -1,9 +1,19 @@
 import SwiftUI
 
 @main struct MiniWhisperApp: App {
-  @State private var appState = AppState()
+  @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
-  var body: some Scene {
-    MenuBarExtra("MiniWhisper", systemImage: "waveform") { MenuBarView(appState: appState) }
+  var body: some Scene { Settings { Text("Settings placeholder").frame(width: 300, height: 200) } }
+}
+
+@MainActor final class AppDelegate: NSObject, NSApplicationDelegate {
+  private var settings: SettingsStore!
+  private var recording: RecordingStore!
+  private var menuBarController: MenuBarController!
+
+  func applicationDidFinishLaunching(_ notification: Notification) {
+    settings = SettingsStore()
+    recording = RecordingStore()
+    menuBarController = MenuBarController(settings: settings, recording: recording)
   }
 }

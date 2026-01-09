@@ -1,13 +1,20 @@
 import AVFoundation
 
-public enum MicPermissionStatus: Sendable {
+public enum MicPermissionStatus: Sendable, Equatable {
   case granted
   case denied
   case undetermined
 }
 
-public enum MicPermission {
-  public static var status: MicPermissionStatus {
+public protocol MicPermissionProviding: Sendable {
+  var status: MicPermissionStatus { get }
+  @MainActor func request() async -> MicPermissionStatus
+}
+
+public enum MicPermission: MicPermissionProviding {
+  case shared
+
+  public var status: MicPermissionStatus {
     switch AVCaptureDevice.authorizationStatus(for: .audio) {
     case .authorized: .granted
     case .denied, .restricted: .denied
@@ -16,7 +23,7 @@ public enum MicPermission {
     }
   }
 
-  @MainActor public static func request() async -> MicPermissionStatus {
+  @MainActor public func request() async -> MicPermissionStatus {
     guard status == .undetermined else { return status }
     let granted = await AVCaptureDevice.requestAccess(for: .audio)
     return granted ? .granted : .denied

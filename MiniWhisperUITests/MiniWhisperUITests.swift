@@ -23,12 +23,16 @@ final class MiniWhisperUITests: XCTestCase {
     }
 
     @MainActor
-    func testExample() throws {
-        // UI tests must launch the application that they test.
+    func testMenuContainsQuitItem() throws {
         let app = XCUIApplication()
         app.launch()
 
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+        let statusItem = app.statusItems["MiniWhisperStatusItem"]
+        XCTAssertTrue(statusItem.waitForExistence(timeout: 5))
+        statusItem.click()
+
+        let quitItem = app.menuItems["Quit"]
+        XCTAssertTrue(quitItem.waitForExistence(timeout: 2))
     }
 
     @MainActor
