@@ -1,0 +1,10 @@
+#!/bin/bash
+set -e
+
+cd "$(dirname "$0")/.."
+
+mise plugin link --force xcode-build-server .mise/plugins/xcode-build-server 2>/dev/null || true
+mise trust
+mise install
+
+echo "✓ Ready. Run 'mise run build' to build."

@@ -7,16 +7,23 @@ macOS menu bar dictation app using local whisper.cpp for speech-to-text.
 I am brand new to Swift/MacOS development, so I would appreciate some extra explanations of things that you're doing, code that you're writing, decisions that you're making, and any other insights you can provide.
 However, I am an experienced developer with plenty of experience with other languages: Python, Scala, Golang. I understand the concepts, I'm just foreign to the world of Apple development.
 
-## Commands (via justfile)
+## Commands (via mise)
 
-- `just build` — build app
-- `just test` — run all tests (app + UI)
-- `just test-packages` — fast package-only tests
+- `mise run build` — build app
+- `mise run test` — run all tests (app + UI)
+- `mise run test-packages` — fast package-only tests
 - `swift test --package-path Packages/AudioCapture --filter testName` — single test
-- `just format` — format code (swift-format)
-- `just run` — build and run app
-- `just run-fresh` — reset mic permission then build and run
+- `mise run format` — format code (swift-format)
+- `mise run run` — build and run app
+- `mise run run-fresh` — reset mic permission then build and run
 - `./scripts/capture_menu_screenshot [output.png]` — screenshot menu dropdown (app must be running)
+
+### Setup
+
+```sh
+brew install mise
+./scripts/mise-setup
+```
 
 ## Architecture
 

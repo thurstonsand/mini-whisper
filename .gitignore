@@ -16,6 +16,10 @@ Package.resolved
 *.swp
 *~
 
+# LSP build server config
+buildServer.json
+.bundle/
+
 # Archives & build products
 *.ipa
 *.dSYM.zip

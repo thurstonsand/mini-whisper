@@ -1,0 +1,131 @@
+# MiniWhisper development environment
+# Run `mise trust` then `mise install` to set up
+
+[env]
+SCHEME = "MiniWhisper"
+DEST = "platform=macOS,arch=arm64"
+DERIVED_DATA = ".build/DerivedData"
+APP_PATH = "{{ env.DERIVED_DATA }}/Build/Products/Debug/{{ env.SCHEME }}.app"
+
+# First-time setup: ./scripts/mise-setup
+# (links local plugin, trusts config, installs tools)
+
+[settings]
+experimental = true
+
+[hooks]
+enter = "[ -f buildServer.json ] || mise run bsp >/dev/null"
+
+[tools]
+"aqua:cpisciotta/xcbeautify" = "latest"
+xcode-build-server = "latest"
+
+# === App Build Targets ===
+
+[tasks.build]
+description = "Build the app"
+run = """
+xcodebuild -scheme $SCHEME \
+    -destination "$DEST" \
+    -derivedDataPath $DERIVED_DATA \
+    OTHER_SWIFT_FLAGS="-strict-concurrency=complete" \
+    GCC_TREAT_WARNINGS_AS_ERRORS=YES \
+    SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
+    build | xcbeautify -q --disable-colored-output --disable-logging
+"""
+
+[tasks.build-quick]
+description = "Build without strict checks (faster iteration)"
+run = """
+xcodebuild -scheme $SCHEME \
+    -destination "$DEST" \
+    -derivedDataPath $DERIVED_DATA \
+    build | xcbeautify -q --disable-colored-output --disable-logging
+"""
+
+[tasks.run]
+description = "Build and run the app"
+depends = ["build"]
+run = "open $APP_PATH"
+
+[tasks.run-fresh]
+description = "Build and run with fresh permissions"
+depends = ["reset-permissions", "run"]
+
+
+[tasks.test]
+description = "Run app tests"
+run = """
+xcodebuild -scheme $SCHEME \
+    -destination "$DEST" \
+    -derivedDataPath $DERIVED_DATA \
+    test | xcbeautify -q --disable-colored-output --disable-logging
+"""
+
+# === Package Targets (fast, no Xcode overhead) ===
+
+[tasks.build-packages]
+description = "Build all local packages"
+run = """
+for pkg in Packages/*/; do
+    echo "Building $pkg..."
+    swift build --package-path "$pkg" || exit 1
+done
+"""
+
+[tasks.test-packages]
+description = "Test all local packages"
+run = """
+for pkg in Packages/*/; do
+    echo "Testing $pkg..."
+    swift test --package-path "$pkg" || exit 1
+done
+"""
+
+# === Code Quality ===
+
+[tasks.format]
+description = "Format all Swift code"
+run = "swift format --recursive --in-place MiniWhisper/ Packages/"
+
+[tasks.format-check]
+description = "Check formatting (CI)"
+run = """
+swift format --recursive MiniWhisper/ Packages/ 2>&1 | grep -q "would be reformatted" && exit 1 || exit 0
+"""
+
+# === Maintenance ===
+
+[tasks.reset-permissions]
+description = "Reset microphone permission (will prompt again on next launch)"
+run = "tccutil reset Microphone com.thurstonsand.MiniWhisper"
+
+[tasks.clean]
+description = "Remove build artifacts"
+run = """
+rm -rf $DERIVED_DATA
+rm -rf .build
+for pkg in Packages/*/; do swift package --package-path "$pkg" clean; done
+"""
+
+# === Build Server ===
+
+[tasks.bsp]
+description = "Generate buildServer.json for LSP integration"
+run = """
+xcode-build-server config \
+    -scheme $SCHEME \
+    -workspace MiniWhisper.xcodeproj/project.xcworkspace \
+    --build_root "$PWD/$DERIVED_DATA"
+"""
+
+[tasks.bsp-check]
+description = "Validate buildServer.json exists and is current"
+run = """
+if [ ! -f buildServer.json ]; then
+    echo "buildServer.json not found. Run 'mise run bsp' to generate."
+    exit 1
+fi
+echo "buildServer.json exists"
+cat buildServer.json | head -20
+"""
