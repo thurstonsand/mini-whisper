@@ -1,28 +1,35 @@
 # MiniWhisper
 
-macOS menu bar dictation app using local whisper.cpp for speech-to-text.
+MiniWhisper is a macOS menu bar dictation app using local whisper.cpp for speech-to-text. It's a SwiftUI app that lives in the menu bar (NSStatusItem) and provides global hotkey-triggered transcription.
 
-## Behavior
+## User Context
 
-I am brand new to Swift/MacOS development, so I would appreciate some extra explanations of things that you're doing, code that you're writing, decisions that you're making, and any other insights you can provide.
-However, I am an experienced developer with plenty of experience with other languages: Python, Scala, Golang. I understand the concepts, I'm just foreign to the world of Apple development.
+The developer is new to Swift/macOS but experienced in Python, Scala, and Go. When writing code or making decisions:
+
+- Explain Swift-specific patterns and idioms
+- Clarify macOS/Apple framework conventions (AppKit, AVFoundation, etc.)
+- Note when something is "the Swift way" vs a general pattern
+- Explain any non-obvious syntax (property wrappers, result builders, etc.)
 
 ## Commands (via mise)
-
-- `mise run build` — build app
-- `mise run test` — run all tests (app + UI)
-- `mise run test-packages` — fast package-only tests
-- `swift test --package-path Packages/AudioCapture --filter testName` — single test
-- `mise run format` — format code (swift-format)
-- `mise run run` — build and run app
-- `mise run run-fresh` — reset mic permission then build and run
-- `./scripts/capture_menu_screenshot [output.png]` — screenshot menu dropdown (app must be running)
 
 ### Setup
 
 ```sh
 brew install mise
 ./scripts/mise-setup
+```
+
+### Development
+
+```sh
+mise run build          # Build the app
+mise run test           # Run all tests (app + UI)
+mise run test-packages  # Fast package-only tests (prefer this for quick feedback)
+mise run format         # Format code with swift-format
+mise run run            # Build and run the app
+mise run run-fresh      # Reset mic permission, then build and run
+./scripts/capture_menu_screenshot [output.png]  # Screenshot menu dropdown (app must be running)
 ```
 
 ## Architecture
@@ -34,8 +41,11 @@ brew install mise
 - `Packages/HotkeyListener` — global hotkey (Carbon API)
 - `Frameworks/` — whisper.xcframework (added later)
 
+Design principle: App target is a thin shell; business logic lives in packages.
+
 ## Code Style
 
-- 2-space indent, 100 char line length (see .swift-format)
-- Swift 6.2, Swift Testing framework
-- No external deps except whisper.cpp; use Apple frameworks only
+- 2-space indentation
+- Swift 6.2 with strict concurrency
+- Swift Testing framework (`import Testing`, `@Test`, `#expect`) — not XCTest
+- No external dependencies except whisper.cpp — use Apple frameworks only

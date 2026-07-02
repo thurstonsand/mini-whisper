@@ -1,10 +1,10 @@
 import AudioCapture
-import SwiftUI
+import Observation
 
 @MainActor @Observable final class RecordingStore {
   // MARK: - Dependencies
 
-  private let permissionProvider: any MicPermissionProviding
+  @ObservationIgnored private let permissionProvider: any MicPermissionProviding
 
   // MARK: - Permission State
 

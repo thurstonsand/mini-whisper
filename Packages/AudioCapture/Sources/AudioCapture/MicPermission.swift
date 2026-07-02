@@ -11,8 +11,9 @@ public protocol MicPermissionProviding: Sendable {
   @MainActor func request() async -> MicPermissionStatus
 }
 
-public enum MicPermission: MicPermissionProviding {
-  case shared
+public struct MicPermission: MicPermissionProviding {
+  public static let shared = MicPermission()
+  private init() {}
 
   public var status: MicPermissionStatus {
     switch AVCaptureDevice.authorizationStatus(for: .audio) {

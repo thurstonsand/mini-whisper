@@ -136,3 +136,38 @@ struct RecordingStoreRecordingTests {
     #expect(store.lastError == nil)
   }
 }
+
+// MARK: - Icon Selection Tests
+
+@Suite
+struct IconSelectionTests {
+  @Test
+  func recordingShowsRecordIcon() {
+    let symbol = iconSymbolName(status: RecordingStatus.recording, micStatus: MicPermissionStatus.granted)
+    #expect(symbol == "record.circle.fill")
+  }
+
+  @Test
+  func processingShowsEllipsisIcon() {
+    let symbol = iconSymbolName(status: RecordingStatus.processing, micStatus: MicPermissionStatus.granted)
+    #expect(symbol == "ellipsis.circle")
+  }
+
+  @Test
+  func idleWithMicGrantedShowsWaveform() {
+    let symbol = iconSymbolName(status: RecordingStatus.idle, micStatus: MicPermissionStatus.granted)
+    #expect(symbol == "waveform")
+  }
+
+  @Test
+  func idleWithMicDeniedShowsWarningIcon() {
+    let symbol = iconSymbolName(status: RecordingStatus.idle, micStatus: MicPermissionStatus.denied)
+    #expect(symbol == "waveform.badge.exclamationmark")
+  }
+
+  @Test
+  func idleWithMicUndeterminedShowsWarningIcon() {
+    let symbol = iconSymbolName(status: RecordingStatus.idle, micStatus: MicPermissionStatus.undetermined)
+    #expect(symbol == "waveform.badge.exclamationmark")
+  }
+}

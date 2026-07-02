@@ -1,4 +1,4 @@
-import SwiftUI
+import Foundation
 
 @MainActor @Observable final class SettingsStore {
   // MARK: - Transcription Settings

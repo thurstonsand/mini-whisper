@@ -1,6 +1,19 @@
 import AudioCapture
 import SwiftUI
 
+// MARK: - Icon Selection
+
+func iconSymbolName(status: RecordingStatus, micStatus: MicPermissionStatus) -> String {
+  switch status {
+  case .recording: return "record.circle.fill"
+  case .processing: return "ellipsis.circle"
+  case .idle:
+    if micStatus == .granted { return "waveform" } else { return "waveform.badge.exclamationmark" }
+  }
+}
+
+// MARK: - MenuBarController
+
 @MainActor final class MenuBarController {
   private var statusItem: NSStatusItem?
   private let settings: SettingsStore
@@ -10,14 +23,33 @@ import SwiftUI
     self.settings = settings
     self.recording = recording
     setupStatusItem()
+    observeRecordingChanges()
   }
 
   private func setupStatusItem() {
     statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-    statusItem?.button?.image = NSImage(
-      systemSymbolName: "waveform", accessibilityDescription: "MiniWhisper")
     statusItem?.button?.setAccessibilityIdentifier("MiniWhisperStatusItem")
     statusItem?.menu = buildMenu()
+    updateIcon()
+  }
+
+  private func observeRecordingChanges() {
+    withObservationTracking {
+      _ = self.recording.status
+      _ = self.recording.micStatus
+    } onChange: { [weak self] in
+      Task { @MainActor [weak self] in
+        guard let self else { return }
+        self.observeRecordingChanges()
+        self.updateIcon()
+      }
+    }
+  }
+
+  private func updateIcon() {
+    let symbolName = iconSymbolName(status: recording.status, micStatus: recording.micStatus)
+    statusItem?.button?.image = NSImage(
+      systemSymbolName: symbolName, accessibilityDescription: "MiniWhisper")
   }
 
   func rebuildMenu() { statusItem?.menu = buildMenu() }
