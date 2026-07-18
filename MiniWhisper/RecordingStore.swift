@@ -1,51 +1,57 @@
 import AudioCapture
-import Observation
+import ComposableArchitecture
 
-@MainActor @Observable final class RecordingStore {
-  // MARK: - Dependencies
-
-  @ObservationIgnored private let permissionProvider: any MicPermissionProviding
-
-  // MARK: - Permission State
-
-  private(set) var micStatus: MicPermissionStatus
-
-  // MARK: - Recording State
-
-  private(set) var status: RecordingStatus = .idle
-  private(set) var audioLevel: Float = 0
-
-  // MARK: - Transcription State
-
-  private(set) var currentTranscription: String?
-  private(set) var lastError: String?
-
-  // MARK: - Init
-
-  init(permissionProvider: any MicPermissionProviding = MicPermission.shared) {
-    self.permissionProvider = permissionProvider
-    self.micStatus = permissionProvider.status
+@Reducer struct RecordingFeature {
+  @ObservableState struct State: Equatable {
+    var micStatus: MicPermissionStatus = .undetermined
+    var status: RecordingStatus = .idle
+    var audioLevel: Float = 0
+    var currentTranscription: String?
+    var lastError: String?
   }
 
-  // MARK: - Actions
-
-  func requestMicAccess() async { micStatus = await permissionProvider.request() }
-
-  func startRecording() {
-    guard micStatus == .granted else { return }
-    status = .recording// TODO: Start audio capture
+  enum Action: Equatable {
+    case task
+    case micStatusUpdated(MicPermissionStatus)
+    case requestMicAccess
+    case startRecording
+    case stopRecording
+    case reset
   }
 
-  func stopRecording() {
-    guard status == .recording else { return }
-    status = .processing// TODO: Stop capture, start transcription
-  }
+  @Dependency(MicrophonePermissionClient.self) var microphonePermission
 
-  func reset() {
-    status = .idle
-    audioLevel = 0
-    currentTranscription = nil
-    lastError = nil
+  var body: some ReducerOf<Self> {
+    Reduce { state, action in
+      switch action {
+      case .task:
+        return .run { send in await send(.micStatusUpdated(await microphonePermission.status())) }
+
+      case .micStatusUpdated(let status):
+        state.micStatus = status
+        return .none
+
+      case .requestMicAccess:
+        return .run { send in await send(.micStatusUpdated(await microphonePermission.request())) }
+
+      case .startRecording:
+        guard state.micStatus == .granted else { return .none }
+        state.status = .recording
+        return .none
+
+      case .stopRecording:
+        guard state.status == .recording else { return .none }
+        state.status = .processing
+        return .none
+
+      case .reset:
+        state.status = .idle
+        state.audioLevel = 0
+        state.currentTranscription = nil
+        state.lastError = nil
+        return .none
+      }
+    }
   }
 }
 

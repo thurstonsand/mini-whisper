@@ -6,12 +6,7 @@ public enum MicPermissionStatus: Sendable, Equatable {
   case undetermined
 }
 
-public protocol MicPermissionProviding: Sendable {
-  var status: MicPermissionStatus { get }
-  @MainActor func request() async -> MicPermissionStatus
-}
-
-public struct MicPermission: MicPermissionProviding {
+public struct MicPermission: Sendable {
   public static let shared = MicPermission()
   private init() {}
 

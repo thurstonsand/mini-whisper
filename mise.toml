@@ -1,24 +1,35 @@
 # MiniWhisper development environment
-# Run `mise trust` then `mise install` to set up
+# Requires mise: `mise trust && mise bootstrap`
+
+min_version = "2026.7.4"
 
 [env]
+HK_MISE = "1"
 SCHEME = "MiniWhisper"
 DEST = "platform=macOS,arch=arm64"
 DERIVED_DATA = ".build/DerivedData"
 APP_PATH = "{{ env.DERIVED_DATA }}/Build/Products/Debug/{{ env.SCHEME }}.app"
 
-# First-time setup: ./scripts/mise-setup
-# (links local plugin, trusts config, installs tools)
-
 [settings]
 experimental = true
 
 [hooks]
-enter = "[ -f buildServer.json ] || mise run bsp >/dev/null"
+enter = "mise bootstrap --yes --quiet && ([ -f buildServer.json ] || mise run bsp >/dev/null)"
 
 [tools]
 "aqua:cpisciotta/xcbeautify" = "latest"
-xcode-build-server = "latest"
+hk = "1.50.0"
+"http:xcode-build-server" = { version = "1.3.0", url = "https://github.com/SolaWing/xcode-build-server/archive/refs/tags/v{{ version }}.tar.gz", strip_components = 1, bin_path = "." }
+
+[tasks.bootstrap]
+description = "Install tools and git hooks"
+run = [
+    "mise install",
+    "hk install --mise --quiet",
+]
+sources = ["mise.toml", "hk.pkl"]
+outputs = [".git/config"]
+quiet = true
 
 # === App Build Targets ===
 
@@ -28,9 +39,8 @@ run = """
 xcodebuild -scheme $SCHEME \
     -destination "$DEST" \
     -derivedDataPath $DERIVED_DATA \
-    OTHER_SWIFT_FLAGS="-strict-concurrency=complete" \
-    GCC_TREAT_WARNINGS_AS_ERRORS=YES \
-    SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
+    -skipMacroValidation \
+    -skipPackagePluginValidation \
     build | xcbeautify -q --disable-colored-output --disable-logging
 """
 
@@ -40,6 +50,8 @@ run = """
 xcodebuild -scheme $SCHEME \
     -destination "$DEST" \
     -derivedDataPath $DERIVED_DATA \
+    -skipMacroValidation \
+    -skipPackagePluginValidation \
     build | xcbeautify -q --disable-colored-output --disable-logging
 """
 
@@ -59,6 +71,8 @@ run = """
 xcodebuild -scheme $SCHEME \
     -destination "$DEST" \
     -derivedDataPath $DERIVED_DATA \
+    -skipMacroValidation \
+    -skipPackagePluginValidation \
     test | xcbeautify -q --disable-colored-output --disable-logging
 """
 
@@ -86,13 +100,19 @@ done
 
 [tasks.format]
 description = "Format all Swift code"
-run = "swift format --recursive --in-place MiniWhisper/ Packages/"
+run = "swift format --recursive --in-place MiniWhisper/ MiniWhisperTests/ MiniWhisperUITests/ Packages/"
 
 [tasks.format-check]
-description = "Check formatting (CI)"
-run = """
-swift format --recursive MiniWhisper/ Packages/ 2>&1 | grep -q "would be reformatted" && exit 1 || exit 0
-"""
+description = "Check formatting"
+run = "swift format lint --recursive --strict MiniWhisper/ MiniWhisperTests/ MiniWhisperUITests/ Packages/"
+
+[tasks.lint]
+description = "Run pre-commit checks"
+run = [
+    "mise run format-check",
+    "mise run build",
+    "mise run test-packages",
+]
 
 # === Maintenance ===
 

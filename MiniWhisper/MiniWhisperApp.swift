@@ -1,3 +1,4 @@
+import ComposableArchitecture
 import SwiftUI
 
 @main struct MiniWhisperApp: App {
@@ -7,13 +8,12 @@ import SwiftUI
 }
 
 @MainActor final class AppDelegate: NSObject, NSApplicationDelegate {
-  private var settings: SettingsStore!
-  private var recording: RecordingStore!
+  private let store = Store(initialState: AppFeature.State()) { AppFeature() }
+
   private var menuBarController: MenuBarController!
 
   func applicationDidFinishLaunching(_ notification: Notification) {
-    settings = SettingsStore()
-    recording = RecordingStore()
-    menuBarController = MenuBarController(settings: settings, recording: recording)
+    menuBarController = MenuBarController(store: store)
+    store.send(.task)
   }
 }

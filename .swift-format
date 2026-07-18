@@ -9,7 +9,6 @@
   "spacesBeforeEndOfLineComments": 2,
   "respectsExistingLineBreaks": false,
   "prioritizeKeepingFunctionOutputTogether": true,
-  "multilineTrailingCommaBehavior": "alwaysUsed",
   "reflowMultilineStringLiterals": "onlyLinesOverLength",
   "orderedImports": {
     "includeConditionalImports": true

@@ -1,173 +1,126 @@
 import AudioCapture
+import ComposableArchitecture
 import Testing
 
 @testable import MiniWhisper
 
-// MARK: - Test Doubles
+@MainActor @Suite struct RecordingFeaturePermissionTests {
+  @Test func taskLoadsPermissionStatus() async {
+    let store = TestStore(initialState: RecordingFeature.State()) {
+      RecordingFeature()
+    } withDependencies: {
+      $0.microphonePermission.status = { .granted }
+    }
 
-@MainActor
-final class StubMicPermissionProvider: MicPermissionProviding, @unchecked Sendable {
-  private var currentStatus: MicPermissionStatus
-  private let requestResult: MicPermissionStatus
-  private(set) var requestCallCount = 0
-
-  nonisolated var status: MicPermissionStatus {
-    MainActor.assumeIsolated { currentStatus }
+    await store.send(.task)
+    await store.receive(.micStatusUpdated(.granted)) { $0.micStatus = .granted }
   }
 
-  init(status: MicPermissionStatus, requestResult: MicPermissionStatus? = nil) {
-    self.currentStatus = status
-    self.requestResult = requestResult ?? status
+  @Test func requestMicAccessUpdatesStatus() async {
+    let store = TestStore(initialState: RecordingFeature.State()) {
+      RecordingFeature()
+    } withDependencies: {
+      $0.microphonePermission.request = { .granted }
+    }
+
+    await store.send(.requestMicAccess)
+    await store.receive(.micStatusUpdated(.granted)) { $0.micStatus = .granted }
   }
 
-  func request() async -> MicPermissionStatus {
-    requestCallCount += 1
-    currentStatus = requestResult
-    return requestResult
-  }
-}
+  @Test func requestMicAccessCanBeDenied() async {
+    let store = TestStore(initialState: RecordingFeature.State()) {
+      RecordingFeature()
+    } withDependencies: {
+      $0.microphonePermission.request = { .denied }
+    }
 
-// MARK: - RecordingStore Permission Tests
-
-@MainActor
-@Suite
-struct RecordingStorePermissionTests {
-  @Test
-  func initializesWithProviderStatus() {
-    let provider = StubMicPermissionProvider(status: .granted)
-    let store = RecordingStore(permissionProvider: provider)
-    #expect(store.micStatus == .granted)
-  }
-
-  @Test
-  func initializesWithUndeterminedStatus() {
-    let provider = StubMicPermissionProvider(status: .undetermined)
-    let store = RecordingStore(permissionProvider: provider)
-    #expect(store.micStatus == .undetermined)
-  }
-
-  @Test
-  func requestMicAccessUpdatesStatus() async {
-    let provider = StubMicPermissionProvider(status: .undetermined, requestResult: .granted)
-    let store = RecordingStore(permissionProvider: provider)
-    #expect(store.micStatus == .undetermined)
-
-    await store.requestMicAccess()
-
-    #expect(store.micStatus == .granted)
-    #expect(provider.requestCallCount == 1)
-  }
-
-  @Test
-  func requestMicAccessCanBeDenied() async {
-    let provider = StubMicPermissionProvider(status: .undetermined, requestResult: .denied)
-    let store = RecordingStore(permissionProvider: provider)
-
-    await store.requestMicAccess()
-
-    #expect(store.micStatus == .denied)
+    await store.send(.requestMicAccess)
+    await store.receive(.micStatusUpdated(.denied)) { $0.micStatus = .denied }
   }
 }
 
-// MARK: - RecordingStore Recording State Tests
-
-@MainActor
-@Suite
-struct RecordingStoreRecordingTests {
-  @Test
-  func startsInIdleState() {
-    let provider = StubMicPermissionProvider(status: .granted)
-    let store = RecordingStore(permissionProvider: provider)
-    #expect(store.status == .idle)
+@MainActor @Suite struct RecordingFeatureRecordingTests {
+  @Test func startsInIdleState() {
+    let state = RecordingFeature.State(micStatus: .granted)
+    #expect(state.status == .idle)
   }
 
-  @Test
-  func startRecordingTransitionsToRecording() {
-    let provider = StubMicPermissionProvider(status: .granted)
-    let store = RecordingStore(permissionProvider: provider)
+  @Test func startRecordingTransitionsToRecording() async {
+    let store = TestStore(initialState: RecordingFeature.State(micStatus: .granted)) {
+      RecordingFeature()
+    }
 
-    store.startRecording()
-
-    #expect(store.status == .recording)
+    await store.send(.startRecording) { $0.status = .recording }
   }
 
-  @Test
-  func startRecordingRequiresGrantedPermission() {
-    let provider = StubMicPermissionProvider(status: .denied)
-    let store = RecordingStore(permissionProvider: provider)
+  @Test func startRecordingRequiresGrantedPermission() async {
+    let store = TestStore(initialState: RecordingFeature.State(micStatus: .denied)) {
+      RecordingFeature()
+    }
 
-    store.startRecording()
-
-    #expect(store.status == .idle)
+    await store.send(.startRecording)
   }
 
-  @Test
-  func stopRecordingTransitionsToProcessing() {
-    let provider = StubMicPermissionProvider(status: .granted)
-    let store = RecordingStore(permissionProvider: provider)
-    store.startRecording()
+  @Test func stopRecordingTransitionsToProcessing() async {
+    let store = TestStore(
+      initialState: RecordingFeature.State(micStatus: .granted, status: .recording)
+    ) { RecordingFeature() }
 
-    store.stopRecording()
-
-    #expect(store.status == .processing)
+    await store.send(.stopRecording) { $0.status = .processing }
   }
 
-  @Test
-  func stopRecordingOnlyWorksWhenRecording() {
-    let provider = StubMicPermissionProvider(status: .granted)
-    let store = RecordingStore(permissionProvider: provider)
+  @Test func stopRecordingOnlyWorksWhenRecording() async {
+    let store = TestStore(initialState: RecordingFeature.State(micStatus: .granted)) {
+      RecordingFeature()
+    }
 
-    store.stopRecording()
-
-    #expect(store.status == .idle)
+    await store.send(.stopRecording)
   }
 
-  @Test
-  func resetClearsAllState() {
-    let provider = StubMicPermissionProvider(status: .granted)
-    let store = RecordingStore(permissionProvider: provider)
-    store.startRecording()
+  @Test func resetClearsAllState() async {
+    let store = TestStore(
+      initialState: RecordingFeature.State(
+        micStatus: .granted, status: .recording, audioLevel: 0.5, currentTranscription: "hello",
+        lastError: "boom")
+    ) { RecordingFeature() }
 
-    store.reset()
-
-    #expect(store.status == .idle)
-    #expect(store.audioLevel == 0)
-    #expect(store.currentTranscription == nil)
-    #expect(store.lastError == nil)
+    await store.send(.reset) {
+      $0.status = .idle
+      $0.audioLevel = 0
+      $0.currentTranscription = nil
+      $0.lastError = nil
+    }
   }
 }
 
-// MARK: - Icon Selection Tests
-
-@Suite
-struct IconSelectionTests {
-  @Test
-  func recordingShowsRecordIcon() {
-    let symbol = iconSymbolName(status: RecordingStatus.recording, micStatus: MicPermissionStatus.granted)
+@Suite struct IconSelectionTests {
+  @Test func recordingShowsRecordIcon() {
+    let symbol = MenuBarViewState.iconSymbolName(
+      status: RecordingStatus.recording, micStatus: MicPermissionStatus.granted)
     #expect(symbol == "record.circle.fill")
   }
 
-  @Test
-  func processingShowsEllipsisIcon() {
-    let symbol = iconSymbolName(status: RecordingStatus.processing, micStatus: MicPermissionStatus.granted)
+  @Test func processingShowsEllipsisIcon() {
+    let symbol = MenuBarViewState.iconSymbolName(
+      status: RecordingStatus.processing, micStatus: MicPermissionStatus.granted)
     #expect(symbol == "ellipsis.circle")
   }
 
-  @Test
-  func idleWithMicGrantedShowsWaveform() {
-    let symbol = iconSymbolName(status: RecordingStatus.idle, micStatus: MicPermissionStatus.granted)
+  @Test func idleWithMicGrantedShowsWaveform() {
+    let symbol = MenuBarViewState.iconSymbolName(
+      status: RecordingStatus.idle, micStatus: MicPermissionStatus.granted)
     #expect(symbol == "waveform")
   }
 
-  @Test
-  func idleWithMicDeniedShowsWarningIcon() {
-    let symbol = iconSymbolName(status: RecordingStatus.idle, micStatus: MicPermissionStatus.denied)
+  @Test func idleWithMicDeniedShowsWarningIcon() {
+    let symbol = MenuBarViewState.iconSymbolName(
+      status: RecordingStatus.idle, micStatus: MicPermissionStatus.denied)
     #expect(symbol == "waveform.badge.exclamationmark")
   }
 
-  @Test
-  func idleWithMicUndeterminedShowsWarningIcon() {
-    let symbol = iconSymbolName(status: RecordingStatus.idle, micStatus: MicPermissionStatus.undetermined)
+  @Test func idleWithMicUndeterminedShowsWarningIcon() {
+    let symbol = MenuBarViewState.iconSymbolName(
+      status: RecordingStatus.idle, micStatus: MicPermissionStatus.undetermined)
     #expect(symbol == "waveform.badge.exclamationmark")
   }
 }

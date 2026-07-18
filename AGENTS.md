@@ -15,9 +15,10 @@ The developer is new to Swift/macOS but experienced in Python, Scala, and Go. Wh
 
 ### Setup
 
+Install [mise](https://mise.jdx.dev/), then bootstrap the repository:
+
 ```sh
-brew install mise
-./scripts/mise-setup
+mise trust && mise bootstrap
 ```
 
 ### Development
@@ -26,6 +27,7 @@ brew install mise
 mise run build          # Build the app
 mise run test           # Run all tests (app + UI)
 mise run test-packages  # Fast package-only tests (prefer this for quick feedback)
+mise run lint           # Run the pre-commit formatting, build, and package-test gate
 mise run format         # Format code with swift-format
 mise run run            # Build and run the app
 mise run run-fresh      # Reset mic permission, then build and run
@@ -34,7 +36,8 @@ mise run run-fresh      # Reset mic permission, then build and run
 
 ## Architecture
 
-- `MiniWhisper/` — SwiftUI app target (thin shell, NSStatusItem menu)
+- `MiniWhisper/` — thin SwiftUI/AppKit shell, TCA features, and dependency clients
+- `MiniWhisper/MenuBarController.swift` — declarative NSStatusItem renderer over TCA state
 - `Packages/AudioCapture` — AVAudioEngine mic capture, ring buffer, VAD
 - `Packages/ASREngine` — transcription protocol + whisper.cpp wrapper
 - `Packages/TranscriptCleanup` — optional LLM cleanup client
@@ -48,4 +51,4 @@ Design principle: App target is a thin shell; business logic lives in packages.
 - 2-space indentation
 - Swift 6.2 with strict concurrency
 - Swift Testing framework (`import Testing`, `@Test`, `#expect`) — not XCTest
-- No external dependencies except whisper.cpp — use Apple frameworks only
+- External dependencies are limited to whisper.cpp, the swift-composable-architecture family, and Swift Log — otherwise use Apple frameworks only
