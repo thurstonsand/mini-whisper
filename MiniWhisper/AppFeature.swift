@@ -8,6 +8,7 @@ private let gestureLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", ca
 @Reducer struct AppFeature {
   @ObservableState struct State: Equatable {
     var recording = RecordingFeature.State()
+    var pill = PillFeature.State()
 
     var menuBar: MenuBarViewState { MenuBarViewState(micStatus: recording.micStatus) }
   }
@@ -15,6 +16,7 @@ private let gestureLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", ca
   enum Action: Equatable {
     case task
     case recording(RecordingFeature.Action)
+    case pill(PillFeature.Action)
     case hotkeyListenerEvent(HotkeyListenerEvent)
     case hotkeyListenerFailed(String)
   }
@@ -23,6 +25,7 @@ private let gestureLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", ca
 
   var body: some ReducerOf<Self> {
     Scope(state: \.recording, action: \.recording) { RecordingFeature() }
+    Scope(state: \.pill, action: \.pill) { PillFeature() }
 
     Reduce { state, action in
       switch action {
@@ -50,13 +53,20 @@ private let gestureLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", ca
         switch event {
         case .startRecording: return .send(.recording(.startRecording))
         case .stopAndTranscribe: return .send(.recording(.stopAndRetain))
-        case .latchEngaged: return .none
+        case .latchEngaged: return .send(.pill(.latchEngaged))
         case .cancel: return .send(.recording(.cancelRecording))
         }
       case .hotkeyListenerFailed(let error):
         gestureLogger.error("Hotkey listener failed: \(error, privacy: .public)")
         return .none
+      case .recording(.delegate(.recordingStarted(let inputDeviceName))):
+        return .send(.pill(.recordingStarted(inputDeviceName: inputDeviceName)))
+      case .recording(.delegate(.levelChanged(let level))):
+        return .send(.pill(.levelUpdated(level)))
+      case .recording(.delegate(.stopped)): return .send(.pill(.dismiss))
+      case .recording(.delegate(.discarded)): return .send(.pill(.cancel))
       case .recording: return .none
+      case .pill: return .none
       }
     }
   }

@@ -23,7 +23,9 @@ import Testing
     let store = TestStore(initialState: RecordingFeature.State()) {
       RecordingFeature()
     } withDependencies: {
-      $0.audioCapture.start = { AudioCaptureSession(id: sessionID, events: events) }
+      $0.audioCapture.start = {
+        AudioCaptureSession(id: sessionID, inputDeviceName: "Test Microphone", events: events)
+      }
       $0.audioCapture.cancel = { id in #expect(id == sessionID) }
     }
 
@@ -31,11 +33,13 @@ import Testing
       $0.captureGeneration = 1
       $0.phase = .starting(nil)
     }
-    await store.receive(.captureStarted(1, sessionID)) {
+    await store.receive(.captureStarted(1, sessionID, "Test Microphone")) {
       $0.captureSessionID = sessionID
       $0.phase = .recording
     }
+    await store.receive(.delegate(.recordingStarted(inputDeviceName: "Test Microphone")))
     await store.send(.cancelRecording) { $0.phase = .cancelling }
+    await store.receive(.delegate(.discarded))
     await store.receive(.captureCancelled(1)) {
       $0.captureSessionID = nil
       $0.phase = .idle
@@ -54,7 +58,8 @@ import Testing
     } withDependencies: {
       $0.audioCapture.start = {
         for await _ in startGate { break }
-        return AudioCaptureSession(id: sessionID, events: events)
+        return AudioCaptureSession(
+          id: sessionID, inputDeviceName: "Test Microphone", events: events)
       }
       $0.audioCapture.stop = { id in
         #expect(id == sessionID)
@@ -70,16 +75,18 @@ import Testing
     await store.send(.stopAndRetain) { $0.phase = .starting(.stop) }
     startContinuation.yield(())
     startContinuation.finish()
-    await store.receive(.captureStarted(1, sessionID)) {
+    await store.receive(.captureStarted(1, sessionID, "Test Microphone")) {
       $0.captureSessionID = sessionID
       $0.phase = .recording
     }
-    await store.receive(.stopAndRetain) { $0.phase = .stopping }
+    await store.receive(.delegate(.recordingStarted(inputDeviceName: "Test Microphone")))
+    await store.receive(.stopAndRetain) { $0.phase = .stopping(nil) }
     await store.receive(.captureStopped(1, recording)) {
       $0.captureSessionID = nil
       $0.phase = .idle
       $0.completedRecording = recording
     }
+    await store.receive(.delegate(.stopped))
     await store.receive(.debugWAVWritten("/tmp/test.wav"))
     eventsContinuation.finish()
     await store.receive(.captureEventsFinished(1))
@@ -94,7 +101,8 @@ import Testing
     } withDependencies: {
       $0.audioCapture.start = {
         for await _ in startGate { break }
-        return AudioCaptureSession(id: sessionID, events: events)
+        return AudioCaptureSession(
+          id: sessionID, inputDeviceName: "Test Microphone", events: events)
       }
       $0.audioCapture.cancel = { _ in }
     }
@@ -104,20 +112,68 @@ import Testing
       $0.phase = .starting(nil)
     }
     await store.send(.cancelRecording) { $0.phase = .starting(.cancel) }
+    await store.receive(.delegate(.discarded))
     await store.send(.stopAndRetain)
     startContinuation.yield(())
     startContinuation.finish()
-    await store.receive(.captureStarted(1, sessionID)) {
+    await store.receive(.captureStarted(1, sessionID, "Test Microphone")) {
       $0.captureSessionID = sessionID
-      $0.phase = .recording
+      $0.phase = .cancelling
     }
-    await store.receive(.cancelRecording) { $0.phase = .cancelling }
     await store.receive(.captureCancelled(1)) {
       $0.captureSessionID = nil
       $0.phase = .idle
     }
     eventsContinuation.finish()
     await store.receive(.captureEventsFinished(1))
+  }
+
+  @Test func secondActivationKeepsAStillStartingCaptureAliveForLatch() async {
+    var state = RecordingFeature.State()
+    state.captureGeneration = 1
+    state.phase = .starting(.stop)
+    let store = TestStore(initialState: state) { RecordingFeature() }
+
+    await store.send(.startRecording) { $0.phase = .starting(nil) }
+  }
+
+  @Test func secondActivationRestartsCaptureIfTheFirstStopAlreadyBegan() async {
+    let firstSessionID = UUID()
+    let secondSessionID = UUID()
+    let firstRecording = CanonicalRecording(samples: [0.1])
+    let (events, eventsContinuation) = AsyncStream.makeStream(of: AudioCaptureEvent.self)
+    var state = RecordingFeature.State()
+    state.captureGeneration = 1
+    state.captureSessionID = firstSessionID
+    state.phase = .stopping(nil)
+    let store = TestStore(initialState: state) {
+      RecordingFeature()
+    } withDependencies: {
+      $0.audioCapture.start = {
+        AudioCaptureSession(id: secondSessionID, inputDeviceName: "Test Microphone", events: events)
+      }
+      $0.audioCapture.cancel = { id in #expect(id == secondSessionID) }
+    }
+
+    await store.send(.startRecording) { $0.phase = .stopping(.restart) }
+    await store.send(.captureStopped(1, firstRecording)) {
+      $0.captureGeneration = 2
+      $0.captureSessionID = nil
+      $0.phase = .starting(nil)
+    }
+    await store.receive(.captureStarted(2, secondSessionID, "Test Microphone")) {
+      $0.captureSessionID = secondSessionID
+      $0.phase = .recording
+    }
+    await store.receive(.delegate(.recordingStarted(inputDeviceName: "Test Microphone")))
+    await store.send(.cancelRecording) { $0.phase = .cancelling }
+    await store.receive(.delegate(.discarded))
+    await store.receive(.captureCancelled(2)) {
+      $0.captureSessionID = nil
+      $0.phase = .idle
+    }
+    eventsContinuation.finish()
+    await store.receive(.captureEventsFinished(2))
   }
 
   @Test func deniedCaptureUpdatesThePermissionBoundary() async {
@@ -136,6 +192,7 @@ import Testing
       $0.micStatus = .denied
       $0.captureError = .microphonePermission(.denied)
     }
+    await store.receive(.delegate(.discarded))
     await store.receive(.captureCancelled(1)) { $0.phase = .idle }
   }
 
@@ -157,6 +214,7 @@ import Testing
       $0.micStatus = .denied
       $0.captureError = .microphonePermission(.denied)
     }
+    await store.receive(.delegate(.discarded))
     await store.receive(.captureCancelled(1)) {
       $0.captureSessionID = nil
       $0.phase = .idle
@@ -177,6 +235,7 @@ import Testing
     }
 
     await store.send(.cancelRecording) { $0.phase = .cancelling }
+    await store.receive(.delegate(.discarded))
     await store.receive(.captureCancelled(1)) {
       $0.captureSessionID = nil
       $0.phase = .idle
@@ -196,11 +255,12 @@ import Testing
       $0.audioCapture.cancel = { _ in }
     }
 
-    await store.send(.stopAndRetain) { $0.phase = .stopping }
+    await store.send(.stopAndRetain) { $0.phase = .stopping(nil) }
     await store.receive(.captureFailed(1, .engineConfigurationChanged)) {
       $0.phase = .cancelling
       $0.captureError = .engineConfigurationChanged
     }
+    await store.receive(.delegate(.discarded))
     await store.receive(.captureCancelled(1)) {
       $0.captureSessionID = nil
       $0.phase = .idle
@@ -213,7 +273,7 @@ import Testing
     var state = RecordingFeature.State()
     state.captureGeneration = 1
     state.captureSessionID = sessionID
-    state.phase = .stopping
+    state.phase = .stopping(nil)
     let store = TestStore(initialState: state) {
       RecordingFeature()
     } withDependencies: {
@@ -221,6 +281,7 @@ import Testing
     }
 
     await store.send(.cancelRecording) { $0.phase = .cancelling }
+    await store.receive(.delegate(.discarded))
     await store.receive(.captureCancelled(1)) {
       $0.captureSessionID = nil
       $0.phase = .idle

@@ -1,0 +1,99 @@
+import AppKit
+import ComposableArchitecture
+import OSLog
+import SwiftUI
+
+private let pillPanelLogger = Logger(
+  subsystem: "com.thurstonsand.MiniWhisper", category: "pill-panel")
+
+@MainActor final class PillPanelController {
+  private let store: StoreOf<PillFeature>
+  private let panel: NonactivatingPillPanel
+  private var screenParametersObserver: (any NSObjectProtocol)?
+  private var lastVisibility: Bool?
+
+  init(store: StoreOf<PillFeature>) {
+    self.store = store
+    self.panel = NonactivatingPillPanel()
+
+    let hostingView = NSHostingView(rootView: PillView(store: store))
+    hostingView.frame = NSRect(origin: .zero, size: Self.panelSize)
+    panel.contentView = hostingView
+    panel.setContentSize(Self.panelSize)
+
+    screenParametersObserver = NotificationCenter.default.addObserver(
+      forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main
+    ) { [weak self] _ in MainActor.assumeIsolated { self?.positionPanel() } }
+
+    observeStore()
+    render(isVisible: store.presentation != nil)
+  }
+
+  isolated deinit {
+    if let screenParametersObserver {
+      NotificationCenter.default.removeObserver(screenParametersObserver)
+    }
+  }
+
+  private static let panelSize = NSSize(width: 420, height: 76)
+  private static let bottomMargin: CGFloat = 14
+
+  private func observeStore() {
+    withObservationTracking {
+      _ = self.store.presentation
+    } onChange: { [weak self] in
+      Task { @MainActor [weak self] in
+        guard let self else { return }
+        self.observeStore()
+        self.render(isVisible: self.store.presentation != nil)
+      }
+    }
+  }
+
+  private func render(isVisible: Bool) {
+    guard isVisible != lastVisibility else { return }
+    lastVisibility = isVisible
+
+    guard isVisible else {
+      panel.orderOut(nil)
+      return
+    }
+
+    positionPanel()
+    panel.orderFrontRegardless()
+  }
+
+  private func positionPanel() {
+    guard let screen = NSScreen.screens.first else {
+      pillPanelLogger.error("Cannot position the pill because no screen is available")
+      panel.orderOut(nil)
+      return
+    }
+
+    let frame = NSRect(
+      x: screen.frame.midX - Self.panelSize.width / 2,
+      y: screen.visibleFrame.minY + Self.bottomMargin, width: Self.panelSize.width,
+      height: Self.panelSize.height)
+    panel.setFrame(frame, display: panel.isVisible)
+  }
+}
+
+private final class NonactivatingPillPanel: NSPanel {
+  override var canBecomeKey: Bool { false }
+  override var canBecomeMain: Bool { false }
+
+  init() {
+    super.init(
+      contentRect: .zero,
+      styleMask: [.borderless, .fullSizeContentView, .nonactivatingPanel, .utilityWindow],
+      backing: .buffered, defer: false)
+    level = .statusBar
+    backgroundColor = .clear
+    isOpaque = false
+    hasShadow = false
+    ignoresMouseEvents = true
+    hidesOnDeactivate = false
+    isReleasedWhenClosed = false
+    collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
+  }
+}

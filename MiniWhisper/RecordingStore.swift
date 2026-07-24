@@ -11,11 +11,12 @@ private let captureLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", ca
       case idle
       case starting(PendingCompletion?)
       case recording
-      case stopping
+      case stopping(PendingRestart?)
       case cancelling
     }
 
     enum PendingCompletion: Equatable { case stop, cancel }
+    enum PendingRestart: Equatable { case restart }
 
     var micStatus: MicPermissionStatus = .undetermined
     var phase = Phase.idle
@@ -27,12 +28,19 @@ private let captureLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", ca
   }
 
   enum Action: Equatable {
+    enum Delegate: Equatable {
+      case recordingStarted(inputDeviceName: String)
+      case levelChanged(Float)
+      case stopped
+      case discarded
+    }
+
     case task
     case micStatusUpdated(MicPermissionStatus)
     case startRecording
     case stopAndRetain
     case cancelRecording
-    case captureStarted(Int, UUID)
+    case captureStarted(Int, UUID, String)
     case levelUpdated(Int, AudioLevel)
     case captureFailed(Int, AudioCaptureError)
     case captureEventsFinished(Int)
@@ -40,6 +48,7 @@ private let captureLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", ca
     case captureCancelled(Int)
     case debugWAVWritten(String)
     case debugWAVWriteFailed(AudioCaptureError)
+    case delegate(Delegate)
   }
 
   private enum CancelID { case captureEvents, stop }
@@ -56,14 +65,23 @@ private let captureLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", ca
         state.micStatus = status
         return .none
       case .startRecording:
-        guard state.phase == .idle else { return .none }
-        state.captureGeneration += 1
-        state.captureSessionID = nil
-        state.phase = .starting(nil)
-        state.latestLevel = 0
-        state.completedRecording = nil
-        state.captureError = nil
-        return startCapture(generation: state.captureGeneration)
+        switch state.phase {
+        case .idle:
+          state.captureGeneration += 1
+          state.captureSessionID = nil
+          state.phase = .starting(nil)
+          state.latestLevel = 0
+          state.completedRecording = nil
+          state.captureError = nil
+          return startCapture(generation: state.captureGeneration)
+        case .starting(.stop):
+          state.phase = .starting(nil)
+          return .none
+        case .stopping:
+          state.phase = .stopping(.restart)
+          return .none
+        case .starting, .recording, .cancelling: return .none
+        }
       case .stopAndRetain:
         switch state.phase {
         case .starting(.cancel): return .none
@@ -74,7 +92,7 @@ private let captureLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", ca
           guard let sessionID = state.captureSessionID else {
             return missingSessionFailure(generation: state.captureGeneration)
           }
-          state.phase = .stopping
+          state.phase = .stopping(nil)
           return stopCapture(generation: state.captureGeneration, sessionID: sessionID)
         case .idle, .stopping, .cancelling: return .none
         }
@@ -82,18 +100,20 @@ private let captureLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", ca
         switch state.phase {
         case .starting:
           state.phase = .starting(.cancel)
-          return .none
+          return .send(.delegate(.discarded))
         case .recording, .stopping:
           guard let sessionID = state.captureSessionID else {
             return missingSessionFailure(generation: state.captureGeneration)
           }
           state.phase = .cancelling
-          return .merge(
-            .cancel(id: CancelID.stop),
-            cancelCapture(generation: state.captureGeneration, sessionID: sessionID))
+          return .concatenate(
+            .send(.delegate(.discarded)),
+            .merge(
+              .cancel(id: CancelID.stop),
+              cancelCapture(generation: state.captureGeneration, sessionID: sessionID)))
         case .idle, .cancelling: return .none
         }
-      case .captureStarted(let generation, let sessionID):
+      case .captureStarted(let generation, let sessionID, let inputDeviceName):
         guard generation == state.captureGeneration,
           case .starting(let pendingCompletion) = state.phase
         else { return cancelCapture(generation: generation, sessionID: sessionID) }
@@ -102,16 +122,23 @@ private let captureLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", ca
         state.phase = .recording
         captureLogger.notice("Audio capture started")
         switch pendingCompletion {
-        case .stop: return .send(.stopAndRetain)
-        case .cancel: return .send(.cancelRecording)
-        case nil: return .none
+        case .stop:
+          return .concatenate(
+            .send(.delegate(.recordingStarted(inputDeviceName: inputDeviceName))),
+            .send(.stopAndRetain))
+        case .cancel:
+          state.phase = .cancelling
+          return cancelCapture(generation: generation, sessionID: sessionID)
+        case nil: return .send(.delegate(.recordingStarted(inputDeviceName: inputDeviceName)))
         }
       case .levelUpdated(let generation, let level):
-        guard generation == state.captureGeneration,
-          state.phase == .recording || state.phase == .stopping
-        else { return .none }
-        state.latestLevel = level.normalizedPower
-        return .none
+        guard generation == state.captureGeneration else { return .none }
+        switch state.phase {
+        case .recording, .stopping:
+          state.latestLevel = level.normalizedPower
+          return .send(.delegate(.levelChanged(level.normalizedPower)))
+        case .idle, .starting, .cancelling: return .none
+        }
       case .captureFailed(let generation, let error):
         guard generation == state.captureGeneration, state.phase != .idle,
           state.phase != .cancelling
@@ -129,20 +156,30 @@ private let captureLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", ca
         } else {
           cleanup = .send(.captureCancelled(generation))
         }
-        return cleanup
+        return .concatenate(.send(.delegate(.discarded)), cleanup)
       case .captureEventsFinished(let generation):
         guard generation == state.captureGeneration, state.phase == .recording else { return .none }
         return .send(.captureFailed(generation, .unexpected("Audio capture event stream ended")))
       case .captureStopped(let generation, let recording):
-        guard generation == state.captureGeneration, state.phase == .stopping else { return .none }
+        guard generation == state.captureGeneration,
+          case .stopping(let pendingRestart) = state.phase
+        else { return .none }
         state.captureSessionID = nil
-        state.phase = .idle
         state.latestLevel = 0
+        if pendingRestart == .restart {
+          state.captureGeneration += 1
+          state.phase = .starting(nil)
+          state.completedRecording = nil
+          captureLogger.notice("Restarting audio capture for latch")
+          return startCapture(generation: state.captureGeneration)
+        }
+
+        state.phase = .idle
         state.completedRecording = recording
         captureLogger.notice(
           "Audio capture stopped duration=\(recording.durationSeconds, format: .fixed(precision: 3))s samples=\(recording.samples.count)"
         )
-        return writeDebugWAV(recording)
+        return .concatenate(.send(.delegate(.stopped)), writeDebugWAV(recording))
       case .captureCancelled(let generation):
         guard generation == state.captureGeneration, state.phase == .cancelling else {
           return .none
@@ -160,6 +197,7 @@ private let captureLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", ca
         captureLogger.error(
           "Debug capture WAV write failed: \(error.localizedDescription, privacy: .public)")
         return .none
+      case .delegate: return .none
       }
     }
   }
@@ -174,7 +212,7 @@ private let captureLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", ca
             await audioCapture.cancel(session.id)
             return
           }
-          await send(.captureStarted(generation, session.id))
+          await send(.captureStarted(generation, session.id, session.inputDeviceName))
 
           var summary = LevelSummary()
           var summaryStartedAt = ContinuousClock.now

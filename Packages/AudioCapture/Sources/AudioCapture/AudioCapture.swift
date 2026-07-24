@@ -1,3 +1,4 @@
+import AVFoundation
 import Foundation
 
 public enum AudioCaptureError: Error, Equatable, Sendable {
@@ -73,10 +74,12 @@ public enum AudioCaptureEvent: Equatable, Sendable {
 
 public struct AudioCaptureSession: Sendable {
   public let id: UUID
+  public let inputDeviceName: String
   public let events: AsyncStream<AudioCaptureEvent>
 
-  public init(id: UUID, events: AsyncStream<AudioCaptureEvent>) {
+  public init(id: UUID, inputDeviceName: String, events: AsyncStream<AudioCaptureEvent>) {
     self.id = id
+    self.inputDeviceName = inputDeviceName
     self.events = events
   }
 }
@@ -96,10 +99,13 @@ public actor AudioCapture {
     guard permission == .granted else { throw .microphonePermission(permission) }
     guard !Task.isCancelled else { throw .startCancelled }
 
+    guard let inputDeviceName = AVCaptureDevice.default(for: .audio)?.localizedName else {
+      throw .inputUnavailable
+    }
     let capture = try EngineCaptureSession.start()
     let id = UUID()
     self.session = (id, capture)
-    return AudioCaptureSession(id: id, events: capture.events)
+    return AudioCaptureSession(id: id, inputDeviceName: inputDeviceName, events: capture.events)
   }
 
   public func stop(sessionID: UUID) throws(AudioCaptureError) -> CanonicalRecording {

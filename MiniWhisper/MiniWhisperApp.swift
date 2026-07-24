@@ -13,10 +13,12 @@ import SwiftUI
   private let store = Store(initialState: AppFeature.State()) { AppFeature() }
 
   private var menuBarController: MenuBarController!
+  private var pillPanelController: PillPanelController!
 
   func applicationDidFinishLaunching(_ notification: Notification) {
     logger.notice("App started; structured logging ready")
     menuBarController = MenuBarController(store: store)
+    pillPanelController = PillPanelController(store: store.scope(state: \.pill, action: \.pill))
     store.send(.task)
   }
 }

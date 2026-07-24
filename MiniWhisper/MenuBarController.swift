@@ -49,6 +49,8 @@ import SwiftUI
     menu.addItem(headerItem)
 
     menu.addItem(.separator())
+    menu.addItem(buildPillDemoItem())
+    menu.addItem(.separator())
     menu.addItem(
       NSMenuItem(
         title: "Quit MiniWhisper", action: #selector(NSApplication.terminate(_:)),
@@ -56,6 +58,32 @@ import SwiftUI
 
     return menu
   }
+
+  private func buildPillDemoItem() -> NSMenuItem {
+    let item = NSMenuItem(title: "Pill Demos", action: nil, keyEquivalent: "")
+    let submenu = NSMenu()
+    submenu.addItem(demoItem(title: "Transcribing", action: #selector(showTranscribingDemo)))
+    submenu.addItem(demoItem(title: "No Speech Detected", action: #selector(showNoSpeechDemo)))
+    submenu.addItem(demoItem(title: "Copied to Clipboard", action: #selector(showCopiedDemo)))
+    submenu.addItem(.separator())
+    submenu.addItem(demoItem(title: "Hide Pill", action: #selector(hidePillDemo)))
+    item.submenu = submenu
+    return item
+  }
+
+  private func demoItem(title: String, action: Selector) -> NSMenuItem {
+    let item = NSMenuItem(title: title, action: action, keyEquivalent: "")
+    item.target = self
+    return item
+  }
+
+  @objc private func showTranscribingDemo() { store.send(.pill(.transcribingStarted)) }
+
+  @objc private func showNoSpeechDemo() { store.send(.pill(.noSpeechDetected)) }
+
+  @objc private func showCopiedDemo() { store.send(.pill(.copiedToClipboard)) }
+
+  @objc private func hidePillDemo() { store.send(.pill(.dismiss)) }
 }
 
 struct MenuHeaderView: View {

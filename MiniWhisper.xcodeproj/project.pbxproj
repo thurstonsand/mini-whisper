@@ -13,6 +13,8 @@
 		66D4643EA45AD83DE4BE5C98 /* Dependencies in Frameworks */ = {isa = PBXBuildFile; productRef = 1DB54F283E5449FDB8816ED8 /* Dependencies */; };
 		7A41C09355D0421B8E60A1F2 /* CasePaths in Frameworks */ = {isa = PBXBuildFile; productRef = 8B52D1E4A7F3462C9D0B3E51 /* CasePaths */; };
 		0C6990419A1EC8BA8CD5EE19 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = A65123A7D2DB4374D0DDE628 /* ComposableArchitecture */; };
+		A11111111111111111111111 /* Dependencies in Frameworks */ = {isa = PBXBuildFile; productRef = A11333333333333333333333 /* Dependencies */; };
+		A12222222222222222222222 /* Clocks in Frameworks */ = {isa = PBXBuildFile; productRef = A14444444444444444444444 /* Clocks */; };
 		60292D072EF609BE009AD5D1 /* ASREngine in Frameworks */ = {isa = PBXBuildFile; productRef = 60292D062EF609BE009AD5D1 /* ASREngine */; };
 		60292D092EF609C2009AD5D1 /* AudioCapture in Frameworks */ = {isa = PBXBuildFile; productRef = 60292D082EF609C2009AD5D1 /* AudioCapture */; };
 		60292D0B2EF609C5009AD5D1 /* HotkeyListener in Frameworks */ = {isa = PBXBuildFile; productRef = 60292D0A2EF609C5009AD5D1 /* HotkeyListener */; };
@@ -107,7 +109,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A12222222222222222222222 /* Clocks in Frameworks */,
 				0C6990419A1EC8BA8CD5EE19 /* ComposableArchitecture in Frameworks */,
+				A11111111111111111111111 /* Dependencies in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -245,7 +249,9 @@
 			);
 			name = MiniWhisperTests;
 			packageProductDependencies = (
+				A14444444444444444444444 /* Clocks */,
 				A65123A7D2DB4374D0DDE628 /* ComposableArchitecture */,
+				A11333333333333333333333 /* Dependencies */,
 			);
 			productName = MiniWhisperTests;
 			productReference = 60292CE22EF603C9009AD5D1 /* MiniWhisperTests.xctest */;
@@ -793,6 +799,15 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 6EBDD87AF2355A54F1CA5FE9 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
 			productName = ComposableArchitecture;
+		};
+		A11333333333333333333333 /* Dependencies */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4103BDA94D7D538967F7C421 /* XCRemoteSwiftPackageReference "swift-dependencies" */;
+			productName = Dependencies;
+		};
+		A14444444444444444444444 /* Clocks */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Clocks;
 		};
 		60292D062EF609BE009AD5D1 /* ASREngine */ = {
 			isa = XCSwiftPackageProductDependency;

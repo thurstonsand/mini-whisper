@@ -148,7 +148,7 @@ Each phase owns one surface of the app and ends demonstrable — something manua
   - Work: AVAudioEngine capture from default input; conform to 16 kHz mono Float32 at the edge; level metering stream; complete-capture retention; start/stop tied to gesture events; debug affordance that writes the finished capture to a WAV in a temp dir.
   - Validation: Package tests for conformance/accumulation seams. Demo: hold and speak, play back the WAV, watch levels move in the log.
 
-- [ ] Phase 3: The pill
+- [x] Phase 3: The pill
   - Goal: Every pill state from the UX ticket, driven by real gestures and levels.
   - Files: `MiniWhisper/` pill panel + feature (new), wiring into `AppFeature`.
   - Work: Non-activating transparent NSPanel, bottom-center above the Dock; recording state (red dot, live bars, `AVCaptureDevice.localizedName`); latch bounce (~250 ms, eased, once); transcribing state (blue pulse); transient notices ("No speech detected" ~1.5 s, "Copied — ⌘V to paste" ~3 s); Escape-cancel instant vanish. Transcribe/notice states are demo-triggerable until the engine exists.
