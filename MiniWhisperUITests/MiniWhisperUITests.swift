@@ -28,6 +28,7 @@ final class MiniWhisperUITests: XCTestCase {
 
     let statusItem = app.statusItems["MiniWhisperStatusItem"]
     XCTAssertTrue(statusItem.waitForExistence(timeout: 5))
+    try XCTSkipIf(!statusItem.isHittable, "Status item is hidden by menu bar overflow.")
     statusItem.click()
 
     let quitItem = app.menuItems["Quit MiniWhisper"]

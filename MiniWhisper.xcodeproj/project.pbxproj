@@ -17,6 +17,7 @@
 		60292D092EF609C2009AD5D1 /* AudioCapture in Frameworks */ = {isa = PBXBuildFile; productRef = 60292D082EF609C2009AD5D1 /* AudioCapture */; };
 		60292D0B2EF609C5009AD5D1 /* HotkeyListener in Frameworks */ = {isa = PBXBuildFile; productRef = 60292D0A2EF609C5009AD5D1 /* HotkeyListener */; };
 		60292D0D2EF609C7009AD5D1 /* TranscriptCleanup in Frameworks */ = {isa = PBXBuildFile; productRef = 60292D0C2EF609C7009AD5D1 /* TranscriptCleanup */; };
+		60292D0F2EF609C9009AD5D1 /* DependenciesMacros in Frameworks */ = {isa = PBXBuildFile; productRef = 60292D0E2EF609C9009AD5D1 /* DependenciesMacros */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -94,6 +95,7 @@
 				30C033FE6CC083FF51D1B069 /* ComposableArchitecture in Frameworks */,
 				66D4643EA45AD83DE4BE5C98 /* Dependencies in Frameworks */,
 				7A41C09355D0421B8E60A1F2 /* CasePaths in Frameworks */,
+				60292D0F2EF609C9009AD5D1 /* DependenciesMacros in Frameworks */,
 				60292D092EF609C2009AD5D1 /* AudioCapture in Frameworks */,
 				60292D0B2EF609C5009AD5D1 /* HotkeyListener in Frameworks */,
 				60292D072EF609BE009AD5D1 /* ASREngine in Frameworks */,
@@ -215,6 +217,7 @@
 				2E2B8F4DE4D58CBFA00AF799 /* ComposableArchitecture */,
 				1DB54F283E5449FDB8816ED8 /* Dependencies */,
 				8B52D1E4A7F3462C9D0B3E51 /* CasePaths */,
+				60292D0E2EF609C9009AD5D1 /* DependenciesMacros */,
 				60292D062EF609BE009AD5D1 /* ASREngine */,
 				60292D082EF609C2009AD5D1 /* AudioCapture */,
 				60292D0A2EF609C5009AD5D1 /* HotkeyListener */,
@@ -513,7 +516,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 6JMB7W6NB4;
-				ENABLE_APP_SANDBOX = YES;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = NO;
 				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
@@ -563,7 +566,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 6JMB7W6NB4;
-				ENABLE_APP_SANDBOX = YES;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
@@ -780,6 +783,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 3F7E2A186C4B4D95A1E80D62 /* XCRemoteSwiftPackageReference "swift-case-paths" */;
 			productName = CasePaths;
+		};
+		60292D0E2EF609C9009AD5D1 /* DependenciesMacros */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4103BDA94D7D538967F7C421 /* XCRemoteSwiftPackageReference "swift-dependencies" */;
+			productName = DependenciesMacros;
 		};
 		A65123A7D2DB4374D0DDE628 /* ComposableArchitecture */ = {
 			isa = XCSwiftPackageProductDependency;

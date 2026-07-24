@@ -127,8 +127,12 @@ run = [
 # === Maintenance ===
 
 [tasks.reset-permissions]
-description = "Reset microphone permission (will prompt again on next launch)"
-run = "tccutil reset Microphone com.thurstonsand.MiniWhisper"
+description = "Reset TCC permissions; Input Monitoring and Accessibility must be re-granted in System Settings"
+run = [
+    "tccutil reset Microphone com.thurstonsand.MiniWhisper",
+    "tccutil reset ListenEvent com.thurstonsand.MiniWhisper",
+    "tccutil reset Accessibility com.thurstonsand.MiniWhisper",
+]
 
 [tasks.clean]
 description = "Remove build artifacts"

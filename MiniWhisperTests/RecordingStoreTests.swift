@@ -36,6 +36,6 @@ import Testing
     let state = MenuBarViewState(micStatus: .undetermined)
 
     #expect(state.iconSymbolName == "mic")
-    #expect(state.statusText == "Checking microphone permission")
+    #expect(state.statusText == "Microphone permission not yet requested")
   }
 }

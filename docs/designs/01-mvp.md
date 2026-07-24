@@ -134,7 +134,8 @@ Each phase owns one surface of the app and ends demonstrable — something manua
   - Work: Delete stale skeleton concepts (whisper-model-size settings, emoji status strings) down to a compiling thin shell that reflects this spec's vocabulary. Verify `mise run build/test/test-packages/lint/mw/mw-fresh` and the menu-screenshot script all work cold. Verify `.gitignore` covers every raw-fixture directory (audit `git status` for voice audio). Add any missing debug lever for headless demos (e.g. structured log stream for gesture/dictation events). (A TCC permission spike was built here and deliberately discarded; the real permission set is proven when the tap and paste paths land.)
   - Validation: Cold `mise run lint` passes; `git status` shows no sensitive files.
 
-- [ ] Phase 1: Hotkey pipeline
+- [x] Phase 1: Hotkey pipeline
+  - Empirical TCC findings: the session tap requires Input Monitoring (`kTCCServiceListenEvent`) — creation without it succeeds but keyboard events are silently withheld, so the listener preflights and reports a distinct permission-missing state; the grant prompt is one-click; a grant after launch requires relaunch. Implementation note: modifier direction must come from the event's own device-side flag bits — `CGEventSource.keyState` lags one event at a head-insert tap.
   - Goal: Hold, latch, lone-tap, and Escape gestures recognized live from the real tap.
   - Files: `Packages/HotkeyListener/`, app-side client + `AppFeature` wiring.
   - Work: CGEvent tap lifecycle (session level, fail-closed death reporting), physical-chord matcher over the settings-file chord, pure hold/latch/tap gesture machine as an isolated type, async gesture-event stream, TCA client wrapping it.
