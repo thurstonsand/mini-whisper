@@ -23,7 +23,7 @@ mise run logs           # run in background; streams and tees to .build/miniwhis
 ## Architecture
 
 - `MiniWhisper/` — SwiftUI app target (thin shell, NSStatusItem menu, TCA features and clients)
-- `Packages/AudioCapture` — AVAudioEngine mic capture, ring buffer, level metering
+- `Packages/AudioCapture` — AVAudioEngine mic capture, canonical whole-utterance accumulation, level metering
 - `Packages/ASREngine` — silence gate + transcription
 - `Packages/TranscriptCleanup` — optional LLM cleanup client
 - `Packages/HotkeyListener` — pinned-modifier event pipeline and hold/latch state machine

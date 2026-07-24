@@ -141,7 +141,8 @@ Each phase owns one surface of the app and ends demonstrable — something manua
   - Work: CGEvent tap lifecycle (session level, fail-closed death reporting), physical-chord matcher over the settings-file chord, pure hold/latch/tap gesture machine as an isolated type, async gesture-event stream, TCA client wrapping it.
   - Validation: Gesture machine exhaustively unit-tested (Hex's cases as baseline: hold, latch double-tap, lone tap, Escape, interruption). Demo: run the app, watch the structured log narrate `startRecording` / `latchEngaged` / `stopAndTranscribe` / `cancel` as you perform each gesture.
 
-- [ ] Phase 2: Audio capture
+- [x] Phase 2: Audio capture
+  - Empirical TCC findings: the mic prompt fires on the first capture start — mid-gesture, swallowing the utterance (the interrupted capture completed empty without error), which confirms Phase 7 onboarding must front-load the request. Prompt body is the `NSMicrophoneUsageDescription` string: "MiniWhisper needs microphone access to transcribe your speech."
   - Goal: A hold produces a complete canonical recording and live levels.
   - Files: `Packages/AudioCapture/`, capture client, `RecordingFeature`.
   - Work: AVAudioEngine capture from default input; conform to 16 kHz mono Float32 at the edge; level metering stream; complete-capture retention; start/stop tied to gesture events; debug affordance that writes the finished capture to a WAV in a temp dir.

@@ -47,7 +47,12 @@ private let gestureLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", ca
         return .none
       case .hotkeyListenerEvent(.gesture(let event)):
         gestureLogger.notice("\(event.rawValue, privacy: .public)")
-        return .none
+        switch event {
+        case .startRecording: return .send(.recording(.startRecording))
+        case .stopAndTranscribe: return .send(.recording(.stopAndRetain))
+        case .latchEngaged: return .none
+        case .cancel: return .send(.recording(.cancelRecording))
+        }
       case .hotkeyListenerFailed(let error):
         gestureLogger.error("Hotkey listener failed: \(error, privacy: .public)")
         return .none
@@ -69,9 +74,15 @@ struct MenuBarViewState: Equatable {
     case .denied:
       self.iconSymbolName = "mic.slash"
       self.statusText = "Microphone permission required"
+    case .restricted:
+      self.iconSymbolName = "mic.slash"
+      self.statusText = "Microphone access restricted"
     case .undetermined:
       self.iconSymbolName = "mic"
       self.statusText = "Microphone permission not yet requested"
+    case .unknown:
+      self.iconSymbolName = "mic.slash"
+      self.statusText = "Microphone permission unavailable"
     }
   }
 }
