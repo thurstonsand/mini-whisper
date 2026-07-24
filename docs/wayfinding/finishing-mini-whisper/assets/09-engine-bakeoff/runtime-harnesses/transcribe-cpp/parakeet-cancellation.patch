@@ -1,0 +1,138 @@
+diff --git a/ggml/src/ggml-metal/ggml-metal.cpp b/ggml/src/ggml-metal/ggml-metal.cpp
+index a1003b3..f8f6e1b 100644
+--- a/ggml/src/ggml-metal/ggml-metal.cpp
++++ b/ggml/src/ggml-metal/ggml-metal.cpp
+@@ -872,6 +872,9 @@ static void * ggml_backend_metal_get_proc_address(ggml_backend_reg_t reg, const
+     if (strcmp(name, "ggml_backend_get_features") == 0) {
+         return (void *)ggml_backend_metal_get_features;
+     }
++    if (strcmp(name, "ggml_backend_set_abort_callback") == 0) {
++        return (void *)ggml_backend_metal_set_abort_callback;
++    }
+ 
+     return NULL;
+ 
+diff --git a/src/arch/parakeet/decoder.cpp b/src/arch/parakeet/decoder.cpp
+index 27a83c2..d42db1c 100644
+--- a/src/arch/parakeet/decoder.cpp
++++ b/src/arch/parakeet/decoder.cpp
+@@ -1010,7 +1010,9 @@ transcribe_status decode_tdt_greedy(const HostDecoderWeights & w,
+                                     int                        T_enc,
+                                     int                        d_enc,
+                                     int                        n_threads,
+-                                    std::vector<TdtToken> &    out_tokens) {
++                                    std::vector<TdtToken> &    out_tokens,
++                                    ggml_abort_callback        abort_callback,
++                                    void *                     abort_callback_data) {
+     if (enc_out == nullptr || T_enc <= 0 || d_enc <= 0) {
+         return TRANSCRIBE_ERR_INVALID_ARG;
+     }
+@@ -1088,6 +1090,9 @@ transcribe_status decode_tdt_greedy(const HostDecoderWeights & w,
+     bool predictor_dirty = true;
+ 
+     while (step < T_enc && iter < max_iters) {
++        if (abort_callback != nullptr && abort_callback(abort_callback_data)) {
++            return TRANSCRIBE_ERR_ABORTED;
++        }
+         ++iter;
+ 
+         // ----- Predictor (one LSTM step) -----
+diff --git a/src/arch/parakeet/decoder.h b/src/arch/parakeet/decoder.h
+index e4de9df..bd7cb9a 100644
+--- a/src/arch/parakeet/decoder.h
++++ b/src/arch/parakeet/decoder.h
+@@ -221,7 +221,9 @@ transcribe_status decode_tdt_greedy(const HostDecoderWeights & w,
+                                     int                        T_enc,
+                                     int                        d_enc,
+                                     int                        n_threads,
+-                                    std::vector<TdtToken> &    out_tokens);
++                                    std::vector<TdtToken> &    out_tokens,
++                                    ggml_abort_callback        abort_callback,
++                                    void *                     abort_callback_data);
+ 
+ // Run RNNT greedy decode end-to-end. Same predictor + joint code as TDT,
+ // but the joint emits `vocab+1` logits (no duration extras) and the step
+diff --git a/src/arch/parakeet/model.cpp b/src/arch/parakeet/model.cpp
+index 3b49742..16c040c 100644
+--- a/src/arch/parakeet/model.cpp
++++ b/src/arch/parakeet/model.cpp
+@@ -138,6 +138,24 @@ namespace {
+ 
+ constexpr float kBnEps = 1e-5f;
+ 
++bool poll_session_abort(void * user_data) {
++    return static_cast<ParakeetSession *>(user_data)->poll_abort();
++}
++
++void set_scheduler_abort_callback(ggml_backend_sched_t sched, ggml_abort_callback callback, void * user_data) {
++    const int n_backends = ggml_backend_sched_get_n_backends(sched);
++    for (int i = 0; i < n_backends; ++i) {
++        ggml_backend_t     backend = ggml_backend_sched_get_backend(sched, i);
++        ggml_backend_dev_t device  = ggml_backend_get_device(backend);
++        ggml_backend_reg_t reg     = ggml_backend_dev_backend_reg(device);
++        auto setter = reinterpret_cast<ggml_backend_set_abort_callback_t>(
++            ggml_backend_reg_get_proc_address(reg, "ggml_backend_set_abort_callback"));
++        if (setter != nullptr) {
++            setter(backend, callback, user_data);
++        }
++    }
++}
++
+ // Resolve the runtime language hint to a prompt-table index for the
+ // multilingual prompt-conditioned variants. The dictionary carries both
+ // BCP-47 codes ("en-US") and short aliases ("en"); exact-string lookup.
+@@ -703,7 +721,8 @@ static transcribe_status decode_and_populate(ParakeetSession *             pc,
+         transcribe_status st = TRANSCRIBE_OK;
+         switch (pm->host_decoder.head_kind) {
+             case HostHeadKind::TDT:
+-                st = decode_tdt_greedy(pm->host_decoder, enc, T_enc, d_enc, pc->n_threads, pc->raw_tokens);
++                st = decode_tdt_greedy(pm->host_decoder, enc, T_enc, d_enc, pc->n_threads, pc->raw_tokens,
++                                       poll_session_abort, pc);
+                 break;
+             case HostHeadKind::RNNT:
+                 st = decode_rnnt_greedy(pm->host_decoder, enc, T_enc, d_enc, pc->n_threads, pc->raw_tokens);
+@@ -891,7 +910,7 @@ static transcribe_status run_one_shot_inner(ParakeetSession *             pc,
+                                             const float *                 pcm,
+                                             int                           n_samples,
+                                             const transcribe_run_params * params) {
+-    // Pre-run abort check (the single observation point on this path).
++    // Pre-run abort check.
+     if (pc->poll_abort()) {
+         return TRANSCRIBE_ERR_ABORTED;
+     }
+@@ -914,6 +933,9 @@ static transcribe_status run_one_shot_inner(ParakeetSession *             pc,
+         return mst;
+     }
+     pc->t_mel_us = ggml_time_us() - t_mel_start;
++    if (pc->poll_abort()) {
++        return TRANSCRIBE_ERR_ABORTED;
++    }
+ 
+     // ----- Reset per-call compute state -----
+     // Free the previous run's compute_ctx; encoder_out is invalidated.
+@@ -1080,13 +1102,22 @@ static transcribe_status run_one_shot_inner(ParakeetSession *             pc,
+     transcribe::configure_sched_n_threads(pc->sched, pc->n_threads);
+ 
+     // ----- Compute -----
+-    const int64_t t_enc_start = ggml_time_us();
+-    if (const ggml_status gs = ggml_backend_sched_graph_compute(pc->sched, eb.graph); gs != GGML_STATUS_SUCCESS) {
++    if (pc->poll_abort()) {
++        return TRANSCRIBE_ERR_ABORTED;
++    }
++    set_scheduler_abort_callback(pc->sched, poll_session_abort, pc);
++    const int64_t     t_enc_start = ggml_time_us();
++    const ggml_status gs          = ggml_backend_sched_graph_compute(pc->sched, eb.graph);
++    set_scheduler_abort_callback(pc->sched, nullptr, nullptr);
++    pc->t_encode_us = ggml_time_us() - t_enc_start;
++    if (gs == GGML_STATUS_ABORTED || pc->was_aborted) {
++        return TRANSCRIBE_ERR_ABORTED;
++    }
++    if (gs != GGML_STATUS_SUCCESS) {
+         log_msg(TRANSCRIBE_LOG_LEVEL_ERROR, "parakeet run: ggml_backend_sched_graph_compute failed (%d)",
+                 static_cast<int>(gs));
+         return TRANSCRIBE_ERR_GGUF;
+     }
+-    pc->t_encode_us = ggml_time_us() - t_enc_start;
+     pc->t_decode_us = 0;
+ 
+     // ----- Dump intermediates (debug only; nullptr fields skipped) -----

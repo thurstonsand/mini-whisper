@@ -30,7 +30,7 @@ final class MiniWhisperUITests: XCTestCase {
     XCTAssertTrue(statusItem.waitForExistence(timeout: 5))
     statusItem.click()
 
-    let quitItem = app.menuItems["Quit"]
+    let quitItem = app.menuItems["Quit MiniWhisper"]
     XCTAssertTrue(quitItem.waitForExistence(timeout: 2))
   }
 

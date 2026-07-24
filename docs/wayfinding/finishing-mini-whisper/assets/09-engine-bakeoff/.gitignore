@@ -1,0 +1,7 @@
+.artifacts/
+.build/
+fixtures/*
+!fixtures/manifest.json
+models/*.gguf
+__pycache__/
+*.pyc

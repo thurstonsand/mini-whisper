@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "corpus": {
+    "fixtureCount": 24,
+    "totalDurationSeconds": 700.3663750000001,
+    "minimumDurationSeconds": 3.4839375,
+    "maximumDurationSeconds": 93.47675,
+    "referenceWordCount": 1214,
+    "source": "private local dictation fixtures; individual metadata and transcripts are intentionally excluded"
+  },
+  "reproductionManifest": "fixtures/local-manifest.json"
+}

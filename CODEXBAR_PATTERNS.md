@@ -103,7 +103,7 @@ CodexBar maintains the menu bar UI in AppKit (NSStatusBar, NSMenu, NSMenuItem) w
 
 ### The Three-Layer Architecture
 
-```
+```text
 ┌─────────────────────────────────────┐
 │  AppKit NSStatusBar + NSMenu        │
 │  (Direct icon updates, fast)        │
@@ -1030,7 +1030,7 @@ func specs(
 ## Summary: Pattern Benefits for Menu Bar Apps
 
 | Pattern | Problem Solved | When to Use |
-|---------|-------|-----------|
+| --------- | ------- | ----------- |
 | **Enum Registries** | Global state in testable way | Plugin systems, feature flags |
 | **AppKit + SwiftUI Hybrid** | Fast animations + modern UI | Menu bar apps, system tools |
 | **Protocol DI** | Testability without mocking frameworks | All business logic |
@@ -1041,4 +1041,3 @@ func specs(
 | **Consecutive Failure Gates** | Suppress transient errors | Network-dependent data |
 | **Lazy Async Loading** | Avoid blocking UI on startup | Keychain, expensive I/O |
 | **Closure Capture in Specs** | Context-specific behavior | Provider-specific logic |
-

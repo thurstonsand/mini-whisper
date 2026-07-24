@@ -1,5 +1,7 @@
 # MiniWhisper Bootstrap Guide
 
+<!-- markdownlint-disable MD010 -- Makefile code blocks require hard tabs -->
+
 A step-by-step guide to scaffolding a macOS menu bar dictation app using **only Apple-native tooling** plus whisper.cpp.
 
 ## Constraints
@@ -26,7 +28,7 @@ A step-by-step guide to scaffolding a macOS menu bar dictation app using **only 
 
 ## Project Structure (Target)
 
-```
+```text
 mini-whisper/
 ├── MiniWhisper.xcodeproj/          # Xcode project (app shell)
 ├── MiniWhisper/                    # App target source

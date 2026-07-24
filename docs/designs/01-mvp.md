@@ -1,0 +1,183 @@
+# MiniWhisper MVP
+
+## Status
+
+Accepted
+
+## Decision Summary
+
+Ship the full dictation vertical — hold/latch right-Option → capture → silence gate → local Parakeet transcription → paste into the frontmost app — as a signed, notarized, brew-tap-installed menu bar app. The engine is pinned FluidAudio v0.15.5 with Parakeet TDT 0.6B v2; the silence gate is FluidAudio's Silero VAD, re-calibrated against the bakeoff corpus before that corpus is destroyed. The key tradeoff throughout: reuse proven upstream mechanics (FluidAudio's chunk/merge, Hex's gesture shapes) rather than owning novel audio machinery.
+
+## Problem Statement / Background
+
+Dictation is becoming a daily part of directing coding agents, but the work machine's allowlist rules out every good dictation app; only Whispering clears review, and it is not good. MiniWhisper is a personal replacement built strictly from allowlisted or precedented capabilities. Ten wayfinding tickets ([map](../wayfinding/finishing-mini-whisper/map.md)) surveyed the field, pruned the feature set, and ran two bakeoffs (engine, silence rejection). This document folds those verdicts into one buildable spec. Planning ends here; everything after is execution.
+
+## Goals
+
+- One complete dictation: hold right-Option, speak, release, and the transcript appears where the cursor was — fast enough that release-to-text feels immediate (bakeoff baseline: ~100 ms warm median for short utterances).
+- Latch mode: double-tap to record hands-free; single tap ends it. A lone tap is a near-no-op.
+- Silence and near-silence never reach the engine and never produce hallucinated text.
+- Every state the user needs is visible in exactly one place: the pill during dictation, the menu bar icon only when the app is structurally degraded.
+- Installed on the work machine via `brew install thurstonsand/tap/mini-whisper`, signed and notarized, launching at login.
+
+## Non-Goals
+
+- The eight post-MVP stakes (history, paste-last, dictionary, warm-mic, second engine / fallback hardening (whisper.cpp Medium.en), settings UI, model download UI, LLM cleanup). `TranscriptCleanup` stays a dormant stub.
+- Streaming transcription, non-default input devices, destination-app label on the pill, configurable sounds.
+- Everything ruled out in [Prune the feature set](../wayfinding/finishing-mini-whisper/tickets/06-prune-the-feature-set.md).
+
+## Exposed Shape
+
+### End-user surface
+
+- **Activation:** pinned physical chord, initially right Option, defined in the settings file. Hold to record, release to transcribe. Double-tap to latch, single tap to end. Escape cancels a recording outright.
+- **The pill:** non-activating transparent panel, bottom-center above the Dock. States per [MVP UX](../wayfinding/finishing-mini-whisper/tickets/07-mvp-ux.md): recording (red dot + live level bars + input device name), latch engaged (single ~250 ms bounce), transcribing (blue pulsing dot), "No speech detected" (fades \~1.5 s), "Copied — ⌘V to paste" (lingers ~3 s). Success is the pill disappearing.
+- **Menu bar:** static template mic icon; changes only when degraded (permission missing, model missing, dead tap). Dropdown: status line ("Ready · Parakeet v2 · Shure MV7"), Copy Last Transcript, Sounds toggle, Launch at Login toggle, Settings File… (opens the JSON in the default editor), Quit. Degraded entries name the problem and deep-link the fix; the app never re-prompts a permission dialog after onboarding. No Dock icon.
+- **Sounds:** four macOS built-ins — record start (short tick), commit (soft pop), cancel/rejected (muted thunk), error (Basso-class) — behind one toggle.
+- **Settings file:** `~/Library/Application Support/MiniWhisper/settings.json`, exactly `{ hotkey, soundsEnabled }`. Validated at load; missing or invalid → defaults written back. Post-MVP features add keys when they land.
+- **Onboarding:** the app's only modal flow. Sequences the required permissions (exact set from mic / Input Monitoring / Accessibility determined empirically when the tap and paste paths land in Phases 1 and 5), then model download → Core ML compile → prewarm with progress (first specialization measured at 213 s; the first dictation never pays it).
+
+### Package boundaries
+
+The app target stays a thin shell: TCA features orchestrate, `@DependencyClient`s wrap system boundaries, pure decision logic lives in packages with plain unit tests.
+
+- **`HotkeyListener`:** owns the session CGEvent tap, physical-chord matcher, and the pure hold/latch gesture machine (Hex-shaped). Emits gesture events — `startRecording`, `stopAndTranscribe`, `latchEngaged`, `cancel` — as an async stream. Tap death is reported, never swallowed: fail closed, surface degraded.
+- **`AudioCapture`:** AVAudioEngine capture from the system default input. Emits level samples for the pill and returns one complete canonical recording (16 kHz mono Float32) on stop. Retains the complete capture; nothing trims it.
+- **`ASREngine`:** the transcription boundary. Owns the silence gate *and* the engine: on submit, classify the whole conformed recording once with FluidAudio's `VadManager`; if no segment qualifies, return `noSpeech`; otherwise hand the recording **unchanged** to a resident `AsrManager`. Result is a three-way shape — transcript, `noSpeech` (gate), `engineEmpty` (engine accepted audio, returned nothing) — because the bakeoff proved these are distinct failure classes. Also exposes model lifecycle: download / compile / prewarm with progress, for onboarding.
+- **Delivery (app-side client):** pasteboard write → synthetic ⌘V → ownership-checked restore of the prior clipboard (VoiceInk-style change-count check). On paste failure: transcript stays on the clipboard, prior clipboard is **not** restored — the transcript is more precious.
+
+### External contracts
+
+- **FluidAudio v0.15.5** (pinned exact version; tested tag has zero transitive deps — current `main` already grew a mandatory XCFramework, so every Renovate bump gets dependency review + the regression gate before merge). Parakeet TDT 0.6B v2 English Core ML artifact at immutable HF revision `ee09c569f73759e6d44c9bd16766f477b2b36d39`.
+- **macOS TCC:** permissions requested once, in onboarding, in the empirically determined order.
+- **Homebrew:** generated cask in `thurstonsand/homebrew-tap` pointing at a stapled app ZIP from a tag-driven release.
+
+## Design Decisions
+
+### 1. Engine: pinned FluidAudio + Parakeet v2, reuse its merger
+
+Per the [engine bakeoff](../wayfinding/finishing-mini-whisper/tickets/09-engine-bakeoff.md): 98 ms warm median, 3.21% edit distance, ~170 MiB RSS, and text Thurston preferred. FluidAudio's `AsrManager` owns 15-second chunking and overlap merging; MiniWhisper never implements app-level chunking or stitching. The engine protocol stays model-agnostic, but no second engine ships in the MVP — whisper.cpp Medium.en is a recorded contingency (post-MVP stake #5), not shipped code.
+
+### 2. Silence gate: FluidAudio's VadManager, re-calibrated before the evidence is destroyed
+
+The [silence bakeoff](../wayfinding/finishing-mini-whisper/tickets/10-silence-rejection-bakeoff.md) selected whisper.cpp's Silero v6.2 at 0.35 / 250 ms. The MVP instead uses FluidAudio's built-in Silero (`VadManager`) so whisper.cpp isn't bundled for VAD alone; whisper.cpp's implementation returns if/when the whisper fallback engine ships. Because the tuned thresholds belong to a different Silero build, the bakeoff harness is re-run once against `VadManager` on the existing 34-fixture corpus to select equivalent thresholds — zero false accepts / zero false rejects on both splits, or the discrepancy is escalated before proceeding. This happens in Phase 4, strictly before raw-fixture deletion. Gate mechanics are unchanged: one whole-utterance classification at release, accepted audio passes intact (no trim, no chunk, no stitch), 512-sample framing with one zero-padded tail, ≤15 ms absolute latency budget beside transcription.
+
+### 3. Gesture pipeline: session tap → chord matcher → pure machine
+
+Per [hotkey prior art](../wayfinding/finishing-mini-whisper/tickets/02-hotkey-mechanism-prior-art.md): a session-level CGEvent tap feeds a configurable physical-chord matcher feeding an isolated pure gesture machine (hold / double-tap-latch / tap-end / near-no-op lone tap, Hex's shapes). Right Option is configuration, not architecture. Modifier-only bindings observe passively; interruption recovery fails closed — a dead tap ends any active recording, plays the cancel path, and degrades the menu bar icon.
+
+### 4. One state surface at a time
+
+The pill owns all dictation-time state; the menu bar icon changes only for structural degradation, exactly when no pill exists to tell you. Errors are two-tier and dialog-free: per-dictation issues are transient pill messages plus a sound; structural issues are the degraded icon plus a menu item naming the fix.
+
+### 5. Settings: one small JSON file, conformed at the edge
+
+`{ hotkey, soundsEnabled }` in Application Support, human-edited until the settings UI stake lands. Load-time validation writes back defaults on missing/invalid content. Launch-at-login state lives in `SMAppService`, not JSON — the system owns it. Model pins and engine choice are code, not settings.
+
+### 6. Unsandboxed, hardened runtime, Developer ID
+
+Event taps and synthetic ⌘V into arbitrary apps are the sandbox's exact target surface; Hex ships unsandboxed and Whispering's allowlisted capabilities set the review precedent. App Sandbox is dropped; Hardened Runtime stays (notarization requires it). Distribution per the [distribution research](../wayfinding/finishing-mini-whisper/tickets/05-distribution-pipeline.md): tag-driven CI producing a signed, notarized, stapled app ZIP and a generated cask in the personal tap.
+
+### 7. No voice audio in the repo, ever
+
+Raw bakeoff fixtures (personal voice recordings) are deleted once Phase 4's re-calibration completes. What survives: aggregate results, manifests, and the scripts/procedure to re-record an equivalent corpus. The regression gate for future FluidAudio bumps runs against a locally re-recorded corpus, not committed audio.
+
+### 8. Attribution
+
+Parakeet TDT 0.6B v2 is CC-BY-4.0: attribution (model name, NVIDIA, license link) ships in the README and the app's about surface, satisfying whatever the license text requires.
+
+## Edge Cases & Failure Modes
+
+- **Lone tap:** records for a split second, gate rejects, muted thunk, no pill message beyond the brief recording state. Near-no-op by design.
+- **Escape during recording:** pill vanishes immediately, cancel sound, audio discarded.
+- **Gate rejects speech-free audio:** gray "No speech detected" pill, ~1.5 s fade, thunk. No engine call.
+- **Engine returns empty on accepted audio:** the bakeoff's unproven Parakeet short-word behavior. Surfaced as its own result (`engineEmpty`), logged distinctly, shown as "No speech detected" to the user — but never fixed by weakening the gate or adding phrase workarounds.
+- **Paste fails (secure input, hostile field):** transcript stays on clipboard, "Copied — ⌘V to paste" lingers ~3 s, prior clipboard not restored.
+- **Clipboard changed by another app mid-dictation:** ownership check (change count) skips the restore rather than clobbering.
+- **Tap dies (TCC revocation, system interruption):** active recording cancels through the normal cancel path; icon degrades; menu names the fix.
+- **Permission revoked while running:** same degraded path; onboarding dialogs are never re-fired — the menu deep-links System Settings.
+- **Model artifacts missing/corrupt at launch:** degraded icon; menu item re-enters the onboarding download step.
+- **Recording spanning 15-second boundaries:** FluidAudio's merger territory. The regression corpus keeps long speech, quiet pauses, and boundary-crossing utterances so upstream bumps can't silently drop, glue, or duplicate words.
+- **Machine sleep / display lock during latch:** treated as interruption — fail closed, cancel.
+
+## Alternatives
+
+### whisper.cpp as the MVP engine
+
+- **Status:** Rejected
+- **Decision:** Parakeet's text and latency won the bakeoff; Medium.en survives as post-MVP stake #5 (fallback hardening).
+- **Discussion:** Full evidence in the [engine bakeoff assets](../wayfinding/finishing-mini-whisper/assets/09-engine-bakeoff/README.md).
+
+### whisper.cpp's Silero for the shipping gate
+
+- **Status:** Rejected
+- **Decision:** Bundling whisper.xcframework solely for VAD costs more than re-calibrating FluidAudio's own Silero once against the same corpus. Returns with the whisper fallback engine if that stake lands.
+- **Discussion:** The 0.35 / 250 ms verdict transfers as method, not as numbers; Phase 4 re-derives the numbers before the corpus is deleted.
+
+### Committed regression audio
+
+- **Status:** Rejected
+- **Decision:** Personal voice recordings do not belong in a publishable repo. Reproducibility (scripts + manifest + procedure) is kept instead of the audio itself.
+
+### App Sandbox retention
+
+- **Status:** Rejected
+- **Decision:** Incompatible in practice with the tap + synthetic-paste core; prior art (Hex) ships without it and notarization does not require it.
+
+## Implementation Plan
+
+Each phase owns one surface of the app and ends demonstrable — something manual to poke at, so the shape and feel can be reviewed before the next phase builds on it. Phases are committable units; build, tests, and lint pass at every boundary.
+
+- [x] Phase 0: Agent-ready repo
+  - Goal: The repo tuned for fast agent iteration, stale skeleton purged, and the TCC question answered with evidence.
+  - Files: `MiniWhisper/*.swift` (skeleton), `mise.toml`, `scripts/`, `.gitignore`.
+  - Work: Delete stale skeleton concepts (whisper-model-size settings, emoji status strings) down to a compiling thin shell that reflects this spec's vocabulary. Verify `mise run build/test/test-packages/lint/mw/mw-fresh` and the menu-screenshot script all work cold. Verify `.gitignore` covers every raw-fixture directory (audit `git status` for voice audio). Add any missing debug lever for headless demos (e.g. structured log stream for gesture/dictation events). (A TCC permission spike was built here and deliberately discarded; the real permission set is proven when the tap and paste paths land.)
+  - Validation: Cold `mise run lint` passes; `git status` shows no sensitive files.
+
+- [ ] Phase 1: Hotkey pipeline
+  - Goal: Hold, latch, lone-tap, and Escape gestures recognized live from the real tap.
+  - Files: `Packages/HotkeyListener/`, app-side client + `AppFeature` wiring.
+  - Work: CGEvent tap lifecycle (session level, fail-closed death reporting), physical-chord matcher over the settings-file chord, pure hold/latch/tap gesture machine as an isolated type, async gesture-event stream, TCA client wrapping it.
+  - Validation: Gesture machine exhaustively unit-tested (Hex's cases as baseline: hold, latch double-tap, lone tap, Escape, interruption). Demo: run the app, watch the structured log narrate `startRecording` / `latchEngaged` / `stopAndTranscribe` / `cancel` as you perform each gesture.
+
+- [ ] Phase 2: Audio capture
+  - Goal: A hold produces a complete canonical recording and live levels.
+  - Files: `Packages/AudioCapture/`, capture client, `RecordingFeature`.
+  - Work: AVAudioEngine capture from default input; conform to 16 kHz mono Float32 at the edge; level metering stream; complete-capture retention; start/stop tied to gesture events; debug affordance that writes the finished capture to a WAV in a temp dir.
+  - Validation: Package tests for conformance/accumulation seams. Demo: hold and speak, play back the WAV, watch levels move in the log.
+
+- [ ] Phase 3: The pill
+  - Goal: Every pill state from the UX ticket, driven by real gestures and levels.
+  - Files: `MiniWhisper/` pill panel + feature (new), wiring into `AppFeature`.
+  - Work: Non-activating transparent NSPanel, bottom-center above the Dock; recording state (red dot, live bars, `AVCaptureDevice.localizedName`); latch bounce (~250 ms, eased, once); transcribing state (blue pulse); transient notices ("No speech detected" ~1.5 s, "Copied — ⌘V to paste" ~3 s); Escape-cancel instant vanish. Transcribe/notice states are demo-triggerable until the engine exists.
+  - Validation: Reducer tests for state transitions. Demo: perform each gesture and watch every state, bounce included, in place over the Dock.
+
+- [ ] Phase 4: Engine + silence gate
+  - Goal: Released audio becomes a transcript (or an honest rejection) locally.
+  - Files: `Packages/ASREngine/`, engine client, `AppFeature` wiring; bakeoff harness under `docs/wayfinding/.../assets/10-*/` for re-calibration.
+  - Work: First, re-calibration: run the silence-bakeoff harness against FluidAudio `VadManager` on the existing 34-fixture corpus; select thresholds hitting zero false accepts/rejects on both splits (escalate if unreachable); record aggregates; then delete every raw voice fixture and document the re-record procedure. Then production: pinned FluidAudio dep; `ASREngine` gate → resident `AsrManager` submit path with the three-way result; model lifecycle API (download pinned revision, compile, prewarm, progress); minimal interim model-setup path (menu-triggered) until Phase 7's onboarding. Wire release → gate → transcribe → pill states. 15 ms VAD budget asserted in the regression harness.
+  - Validation: Regression run over the (re-recorded or pre-deletion) corpus: classifications match manifest, long/boundary fixtures stitch cleanly, VAD budget holds. Demo: hold, speak, release — transcript in the log; silence — "No speech detected."
+
+- [ ] Phase 5: Delivery + sounds
+  - Goal: The vertical completes — transcript lands at the cursor; the app is daily-drivable from this phase on.
+  - Files: Delivery client, sounds client, `AppFeature` wiring.
+  - Work: Pasteboard write → synthetic ⌘V → ownership-checked restore; fallback path (keep transcript on clipboard, no restore, pill notice); the four sound cues behind the settings toggle; success = pill disappearance.
+  - Validation: Reducer tests for delivery outcomes incl. fallback and skipped restore. Demo: dictate into a real editor, a browser field, and a secure-input case to see the fallback; hear each cue.
+
+- [ ] Phase 6: Menu bar
+  - Goal: The healthy/degraded surface and the full dropdown.
+  - Files: `MiniWhisper/MenuBarController.swift`, `AppFeature`, settings store.
+  - Work: Static template icon; degraded variant driven by structural failures (permissions, model, dead tap) with deep-linked fixes; dropdown per the UX ticket — status line, Copy Last Transcript, Sounds toggle, Launch at Login (`SMAppService`), Settings File… (opens JSON in default editor), Quit. `LSUIElement`, no Dock icon.
+  - Validation: Reducer tests for degraded derivation. Demo: `capture_menu_screenshot` of healthy and induced-degraded states; toggle each item live.
+
+- [ ] Phase 7: Onboarding
+  - Goal: A fresh machine reaches "Ready" through one guided flow.
+  - Files: Onboarding feature + window in `MiniWhisper/`.
+  - Work: First-run detection; permission sequence per the tap/paste phases' findings; model download → compile → prewarm with progress (the 213 s cost lives here, visibly); terminal "try it" moment; degraded menu items re-enter the relevant step.
+  - Validation: Demo: `mise run mw-fresh` (extended to reset all involved TCC classes where possible) walks the full flow to a working first dictation.
+
+- [ ] Phase 8: Distribution
+  - Goal: `brew install thurstonsand/tap/mini-whisper` on the work machine.
+  - Files: CI release workflow, signing/notarization config, cask generation, README (attribution), about surface.
+  - Work: Drop App Sandbox / keep Hardened Runtime entitlements; tag-driven workflow: build, Developer ID sign, notarize, staple, ZIP, generate/push cask to `thurstonsand/homebrew-tap`; CC-BY-4.0 attribution in README and about; verify Renovate tracks the pinned FluidAudio version and document the bump gate (dependency review + regression corpus run).
+  - Validation: Clean install from the tap on a second account/machine; signed-artifact TCC prompts match the development machine's observed set; first launch runs onboarding to a successful dictation.

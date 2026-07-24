@@ -1,0 +1,9 @@
+# id	repository	revision	filename	bytes	sha256	mode
+parakeet-v2	handy-computer/parakeet-tdt-0.6b-v2-GGUF	07cee0616125a08ef619729bb47f40ef747e4bc4	parakeet-tdt-0.6b-v2-Q5_K_M.gguf	539012608	dfa904520b95451599683613fea47766c378c5fdf5d8cddf48151226b6eaec85	batch
+parakeet-v3	handy-computer/parakeet-tdt-0.6b-v3-GGUF	85ac09ea12fc4b1112fa76810059364bc6adc9de	parakeet-tdt-0.6b-v3-Q5_K_M.gguf	548946272	cc722e76adc1a629fc0b2535de879d99b8160d07ad4c0215e2ca7d7ea0ae4b8f	batch
+whisper-turbo	handy-computer/whisper-large-v3-turbo-GGUF	d222c9f621c1128299248f2ded4d8a1820519780	whisper-large-v3-turbo-Q5_K_M.gguf	619628192	065dce9c5c13c6b5f5b92b926a519ad3b4416ecbbe701a247835bda529d4b2a9	batch
+whisper-base-en	handy-computer/whisper-base.en-GGUF	cf0804db15fb341d00c9274b90da9cbb4fe2e5c6	whisper-base.en-Q5_K_M.gguf	63709472	549e6e991588cd748dc6bf53b8fe47629dc08ed9038b8955270ee98fbc5e4c54	batch
+whisper-small-en	handy-computer/whisper-small.en-gguf	41b0f75fd44415ba127a5356c5ba9ed450c1debd	whisper-small.en-Q5_K_M.gguf	193672256	e96a679e57d36f80bb26512f3893185d219ddd8880cdac4c433e5af13a001b47	batch
+whisper-medium-en	handy-computer/whisper-medium.en-gguf	f25c70d9095dcfdad187ebb3b113d157b414aee8	whisper-medium.en-Q5_K_M.gguf	582669056	8c90b55725036f1362fc5a583432a4e63370304dbf0f96b6245685f8a588174f	batch
+whisper-large-v3	handy-computer/whisper-large-v3-gguf	e3e29bee6389c7da4a141406f07bb80ddac5337c	whisper-large-v3-Q5_K_M.gguf	1161143008	6053d0fd69a0fd48b8fea5ea7a52b9e0cde389343566fa30e453a1b2b258dc38	batch
+moonshine-streaming-tiny	handy-computer/moonshine-streaming-tiny-gguf	85ddff612fa3a2cf40b2f745abcfa90ef82f293b	moonshine-streaming-tiny-Q8_0.gguf	50462816	930e4622ad3a24158b91406c30c977fa6a26b34cb32d6ac3e57cfb23383a869e	streaming

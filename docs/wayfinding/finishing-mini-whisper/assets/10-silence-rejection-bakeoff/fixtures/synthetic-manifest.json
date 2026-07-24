@@ -1,0 +1,57 @@
+[
+  {
+    "id": "synthetic-zero-short",
+    "file": "synthetic/zero-short.wav",
+    "split": "calibration",
+    "label": "no_speech",
+    "category": "literal-silence",
+    "device": "synthetic",
+    "room": "synthetic",
+    "reference": "",
+    "speech_spans": []
+  },
+  {
+    "id": "synthetic-zero-long",
+    "file": "synthetic/zero-long.wav",
+    "split": "holdout",
+    "label": "no_speech",
+    "category": "literal-silence",
+    "device": "synthetic",
+    "room": "synthetic",
+    "reference": "",
+    "speech_spans": []
+  },
+  {
+    "id": "synthetic-low-noise",
+    "file": "synthetic/low-noise.wav",
+    "split": "calibration",
+    "label": "no_speech",
+    "category": "noise",
+    "device": "synthetic",
+    "room": "synthetic",
+    "reference": "",
+    "speech_spans": []
+  },
+  {
+    "id": "synthetic-impulses",
+    "file": "synthetic/impulses.wav",
+    "split": "holdout",
+    "label": "no_speech",
+    "category": "impulse",
+    "device": "synthetic",
+    "room": "synthetic",
+    "reference": "",
+    "speech_spans": []
+  },
+  {
+    "id": "synthetic-tone",
+    "file": "synthetic/tone.wav",
+    "split": "holdout",
+    "label": "no_speech",
+    "category": "non-speech-tone",
+    "device": "synthetic",
+    "room": "synthetic",
+    "reference": "",
+    "speech_spans": []
+  }
+]

@@ -1,0 +1,175 @@
+{
+  "acceptance": {
+    "capture_buffer_invariant": true,
+    "no_final_nonempty_transcript_for_no_speech": true,
+    "no_rejected_speech": true,
+    "vad_below_accepted_fifteen_ms_budget": true,
+    "vad_below_provisional_ten_percent_ratio": false
+  },
+  "boundary": {
+    "buffer_sizes": [
+      73,
+      511,
+      128,
+      2048,
+      17,
+      960,
+      333,
+      4096,
+      255
+    ],
+    "future_endpoint_confirmation_maximum_ms": 375.625,
+    "future_endpoint_confirmation_median_ms": 186.312,
+    "maximum_probability_delta": 0.0,
+    "mvp_onset_clipping_ms": 0
+  },
+  "calibration_sweep": [
+    {
+      "false_accepts": 0,
+      "false_rejects": 0,
+      "fixtures": 14,
+      "minimum_speech_ms": 96,
+      "threshold": 0.35
+    },
+    {
+      "false_accepts": 0,
+      "false_rejects": 0,
+      "fixtures": 14,
+      "minimum_speech_ms": 160,
+      "threshold": 0.35
+    },
+    {
+      "false_accepts": 0,
+      "false_rejects": 0,
+      "fixtures": 14,
+      "minimum_speech_ms": 250,
+      "threshold": 0.35
+    },
+    {
+      "false_accepts": 0,
+      "false_rejects": 1,
+      "fixtures": 14,
+      "minimum_speech_ms": 96,
+      "threshold": 0.5
+    },
+    {
+      "false_accepts": 0,
+      "false_rejects": 1,
+      "fixtures": 14,
+      "minimum_speech_ms": 160,
+      "threshold": 0.5
+    },
+    {
+      "false_accepts": 0,
+      "false_rejects": 1,
+      "fixtures": 14,
+      "minimum_speech_ms": 250,
+      "threshold": 0.5
+    },
+    {
+      "false_accepts": 0,
+      "false_rejects": 1,
+      "fixtures": 14,
+      "minimum_speech_ms": 96,
+      "threshold": 0.65
+    },
+    {
+      "false_accepts": 0,
+      "false_rejects": 1,
+      "fixtures": 14,
+      "minimum_speech_ms": 160,
+      "threshold": 0.65
+    },
+    {
+      "false_accepts": 0,
+      "false_rejects": 2,
+      "fixtures": 14,
+      "minimum_speech_ms": 250,
+      "threshold": 0.65
+    }
+  ],
+  "conclusions": [
+    "Select Silero v6.2 at threshold 0.35 and minimum speech 250 ms.",
+    "Pass accepted utterances to FluidAudio unchanged; the gate does not trim, chunk, or stitch.",
+    "RMS baselines do not satisfy the speech/no-speech acceptance bar.",
+    "Two accepted short-word speech fixtures produced empty Parakeet transcripts."
+  ],
+  "corpus": {
+    "calibration_fixtures": 14,
+    "fixtures": 34,
+    "holdout_fixtures": 20
+  },
+  "environment": {
+    "fluid_audio_revision": "19600a485baa4998812e4654b70d2bab8f2c9949",
+    "parakeet_revision": "ee09c569f73759e6d44c9bd16766f477b2b36d39",
+    "silero": "v6.2.0 / 2aa269b785eeb53a82983a20501ddf7c1d9c48e33ab63a41391ac6c9f7fb6987",
+    "whisper_cpp_revision": "f049fff95a089aa9969deb009cdd4892b3e74916"
+  },
+  "privacy": "Aggregate metrics only. Fixture audio, transcripts, probabilities, timelines, and individual decisions are omitted.",
+  "rms_baselines": [
+    {
+      "calibration": {
+        "false_accepts": 3,
+        "false_rejects": 1,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 5,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "shape": "whole",
+      "threshold": 0.001
+    },
+    {
+      "calibration": {
+        "false_accepts": 6,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 6,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "shape": "framed",
+      "threshold": 0.001
+    }
+  ],
+  "runtime": {
+    "decoder_median_ms": 59.684625,
+    "vad_median_ms": 10.074145999999999
+  },
+  "selected_settings": {
+    "minimum_speech_ms": 250,
+    "threshold": 0.35
+  },
+  "summary": {
+    "calibration": {
+      "false_accepts": 0,
+      "false_rejects": 0,
+      "final_nonempty_no_speech_transcripts": 0,
+      "fixtures": 14,
+      "nonempty_no_speech_transcripts": 0,
+      "skipped_decodes": 6
+    },
+    "holdout": {
+      "false_accepts": 0,
+      "false_rejects": 0,
+      "final_nonempty_no_speech_transcripts": 0,
+      "fixtures": 20,
+      "nonempty_no_speech_transcripts": 0,
+      "skipped_decodes": 8
+    }
+  },
+  "transcription_aggregates": {
+    "no_speech_nonempty_without_gate_by_split": {
+      "calibration": 0,
+      "holdout": 0
+    },
+    "speech_empty_by_split": {
+      "calibration": 1,
+      "holdout": 1
+    }
+  }
+}

@@ -1,3 +1,5 @@
+# MiniWhisper scaffolding
+
 For what you’re building (menu-bar utility, global hotkey, local Whisper/Parakeet, heavy emphasis on testability, near-zero deps), the best “scaffolding” is a hybrid:
 
 1. **Xcode’s built-in macOS App template** (to get a signed, sandboxed app bundle, test targets, entitlements, etc.)
@@ -62,7 +64,7 @@ For dictation-style UX, the best performance lever is _model size + quantization
 
 **Why `large-v3-turbo` is interesting:** whisper.cpp’s own Metal benchmarks show `large-v3-turbo` and its quantized variants are very fast on Apple Silicon (their release notes include detailed timings on M2 Ultra and specifically list `large-v3-turbo-q5_0`). ([GitHub][3])
 
-**Notes that matter for your constraints**
+#### Notes that matter for your constraints
 
 - Use **`.en`** variants if you only need English (smaller/faster, simpler decode path). ([Hugging Face][5])
 - Quantization: in practice, `q5_1` is often the “sweet spot”; `q8_0` is larger with slightly better fidelity; either is usually fine for dictation.

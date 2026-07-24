@@ -19,6 +19,7 @@ enter = "mise bootstrap --yes --quiet && ([ -f buildServer.json ] || mise run bs
 [tools]
 "aqua:cpisciotta/xcbeautify" = "latest"
 hk = "1.50.0"
+markdownlint-cli2 = "0.23.1"
 "http:xcode-build-server" = { version = "1.3.0", url = "https://github.com/SolaWing/xcode-build-server/archive/refs/tags/v{{ version }}.tar.gz", strip_components = 1, bin_path = "." }
 
 [tasks.bootstrap]
@@ -55,14 +56,18 @@ xcodebuild -scheme $SCHEME \
     build | xcbeautify -q --disable-colored-output --disable-logging
 """
 
-[tasks.run]
+[tasks.logs]
+description = "Stream MiniWhisper structured logs (also written to .build/miniwhisper.log)"
+run = "mkdir -p .build && log stream --style compact --level info --predicate 'subsystem == \"com.thurstonsand.MiniWhisper\"' | tee .build/miniwhisper.log"
+
+[tasks.mw]
 description = "Build and run the app"
 depends = ["build"]
 run = "open $APP_PATH"
 
-[tasks.run-fresh]
+[tasks.mw-fresh]
 description = "Build and run with fresh permissions"
-depends = ["reset-permissions", "run"]
+depends = ["reset-permissions", "mw"]
 
 
 [tasks.test]
@@ -106,10 +111,15 @@ run = "swift format --recursive --in-place MiniWhisper/ MiniWhisperTests/ MiniWh
 description = "Check formatting"
 run = "swift format lint --recursive --strict MiniWhisper/ MiniWhisperTests/ MiniWhisperUITests/ Packages/"
 
+[tasks.lint-markdown]
+description = "Lint Markdown documentation"
+run = "markdownlint-cli2 \"**/*.md\""
+
 [tasks.lint]
 description = "Run pre-commit checks"
 run = [
     "mise run format-check",
+    "mise run lint-markdown",
     "mise run build",
     "mise run test-packages",
 ]

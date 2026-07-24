@@ -35,6 +35,7 @@ import SwiftUI
     lastRenderedState = state
     statusItem?.button?.image = NSImage(
       systemSymbolName: state.iconSymbolName, accessibilityDescription: "MiniWhisper")
+    statusItem?.button?.image?.isTemplate = true
     statusItem?.menu = buildMenu(state)
   }
 
@@ -48,25 +49,10 @@ import SwiftUI
     menu.addItem(headerItem)
 
     menu.addItem(.separator())
-
-    let dictationItem = NSMenuItem()
-    let dictationView = NSHostingView(
-      rootView: DictationRowView(
-        isMicGranted: state.isMicGranted,
-        onDictation: { [weak self] in self?.store.send(.menuBar(.dictationTapped)) },
-        onRequestMicAccess: { [weak self] in self?.store.send(.menuBar(.requestMicAccessTapped)) }))
-    dictationView.frame.size = dictationView.fittingSize
-    dictationItem.view = dictationView
-    menu.addItem(dictationItem)
-
-    let settingsItem = NSMenuItem(title: "Settings...", action: nil, keyEquivalent: ",")
-    menu.addItem(settingsItem)
-
-    menu.addItem(.separator())
-
-    let quitItem = NSMenuItem(
-      title: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
-    menu.addItem(quitItem)
+    menu.addItem(
+      NSMenuItem(
+        title: "Quit MiniWhisper", action: #selector(NSApplication.terminate(_:)),
+        keyEquivalent: "q"))
 
     return menu
   }
@@ -80,29 +66,5 @@ struct MenuHeaderView: View {
       Text("MiniWhisper").font(.headline)
       Text(statusText).font(.subheadline).foregroundStyle(.secondary)
     }.padding(.horizontal, 14).padding(.vertical, 8)
-  }
-}
-
-struct DictationRowView: View {
-  var isMicGranted: Bool
-  var onDictation: () -> Void
-  var onRequestMicAccess: () -> Void
-
-  var body: some View {
-    HStack(spacing: 8) {
-      Text("Start Dictation").opacity(isMicGranted ? 1 : 0.4)
-
-      Spacer()
-
-      if isMicGranted {
-        Text("⌘D").foregroundStyle(.secondary)
-      } else {
-        Button(action: onRequestMicAccess) {
-          Image(systemName: "mic").foregroundStyle(.white).padding(4).background(
-            Color.orange, in: RoundedRectangle(cornerRadius: 4))
-        }.buttonStyle(.plain)
-      }
-    }.padding(.horizontal, 14).padding(.vertical, 6).frame(minWidth: 180).contentShape(Rectangle())
-      .onTapGesture(perform: onDictation)
   }
 }

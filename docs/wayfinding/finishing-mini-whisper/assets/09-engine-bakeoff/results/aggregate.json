@@ -1,0 +1,816 @@
+{
+  "conclusion": {
+    "fallback": "whisper.cpp v1.9.1 with Whisper Medium.en Q5_0",
+    "stitchingPolicy": "Use FluidAudio AsrManager's existing 15-second overlap merger; do not implement app-level stitching.",
+    "tentativeEngine": "FluidAudio v0.15.5 with Parakeet TDT 0.6B v2"
+  },
+  "corpus": {
+    "fixtureCount": 24,
+    "maximumDurationSeconds": 93.47675,
+    "minimumDurationSeconds": 3.4839375,
+    "referenceWordCount": 1214,
+    "source": "private local dictation fixtures; individual metadata and transcripts are intentionally excluded",
+    "totalDurationSeconds": 700.3663750000001
+  },
+  "firstUse": [
+    {
+      "coldLoadMilliseconds": 213026.610875,
+      "label": "FluidAudio / Parakeet v2",
+      "peakResidentMiB": 560.71875
+    },
+    {
+      "coldLoadMilliseconds": 194943.29525,
+      "label": "FluidAudio / Parakeet v3",
+      "peakResidentMiB": 559.828125
+    },
+    {
+      "coldLoadMilliseconds": 15111.65275,
+      "label": "WhisperKit / Whisper Small.en",
+      "peakResidentMiB": 223.484375
+    },
+    {
+      "coldLoadMilliseconds": 7358.94,
+      "label": "whisper.cpp",
+      "observation": "First Metal context in the newly built runtime; later process loads use the persistent Metal cache."
+    },
+    {
+      "coldLoadMilliseconds": 9579.0,
+      "label": "MLX Parakeet",
+      "observation": "First process before MLX compilation caches; a later full-matrix run loaded in 3034 ms."
+    },
+    {
+      "coldLoadMilliseconds": 15111.72175,
+      "label": "WhisperKit",
+      "observation": "First model load before Core ML specialization was cached; the immediately repeated process loaded in 503 ms."
+    }
+  ],
+  "fluidAudio": [
+    {
+      "backend": "Core ML defaults: ANE-preferred models, CPU preprocessor",
+      "cancellation": {
+        "outcome": "aborted",
+        "responseMilliseconds": 75.465458
+      },
+      "coldLoadMilliseconds": 124.622875,
+      "corpusWordErrorRate": 0.03212520593080725,
+      "failedFixtureCount": 0,
+      "label": "FluidAudio / Parakeet v2 / default",
+      "longFormConfiguration": "default",
+      "longestFixtureDurationSeconds": 93.47675,
+      "longestFixtureMilliseconds": 237.841833,
+      "meanFixtureWordErrorRate": null,
+      "model": {
+        "artifactRevision": "ee09c569f73759e6d44c9bd16766f477b2b36d39",
+        "checkpoint": "nvidia/parakeet-tdt-0.6b-v2",
+        "encoderPrecision": "int8"
+      },
+      "peakResidentMiB": 170.0625,
+      "runtime": "FluidAudio",
+      "runtimeRevision": "19600a485baa4998812e4654b70d2bab8f2c9949",
+      "runtimeVersion": "v0.15.5",
+      "warmMedianMilliseconds": 97.614438,
+      "warmP95Milliseconds": 222.156334
+    },
+    {
+      "backend": "Core ML defaults: ANE-preferred models, CPU preprocessor",
+      "cancellation": {
+        "outcome": "aborted",
+        "responseMilliseconds": 109.820334
+      },
+      "coldLoadMilliseconds": 88.879125,
+      "corpusWordErrorRate": 0.032948929159802305,
+      "failedFixtureCount": 0,
+      "label": "FluidAudio / Parakeet v3 / default",
+      "longFormConfiguration": "default",
+      "longestFixtureDurationSeconds": 93.47675,
+      "longestFixtureMilliseconds": 246.355458,
+      "meanFixtureWordErrorRate": null,
+      "model": {
+        "artifactRevision": "aed02740059203c4a87495924f685de3722ae9ce",
+        "checkpoint": "nvidia/parakeet-tdt-0.6b-v3",
+        "encoderPrecision": "int8"
+      },
+      "peakResidentMiB": 188.0625,
+      "runtime": "FluidAudio",
+      "runtimeRevision": "19600a485baa4998812e4654b70d2bab8f2c9949",
+      "runtimeVersion": "v0.15.5",
+      "warmMedianMilliseconds": 107.364125,
+      "warmP95Milliseconds": 225.881375
+    },
+    {
+      "backend": "Core ML defaults: ANE-preferred models, CPU preprocessor",
+      "cancellation": {
+        "outcome": "aborted",
+        "responseMilliseconds": 107.638458
+      },
+      "coldLoadMilliseconds": 93.434958,
+      "corpusWordErrorRate": 0.03871499176276771,
+      "failedFixtureCount": 0,
+      "label": "FluidAudio / Parakeet v3 / no mel context",
+      "longFormConfiguration": "no-mel",
+      "longestFixtureDurationSeconds": 93.47675,
+      "longestFixtureMilliseconds": 244.218,
+      "meanFixtureWordErrorRate": null,
+      "model": {
+        "artifactRevision": "aed02740059203c4a87495924f685de3722ae9ce",
+        "checkpoint": "nvidia/parakeet-tdt-0.6b-v3",
+        "encoderPrecision": "int8"
+      },
+      "peakResidentMiB": 188.5,
+      "runtime": "FluidAudio",
+      "runtimeRevision": "19600a485baa4998812e4654b70d2bab8f2c9949",
+      "runtimeVersion": "v0.15.5",
+      "warmMedianMilliseconds": 109.5645,
+      "warmP95Milliseconds": 244.218
+    },
+    {
+      "backend": "Core ML defaults: ANE-preferred models, CPU preprocessor",
+      "cancellation": {
+        "outcome": "aborted",
+        "responseMilliseconds": 33.886208
+      },
+      "coldLoadMilliseconds": 91.988709,
+      "corpusWordErrorRate": 0.03871499176276771,
+      "failedFixtureCount": 0,
+      "label": "FluidAudio / Parakeet v3 / dual-decode arbitration",
+      "longFormConfiguration": "dual",
+      "longestFixtureDurationSeconds": 93.47675,
+      "longestFixtureMilliseconds": 755.43025,
+      "meanFixtureWordErrorRate": null,
+      "model": {
+        "artifactRevision": "aed02740059203c4a87495924f685de3722ae9ce",
+        "checkpoint": "nvidia/parakeet-tdt-0.6b-v3",
+        "encoderPrecision": "int8"
+      },
+      "peakResidentMiB": 154.625,
+      "runtime": "FluidAudio",
+      "runtimeRevision": "19600a485baa4998812e4654b70d2bab8f2c9949",
+      "runtimeVersion": "v0.15.5",
+      "warmMedianMilliseconds": 215.84772900000002,
+      "warmP95Milliseconds": 643.148917
+    }
+  ],
+  "maturityOptions": [
+    {
+      "backend": "metal",
+      "cancellation": null,
+      "coldLoadMilliseconds": 181.646,
+      "corpusWordErrorRate": 0.03130148270181219,
+      "failedFixtureCount": 0,
+      "label": "whisper.cpp / Whisper Medium.en / Metal",
+      "longFormConfiguration": null,
+      "longestFixtureDurationSeconds": 93.47675,
+      "longestFixtureMilliseconds": 2186.83,
+      "meanFixtureWordErrorRate": null,
+      "model": {
+        "artifact": "whispercpp-medium.en-q5_0.bin",
+        "checkpoint": "openai/whisper-medium.en",
+        "quantization": "Q5_0"
+      },
+      "peakResidentMiB": 900.8125,
+      "runtime": "whisper.cpp",
+      "runtimeRevision": "f049fff95a089aa9969deb009cdd4892b3e74916",
+      "runtimeVersion": "v1.9.1",
+      "warmMedianMilliseconds": 604.518,
+      "warmP95Milliseconds": 1844.46
+    },
+    {
+      "backend": "metal",
+      "cancellation": null,
+      "coldLoadMilliseconds": 167.331,
+      "corpusWordErrorRate": 0.039538714991762765,
+      "failedFixtureCount": 0,
+      "label": "whisper.cpp / Whisper large-v3-turbo / Metal",
+      "longFormConfiguration": null,
+      "longestFixtureDurationSeconds": 93.47675,
+      "longestFixtureMilliseconds": 2240,
+      "meanFixtureWordErrorRate": null,
+      "model": {
+        "artifact": "whispercpp-large-v3-turbo-q5_0.bin",
+        "checkpoint": "openai/whisper-large-v3-turbo",
+        "quantization": "Q5_0"
+      },
+      "peakResidentMiB": 852.8125,
+      "runtime": "whisper.cpp",
+      "runtimeRevision": "f049fff95a089aa9969deb009cdd4892b3e74916",
+      "runtimeVersion": "v1.9.1",
+      "warmMedianMilliseconds": 560.3395,
+      "warmP95Milliseconds": 2166.9
+    },
+    {
+      "backend": "metal",
+      "cancellation": null,
+      "coldLoadMilliseconds": 286.563,
+      "corpusWordErrorRate": 0.128500823723229,
+      "failedFixtureCount": 0,
+      "label": "whisper.cpp / Whisper large-v3 / Metal",
+      "longFormConfiguration": null,
+      "longestFixtureDurationSeconds": 93.47675,
+      "longestFixtureMilliseconds": 3864.32,
+      "meanFixtureWordErrorRate": null,
+      "model": {
+        "artifact": "whispercpp-large-v3-q5_0.bin",
+        "checkpoint": "openai/whisper-large-v3",
+        "quantization": "Q5_0"
+      },
+      "peakResidentMiB": 2054.46875,
+      "runtime": "whisper.cpp",
+      "runtimeRevision": "f049fff95a089aa9969deb009cdd4892b3e74916",
+      "runtimeVersion": "v1.9.1",
+      "warmMedianMilliseconds": 1024.8915,
+      "warmP95Milliseconds": 3864.32
+    }
+  ],
+  "modelSelection": [
+    {
+      "backend": "metal",
+      "cancellation": {
+        "outcome": "completed-despite-cancel",
+        "responseMilliseconds": 982.209667
+      },
+      "coldLoadMilliseconds": 156.238541,
+      "corpusWordErrorRate": null,
+      "failedFixtureCount": 0,
+      "label": "Parakeet v2 Q5_K_M",
+      "longFormConfiguration": null,
+      "longestFixtureDurationSeconds": 93.47675,
+      "longestFixtureMilliseconds": 1087.77125,
+      "meanFixtureWordErrorRate": 0.049839062316544946,
+      "model": {
+        "bytes": 539012608,
+        "filename": "parakeet-tdt-0.6b-v2-Q5_K_M.gguf",
+        "id": "parakeet-v2",
+        "repository": "handy-computer/parakeet-tdt-0.6b-v2-GGUF",
+        "revision": "07cee0616125a08ef619729bb47f40ef747e4bc4"
+      },
+      "peakResidentMiB": 1590.390625,
+      "runtime": "transcribe.cpp",
+      "runtimeRevision": "a94e021ef658dc7c788837341a13f6acea3baf3c",
+      "runtimeVersion": null,
+      "warmMedianMilliseconds": 167.6482295,
+      "warmP95Milliseconds": 949.637917
+    },
+    {
+      "backend": "metal",
+      "cancellation": {
+        "outcome": "completed-despite-cancel",
+        "responseMilliseconds": 1025.26925
+      },
+      "coldLoadMilliseconds": 153.372458,
+      "corpusWordErrorRate": null,
+      "failedFixtureCount": 0,
+      "label": "Parakeet v3 Q5_K_M",
+      "longFormConfiguration": null,
+      "longestFixtureDurationSeconds": 93.47675,
+      "longestFixtureMilliseconds": 1108.214792,
+      "meanFixtureWordErrorRate": 0.04027489259396509,
+      "model": {
+        "bytes": 548946272,
+        "filename": "parakeet-tdt-0.6b-v3-Q5_K_M.gguf",
+        "id": "parakeet-v3",
+        "repository": "handy-computer/parakeet-tdt-0.6b-v3-GGUF",
+        "revision": "85ac09ea12fc4b1112fa76810059364bc6adc9de"
+      },
+      "peakResidentMiB": 1653.140625,
+      "runtime": "transcribe.cpp",
+      "runtimeRevision": "a94e021ef658dc7c788837341a13f6acea3baf3c",
+      "runtimeVersion": null,
+      "warmMedianMilliseconds": 172.94045849999998,
+      "warmP95Milliseconds": 978.223375
+    },
+    {
+      "backend": "metal",
+      "cancellation": {
+        "outcome": "aborted",
+        "responseMilliseconds": 0.14425
+      },
+      "coldLoadMilliseconds": 40.682542,
+      "corpusWordErrorRate": null,
+      "failedFixtureCount": 0,
+      "label": "Whisper Base.en Q5_K_M",
+      "longFormConfiguration": null,
+      "longestFixtureDurationSeconds": 93.47675,
+      "longestFixtureMilliseconds": 396.064917,
+      "meanFixtureWordErrorRate": 0.05214614387415909,
+      "model": {
+        "bytes": 63709472,
+        "filename": "whisper-base.en-Q5_K_M.gguf",
+        "id": "whisper-base-en",
+        "repository": "handy-computer/whisper-base.en-GGUF",
+        "revision": "cf0804db15fb341d00c9274b90da9cbb4fe2e5c6"
+      },
+      "peakResidentMiB": 241.109375,
+      "runtime": "transcribe.cpp",
+      "runtimeRevision": "a94e021ef658dc7c788837341a13f6acea3baf3c",
+      "runtimeVersion": null,
+      "warmMedianMilliseconds": 118.466104,
+      "warmP95Milliseconds": 370.116833
+    },
+    {
+      "backend": "metal",
+      "cancellation": {
+        "outcome": "aborted",
+        "responseMilliseconds": 2.108583
+      },
+      "coldLoadMilliseconds": 74.064542,
+      "corpusWordErrorRate": null,
+      "failedFixtureCount": 0,
+      "label": "Whisper Small.en Q5_K_M",
+      "longFormConfiguration": null,
+      "longestFixtureDurationSeconds": 93.47675,
+      "longestFixtureMilliseconds": 894.846792,
+      "meanFixtureWordErrorRate": 0.04342793394234055,
+      "model": {
+        "bytes": 193672256,
+        "filename": "whisper-small.en-Q5_K_M.gguf",
+        "id": "whisper-small-en",
+        "repository": "handy-computer/whisper-small.en-gguf",
+        "revision": "41b0f75fd44415ba127a5356c5ba9ed450c1debd"
+      },
+      "peakResidentMiB": 430.390625,
+      "runtime": "transcribe.cpp",
+      "runtimeRevision": "a94e021ef658dc7c788837341a13f6acea3baf3c",
+      "runtimeVersion": null,
+      "warmMedianMilliseconds": 267.1674585,
+      "warmP95Milliseconds": 797.627834
+    },
+    {
+      "backend": "metal",
+      "cancellation": {
+        "outcome": "aborted",
+        "responseMilliseconds": 5.183459
+      },
+      "coldLoadMilliseconds": 182.504292,
+      "corpusWordErrorRate": null,
+      "failedFixtureCount": 0,
+      "label": "Whisper Medium.en Q5_K_M",
+      "longFormConfiguration": null,
+      "longestFixtureDurationSeconds": 93.47675,
+      "longestFixtureMilliseconds": 2593.161458,
+      "meanFixtureWordErrorRate": 0.06984241678209949,
+      "model": {
+        "bytes": 582669056,
+        "filename": "whisper-medium.en-Q5_K_M.gguf",
+        "id": "whisper-medium-en",
+        "repository": "handy-computer/whisper-medium.en-gguf",
+        "revision": "f25c70d9095dcfdad187ebb3b113d157b414aee8"
+      },
+      "peakResidentMiB": 935.25,
+      "runtime": "transcribe.cpp",
+      "runtimeRevision": "a94e021ef658dc7c788837341a13f6acea3baf3c",
+      "runtimeVersion": null,
+      "warmMedianMilliseconds": 617.3916664999999,
+      "warmP95Milliseconds": 1930.57625
+    },
+    {
+      "backend": "metal",
+      "cancellation": {
+        "outcome": "aborted",
+        "responseMilliseconds": 5.695292
+      },
+      "coldLoadMilliseconds": 193.034542,
+      "corpusWordErrorRate": null,
+      "failedFixtureCount": 0,
+      "label": "Whisper large-v3-turbo Q5_K_M",
+      "longFormConfiguration": null,
+      "longestFixtureDurationSeconds": 93.47675,
+      "longestFixtureMilliseconds": 3286.170708,
+      "meanFixtureWordErrorRate": 0.040789380614610744,
+      "model": {
+        "bytes": 619628192,
+        "filename": "whisper-large-v3-turbo-Q5_K_M.gguf",
+        "id": "whisper-turbo",
+        "repository": "handy-computer/whisper-large-v3-turbo-GGUF",
+        "revision": "d222c9f621c1128299248f2ded4d8a1820519780"
+      },
+      "peakResidentMiB": 884.703125,
+      "runtime": "transcribe.cpp",
+      "runtimeRevision": "a94e021ef658dc7c788837341a13f6acea3baf3c",
+      "runtimeVersion": null,
+      "warmMedianMilliseconds": 710.8700215,
+      "warmP95Milliseconds": 2546.233125
+    },
+    {
+      "backend": "metal",
+      "cancellation": {
+        "outcome": "aborted",
+        "responseMilliseconds": 5.065708
+      },
+      "coldLoadMilliseconds": 335.864209,
+      "corpusWordErrorRate": null,
+      "failedFixtureCount": 0,
+      "label": "Whisper large-v3 Q5_K_M",
+      "longFormConfiguration": null,
+      "longestFixtureDurationSeconds": 93.47675,
+      "longestFixtureMilliseconds": 4284.327,
+      "meanFixtureWordErrorRate": 0.03896190605384125,
+      "model": {
+        "bytes": 1161143008,
+        "filename": "whisper-large-v3-Q5_K_M.gguf",
+        "id": "whisper-large-v3",
+        "repository": "handy-computer/whisper-large-v3-gguf",
+        "revision": "e3e29bee6389c7da4a141406f07bb80ddac5337c"
+      },
+      "peakResidentMiB": 1675.046875,
+      "runtime": "transcribe.cpp",
+      "runtimeRevision": "a94e021ef658dc7c788837341a13f6acea3baf3c",
+      "runtimeVersion": null,
+      "warmMedianMilliseconds": 1268.935063,
+      "warmP95Milliseconds": 4246.179042
+    }
+  ],
+  "privacy": {
+    "containsIndividualFixtures": false,
+    "containsReferenceText": false,
+    "containsTranscripts": false,
+    "rawResultsLocation": ".artifacts/results/ (gitignored)"
+  },
+  "runtimeMatrix": [
+    {
+      "backend": "metal",
+      "cancellation": {
+        "outcome": "completed-despite-cancel",
+        "responseMilliseconds": 1020.119542
+      },
+      "coldLoadMilliseconds": 120.07925,
+      "corpusWordErrorRate": 0.025535420098846788,
+      "failedFixtureCount": 0,
+      "label": "transcribe.cpp / Parakeet v3 / Metal",
+      "longFormConfiguration": null,
+      "longestFixtureDurationSeconds": 93.47675,
+      "longestFixtureMilliseconds": 1086.596125,
+      "meanFixtureWordErrorRate": 0.04027489259396509,
+      "model": {
+        "bytes": 548946272,
+        "filename": "parakeet-tdt-0.6b-v3-Q5_K_M.gguf",
+        "id": "parakeet-v3",
+        "repository": "handy-computer/parakeet-tdt-0.6b-v3-GGUF",
+        "revision": "85ac09ea12fc4b1112fa76810059364bc6adc9de"
+      },
+      "peakResidentMiB": 1653.546875,
+      "runtime": "transcribe.cpp",
+      "runtimeRevision": "a94e021ef658dc7c788837341a13f6acea3baf3c",
+      "runtimeVersion": null,
+      "warmMedianMilliseconds": 172.349729,
+      "warmP95Milliseconds": 964.865292
+    },
+    {
+      "backend": "cpu",
+      "cancellation": {
+        "outcome": "completed-despite-cancel",
+        "responseMilliseconds": 4098.503
+      },
+      "coldLoadMilliseconds": 153.217667,
+      "corpusWordErrorRate": 0.023887973640856673,
+      "failedFixtureCount": 0,
+      "label": "transcribe.cpp / Parakeet v3 / CPU",
+      "longFormConfiguration": null,
+      "longestFixtureDurationSeconds": 93.47675,
+      "longestFixtureMilliseconds": 4010.474125,
+      "meanFixtureWordErrorRate": 0.03969214201121451,
+      "model": {
+        "bytes": 548946272,
+        "filename": "parakeet-tdt-0.6b-v3-Q5_K_M.gguf",
+        "id": "parakeet-v3",
+        "repository": "handy-computer/parakeet-tdt-0.6b-v3-GGUF",
+        "revision": "85ac09ea12fc4b1112fa76810059364bc6adc9de"
+      },
+      "peakResidentMiB": 1733.234375,
+      "runtime": "transcribe.cpp",
+      "runtimeRevision": "a94e021ef658dc7c788837341a13f6acea3baf3c",
+      "runtimeVersion": null,
+      "warmMedianMilliseconds": 682.8807085000001,
+      "warmP95Milliseconds": 3583.698458
+    },
+    {
+      "backend": "metal",
+      "cancellation": null,
+      "coldLoadMilliseconds": 147.233,
+      "corpusWordErrorRate": 0.042833607907743,
+      "failedFixtureCount": 0,
+      "label": "whisper.cpp / Parakeet v3 / Metal",
+      "longFormConfiguration": null,
+      "longestFixtureDurationSeconds": 93.47675,
+      "longestFixtureMilliseconds": 1052.46,
+      "meanFixtureWordErrorRate": null,
+      "model": {
+        "artifact": "whispercpp-parakeet-v3-q4_k.bin",
+        "checkpoint": "nvidia/parakeet-tdt-0.6b-v3",
+        "quantization": "Q4_K"
+      },
+      "peakResidentMiB": 1395.390625,
+      "runtime": "whisper.cpp",
+      "runtimeRevision": "f049fff95a089aa9969deb009cdd4892b3e74916",
+      "runtimeVersion": "v1.9.1",
+      "warmMedianMilliseconds": 210.3555,
+      "warmP95Milliseconds": 877.036
+    },
+    {
+      "backend": "cpu",
+      "cancellation": null,
+      "coldLoadMilliseconds": 182.008,
+      "corpusWordErrorRate": 0.042009884678747944,
+      "failedFixtureCount": 0,
+      "label": "whisper.cpp / Parakeet v3 / CPU",
+      "longFormConfiguration": null,
+      "longestFixtureDurationSeconds": 93.47675,
+      "longestFixtureMilliseconds": 3146.65,
+      "meanFixtureWordErrorRate": null,
+      "model": {
+        "artifact": "whispercpp-parakeet-v3-q4_k.bin",
+        "checkpoint": "nvidia/parakeet-tdt-0.6b-v3",
+        "quantization": "Q4_K"
+      },
+      "peakResidentMiB": 1162.28125,
+      "runtime": "whisper.cpp",
+      "runtimeRevision": "f049fff95a089aa9969deb009cdd4892b3e74916",
+      "runtimeVersion": "v1.9.1",
+      "warmMedianMilliseconds": 568.577,
+      "warmP95Milliseconds": 2834.58
+    },
+    {
+      "backend": "cpu",
+      "cancellation": null,
+      "coldLoadMilliseconds": 746.0596669698134,
+      "corpusWordErrorRate": 0.06672158154859967,
+      "failedFixtureCount": 0,
+      "label": "sherpa-onnx / Parakeet v3 / CPU",
+      "longFormConfiguration": null,
+      "longestFixtureDurationSeconds": 93.47675,
+      "longestFixtureMilliseconds": 2285.0077499169856,
+      "meanFixtureWordErrorRate": null,
+      "model": {
+        "artifact": "sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8",
+        "checkpoint": "nvidia/parakeet-tdt-0.6b-v3",
+        "quantization": "INT8"
+      },
+      "peakResidentMiB": 3225.140625,
+      "runtime": "sherpa-onnx",
+      "runtimeRevision": "142807252687d81b40d6315f23470a1512a00de3",
+      "runtimeVersion": "1.13.4",
+      "warmMedianMilliseconds": 416.75877099623904,
+      "warmP95Milliseconds": 2171.774375019595
+    },
+    {
+      "backend": "coreml",
+      "cancellation": null,
+      "coldLoadMilliseconds": 3381.7374169593677,
+      "corpusWordErrorRate": 0.06342668863261944,
+      "failedFixtureCount": 0,
+      "label": "sherpa-onnx / Parakeet v3 / Core ML",
+      "longFormConfiguration": null,
+      "longestFixtureDurationSeconds": 93.47675,
+      "longestFixtureMilliseconds": 15868.325458955951,
+      "meanFixtureWordErrorRate": null,
+      "model": {
+        "artifact": "sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8",
+        "checkpoint": "nvidia/parakeet-tdt-0.6b-v3",
+        "quantization": "INT8"
+      },
+      "peakResidentMiB": 29296.078125,
+      "runtime": "sherpa-onnx",
+      "runtimeRevision": "142807252687d81b40d6315f23470a1512a00de3",
+      "runtimeVersion": "1.13.4",
+      "warmMedianMilliseconds": 938.0626454949379,
+      "warmP95Milliseconds": 8740.615125047043
+    },
+    {
+      "backend": "MLX Metal",
+      "cancellation": null,
+      "coldLoadMilliseconds": 3033.8181670522317,
+      "corpusWordErrorRate": 0.02471169686985173,
+      "failedFixtureCount": 0,
+      "label": "MLX / Parakeet v3",
+      "longFormConfiguration": null,
+      "longestFixtureDurationSeconds": 93.47675,
+      "longestFixtureMilliseconds": 588.816583971493,
+      "meanFixtureWordErrorRate": null,
+      "model": {
+        "artifact": "mlx-community/parakeet-tdt-0.6b-v3",
+        "artifactRevision": "ed2b7e8c15f9aaa0b5772e2efb986255eaef7e15",
+        "checkpoint": "nvidia/parakeet-tdt-0.6b-v3",
+        "modelBytes": 2508288736,
+        "quantization": "F32 weights; BF16 inference"
+      },
+      "peakResidentMiB": 2824.09375,
+      "runtime": "MLX",
+      "runtimeRevision": null,
+      "runtimeVersion": "mlx 0.32.0",
+      "warmMedianMilliseconds": 129.59456245880574,
+      "warmP95Milliseconds": 524.583249934949
+    },
+    {
+      "backend": "metal",
+      "cancellation": {
+        "outcome": "aborted",
+        "responseMilliseconds": 107.713584
+      },
+      "coldLoadMilliseconds": 60.009,
+      "corpusWordErrorRate": 0.032948929159802305,
+      "failedFixtureCount": 0,
+      "label": "transcribe.cpp / Whisper Small.en / Metal",
+      "longFormConfiguration": null,
+      "longestFixtureDurationSeconds": 93.47675,
+      "longestFixtureMilliseconds": 902.343167,
+      "meanFixtureWordErrorRate": 0.04342793394234055,
+      "model": {
+        "bytes": 193672256,
+        "filename": "whisper-small.en-Q5_K_M.gguf",
+        "id": "whisper-small-en",
+        "repository": "handy-computer/whisper-small.en-gguf",
+        "revision": "41b0f75fd44415ba127a5356c5ba9ed450c1debd"
+      },
+      "peakResidentMiB": 428.578125,
+      "runtime": "transcribe.cpp",
+      "runtimeRevision": "a94e021ef658dc7c788837341a13f6acea3baf3c",
+      "runtimeVersion": null,
+      "warmMedianMilliseconds": 267.192854,
+      "warmP95Milliseconds": 801.019667
+    },
+    {
+      "backend": "cpu",
+      "cancellation": {
+        "outcome": "aborted",
+        "responseMilliseconds": 811.664042
+      },
+      "coldLoadMilliseconds": 59.505458,
+      "corpusWordErrorRate": 0.028830313014827018,
+      "failedFixtureCount": 0,
+      "label": "transcribe.cpp / Whisper Small.en / CPU",
+      "longFormConfiguration": null,
+      "longestFixtureDurationSeconds": 93.47675,
+      "longestFixtureMilliseconds": 3801.887959,
+      "meanFixtureWordErrorRate": 0.038322227866806884,
+      "model": {
+        "bytes": 193672256,
+        "filename": "whisper-small.en-Q5_K_M.gguf",
+        "id": "whisper-small-en",
+        "repository": "handy-computer/whisper-small.en-gguf",
+        "revision": "41b0f75fd44415ba127a5356c5ba9ed450c1debd"
+      },
+      "peakResidentMiB": 464.5625,
+      "runtime": "transcribe.cpp",
+      "runtimeRevision": "a94e021ef658dc7c788837341a13f6acea3baf3c",
+      "runtimeVersion": null,
+      "warmMedianMilliseconds": 997.239604,
+      "warmP95Milliseconds": 3801.887959
+    },
+    {
+      "backend": "metal",
+      "cancellation": null,
+      "coldLoadMilliseconds": 92.9647,
+      "corpusWordErrorRate": 0.03377265238879736,
+      "failedFixtureCount": 0,
+      "label": "whisper.cpp / Whisper Small.en / Metal",
+      "longFormConfiguration": null,
+      "longestFixtureDurationSeconds": 93.47675,
+      "longestFixtureMilliseconds": 945.157,
+      "meanFixtureWordErrorRate": null,
+      "model": {
+        "artifact": "whispercpp-small.en-q5_1.bin",
+        "checkpoint": "openai/whisper-small.en",
+        "quantization": "Q5_1"
+      },
+      "peakResidentMiB": 431.765625,
+      "runtime": "whisper.cpp",
+      "runtimeRevision": "f049fff95a089aa9969deb009cdd4892b3e74916",
+      "runtimeVersion": "v1.9.1",
+      "warmMedianMilliseconds": 271.829,
+      "warmP95Milliseconds": 810.344
+    },
+    {
+      "backend": "cpu",
+      "cancellation": null,
+      "coldLoadMilliseconds": 84.452,
+      "corpusWordErrorRate": 0.03377265238879736,
+      "failedFixtureCount": 0,
+      "label": "whisper.cpp / Whisper Small.en / CPU",
+      "longFormConfiguration": null,
+      "longestFixtureDurationSeconds": 93.47675,
+      "longestFixtureMilliseconds": 2715.19,
+      "meanFixtureWordErrorRate": null,
+      "model": {
+        "artifact": "whispercpp-small.en-q5_1.bin",
+        "checkpoint": "openai/whisper-small.en",
+        "quantization": "Q5_1"
+      },
+      "peakResidentMiB": 644.390625,
+      "runtime": "whisper.cpp",
+      "runtimeRevision": "f049fff95a089aa9969deb009cdd4892b3e74916",
+      "runtimeVersion": "v1.9.1",
+      "warmMedianMilliseconds": 681.842,
+      "warmP95Milliseconds": 2443.35
+    },
+    {
+      "backend": "cpu",
+      "cancellation": null,
+      "coldLoadMilliseconds": 591.0691659664735,
+      "corpusWordErrorRate": 0.3385502471169687,
+      "failedFixtureCount": 0,
+      "label": "sherpa-onnx / Whisper Small.en / CPU",
+      "longFormConfiguration": null,
+      "longestFixtureDurationSeconds": 93.47675,
+      "longestFixtureMilliseconds": 1726.514625013806,
+      "meanFixtureWordErrorRate": null,
+      "model": {
+        "artifact": "sherpa-onnx-whisper-small.en",
+        "checkpoint": "openai/whisper-small.en",
+        "quantization": "INT8"
+      },
+      "peakResidentMiB": 1896.140625,
+      "runtime": "sherpa-onnx",
+      "runtimeRevision": "142807252687d81b40d6315f23470a1512a00de3",
+      "runtimeVersion": "1.13.4",
+      "warmMedianMilliseconds": 1643.402187502943,
+      "warmP95Milliseconds": 2638.71620898135
+    },
+    {
+      "backend": "coreml",
+      "cancellation": null,
+      "coldLoadMilliseconds": 2904.556249966845,
+      "corpusWordErrorRate": 0.3393739703459638,
+      "failedFixtureCount": 0,
+      "label": "sherpa-onnx / Whisper Small.en / Core ML",
+      "longFormConfiguration": null,
+      "longestFixtureDurationSeconds": 93.47675,
+      "longestFixtureMilliseconds": 4725.136999972165,
+      "meanFixtureWordErrorRate": null,
+      "model": {
+        "artifact": "sherpa-onnx-whisper-small.en",
+        "checkpoint": "openai/whisper-small.en",
+        "quantization": "INT8"
+      },
+      "peakResidentMiB": 11635.0,
+      "runtime": "sherpa-onnx",
+      "runtimeRevision": "142807252687d81b40d6315f23470a1512a00de3",
+      "runtimeVersion": "1.13.4",
+      "warmMedianMilliseconds": 4509.366604033858,
+      "warmP95Milliseconds": 7475.522084045224
+    },
+    {
+      "backend": "MLX Metal",
+      "cancellation": null,
+      "coldLoadMilliseconds": 1181.2705419724807,
+      "corpusWordErrorRate": 0.03706754530477759,
+      "failedFixtureCount": 0,
+      "label": "MLX / Whisper Small.en",
+      "longFormConfiguration": null,
+      "longestFixtureDurationSeconds": 93.47675,
+      "longestFixtureMilliseconds": 813.3027909789234,
+      "meanFixtureWordErrorRate": null,
+      "model": {
+        "artifact": "mlx-community/whisper-small.en-mlx-4bit",
+        "artifactRevision": "78852d6d86b5fd23b5d9315e7fcbadbf844bd85b",
+        "checkpoint": "openai/whisper-small.en",
+        "modelBytes": 196535960,
+        "quantization": "4-bit"
+      },
+      "peakResidentMiB": 613.15625,
+      "runtime": "MLX",
+      "runtimeRevision": null,
+      "runtimeVersion": "mlx 0.32.0",
+      "warmMedianMilliseconds": 257.1967914700508,
+      "warmP95Milliseconds": 798.8531249575317
+    },
+    {
+      "backend": "Core ML defaults: ANE-preferred encoder/decoder, GPU-eligible mel",
+      "cancellation": null,
+      "coldLoadMilliseconds": 474.786,
+      "corpusWordErrorRate": 0.03789126853377265,
+      "failedFixtureCount": 0,
+      "label": "WhisperKit / Whisper Small.en / Core ML",
+      "longFormConfiguration": null,
+      "longestFixtureDurationSeconds": 93.47675,
+      "longestFixtureMilliseconds": 3695.854334,
+      "meanFixtureWordErrorRate": null,
+      "model": {
+        "artifact": "argmaxinc/whisperkit-coreml/openai_whisper-small.en_217MB",
+        "artifactRevision": "97a5bf9bbc74c7d9c12c755d04dea59e672e3808",
+        "checkpoint": "openai/whisper-small.en",
+        "modelBytes": 217878408,
+        "tokenizerRevision": "e8727524f962ee844a7319d92be39ac1bd25655a"
+      },
+      "peakResidentMiB": 172.109375,
+      "runtime": "WhisperKit",
+      "runtimeRevision": "25c62997041c134b03ca82731ce2f6fd2cae1eb9",
+      "runtimeVersion": "v1.0.0",
+      "warmMedianMilliseconds": 802.0415625,
+      "warmP95Milliseconds": 2507.774417
+    }
+  ],
+  "schemaVersion": 1,
+  "streamingCapability": {
+    "coldLoadMilliseconds": 31.705083,
+    "eventCount": 32,
+    "firstCommittedInputMilliseconds": 1700,
+    "firstTentativeInputMilliseconds": 500,
+    "model": {
+      "bytes": 50462816,
+      "filename": "moonshine-streaming-tiny-Q8_0.gguf",
+      "id": "moonshine-streaming-tiny",
+      "repository": "handy-computer/moonshine-streaming-tiny-gguf",
+      "revision": "85ddff612fa3a2cf40b2f745abcfa90ef82f293b"
+    },
+    "peakResidentMiB": 215.515625
+  }
+}

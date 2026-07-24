@@ -1,0 +1,10 @@
+.artifacts/
+.build/
+fixtures/local/
+fixtures/synthetic/
+results/no-gate-transcripts.json
+results/raw.*
+results/review.html
+results/synthetic-*
+__pycache__/
+*.pyc

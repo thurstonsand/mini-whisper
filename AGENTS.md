@@ -1,54 +1,19 @@
-# MiniWhisper
+# AGENTS.md
 
-MiniWhisper is a macOS menu bar dictation app using local whisper.cpp for speech-to-text. It's a SwiftUI app that lives in the menu bar (NSStatusItem) and provides global hotkey-triggered transcription.
+MiniWhisper is a simple dictation STT app that provides the standard set of features you'd expect from apps just like this one. It's not trying to stand out in any particular way, but it has a focus on performance and reliability.
 
-## User Context
+## Ethos
 
-The developer is new to Swift/macOS but experienced in Python, Scala, and Go. When writing code or making decisions:
+I've started getting more and more into dictation as a means of talking to my coding agents. It's slowly becoming a part of my workflow, and I have seen that it allows me to dump more of my thoughts to the agent, which has only helped with directing them to the right thing. The thing is, on my personal machine, I've had free reign to try ALL the dictation apps: Wispr Flow, Aqua Voice, Superwhisper, MacWhisper, Monologue, I've tried a ton and switch between them semi-regularly. But at my workplace, we have some fairly stringent limitations on what software we are allowed to use, and only Whispering has made the cut. Suffice to say, I am not a fan of Whispering, despite even contributing to the project myself to fix some of my issues with it. So I want to build my own, which will be sanctioned by work. I'm not here to invent new wheels, I just want something that matches parity with features and performance that I like from other apps out there, especially the open source ones. Of particular note, I've liked trying out Hex and think there's a lot of inspiration to be drawn from its design and UX.
 
-- Explain Swift-specific patterns and idioms
-- Clarify macOS/Apple framework conventions (AppKit, AVFoundation, etc.)
-- Note when something is "the Swift way" vs a general pattern
-- Explain any non-obvious syntax (property wrappers, result builders, etc.)
+## Project context
 
-## Commands (via mise)
+See @CONTEXT.md for terminology and architecture vocabulary.
 
-### Setup
+## Working with me
 
-Install [mise](https://mise.jdx.dev/), then bootstrap the repository:
+I'm new to Swift and macOS development, as I have historically worked on backend systems. I'm open to learning Swift-specific patterns and idioms, Apple framework conventions (AppKit, AVFoundation, etc.), and learning about idiomatic Swift.
 
-```sh
-mise trust && mise bootstrap
-```
+## Development
 
-### Development
-
-```sh
-mise run build          # Build the app
-mise run test           # Run all tests (app + UI)
-mise run test-packages  # Fast package-only tests (prefer this for quick feedback)
-mise run lint           # Run the pre-commit formatting, build, and package-test gate
-mise run format         # Format code with swift-format
-mise run run            # Build and run the app
-mise run run-fresh      # Reset mic permission, then build and run
-./scripts/capture_menu_screenshot [output.png]  # Screenshot menu dropdown (app must be running)
-```
-
-## Architecture
-
-- `MiniWhisper/` — thin SwiftUI/AppKit shell, TCA features, and dependency clients
-- `MiniWhisper/MenuBarController.swift` — declarative NSStatusItem renderer over TCA state
-- `Packages/AudioCapture` — AVAudioEngine mic capture, ring buffer, VAD
-- `Packages/ASREngine` — transcription protocol + whisper.cpp wrapper
-- `Packages/TranscriptCleanup` — optional LLM cleanup client
-- `Packages/HotkeyListener` — global hotkey (Carbon API)
-- `Frameworks/` — whisper.xcframework (added later)
-
-Design principle: App target is a thin shell; business logic lives in packages.
-
-## Code Style
-
-- 2-space indentation
-- Swift 6.2 with strict concurrency
-- Swift Testing framework (`import Testing`, `@Test`, `#expect`) — not XCTest
-- External dependencies are limited to whisper.cpp, the swift-composable-architecture family, and Swift Log — otherwise use Apple frameworks only
+See @DEV.md for commands, architecture layout, and code style.
