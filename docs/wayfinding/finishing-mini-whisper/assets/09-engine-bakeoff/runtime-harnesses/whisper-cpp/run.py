@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
 import json
+from pathlib import Path
 import re
 import resource
 import statistics
 import subprocess
 import sys
-from pathlib import Path
 
 root = Path(__file__).resolve().parent.parent.parent
 family, backend, output_path = sys.argv[1:]
@@ -56,7 +56,9 @@ command = [
 ]
 completed = subprocess.run(command, check=True, capture_output=True, text=True)
 peak_resident_bytes = resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss
-records = [json.loads(line) for line in completed.stdout.splitlines() if line.startswith("{")]
+records = [
+    json.loads(line) for line in completed.stdout.splitlines() if line.startswith("{")
+]
 meta = next(record for record in records if record["type"] == "meta")
 
 
@@ -73,7 +75,8 @@ def distance(reference, hypothesis):
                 min(
                     current[-1] + 1,
                     previous[hypothesis_index] + 1,
-                    previous[hypothesis_index - 1] + (reference_word != hypothesis_word),
+                    previous[hypothesis_index - 1]
+                    + (reference_word != hypothesis_word),
                 )
             )
         previous = current

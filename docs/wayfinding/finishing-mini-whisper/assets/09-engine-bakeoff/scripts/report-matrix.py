@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 import json
+from pathlib import Path
 import re
 import statistics
-from pathlib import Path
 
 root = Path(__file__).resolve().parent.parent
 results = root / "results"
@@ -27,7 +27,8 @@ def distance(reference, hypothesis):
                 min(
                     current[-1] + 1,
                     previous[hypothesis_index] + 1,
-                    previous[hypothesis_index - 1] + (reference_word != hypothesis_word),
+                    previous[hypothesis_index - 1]
+                    + (reference_word != hypothesis_word),
                 )
             )
         previous = current
@@ -53,7 +54,9 @@ def median(result):
 
 
 def percentile95(result):
-    values = sorted(fixture["holdReleaseMilliseconds"] for fixture in result["fixtures"])
+    values = sorted(
+        fixture["holdReleaseMilliseconds"] for fixture in result["fixtures"]
+    )
     return values[int((len(values) - 1) * 0.95)]
 
 
@@ -73,23 +76,131 @@ selection_files = [
 selection = [(name, load(filename)) for name, filename in selection_files]
 
 matrix_rows = [
-    ("Parakeet v3", "transcribe.cpp", "Metal", "Q5_K_M", "matrix-transcribe-cpp-parakeet-v3-metal.json", "precedent"),
-    ("Parakeet v3", "transcribe.cpp", "CPU", "Q5_K_M", "matrix-transcribe-cpp-parakeet-v3-cpu.json", "precedent"),
-    ("Parakeet v3", "whisper.cpp", "Metal", "Q4_K", "matrix-whisper-cpp-parakeet-metal.json", "allowed"),
-    ("Parakeet v3", "whisper.cpp", "CPU", "Q4_K", "matrix-whisper-cpp-parakeet-cpu.json", "allowed"),
-    ("Parakeet v3", "sherpa-onnx", "ONNX CPU", "INT8", "matrix-sherpa-onnx-parakeet-cpu.json", "not allowed"),
-    ("Parakeet v3", "sherpa-onnx", "ONNX Core ML EP", "INT8", "matrix-sherpa-onnx-parakeet-coreml.json", "not allowed"),
-    ("Parakeet v3", "mlx-audio", "MLX Metal", "F32/BF16", "matrix-mlx-parakeet.json", "not allowed"),
-    ("Whisper small.en", "transcribe.cpp", "Metal", "Q5_K_M", "matrix-transcribe-cpp-whisper-small-en-metal.json", "precedent"),
-    ("Whisper small.en", "transcribe.cpp", "CPU", "Q5_K_M", "matrix-transcribe-cpp-whisper-small-en-cpu.json", "precedent"),
-    ("Whisper small.en", "whisper.cpp", "Metal", "Q5_1", "matrix-whisper-cpp-whisper-metal.json", "allowed"),
-    ("Whisper small.en", "whisper.cpp", "CPU", "Q5_1", "matrix-whisper-cpp-whisper-cpu.json", "allowed"),
-    ("Whisper small.en", "sherpa-onnx", "ONNX CPU", "INT8", "matrix-sherpa-onnx-whisper-cpu.json", "not allowed"),
-    ("Whisper small.en", "sherpa-onnx", "ONNX Core ML EP", "INT8", "matrix-sherpa-onnx-whisper-coreml.json", "not allowed"),
-    ("Whisper small.en", "mlx-whisper", "MLX Metal", "4-bit", "matrix-mlx-whisper.json", "not allowed"),
-    ("Whisper small.en", "WhisperKit", "Core ML/ANE preferred", "217 MB compressed", "matrix-whisperkit-whisper-coreml-pass-2.json", "not allowed"),
+    (
+        "Parakeet v3",
+        "transcribe.cpp",
+        "Metal",
+        "Q5_K_M",
+        "matrix-transcribe-cpp-parakeet-v3-metal.json",
+        "precedent",
+    ),
+    (
+        "Parakeet v3",
+        "transcribe.cpp",
+        "CPU",
+        "Q5_K_M",
+        "matrix-transcribe-cpp-parakeet-v3-cpu.json",
+        "precedent",
+    ),
+    (
+        "Parakeet v3",
+        "whisper.cpp",
+        "Metal",
+        "Q4_K",
+        "matrix-whisper-cpp-parakeet-metal.json",
+        "allowed",
+    ),
+    (
+        "Parakeet v3",
+        "whisper.cpp",
+        "CPU",
+        "Q4_K",
+        "matrix-whisper-cpp-parakeet-cpu.json",
+        "allowed",
+    ),
+    (
+        "Parakeet v3",
+        "sherpa-onnx",
+        "ONNX CPU",
+        "INT8",
+        "matrix-sherpa-onnx-parakeet-cpu.json",
+        "not allowed",
+    ),
+    (
+        "Parakeet v3",
+        "sherpa-onnx",
+        "ONNX Core ML EP",
+        "INT8",
+        "matrix-sherpa-onnx-parakeet-coreml.json",
+        "not allowed",
+    ),
+    (
+        "Parakeet v3",
+        "mlx-audio",
+        "MLX Metal",
+        "F32/BF16",
+        "matrix-mlx-parakeet.json",
+        "not allowed",
+    ),
+    (
+        "Whisper small.en",
+        "transcribe.cpp",
+        "Metal",
+        "Q5_K_M",
+        "matrix-transcribe-cpp-whisper-small-en-metal.json",
+        "precedent",
+    ),
+    (
+        "Whisper small.en",
+        "transcribe.cpp",
+        "CPU",
+        "Q5_K_M",
+        "matrix-transcribe-cpp-whisper-small-en-cpu.json",
+        "precedent",
+    ),
+    (
+        "Whisper small.en",
+        "whisper.cpp",
+        "Metal",
+        "Q5_1",
+        "matrix-whisper-cpp-whisper-metal.json",
+        "allowed",
+    ),
+    (
+        "Whisper small.en",
+        "whisper.cpp",
+        "CPU",
+        "Q5_1",
+        "matrix-whisper-cpp-whisper-cpu.json",
+        "allowed",
+    ),
+    (
+        "Whisper small.en",
+        "sherpa-onnx",
+        "ONNX CPU",
+        "INT8",
+        "matrix-sherpa-onnx-whisper-cpu.json",
+        "not allowed",
+    ),
+    (
+        "Whisper small.en",
+        "sherpa-onnx",
+        "ONNX Core ML EP",
+        "INT8",
+        "matrix-sherpa-onnx-whisper-coreml.json",
+        "not allowed",
+    ),
+    (
+        "Whisper small.en",
+        "mlx-whisper",
+        "MLX Metal",
+        "4-bit",
+        "matrix-mlx-whisper.json",
+        "not allowed",
+    ),
+    (
+        "Whisper small.en",
+        "WhisperKit",
+        "Core ML/ANE preferred",
+        "217 MB compressed",
+        "matrix-whisperkit-whisper-coreml-pass-2.json",
+        "not allowed",
+    ),
 ]
-matrix = [(model, runtime, backend, quant, load(filename), allowlist) for model, runtime, backend, quant, filename, allowlist in matrix_rows]
+matrix = [
+    (model, runtime, backend, quant, load(filename), allowlist)
+    for model, runtime, backend, quant, filename, allowlist in matrix_rows
+]
 
 lines = [
     "# Expanded engine runtime matrix",
@@ -110,7 +221,7 @@ for name, result in selection:
     )
 lines += [
     "",
-    "**Selected checkpoints:** Parakeet TDT 0.6B v3 and Whisper small.en. V3 beat English-only Parakeet v2 by 17 word errors at effectively the same latency. Whisper small.en missed one more reference word than Turbo (40 vs. 39) while using about half the memory and 38% of Turbo's median latency. Full large-v3 recovered six words relative to small.en but cost 4.8× the median latency and 3.9× the memory. Medium.en suffered a severe repeated/truncated decode on one fixture.",
+    "**Selected checkpoints:** Parakeet TDT 0.6B v3 and Whisper small.en. V3 beat English-only Parakeet v2 by 17 word errors at effectively the same latency. Whisper small.en missed one more reference word than Turbo (40 vs. 39) while using about half the memory and 38% of Turbo's median latency. Full large-v3 recovered six words relative to small.en but cost 4.8× the median latency and 3.9× the memory. Medium.en suffered a severe repeated/truncated decode on one fixture.",  # noqa: RUF001
     "",
     "## Runtime and backend matrix",
     "",

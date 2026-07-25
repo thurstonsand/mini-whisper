@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 import json
-import shutil
 from pathlib import Path
+import shutil
 
 root = Path(__file__).resolve().parent.parent
 selection_path = root / ".artifacts" / "fixture-selection.json"
@@ -25,11 +25,15 @@ else:
         for item in history_items
         if (aqua_root / "audio" / Path(item["audioFilePath"]).name).exists()
     ]
-    available.sort(key=lambda item: (item.get("audioDurationSeconds", 0), item["timestamp"]))
+    available.sort(
+        key=lambda item: (item.get("audioDurationSeconds", 0), item["timestamp"])
+    )
     count = min(24, len(available))
     if count < 2:
         raise SystemExit("Aqua Voice does not contain enough retained audio fixtures")
-    indexes = [round(index * (len(available) - 1) / (count - 1)) for index in range(count)]
+    indexes = [
+        round(index * (len(available) - 1) / (count - 1)) for index in range(count)
+    ]
     fixtures = []
     for index, history_index in enumerate(indexes, start=1):
         item = available[history_index]
@@ -43,13 +47,17 @@ else:
             }
         )
     selection_path.parent.mkdir(parents=True, exist_ok=True)
-    selection_path.write_text(json.dumps({"schemaVersion": 1, "fixtures": fixtures}, indent=2) + "\n")
+    selection_path.write_text(
+        json.dumps({"schemaVersion": 1, "fixtures": fixtures}, indent=2) + "\n"
+    )
 
 for index, fixture in enumerate(fixtures, 1):
     source_name = fixture["sourceFilename"]
     item = history.get(source_name)
     if item is None:
-        raise SystemExit(f"Aqua Voice history no longer contains private fixture {index}")
+        raise SystemExit(
+            f"Aqua Voice history no longer contains private fixture {index}"
+        )
     if item["rawText"] != fixture["reference"]:
         raise SystemExit(f"Aqua Voice reference changed for private fixture {index}")
 

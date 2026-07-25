@@ -21,6 +21,11 @@ final class CanonicalAudioConverter: @unchecked Sendable {
     self.outputFormat = outputFormat
   }
 
+  func reset() {
+    converter.reset()
+    reachedEndOfStream = false
+  }
+
   func convert(_ inputBuffer: AVAudioPCMBuffer) throws(AudioCaptureError) -> [Float] {
     guard !reachedEndOfStream else {
       throw .conversionFailed("The audio converter has already finished")

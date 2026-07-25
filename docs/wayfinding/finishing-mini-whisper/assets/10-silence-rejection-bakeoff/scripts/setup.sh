@@ -15,7 +15,6 @@ clone_at() {
 }
 
 clone_at https://github.com/ggml-org/whisper.cpp.git "$artifacts/whisper.cpp" f049fff95a089aa9969deb009cdd4892b3e74916
-clone_at https://github.com/FluidInference/FluidAudio.git "$artifacts/FluidAudio" 19600a485baa4998812e4654b70d2bab8f2c9949
 
 vad_model="$artifacts/ggml-silero-v6.2.0.bin"
 if [[ ! -f "$vad_model" ]]; then
@@ -45,9 +44,17 @@ snapshot_download(
         "JointDecision.mlmodelc/**", "parakeet_vocab.json",
     ],
 )
+snapshot_download(
+    "FluidInference/silero-vad-coreml",
+    revision="b419383c55c110e2c9271fa6ee0ea83d03c70d96",
+    allow_patterns=["silero-vad-unified-256ms-v6.2.1.mlmodelc/**", "config.json"],
+)
 PY
 
 model="$artifacts/huggingface/hub/models--FluidInference--parakeet-tdt-0.6b-v2-coreml/snapshots/ee09c569f73759e6d44c9bd16766f477b2b36d39"
 ln -sfn "$model" "$artifacts/parakeet-v2"
+vad_model="$artifacts/huggingface/hub/models--FluidInference--silero-vad-coreml/snapshots/b419383c55c110e2c9271fa6ee0ea83d03c70d96"
+mkdir -p "$artifacts/vad/Models"
+ln -sfn "$vad_model" "$artifacts/vad/Models/silero-vad"
 swift build --package-path "$root" --configuration release
 "$root/scripts/generate-synthetic-fixtures.py"

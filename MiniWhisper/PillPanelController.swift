@@ -5,6 +5,8 @@ import SwiftUI
 
 private let pillPanelLogger = Logger(
   subsystem: "com.thurstonsand.MiniWhisper", category: "pill-panel")
+private let performanceLogger = Logger(
+  subsystem: "com.thurstonsand.MiniWhisper", category: "performance")
 
 @MainActor final class PillPanelController {
   private let store: StoreOf<PillFeature>
@@ -61,6 +63,7 @@ private let pillPanelLogger = Logger(
 
     positionPanel()
     panel.orderFrontRegardless()
+    performanceLogger.notice("benchmark pill-visible")
   }
 
   private func positionPanel() {

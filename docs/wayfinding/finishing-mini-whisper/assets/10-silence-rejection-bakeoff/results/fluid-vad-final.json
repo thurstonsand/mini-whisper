@@ -1,0 +1,574 @@
+{
+  "acceptance": {
+    "all_model_chunks_exact": true,
+    "synthetic_no_speech_rejected": true,
+    "vad_below_fifteen_ms_budget": true,
+    "zero_false_accepts_and_rejects_both_splits": true
+  },
+  "corpus": {
+    "calibration_fixtures": 14,
+    "fixtures": 34,
+    "holdout_fixtures": 20
+  },
+  "environment": {
+    "compute_units": "cpuOnly",
+    "fluid_audio_revision": "19600a485baa4998812e4654b70d2bab8f2c9949",
+    "fluid_audio_version": "0.15.5",
+    "parakeet_repository": "FluidInference/parakeet-tdt-0.6b-v2-coreml",
+    "parakeet_revision": "ee09c569f73759e6d44c9bd16766f477b2b36d39",
+    "vad_repository": "FluidInference/silero-vad-coreml",
+    "vad_revision": "b419383c55c110e2c9271fa6ee0ea83d03c70d96"
+  },
+  "framing": {
+    "accepted_audio_unchanged": true,
+    "all_model_chunks_exact": true,
+    "frame_milliseconds": 256.0,
+    "frame_samples": 4096,
+    "maximum_release_padding_samples": 4011,
+    "tail_policy": "Zero-pad one gate-only utterance copy to the next 4096-sample multiple before one VadManager.process call."
+  },
+  "privacy": "Aggregate metrics only. Fixture audio, probabilities, transcripts, and individual decisions are omitted.",
+  "runtime": {
+    "model_median_ms": 13.501942157745361,
+    "wall_maximum_ms": 150.539875,
+    "wall_median_ms": 13.7815005
+  },
+  "selected_settings": {
+    "minimum_speech_ms": 150,
+    "threshold": 0.9
+  },
+  "selection_policy": "Combine the fixed real calibration split with all five regenerable synthetic calibration probes; select the lowest swept threshold with zero calibration false accepts/rejects, then the minimum-speech duration nearest FluidAudio's 150 ms default. The untouched real holdout validates the result separately.",
+  "summary": {
+    "calibration": {
+      "false_accepts": 0,
+      "false_rejects": 0,
+      "fixtures": 14
+    },
+    "holdout": {
+      "false_accepts": 0,
+      "false_rejects": 0,
+      "fixtures": 20
+    }
+  },
+  "sweep": [
+    {
+      "calibration": {
+        "false_accepts": 1,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 1,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 0,
+      "threshold": 0.35
+    },
+    {
+      "calibration": {
+        "false_accepts": 1,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 1,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 150,
+      "threshold": 0.35
+    },
+    {
+      "calibration": {
+        "false_accepts": 1,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 1,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 250,
+      "threshold": 0.35
+    },
+    {
+      "calibration": {
+        "false_accepts": 1,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 1,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 500,
+      "threshold": 0.35
+    },
+    {
+      "calibration": {
+        "false_accepts": 1,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 1,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 0,
+      "threshold": 0.4
+    },
+    {
+      "calibration": {
+        "false_accepts": 1,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 1,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 150,
+      "threshold": 0.4
+    },
+    {
+      "calibration": {
+        "false_accepts": 1,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 1,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 250,
+      "threshold": 0.4
+    },
+    {
+      "calibration": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 1,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 500,
+      "threshold": 0.4
+    },
+    {
+      "calibration": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 1,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 0,
+      "threshold": 0.45
+    },
+    {
+      "calibration": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 1,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 150,
+      "threshold": 0.45
+    },
+    {
+      "calibration": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 1,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 250,
+      "threshold": 0.45
+    },
+    {
+      "calibration": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 1,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 500,
+      "threshold": 0.45
+    },
+    {
+      "calibration": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 0,
+      "threshold": 0.5
+    },
+    {
+      "calibration": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 150,
+      "threshold": 0.5
+    },
+    {
+      "calibration": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 250,
+      "threshold": 0.5
+    },
+    {
+      "calibration": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 500,
+      "threshold": 0.5
+    },
+    {
+      "calibration": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 0,
+      "threshold": 0.55
+    },
+    {
+      "calibration": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 150,
+      "threshold": 0.55
+    },
+    {
+      "calibration": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 250,
+      "threshold": 0.55
+    },
+    {
+      "calibration": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 500,
+      "threshold": 0.55
+    },
+    {
+      "calibration": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 0,
+      "threshold": 0.65
+    },
+    {
+      "calibration": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 150,
+      "threshold": 0.65
+    },
+    {
+      "calibration": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 250,
+      "threshold": 0.65
+    },
+    {
+      "calibration": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 500,
+      "threshold": 0.65
+    },
+    {
+      "calibration": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 0,
+      "threshold": 0.75
+    },
+    {
+      "calibration": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 150,
+      "threshold": 0.75
+    },
+    {
+      "calibration": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 250,
+      "threshold": 0.75
+    },
+    {
+      "calibration": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 500,
+      "threshold": 0.75
+    },
+    {
+      "calibration": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 0,
+      "threshold": 0.85
+    },
+    {
+      "calibration": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 150,
+      "threshold": 0.85
+    },
+    {
+      "calibration": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 250,
+      "threshold": 0.85
+    },
+    {
+      "calibration": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 500,
+      "threshold": 0.85
+    },
+    {
+      "calibration": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 0,
+      "threshold": 0.9
+    },
+    {
+      "calibration": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 150,
+      "threshold": 0.9
+    },
+    {
+      "calibration": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 250,
+      "threshold": 0.9
+    },
+    {
+      "calibration": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 14
+      },
+      "holdout": {
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "fixtures": 20
+      },
+      "minimum_speech_ms": 500,
+      "threshold": 0.9
+    }
+  ],
+  "synthetic": {
+    "accepted": 0,
+    "fixtures": 5,
+    "split": "calibration"
+  },
+  "transcription_aggregates": {
+    "calibration": {
+      "errors": 1,
+      "speech_empty": 1
+    },
+    "holdout": {
+      "errors": 1,
+      "speech_empty": 1
+    }
+  }
+}

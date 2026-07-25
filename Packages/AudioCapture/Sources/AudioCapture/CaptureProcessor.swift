@@ -15,13 +15,23 @@ final class CaptureProcessor: @unchecked Sendable {
   private var isFinished = false
 
   init(
+    converter: CanonicalAudioConverter, continuation: AsyncStream<AudioCaptureEvent>.Continuation,
+    inputBuffers: AudioBufferPool
+  ) {
+    converter.reset()
+    self.converter = converter
+    self.continuation = continuation
+    self.inputBuffers = inputBuffers
+  }
+
+  convenience init(
     inputFormat: AVAudioFormat, continuation: AsyncStream<AudioCaptureEvent>.Continuation
   ) throws(AudioCaptureError) {
-    self.converter = try CanonicalAudioConverter(inputFormat: inputFormat)
-    self.continuation = continuation
-    self.inputBuffers = try AudioBufferPool(
-      format: inputFormat,
-      bufferCapacity: CaptureBufferConfiguration.frameCount(sampleRate: inputFormat.sampleRate))
+    try self.init(
+      converter: CanonicalAudioConverter(inputFormat: inputFormat), continuation: continuation,
+      inputBuffers: AudioBufferPool(
+        format: inputFormat,
+        bufferCapacity: CaptureBufferConfiguration.frameCount(sampleRate: inputFormat.sampleRate)))
   }
 
   func process(_ buffer: AVAudioPCMBuffer) {

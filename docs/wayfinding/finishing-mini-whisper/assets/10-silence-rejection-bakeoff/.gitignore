@@ -6,5 +6,9 @@ results/no-gate-transcripts.json
 results/raw.*
 results/review.html
 results/synthetic-*
+results/fluid-asr-local.json
+results/fluid-vad-inference.json
+results/fluid-vad-raw.*
+results/fluid-vad-synthetic-raw.json
 __pycache__/
 *.pyc

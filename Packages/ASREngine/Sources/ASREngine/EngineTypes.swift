@@ -1,0 +1,88 @@
+import FluidAudio
+import Foundation
+
+public enum TranscriptionOutcome: Equatable, Sendable {
+  case transcript(String)
+  case noSpeech
+  case engineEmpty
+}
+
+public enum EngineReadiness: Equatable, Sendable {
+  case modelMissing
+  case downloading(Double)
+  case compiling
+  case prewarming
+  case ready
+  case failed(String)
+}
+
+public enum ASREngineError: Error, Equatable, LocalizedError, Sendable {
+  case modelMissing
+  case invalidArtifact(String)
+  case invalidDownload(String)
+  case setupInProgress
+  case notReady
+
+  public var errorDescription: String? {
+    switch self {
+    case .modelMissing: "Pinned speech models are not installed"
+    case .invalidArtifact(let message): "Invalid pinned model artifact: \(message)"
+    case .invalidDownload(let message): "Pinned model download failed: \(message)"
+    case .setupInProgress: "Speech engine setup is already in progress"
+    case .notReady: "Speech engine is not ready"
+    }
+  }
+}
+
+public struct GateConfiguration: Equatable, Sendable {
+  public static let calibrated = GateConfiguration(threshold: 0.9, minimumSpeechDuration: 0.15)
+
+  public let threshold: Float
+  public let minimumSpeechDuration: TimeInterval
+
+  public init(threshold: Float, minimumSpeechDuration: TimeInterval) {
+    precondition((0...1).contains(threshold))
+    precondition(minimumSpeechDuration >= 0)
+    self.threshold = threshold
+    self.minimumSpeechDuration = minimumSpeechDuration
+  }
+
+  public var segmentationConfiguration: VadSegmentationConfig {
+    var configuration = VadSegmentationConfig(
+      minSpeechDuration: minimumSpeechDuration, minSilenceDuration: 0.75,
+      maxSpeechDuration: .infinity, speechPadding: 0, silenceThresholdForSplit: 0.3,
+      negativeThreshold: nil, negativeThresholdOffset: 0.15, minSilenceAtMaxSpeech: 0.098,
+      useMaxPossibleSilenceAtMaxSpeech: true)
+    // FluidAudio 0.15.5 contradicts its threshold-override semantics with a debug-only
+    // constructor assertion, so assign the public override after initialization.
+    configuration.negativeThreshold = max(0.01, threshold - configuration.negativeThresholdOffset)
+    return configuration
+  }
+}
+
+extension EngineReadiness {
+  var isSetupInProgress: Bool {
+    switch self {
+    case .downloading, .compiling, .prewarming: true
+    case .modelMissing, .ready, .failed: false
+    }
+  }
+}
+
+public enum GateFraming {
+  public static let frameSampleCount = 4096
+
+  public static func zeroPaddedCopy(of samples: [Float]) -> [Float] {
+    guard !samples.isEmpty else { return [] }
+    let remainder = samples.count % frameSampleCount
+    guard remainder != 0 else { return samples }
+    return samples + Array(repeating: 0, count: frameSampleCount - remainder)
+  }
+}
+
+public enum TranscriptionOutcomeMapper {
+  public static func map(transcript: String?) -> TranscriptionOutcome {
+    let text = transcript?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    return text.isEmpty ? .engineEmpty : .transcript(text)
+  }
+}

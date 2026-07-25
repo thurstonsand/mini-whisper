@@ -1,3 +1,4 @@
+import ASREngine
 import AudioCapture
 import ComposableArchitecture
 import Foundation
@@ -10,9 +11,10 @@ import Testing
   @Test func hotkeyHoldCapturesAndRetainsARecording() async {
     let (hotkeyEvents, hotkeyContinuation) = AsyncStream.makeStream(of: HotkeyListenerEvent.self)
     let (captureEvents, captureContinuation) = AsyncStream.makeStream(of: AudioCaptureEvent.self)
-    let recording = CanonicalRecording(samples: [0.1, 0.2, 0.3])
+    let recording = CanonicalRecording(samples: Array(repeating: 0.1, count: 16_000))
     let sessionID = UUID()
     let debugURL = URL(fileURLWithPath: "/tmp/MiniWhisper-test.wav")
+    let clock = TestClock()
     let store = TestStore(initialState: AppFeature.State()) {
       AppFeature()
     } withDependencies: {
@@ -26,8 +28,12 @@ import Testing
         #expect(id == sessionID)
         return recording
       }
+      $0.audioCapture.currentInputDeviceName = { "Test Microphone" }
       $0.audioCapture.writeDebugWAV = { _ in debugURL }
+      $0.asrEngine.submit = { _ in .noSpeech }
+      $0.continuousClock = clock
     }
+    store.exhaustivity = .off(showSkippedAssertions: false)
 
     await store.send(.task)
     await store.receive(.recording(.task))
@@ -38,20 +44,31 @@ import Testing
     hotkeyContinuation.yield(.monitoringStarted)
     await store.receive(.hotkeyListenerEvent(.monitoringStarted))
     hotkeyContinuation.yield(.gesture(.startRecording))
-    await store.receive(.hotkeyListenerEvent(.gesture(.startRecording)))
+    await store.receive(.hotkeyListenerEvent(.gesture(.startRecording))) {
+      $0.transcriptionGeneration = 1
+    }
+    await store.receive(.pill(.recordingStarting(inputDeviceName: "Test Microphone"))) {
+      $0.pill.presentation = .recording(
+        PillFeature.State.Presentation.Recording(
+          inputDeviceName: "Test Microphone", level: 0, isLive: false))
+    }
     await store.receive(.recording(.startRecording)) {
       $0.recording.captureGeneration = 1
       $0.recording.phase = .starting(nil)
     }
-    await store.receive(.recording(.captureStarted(1, sessionID, "Test Microphone"))) {
+    await store.receive(.recording(.captureSessionStarted(1, sessionID))) {
       $0.recording.captureSessionID = sessionID
+    }
+    captureContinuation.yield(.captureBecameLive)
+    await store.receive(.recording(.captureBecameLive(1, sessionID, "Test Microphone"))) {
       $0.recording.phase = .recording
     }
     await store.receive(
       .recording(.delegate(.recordingStarted(inputDeviceName: "Test Microphone"))))
     await store.receive(.pill(.recordingStarted(inputDeviceName: "Test Microphone"))) {
       $0.pill.presentation = .recording(
-        PillFeature.State.Presentation.Recording(inputDeviceName: "Test Microphone", level: 0))
+        PillFeature.State.Presentation.Recording(
+          inputDeviceName: "Test Microphone", level: 0, isLive: true))
     }
 
     hotkeyContinuation.yield(.gesture(.stopAndTranscribe))
@@ -60,11 +77,15 @@ import Testing
     await store.receive(.recording(.captureStopped(1, recording))) {
       $0.recording.captureSessionID = nil
       $0.recording.phase = .idle
-      $0.recording.completedRecording = recording
     }
-    await store.receive(.recording(.delegate(.stopped)))
-    await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
-    await store.receive(.recording(.debugWAVWritten(debugURL.path)))
+    await store.receive(.recording(.delegate(.completed(recording))))
+    await store.receive(.pill(.transcribingStarted)) { $0.pill.presentation = .transcribing }
+    await store.receive(.transcriptionCompleted(1, suppressNoSpeechNotice: false, .noSpeech))
+    await store.receive(.pill(.noSpeechDetected)) {
+      $0.pill.noticeGeneration = 1
+      $0.pill.presentation = .notice(.noSpeechDetected)
+    }
+    await store.send(.pill(.dismiss)) { $0.pill.presentation = nil }
     captureContinuation.finish()
     await store.receive(.recording(.captureEventsFinished(1)))
 
@@ -79,7 +100,8 @@ import Testing
     state.recording.captureSessionID = sessionID
     state.recording.phase = .recording
     state.pill.presentation = .recording(
-      PillFeature.State.Presentation.Recording(inputDeviceName: "Test Microphone", level: 0))
+      PillFeature.State.Presentation.Recording(
+        inputDeviceName: "Test Microphone", level: 0, isLive: true))
     let store = TestStore(initialState: state) { AppFeature() }
     let level = AudioLevel(decibels: -12, normalizedPower: 0.8)
 
@@ -87,7 +109,8 @@ import Testing
     await store.receive(.recording(.delegate(.levelChanged(0.8))))
     await store.receive(.pill(.levelUpdated(0.8))) {
       $0.pill.presentation = .recording(
-        PillFeature.State.Presentation.Recording(inputDeviceName: "Test Microphone", level: 0.8))
+        PillFeature.State.Presentation.Recording(
+          inputDeviceName: "Test Microphone", level: 0.8, isLive: true))
     }
   }
 
@@ -98,7 +121,8 @@ import Testing
     state.recording.captureSessionID = sessionID
     state.recording.phase = .recording
     state.pill.presentation = .recording(
-      PillFeature.State.Presentation.Recording(inputDeviceName: "Test Microphone", level: 0.5))
+      PillFeature.State.Presentation.Recording(
+        inputDeviceName: "Test Microphone", level: 0.5, isLive: true))
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
@@ -118,6 +142,41 @@ import Testing
     }
   }
 
+  @Test func loneTapGateRejectionDismissesWithoutANotice() async {
+    var state = AppFeature.State()
+    state.transcriptionGeneration = 1
+    state.pill.presentation = .transcribing
+    let store = TestStore(initialState: state) { AppFeature() }
+
+    await store.send(.transcriptionCompleted(1, suppressNoSpeechNotice: true, .noSpeech))
+    await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
+  }
+
+  @Test func transcriptionFailureDegradesEngineAndDoesNotClaimNoSpeech() async {
+    var state = AppFeature.State()
+    state.engineReadiness = .ready
+    state.transcriptionGeneration = 2
+    state.pill.presentation = .transcribing
+    let store = TestStore(initialState: state) { AppFeature() }
+
+    await store.send(.transcriptionFailed(2, "model failure")) {
+      $0.engineReadiness = .failed("model failure")
+    }
+    await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
+  }
+
+  @Test func staleTranscriptionCannotDismissANewerRecording() async {
+    var state = AppFeature.State()
+    state.transcriptionGeneration = 3
+    state.pill.presentation = .recording(
+      PillFeature.State.Presentation.Recording(
+        inputDeviceName: "New Microphone", level: 0, isLive: true))
+    let store = TestStore(initialState: state) { AppFeature() }
+
+    await store.send(
+      .transcriptionCompleted(2, suppressNoSpeechNotice: false, .transcript("stale")))
+  }
+
   @Test func taskSurfacesMissingInputMonitoringPermission() async {
     let events = AsyncStream<HotkeyListenerEvent> { continuation in
       continuation.yield(.inputMonitoringPermissionMissing)
@@ -132,6 +191,8 @@ import Testing
         for await _ in micGate { return .granted }
         return .granted
       }
+      $0.audioCapture.prepare = {}
+      $0.asrEngine.prepareInstalled = { AsyncStream { $0.finish() } }
     }
 
     await store.send(.task)

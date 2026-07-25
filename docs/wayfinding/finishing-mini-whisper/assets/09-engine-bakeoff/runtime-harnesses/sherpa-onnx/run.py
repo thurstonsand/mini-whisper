@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
 import json
+from pathlib import Path
 import re
 import resource
 import statistics
 import sys
 import time
 import wave
-from pathlib import Path
 
 import numpy as np
 import sherpa_onnx
@@ -96,7 +96,8 @@ def distance(reference, hypothesis):
                 min(
                     current[-1] + 1,
                     previous[hypothesis_index] + 1,
-                    previous[hypothesis_index - 1] + (reference_word != hypothesis_word),
+                    previous[hypothesis_index - 1]
+                    + (reference_word != hypothesis_word),
                 )
             )
         previous = current
@@ -129,12 +130,15 @@ for fixture in fixtures:
             "wordErrors": errors,
             "referenceWords": len(reference_words),
             "wordErrorRate": errors / len(reference_words),
-            "truncatedByRuntime": family == "whisper" and fixture["durationSeconds"] >= 30,
+            "truncatedByRuntime": family == "whisper"
+            and fixture["durationSeconds"] >= 30,
         }
     )
 
 successful_latencies = [
-    fixture["holdReleaseMilliseconds"] for fixture in fixture_results if fixture["error"] is None
+    fixture["holdReleaseMilliseconds"]
+    for fixture in fixture_results
+    if fixture["error"] is None
 ]
 result = {
     "runtime": "sherpa-onnx",

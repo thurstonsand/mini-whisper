@@ -47,7 +47,9 @@ struct PillView: View {
     case .recording(let recording):
       HStack(spacing: 10) {
         Circle().fill(Color(red: 0.95, green: 0.23, blue: 0.24)).frame(width: 9, height: 9).shadow(
-          color: .red.opacity(0.45), radius: 3)
+          color: .red.opacity(0.45), radius: 3
+        ).opacity(recording.isLive ? 1 : 0).animation(
+          .easeOut(duration: 0.15), value: recording.isLive)
         AudioLevelBars(level: recording.level)
         Text(recording.inputDeviceName).font(.system(size: 13, weight: .medium)).lineLimit(1)
           .truncationMode(.middle).foregroundStyle(.primary)

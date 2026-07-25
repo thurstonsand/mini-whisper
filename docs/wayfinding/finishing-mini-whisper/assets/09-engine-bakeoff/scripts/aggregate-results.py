@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 import json
-import statistics
 from pathlib import Path
+import statistics
 
 root = Path(__file__).resolve().parent.parent
 raw = root / ".artifacts" / "results"
@@ -40,9 +40,17 @@ def summary(name, label):
         return None
     fixtures = result.get("fixtures", [])
     latencies = sorted(fixture["holdReleaseMilliseconds"] for fixture in fixtures)
-    longest = max(fixtures, key=lambda fixture: fixture["durationSeconds"]) if fixtures else None
+    longest = (
+        max(fixtures, key=lambda fixture: fixture["durationSeconds"])
+        if fixtures
+        else None
+    )
     corpus_wer = result.get("corpusWordErrorRate")
-    if corpus_wer is None and fixtures and all(fixture.get("wordErrors") is not None for fixture in fixtures):
+    if (
+        corpus_wer is None
+        and fixtures
+        and all(fixture.get("wordErrors") is not None for fixture in fixtures)
+    ):
         errors = sum(fixture["wordErrors"] for fixture in fixtures)
         reference_words = sum(fixture["referenceWords"] for fixture in fixtures)
         corpus_wer = errors / reference_words
@@ -64,9 +72,15 @@ def summary(name, label):
         "coldLoadMilliseconds": result.get("coldLoadMilliseconds"),
         "warmMedianMilliseconds": result.get("warmMedianMilliseconds")
         or (statistics.median(latencies) if latencies else None),
-        "warmP95Milliseconds": latencies[round(0.95 * (len(latencies) - 1))] if latencies else None,
-        "longestFixtureDurationSeconds": longest.get("durationSeconds") if longest else None,
-        "longestFixtureMilliseconds": longest.get("holdReleaseMilliseconds") if longest else None,
+        "warmP95Milliseconds": latencies[round(0.95 * (len(latencies) - 1))]
+        if latencies
+        else None,
+        "longestFixtureDurationSeconds": longest.get("durationSeconds")
+        if longest
+        else None,
+        "longestFixtureMilliseconds": longest.get("holdReleaseMilliseconds")
+        if longest
+        else None,
         "corpusWordErrorRate": corpus_wer,
         "meanFixtureWordErrorRate": result.get("averageWordErrorRate"),
         "peakResidentMiB": result.get("peakResidentBytes", 0) / 1_048_576,
@@ -76,7 +90,11 @@ def summary(name, label):
 
 
 def summaries(specifications):
-    return [result for name, label in specifications if (result := summary(name, label)) is not None]
+    return [
+        result
+        for name, label in specifications
+        if (result := summary(name, label)) is not None
+    ]
 
 
 selection = summaries(
@@ -93,38 +111,83 @@ selection = summaries(
 
 runtime_matrix = summaries(
     [
-        ("matrix-transcribe-cpp-parakeet-v3-metal.json", "transcribe.cpp / Parakeet v3 / Metal"),
-        ("matrix-transcribe-cpp-parakeet-v3-cpu.json", "transcribe.cpp / Parakeet v3 / CPU"),
+        (
+            "matrix-transcribe-cpp-parakeet-v3-metal.json",
+            "transcribe.cpp / Parakeet v3 / Metal",
+        ),
+        (
+            "matrix-transcribe-cpp-parakeet-v3-cpu.json",
+            "transcribe.cpp / Parakeet v3 / CPU",
+        ),
         ("matrix-whisper-cpp-parakeet-metal.json", "whisper.cpp / Parakeet v3 / Metal"),
         ("matrix-whisper-cpp-parakeet-cpu.json", "whisper.cpp / Parakeet v3 / CPU"),
         ("matrix-sherpa-onnx-parakeet-cpu.json", "sherpa-onnx / Parakeet v3 / CPU"),
-        ("matrix-sherpa-onnx-parakeet-coreml.json", "sherpa-onnx / Parakeet v3 / Core ML"),
+        (
+            "matrix-sherpa-onnx-parakeet-coreml.json",
+            "sherpa-onnx / Parakeet v3 / Core ML",
+        ),
         ("matrix-mlx-parakeet.json", "MLX / Parakeet v3"),
-        ("matrix-transcribe-cpp-whisper-small-en-metal.json", "transcribe.cpp / Whisper Small.en / Metal"),
-        ("matrix-transcribe-cpp-whisper-small-en-cpu.json", "transcribe.cpp / Whisper Small.en / CPU"),
-        ("matrix-whisper-cpp-whisper-metal.json", "whisper.cpp / Whisper Small.en / Metal"),
+        (
+            "matrix-transcribe-cpp-whisper-small-en-metal.json",
+            "transcribe.cpp / Whisper Small.en / Metal",
+        ),
+        (
+            "matrix-transcribe-cpp-whisper-small-en-cpu.json",
+            "transcribe.cpp / Whisper Small.en / CPU",
+        ),
+        (
+            "matrix-whisper-cpp-whisper-metal.json",
+            "whisper.cpp / Whisper Small.en / Metal",
+        ),
         ("matrix-whisper-cpp-whisper-cpu.json", "whisper.cpp / Whisper Small.en / CPU"),
         ("matrix-sherpa-onnx-whisper-cpu.json", "sherpa-onnx / Whisper Small.en / CPU"),
-        ("matrix-sherpa-onnx-whisper-coreml.json", "sherpa-onnx / Whisper Small.en / Core ML"),
+        (
+            "matrix-sherpa-onnx-whisper-coreml.json",
+            "sherpa-onnx / Whisper Small.en / Core ML",
+        ),
         ("matrix-mlx-whisper.json", "MLX / Whisper Small.en"),
-        ("matrix-whisperkit-whisper-coreml-pass-2.json", "WhisperKit / Whisper Small.en / Core ML"),
+        (
+            "matrix-whisperkit-whisper-coreml-pass-2.json",
+            "WhisperKit / Whisper Small.en / Core ML",
+        ),
     ]
 )
 
 maturity = summaries(
     [
-        ("maturity-whisper-medium-en-metal.json", "whisper.cpp / Whisper Medium.en / Metal"),
-        ("maturity-whisper-turbo-metal.json", "whisper.cpp / Whisper large-v3-turbo / Metal"),
-        ("maturity-whisper-large-v3-metal.json", "whisper.cpp / Whisper large-v3 / Metal"),
+        (
+            "maturity-whisper-medium-en-metal.json",
+            "whisper.cpp / Whisper Medium.en / Metal",
+        ),
+        (
+            "maturity-whisper-turbo-metal.json",
+            "whisper.cpp / Whisper large-v3-turbo / Metal",
+        ),
+        (
+            "maturity-whisper-large-v3-metal.json",
+            "whisper.cpp / Whisper large-v3 / Metal",
+        ),
     ]
 )
 
 fluid_audio = summaries(
     [
-        ("fluid-audio-parakeet-v2-default-pass-2.json", "FluidAudio / Parakeet v2 / default"),
-        ("fluid-audio-parakeet-v3-default-pass-2.json", "FluidAudio / Parakeet v3 / default"),
-        ("fluid-audio-parakeet-v3-no-mel.json", "FluidAudio / Parakeet v3 / no mel context"),
-        ("fluid-audio-parakeet-v3-dual.json", "FluidAudio / Parakeet v3 / dual-decode arbitration"),
+        (
+            "fluid-audio-parakeet-v2-default-pass-2.json",
+            "FluidAudio / Parakeet v2 / default",
+        ),
+        (
+            "fluid-audio-parakeet-v3-default-pass-2.json",
+            "FluidAudio / Parakeet v3 / default",
+        ),
+        (
+            "fluid-audio-parakeet-v3-no-mel.json",
+            "FluidAudio / Parakeet v3 / no mel context",
+        ),
+        (
+            "fluid-audio-parakeet-v3-dual.json",
+            "FluidAudio / Parakeet v3 / dual-decode arbitration",
+        ),
     ]
 )
 
@@ -144,9 +207,14 @@ for names, label in [
         ],
         "FluidAudio / Parakeet v3",
     ),
-    (["matrix-whisperkit-whisper-coreml-first-specialization.json"], "WhisperKit / Whisper Small.en"),
+    (
+        ["matrix-whisperkit-whisper-coreml-first-specialization.json"],
+        "WhisperKit / Whisper Small.en",
+    ),
 ]:
-    result = next((loaded for name in names if (loaded := load(name)) is not None), None)
+    result = next(
+        (loaded for name in names if (loaded := load(name)) is not None), None
+    )
     if result:
         first_use.append(
             {

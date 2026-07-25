@@ -48,6 +48,15 @@ import SwiftUI
     headerItem.view = headerView
     menu.addItem(headerItem)
 
+    if let engineSetupTitle = state.engineSetupTitle {
+      menu.addItem(.separator())
+      let setupItem = NSMenuItem(
+        title: engineSetupTitle, action: #selector(setupEngine), keyEquivalent: "")
+      setupItem.target = self
+      setupItem.isEnabled = state.canSetupEngine
+      menu.addItem(setupItem)
+    }
+
     menu.addItem(.separator())
     menu.addItem(buildPillDemoItem())
     menu.addItem(.separator())
@@ -62,8 +71,6 @@ import SwiftUI
   private func buildPillDemoItem() -> NSMenuItem {
     let item = NSMenuItem(title: "Pill Demos", action: nil, keyEquivalent: "")
     let submenu = NSMenu()
-    submenu.addItem(demoItem(title: "Transcribing", action: #selector(showTranscribingDemo)))
-    submenu.addItem(demoItem(title: "No Speech Detected", action: #selector(showNoSpeechDemo)))
     submenu.addItem(demoItem(title: "Copied to Clipboard", action: #selector(showCopiedDemo)))
     submenu.addItem(.separator())
     submenu.addItem(demoItem(title: "Hide Pill", action: #selector(hidePillDemo)))
@@ -77,9 +84,7 @@ import SwiftUI
     return item
   }
 
-  @objc private func showTranscribingDemo() { store.send(.pill(.transcribingStarted)) }
-
-  @objc private func showNoSpeechDemo() { store.send(.pill(.noSpeechDetected)) }
+  @objc private func setupEngine() { store.send(.setupEngine) }
 
   @objc private func showCopiedDemo() { store.send(.pill(.copiedToClipboard)) }
 

@@ -4,16 +4,34 @@ import Testing
 @testable import MiniWhisper
 
 @MainActor @Suite struct PillFeatureTests {
+  @Test func activationStartsNeutralUntilCaptureIsLive() async {
+    let store = TestStore(initialState: PillFeature.State()) { PillFeature() }
+
+    await store.send(.recordingStarting(inputDeviceName: "Shure MV7")) {
+      $0.presentation = .recording(
+        PillFeature.State.Presentation.Recording(
+          inputDeviceName: "Shure MV7", level: 0, isLive: false))
+    }
+    await store.send(.levelUpdated(1))
+    await store.send(.recordingStarted(inputDeviceName: "Shure MV7")) {
+      $0.presentation = .recording(
+        PillFeature.State.Presentation.Recording(
+          inputDeviceName: "Shure MV7", level: 0, isLive: true))
+    }
+  }
+
   @Test func recordingShowsDeviceAndTracksLiveLevels() async {
     let store = TestStore(initialState: PillFeature.State()) { PillFeature() }
 
     await store.send(.recordingStarted(inputDeviceName: "Shure MV7")) {
       $0.presentation = .recording(
-        PillFeature.State.Presentation.Recording(inputDeviceName: "Shure MV7", level: 0))
+        PillFeature.State.Presentation.Recording(
+          inputDeviceName: "Shure MV7", level: 0, isLive: true))
     }
     await store.send(.levelUpdated(0.72)) {
       $0.presentation = .recording(
-        PillFeature.State.Presentation.Recording(inputDeviceName: "Shure MV7", level: 0.72))
+        PillFeature.State.Presentation.Recording(
+          inputDeviceName: "Shure MV7", level: 0.72, isLive: true))
     }
     await store.send(.latchEngaged) { $0.bounceCount = 1 }
   }
@@ -25,7 +43,8 @@ import Testing
     await store.send(.levelUpdated(1))
     await store.send(.recordingStarted(inputDeviceName: "Test Microphone")) {
       $0.presentation = .recording(
-        PillFeature.State.Presentation.Recording(inputDeviceName: "Test Microphone", level: 0))
+        PillFeature.State.Presentation.Recording(
+          inputDeviceName: "Test Microphone", level: 0, isLive: true))
       $0.bounceCount = 1
       $0.isLatchBouncePending = false
     }
@@ -34,7 +53,8 @@ import Testing
   @Test func transcribingReplacesRecordingContent() async {
     var state = PillFeature.State()
     state.presentation = .recording(
-      PillFeature.State.Presentation.Recording(inputDeviceName: "Studio Display", level: 0.4))
+      PillFeature.State.Presentation.Recording(
+        inputDeviceName: "Studio Display", level: 0.4, isLive: true))
     let store = TestStore(initialState: state) { PillFeature() }
 
     await store.send(.transcribingStarted) { $0.presentation = .transcribing }

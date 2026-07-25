@@ -1,5 +1,9 @@
 import AVFoundation
 import Foundation
+import OSLog
+
+private let performanceLogger = Logger(
+  subsystem: "com.thurstonsand.MiniWhisper", category: "performance")
 
 public enum AudioCaptureError: Error, Equatable, Sendable {
   case microphonePermission(MicPermissionStatus)
@@ -68,6 +72,7 @@ public struct AudioLevel: Equatable, Sendable {
 }
 
 public enum AudioCaptureEvent: Equatable, Sendable {
+  case captureBecameLive
   case level(AudioLevel)
   case failed(AudioCaptureError)
 }
@@ -87,22 +92,33 @@ public struct AudioCaptureSession: Sendable {
 public actor AudioCapture {
   public static let shared = AudioCapture()
 
+  public static var defaultInputDeviceName: String? {
+    AVCaptureDevice.default(for: .audio)?.localizedName
+  }
+
+  private var preparedEngine: PreparedAudioEngine?
   private var session: (id: UUID, capture: EngineCaptureSession)?
   private var isStarting = false
 
+  public func prepare() throws(AudioCaptureError) {
+    guard MicPermission.shared.status == .granted else { return }
+    _ = try preparedAudioEngine()
+  }
+
   public func start() async throws(AudioCaptureError) -> AudioCaptureSession {
+    performanceLogger.notice("benchmark audio-capture-start-entered")
     guard session == nil, !isStarting else { throw .alreadyRecording }
     isStarting = true
     defer { isStarting = false }
 
     let permission = await MicPermission.shared.requestIfNeeded()
+    performanceLogger.notice("benchmark microphone-permission-resolved")
     guard permission == .granted else { throw .microphonePermission(permission) }
     guard !Task.isCancelled else { throw .startCancelled }
 
-    guard let inputDeviceName = AVCaptureDevice.default(for: .audio)?.localizedName else {
-      throw .inputUnavailable
-    }
-    let capture = try EngineCaptureSession.start()
+    guard let inputDeviceName = Self.defaultInputDeviceName else { throw .inputUnavailable }
+    let capture = try EngineCaptureSession.start(resources: preparedAudioEngine())
+    performanceLogger.notice("benchmark audio-engine-start-returned")
     let id = UUID()
     self.session = (id, capture)
     return AudioCaptureSession(id: id, inputDeviceName: inputDeviceName, events: capture.events)
@@ -119,5 +135,12 @@ public actor AudioCapture {
     guard let session, session.id == sessionID else { return }
     self.session = nil
     session.capture.cancel()
+  }
+
+  private func preparedAudioEngine() throws(AudioCaptureError) -> PreparedAudioEngine {
+    if let preparedEngine, preparedEngine.matchesCurrentInputFormat { return preparedEngine }
+    let preparedEngine = try PreparedAudioEngine.prepare()
+    self.preparedEngine = preparedEngine
+    return preparedEngine
   }
 }

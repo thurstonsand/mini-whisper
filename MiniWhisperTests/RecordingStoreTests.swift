@@ -1,3 +1,4 @@
+import ASREngine
 import AudioCapture
 import ComposableArchitecture
 import Foundation
@@ -11,6 +12,7 @@ import Testing
       RecordingFeature()
     } withDependencies: {
       $0.microphonePermission.status = { .granted }
+      $0.audioCapture.prepare = {}
     }
 
     await store.send(.task)
@@ -33,8 +35,9 @@ import Testing
       $0.captureGeneration = 1
       $0.phase = .starting(nil)
     }
-    await store.receive(.captureStarted(1, sessionID, "Test Microphone")) {
-      $0.captureSessionID = sessionID
+    await store.receive(.captureSessionStarted(1, sessionID)) { $0.captureSessionID = sessionID }
+    continuation.yield(.captureBecameLive)
+    await store.receive(.captureBecameLive(1, sessionID, "Test Microphone")) {
       $0.phase = .recording
     }
     await store.receive(.delegate(.recordingStarted(inputDeviceName: "Test Microphone")))
@@ -75,8 +78,9 @@ import Testing
     await store.send(.stopAndRetain) { $0.phase = .starting(.stop) }
     startContinuation.yield(())
     startContinuation.finish()
-    await store.receive(.captureStarted(1, sessionID, "Test Microphone")) {
-      $0.captureSessionID = sessionID
+    await store.receive(.captureSessionStarted(1, sessionID)) { $0.captureSessionID = sessionID }
+    eventsContinuation.yield(.captureBecameLive)
+    await store.receive(.captureBecameLive(1, sessionID, "Test Microphone")) {
       $0.phase = .recording
     }
     await store.receive(.delegate(.recordingStarted(inputDeviceName: "Test Microphone")))
@@ -84,9 +88,8 @@ import Testing
     await store.receive(.captureStopped(1, recording)) {
       $0.captureSessionID = nil
       $0.phase = .idle
-      $0.completedRecording = recording
     }
-    await store.receive(.delegate(.stopped))
+    await store.receive(.delegate(.completed(recording)))
     await store.receive(.debugWAVWritten("/tmp/test.wav"))
     eventsContinuation.finish()
     await store.receive(.captureEventsFinished(1))
@@ -116,7 +119,7 @@ import Testing
     await store.send(.stopAndRetain)
     startContinuation.yield(())
     startContinuation.finish()
-    await store.receive(.captureStarted(1, sessionID, "Test Microphone")) {
+    await store.receive(.captureSessionStarted(1, sessionID)) {
       $0.captureSessionID = sessionID
       $0.phase = .cancelling
     }
@@ -161,8 +164,11 @@ import Testing
       $0.captureSessionID = nil
       $0.phase = .starting(nil)
     }
-    await store.receive(.captureStarted(2, secondSessionID, "Test Microphone")) {
+    await store.receive(.captureSessionStarted(2, secondSessionID)) {
       $0.captureSessionID = secondSessionID
+    }
+    eventsContinuation.yield(.captureBecameLive)
+    await store.receive(.captureBecameLive(2, secondSessionID, "Test Microphone")) {
       $0.phase = .recording
     }
     await store.receive(.delegate(.recordingStarted(inputDeviceName: "Test Microphone")))
@@ -305,35 +311,43 @@ import Testing
 
 @Suite struct MenuBarViewStateTests {
   @Test func grantedPermissionIsReady() {
-    let state = MenuBarViewState(micStatus: .granted)
+    let state = MenuBarViewState(micStatus: .granted, engineReadiness: .ready)
 
     #expect(state.iconSymbolName == "mic")
-    #expect(state.statusText == "Ready")
+    #expect(state.statusText == "Ready · Parakeet v2")
+  }
+
+  @Test func missingModelIsDegradedAndActionable() {
+    let state = MenuBarViewState(micStatus: .granted, engineReadiness: .modelMissing)
+
+    #expect(state.iconSymbolName == "mic.badge.xmark")
+    #expect(state.statusText == "Parakeet v2 model required")
+    #expect(state.canSetupEngine)
   }
 
   @Test func deniedPermissionIsDegraded() {
-    let state = MenuBarViewState(micStatus: .denied)
+    let state = MenuBarViewState(micStatus: .denied, engineReadiness: .ready)
 
     #expect(state.iconSymbolName == "mic.slash")
     #expect(state.statusText == "Microphone permission required")
   }
 
   @Test func restrictedPermissionIsDegradedDistinctly() {
-    let state = MenuBarViewState(micStatus: .restricted)
+    let state = MenuBarViewState(micStatus: .restricted, engineReadiness: .ready)
 
     #expect(state.iconSymbolName == "mic.slash")
     #expect(state.statusText == "Microphone access restricted")
   }
 
   @Test func undeterminedPermissionHasNotBeenRequested() {
-    let state = MenuBarViewState(micStatus: .undetermined)
+    let state = MenuBarViewState(micStatus: .undetermined, engineReadiness: .ready)
 
     #expect(state.iconSymbolName == "mic")
     #expect(state.statusText == "Microphone permission not yet requested")
   }
 
   @Test func unknownPermissionFailsClosed() {
-    let state = MenuBarViewState(micStatus: .unknown)
+    let state = MenuBarViewState(micStatus: .unknown, engineReadiness: .ready)
 
     #expect(state.iconSymbolName == "mic.slash")
     #expect(state.statusText == "Microphone permission unavailable")

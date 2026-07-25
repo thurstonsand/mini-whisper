@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 import json
-import statistics
 from pathlib import Path
+import statistics
 
 root = Path(__file__).resolve().parent.parent
 results = root / "results"
@@ -17,7 +17,9 @@ def load(name, required=True):
 
 
 def p95(result):
-    values = sorted(fixture["holdReleaseMilliseconds"] for fixture in result["fixtures"])
+    values = sorted(
+        fixture["holdReleaseMilliseconds"] for fixture in result["fixtures"]
+    )
     return values[round(0.95 * (len(values) - 1))]
 
 
@@ -27,12 +29,12 @@ def longest(result):
 
 v2 = load("fluid-audio-parakeet-v2-default-pass-2.json")
 v3 = load("fluid-audio-parakeet-v3-default-pass-2.json")
-v2_first = load("fluid-audio-parakeet-v2-default-first-specialization.json", required=False) or load(
-    "fluid-audio-parakeet-v2-default-pass-1.json"
-)
-v3_first = load("fluid-audio-parakeet-v3-default-first-specialization.json", required=False) or load(
-    "fluid-audio-parakeet-v3-default-pass-1.json"
-)
+v2_first = load(
+    "fluid-audio-parakeet-v2-default-first-specialization.json", required=False
+) or load("fluid-audio-parakeet-v2-default-pass-1.json")
+v3_first = load(
+    "fluid-audio-parakeet-v3-default-first-specialization.json", required=False
+) or load("fluid-audio-parakeet-v3-default-pass-1.json")
 v3_no_mel = load("fluid-audio-parakeet-v3-no-mel.json")
 v3_dual = load("fluid-audio-parakeet-v3-dual.json")
 transcribe_v3 = load("matrix-transcribe-cpp-parakeet-v3-metal.json", required=False)
@@ -78,7 +80,7 @@ lines += [
     "",
     "## First-use behavior",
     "",
-    f"The supplied `.mlmodelc` bundles still required one-time Core ML specialization on this Mac. Parakeet v2's first load took **{v2_first['coldLoadMilliseconds'] / 1_000:.1f} seconds** and v3's took **{v3_first['coldLoadMilliseconds'] / 1_000:.1f} seconds**. Later processes loaded in {min(v2['coldLoadMilliseconds'], v3['coldLoadMilliseconds']):.0f}–{max(v2['coldLoadMilliseconds'], v3['coldLoadMilliseconds']):.0f} ms. This must happen during model installation/onboarding, never on the first dictation.",
+    f"The supplied `.mlmodelc` bundles still required one-time Core ML specialization on this Mac. Parakeet v2's first load took **{v2_first['coldLoadMilliseconds'] / 1_000:.1f} seconds** and v3's took **{v3_first['coldLoadMilliseconds'] / 1_000:.1f} seconds**. Later processes loaded in {min(v2['coldLoadMilliseconds'], v3['coldLoadMilliseconds']):.0f}–{max(v2['coldLoadMilliseconds'], v3['coldLoadMilliseconds']):.0f} ms. This must happen during model installation/onboarding, never on the first dictation.",  # noqa: RUF001
     "",
     f"The first-use process reached about 560 MiB RSS for either model. Later-process RSS was {v2['peakResidentBytes'] / 1_048_576:.0f} MiB for v2 and {v3['peakResidentBytes'] / 1_048_576:.0f} MiB for v3, but that does not include every Core ML/ANE allocation in a comparable way.",
     "",
@@ -90,7 +92,7 @@ lines += [
 ]
 if whisper_medium:
     lines.append(
-        f"- FluidAudio v2 was about 6× faster than whisper.cpp Medium.en at the median and completed the 93.5-second fixture in {longest(v2)['holdReleaseMilliseconds']:.0f} ms because four 15-second windows run concurrently. Its raw Aqua-reference WER was effectively tied with Medium.en (3.21% vs. 3.13%)."
+        f"- FluidAudio v2 was about 6× faster than whisper.cpp Medium.en at the median and completed the 93.5-second fixture in {longest(v2)['holdReleaseMilliseconds']:.0f} ms because four 15-second windows run concurrently. Its raw Aqua-reference WER was effectively tied with Medium.en (3.21% vs. 3.13%)."  # noqa: RUF001
     )
 if transcribe_v3:
     lines.append(

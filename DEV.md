@@ -12,13 +12,17 @@ mise trust && mise bootstrap
 mise run build          # Build the app
 mise run test           # Run all tests (app + UI)
 mise run test-packages  # Fast package-only tests (prefer this for quick feedback)
-mise run lint           # Run the pre-commit formatting, build, and package-test gate
+mise run lint           # Run the pre-commit formatting, linting, build, and package-test gate
 mise run format         # Format code with swift-format
 mise run mw             # Build and run MiniWhisper
 mise run mw-fresh       # Reset mic/Input Monitoring/Accessibility permissions, then build and run
 mise run logs           # run in background; streams and tees to .build/miniwhisper.log
+mise run benchmark      # Run deterministic interaction performance budgets
+mise run benchmark-live # Build, launch, measure three real capture cycles, and enforce UX budgets
 ./scripts/capture_menu_screenshot [output.png]  # Screenshot menu dropdown (app must be running)
 ```
+
+`benchmark-live` requires microphone permission and a downloaded engine model. Quit MiniWhisper before running it. Logs at `.build/{miniwhisper-performance.log,miniwhisper-performance-app.log}`.
 
 ## Architecture
 

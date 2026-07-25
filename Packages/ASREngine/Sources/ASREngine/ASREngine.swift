@@ -1,2 +1,119 @@
-// The Swift Programming Language
-// https://docs.swift.org/swift-book
+import FluidAudio
+import Foundation
+
+public actor LocalASREngine {
+  public static let shared = LocalASREngine()
+
+  private let gateConfiguration: GateConfiguration
+  private let modelStore: PinnedModelStore
+  private var readiness: EngineReadiness = .modelMissing
+  private var vadManager: VadManager?
+  private var asrManager: AsrManager?
+  private var decoderLayerCount: Int?
+
+  public init(gateConfiguration: GateConfiguration = .calibrated) {
+    self.gateConfiguration = gateConfiguration
+    self.modelStore = PinnedModelStore()
+  }
+
+  init(gateConfiguration: GateConfiguration, modelStore: PinnedModelStore) {
+    self.gateConfiguration = gateConfiguration
+    self.modelStore = modelStore
+  }
+
+  public nonisolated func prepareInstalled() -> AsyncStream<EngineReadiness> {
+    AsyncStream { continuation in
+      let task = Task { await self.prepareInstalled(continuation: continuation) }
+      continuation.onTermination = { _ in task.cancel() }
+    }
+  }
+
+  public nonisolated func installAndPrepare() -> AsyncStream<EngineReadiness> {
+    AsyncStream { continuation in
+      let task = Task { await self.installAndPrepare(continuation: continuation) }
+      continuation.onTermination = { _ in task.cancel() }
+    }
+  }
+
+  public func submit(_ samples: [Float]) async throws -> TranscriptionOutcome {
+    guard readiness == .ready, let vadManager, let asrManager, let decoderLayerCount else {
+      throw ASREngineError.notReady
+    }
+    guard !samples.isEmpty else { return .noSpeech }
+
+    let gateSamples = GateFraming.zeroPaddedCopy(of: samples)
+    let results = try await vadManager.process(gateSamples)
+    let segments = await vadManager.segmentSpeech(
+      from: results, totalSamples: samples.count,
+      config: gateConfiguration.segmentationConfiguration)
+    guard !segments.isEmpty else { return .noSpeech }
+
+    var decoderState = try TdtDecoderState(decoderLayers: decoderLayerCount)
+    let transcript = try await asrManager.transcribe(samples, decoderState: &decoderState)
+    return TranscriptionOutcomeMapper.map(transcript: transcript.text)
+  }
+
+  private func prepareInstalled(continuation: AsyncStream<EngineReadiness>.Continuation) async {
+    defer { continuation.finish() }
+    if readiness == .ready {
+      continuation.yield(.ready)
+      return
+    }
+    if readiness.isSetupInProgress {
+      continuation.yield(readiness)
+      return
+    }
+    do {
+      try modelStore.validateInstalledArtifact()
+      try await loadAndPrewarm { continuation.yield($0) }
+    } catch ASREngineError.modelMissing {
+      updateReadiness(.modelMissing) { continuation.yield($0) }
+    } catch { updateReadiness(.failed(error.localizedDescription)) { continuation.yield($0) } }
+  }
+
+  private func installAndPrepare(continuation: AsyncStream<EngineReadiness>.Continuation) async {
+    defer { continuation.finish() }
+    guard !readiness.isSetupInProgress else {
+      continuation.yield(.failed(ASREngineError.setupInProgress.localizedDescription))
+      return
+    }
+    do {
+      updateReadiness(.downloading(0)) { continuation.yield($0) }
+      try await modelStore.download { fraction in continuation.yield(.downloading(fraction)) }
+      try await loadAndPrewarm { continuation.yield($0) }
+    } catch { updateReadiness(.failed(error.localizedDescription)) { continuation.yield($0) } }
+  }
+
+  private func loadAndPrewarm(progress: @escaping @Sendable (EngineReadiness) -> Void) async throws
+  {
+    ModelHub.offlineMode = true
+    updateReadiness(.compiling, progress: progress)
+    let vadManager = try await VadManager(
+      config: VadConfig(defaultThreshold: gateConfiguration.threshold, computeUnits: .cpuOnly),
+      modelDirectory: modelStore.vadBaseDirectory)
+    let models = try await AsrModels.load(
+      from: modelStore.asrDirectory, version: .v2, encoderPrecision: .int8)
+    let asrManager = AsrManager(
+      config: ASRConfig(
+        parallelChunkConcurrency: 4, streamingEnabled: false, melChunkContext: true,
+        dualDecodeArbitration: false), models: models)
+
+    updateReadiness(.prewarming, progress: progress)
+    _ = try await vadManager.process(Array(repeating: 0, count: GateFraming.frameSampleCount))
+    var decoderState = try TdtDecoderState(decoderLayers: models.version.decoderLayers)
+    _ = try await asrManager.transcribe(
+      Array(repeating: 0, count: 16_000), decoderState: &decoderState)
+
+    self.vadManager = vadManager
+    self.asrManager = asrManager
+    self.decoderLayerCount = models.version.decoderLayers
+    updateReadiness(.ready, progress: progress)
+  }
+
+  private func updateReadiness(
+    _ readiness: EngineReadiness, progress: @escaping @Sendable (EngineReadiness) -> Void
+  ) {
+    self.readiness = readiness
+    progress(readiness)
+  }
+}

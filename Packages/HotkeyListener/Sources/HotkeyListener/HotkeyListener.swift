@@ -1,5 +1,9 @@
 import CoreGraphics
 import Foundation
+import OSLog
+
+private let performanceLogger = Logger(
+  subsystem: "com.thurstonsand.MiniWhisper", category: "performance")
 
 public enum TapDisableReason: String, Equatable, Sendable {
   case timeout
@@ -214,7 +218,15 @@ private final class EventTapSession: @unchecked Sendable {
       })
   }
 
-  private func emit(_ event: GestureEvent?) { if let event { yield(.gesture(event)) } }
+  private func emit(_ event: GestureEvent?) {
+    guard let event else { return }
+    switch event {
+    case .startRecording: performanceLogger.notice("benchmark hotkey-press")
+    case .stopAndTranscribe: performanceLogger.notice("benchmark recording-release")
+    case .latchEngaged, .cancel: break
+    }
+    yield(.gesture(event))
+  }
 
   private func yield(_ event: HotkeyListenerEvent) {
     let continuation = lock.withLock { self.continuation }

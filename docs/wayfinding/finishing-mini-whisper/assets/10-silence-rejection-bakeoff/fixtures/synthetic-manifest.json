@@ -13,7 +13,7 @@
   {
     "id": "synthetic-zero-long",
     "file": "synthetic/zero-long.wav",
-    "split": "holdout",
+    "split": "calibration",
     "label": "no_speech",
     "category": "literal-silence",
     "device": "synthetic",
@@ -35,7 +35,7 @@
   {
     "id": "synthetic-impulses",
     "file": "synthetic/impulses.wav",
-    "split": "holdout",
+    "split": "calibration",
     "label": "no_speech",
     "category": "impulse",
     "device": "synthetic",
@@ -46,7 +46,7 @@
   {
     "id": "synthetic-tone",
     "file": "synthetic/tone.wav",
-    "split": "holdout",
+    "split": "calibration",
     "label": "no_speech",
     "category": "non-speech-tone",
     "device": "synthetic",

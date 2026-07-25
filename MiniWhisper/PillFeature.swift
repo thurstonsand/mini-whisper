@@ -6,6 +6,7 @@ import ComposableArchitecture
       struct Recording: Equatable {
         var inputDeviceName: String
         var level: Float
+        var isLive: Bool
       }
 
       enum Notice: Equatable {
@@ -26,6 +27,7 @@ import ComposableArchitecture
   }
 
   enum Action: Equatable {
+    case recordingStarting(inputDeviceName: String)
     case recordingStarted(inputDeviceName: String)
     case levelUpdated(Float)
     case latchEngaged
@@ -45,9 +47,14 @@ import ComposableArchitecture
   var body: some ReducerOf<Self> {
     Reduce { state, action in
       switch action {
+      case .recordingStarting(let inputDeviceName):
+        state.presentation = .recording(
+          State.Presentation.Recording(inputDeviceName: inputDeviceName, level: 0, isLive: false))
+        state.isFadingOut = false
+        return .cancel(id: CancelID.notice)
       case .recordingStarted(let inputDeviceName):
         state.presentation = .recording(
-          State.Presentation.Recording(inputDeviceName: inputDeviceName, level: 0))
+          State.Presentation.Recording(inputDeviceName: inputDeviceName, level: 0, isLive: true))
         state.isFadingOut = false
         if state.isLatchBouncePending {
           state.bounceCount += 1
@@ -55,7 +62,9 @@ import ComposableArchitecture
         }
         return .cancel(id: CancelID.notice)
       case .levelUpdated(let level):
-        guard case .recording(var recording) = state.presentation else { return .none }
+        guard case .recording(var recording) = state.presentation, recording.isLive else {
+          return .none
+        }
         recording.level = level
         state.presentation = .recording(recording)
         return .none

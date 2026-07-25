@@ -44,6 +44,17 @@ import Testing
     #expect(abs(average - 0.5) < 0.01)
   }
 
+  @Test func resetReusesTheConverterForANewRecording() throws {
+    let input = try makeBuffer(sampleRate: 48_000, channels: 1, frameCount: 4_800) { _, _ in 0.25 }
+    let converter = try CanonicalAudioConverter(inputFormat: input.format)
+    let first = try converter.convert(input) + converter.finish()
+
+    converter.reset()
+    let second = try converter.convert(input) + converter.finish()
+
+    #expect(second == first)
+  }
+
   @Test func conversionAcrossBuffersRetainsTheCompleteStream() throws {
     let inputFormat = try #require(AVAudioFormat(standardFormatWithSampleRate: 48_000, channels: 1))
     let converter = try CanonicalAudioConverter(inputFormat: inputFormat)

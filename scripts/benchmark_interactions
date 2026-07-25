@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if pgrep -x MiniWhisper >/dev/null; then
+  echo "MiniWhisper is already running. Quit it before the live benchmark." >&2
+  exit 1
+fi
+
+: "${APP_PATH:?APP_PATH must name the built MiniWhisper app}"
+
+mkdir -p .build
+performance_log=.build/miniwhisper-performance.log
+app_log=.build/miniwhisper-performance-app.log
+rm -f "$performance_log" "$app_log"
+
+log stream --style compact --level info \
+  --predicate 'subsystem == "com.thurstonsand.MiniWhisper"' >"$performance_log" 2>&1 &
+log_pid=$!
+cleanup() {
+  kill "$log_pid" 2>/dev/null || true
+}
+trap cleanup EXIT
+
+MINIWHISPER_BENCHMARK_ACTIVATION=1 \
+  "$APP_PATH/Contents/MacOS/MiniWhisper" >"$app_log" 2>&1
+sleep 1
+cleanup
+trap - EXIT
+
+python3 scripts/report_interaction_latencies.py "$performance_log"

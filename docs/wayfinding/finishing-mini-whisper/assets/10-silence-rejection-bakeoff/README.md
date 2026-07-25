@@ -1,146 +1,89 @@
 # Silence rejection bakeoff
 
-Disposable macOS arm64 prototype for choosing MiniWhisper's utterance-level speech gate. It is isolated from the app and production packages.
+Disposable macOS arm64 prototype for calibrating MiniWhisper's utterance gate. Its VAD regression target depends on the local production `ASREngine` package so framing and segmentation policy cannot drift.
 
-The pipeline is deliberately narrow:
+## Shipping pipeline
 
 ```text
-complete 16 kHz mono recording
-  ├─ RMS measurements (comparison only)
-  └─ whisper.cpp Silero v6.2 classification
-       ├─ no speech → successful empty result; FluidAudio is never called
-       └─ speech → pass the original complete recording to FluidAudio AsrManager
-                    (its existing 15-second overlap/merge remains unchanged)
+complete canonical 16 kHz mono Float32 recording
+  ├─ empty → noSpeech
+  └─ copy and zero-pad to ceil(sampleCount / 4096) × 4096
+       └─ one FluidAudio VadManager.process call
+            ├─ no qualifying segment → noSpeech
+            └─ speech → original unpadded recording to resident AsrManager
 ```
 
-Silero does not trim, concatenate, chunk, or stitch audio. That prevents the gate from changing FluidAudio's tested long-form geometry.
+Only the gate copy is padded. Segmentation receives the original sample count, so release padding cannot manufacture speech duration. Accepted audio is never trimmed, concatenated, padded, chunked, or stitched before ASR; FluidAudio alone owns its existing 15-second overlap/merge path.
+
+## Why 4096 replaced 512
+
+The original whisper.cpp bakeoff used genuine 512-sample Silero windows and one zero-padded release tail. FluidAudio v0.15.5's public `VadManager` cannot reproduce that geometry: its model requires 4096 new samples (256 ms), whole-input processing strides by 4096, and every partial `processChunk` is repeat-last-padded. Passing 512 samples through the public streaming API would therefore infer over 512 real samples plus 3584 repeated samples while reporting only 512 samples of progress.
+
+Phase 4 amended the contract before deleting the corpus. MiniWhisper app-zero-pads the complete gate copy to a 4096 multiple before one whole-utterance call, which guarantees every internal chunk is exactly 4096 and prevents FluidAudio's repeat-last branch. Empty recordings do not manufacture a frame.
 
 ## Pins and test machine
 
 - Test machine: Apple M4 Pro, macOS 26.5.2 (`25F84`), arm64.
-- whisper.cpp `v1.9.1`: `f049fff95a089aa9969deb009cdd4892b3e74916`, CPU VAD path.
-- Silero `v6.2.0`: `ggml-silero-v6.2.0.bin`, SHA-256 `2aa269b785eeb53a82983a20501ddf7c1d9c48e33ab63a41391ac6c9f7fb6987`.
 - FluidAudio `v0.15.5`: `19600a485baa4998812e4654b70d2bab8f2c9949`.
-- Parakeet TDT 0.6B v2 Core ML: `FluidInference/parakeet-tdt-0.6b-v2-coreml@ee09c569f73759e6d44c9bd16766f477b2b36d39`, English-only, int8 encoder.
-- FluidAudio configuration: ordinary `AsrManager`, four parallel chunks, mel context enabled, no dual-decode arbitration. This is its upstream 15-second overlap/merge path.
+- Silero VAD Core ML: `FluidInference/silero-vad-coreml@b419383c55c110e2c9271fa6ee0ea83d03c70d96`, `silero-vad-unified-256ms-v6.2.1.mlmodelc`.
+- Parakeet TDT 0.6B v2 Core ML: `FluidInference/parakeet-tdt-0.6b-v2-coreml@ee09c569f73759e6d44c9bd16766f477b2b36d39`, English-only int8 encoder.
+- VAD compute units: CPU-only, matching production calibration.
+- ASR configuration: ordinary resident `AsrManager`, four parallel chunks, mel context enabled, no dual-decode arbitration.
 - Capture devices: MacBook Pro Microphone and work-approved Shure MV7.
-- Capture format: mono 16 kHz PCM16 WAV. `ffmpeg` performs the microphone-edge conversion.
+- Capture format: mono 16 kHz PCM16 WAV; production receives equivalent canonical Float32 samples from `AudioCapture`.
 
-The setup script pins source and model revisions. Its Python virtual environment is setup tooling only; MiniWhisper does not acquire a Python dependency.
+FluidAudio v0.15.5 hard-codes Hugging Face `main` in both model listing and resolve URLs. Setup and production therefore use immutable revision URLs. Production validates sizes and available LFS SHA-256 values, writes provenance, atomically promotes the complete cache, enables `ModelHub.offlineMode`, and only then loads local models. A missing or corrupt pin fails degraded; it never self-heals from mutable `main`.
 
-## Setup
+## Setup and run
 
 ```sh
 cd docs/wayfinding/finishing-mini-whisper/assets/10-silence-rejection-bakeoff
 ./scripts/setup.sh
+./scripts/run.py fixtures/local-manifest.json --output results/fluid-vad-raw.json
+./scripts/publish-results.py results/fluid-vad-raw.json results/fluid-vad-final.json
 ```
 
-This clones pinned sources, verifies Silero's hash, builds whisper.cpp and the FluidAudio transcription harness, downloads the pinned Core ML model, and generates committed synthetic fixtures.
+`setup.sh` resolves the production package's exact FluidAudio dependency, downloads both Core ML repositories at immutable revisions, builds the VAD and ASR harnesses, and generates synthetic fixtures. `SilenceBakeoffVad` imports `ASREngine` and calls `GateFraming.zeroPaddedCopy` plus each candidate `GateConfiguration.segmentationConfiguration`; these regressions therefore exercise production gate construction rather than a restated harness copy. Raw output contains private probabilities, transcripts, and fixture decisions and is ignored. Only [`results/fluid-vad-final.json`](results/fluid-vad-final.json) and [`results/fluid-vad-final.md`](results/fluid-vad-final.md) are publishable.
 
-A synthetic smoke run requires no microphone:
+The runner sweeps thresholds `0.35`, `0.40`, `0.45`, `0.50`, `0.55`, `0.65`, `0.75`, `0.85`, and `0.90` with minimum speech durations `0`, `150`, `250`, and `500 ms`. All five regenerable synthetic probes belong to calibration; synthetic data does not consume scarce field holdout slots. The runner combines them with the fixed real calibration split, selects the lowest threshold with zero calibration false accepts/rejects, then chooses the minimum-speech duration nearest FluidAudio's `150 ms` default. The 20-fixture real holdout never participates in selection.
 
-```sh
-./scripts/run.py fixtures/synthetic-manifest.json --output results/synthetic.json
-```
+It asserts:
 
-The synthetic corpus is not evidence for speech recall. It proves WAV validation, RMS and VAD sweeps, decoder skipping, hallucination measurement, and capture-buffer-invariant framing. In the first full smoke run, Parakeet hallucinated `I'm not sure if I can do it.` on synthetic impulses with no gate; Silero rejected the clip and skipped the decoder.
+- zero false accepts and zero false rejects on both real splits;
+- warm corpus median at or below the accepted 15 ms absolute VAD budget;
+- every nonempty gate input is an exact 4096-sample multiple;
+- accepted original audio remains unchanged.
+
+Five generated calibration no-speech fixtures exercise silence, low noise, impulses, and a pure tone. Threshold `0.85` accepted the labeled tone at probability `0.89160156`; because it is a supplied no-speech probe, that is a false accept. Threshold `0.90` rejects all five without losing any real calibration speech. No frequency blacklist is needed.
 
 ## Private fixture capture
 
-List the current AVFoundation indexes immediately before capture; indexes are not stable across reconnects:
+`fixtures/local-manifest.json` is committed, but `fixtures/local/` is ignored and normally absent. It defines 34 recordings fixed before tuning: 14 calibration and 20 holdout, including room tone, lone taps, keyboard/mouse noise, fan/HVAC, headphone leakage, ordinary/quiet/whispered speech, short words, clipped boundaries, leading/trailing silence, and long dictation crossing FluidAudio's 15-second boundaries.
+
+List current AVFoundation indexes immediately before capture; indexes are not stable across reconnects:
 
 ```sh
 ffmpeg -f avfoundation -list_devices true -i ''
+./scripts/capture-corpus.py --built-in <index> --work-headset <index>
 ```
 
-At prototype creation the available physical inputs were MacBook Pro Microphone, Arctis Nova Elite, and Shure MV7. Thurston confirmed the Shure MV7 as the approved work microphone. The manifest still names device roles so it remains readable if AVFoundation indexes change.
+The helper does not overwrite existing files, so an interrupted capture can resume. Use the MacBook microphone and the currently approved work microphone, record only the inert prompts in the manifest, listen to every result, and fill long-fixture references with the non-private paragraph actually spoken. Then run the complete calibration and ASR regression before accepting a FluidAudio/model change.
 
-Capture every missing local fixture interactively:
+Future re-record procedure:
 
-```sh
-./scripts/capture-corpus.py --built-in 1 --work-headset 2
-```
+1. Record all 34 entries without changing their preassigned split.
+2. Validate every WAV is mono 16 kHz PCM16 and every manifest entry is present.
+3. Run the VAD harness and inspect the raw confusion matrix; selection uses calibration only.
+4. Require zero false accepts/rejects on calibration and holdout plus the 15 ms warm-median budget.
+5. Run Parakeet over accepted originals and the engine-bakeoff long corpus; inspect errors, empty short words, reference WER, and all 15-second boundary fixtures.
+6. Publish aggregate-only results, then delete every personal/generated WAV and all raw output again.
 
-Replace the example indexes with the current MacBook and approved-work-device indexes. The script records under `fixtures/local/`; every WAV there is ignored by git. It will not overwrite an existing fixture, so interrupted runs resume safely.
+## Recalibration verdict
 
-`fixtures/local-manifest.json` is committed. It describes the absent private corpus, including literal and long room tone, lone taps, fan/HVAC, keyboard, mouse, headphone media isolation, quiet and whispered speech, short words, clipped release, leading/trailing silence, and quiet spans around FluidAudio's 15-second boundaries. Calibration and holdout membership was fixed before capture. Audio and video use headphones in the representative environment, so the media fixtures correctly test leakage through that path rather than an irrelevant open-speaker scenario.
+The combined real-plus-synthetic calibration selected threshold `0.90`, minimum speech `150 ms`: the lowest swept threshold rejecting every supplied calibration no-speech probe while preserving every calibration speech fixture. It produced `0 / 0` false accepts/rejects on the 14 real calibration fixtures, rejected all `5 / 5` synthetic calibration fixtures, and then produced `0 / 0` on the untouched 20-fixture real holdout. The strongest real holdout no-speech probability was about `0.489`; the weakest real calibration speech reached about `0.971`.
 
-Do not record private work content. The scripted phrases are intentionally inert. For the two long boundary fixtures, use a non-private paragraph and update `reference` afterward.
+Warm wall VAD median was `13.782 ms`; model-reported median was `13.502 ms`. The cold/maximum fixture took `150.540 ms`, so setup/prewarm remains mandatory while the warm release path passes the accepted `15 ms` budget. Maximum release zero padding was 4011 samples. All internal chunks were exact 4096-sample frames.
 
-## Fixture label format
+The no-gate ASR regression retained the known distinction: built-in “yes” and “no” speech reached VAD but returned empty Parakeet transcripts, while the two 0.2–0.3-second lone-tap clips produced `invalidAudioData` when deliberately sent to ASR without the gate. Production reports gate rejection, accepted engine-empty, and engine failure separately.
 
-Each manifest entry has:
-
-| Field | Meaning |
-| --- | --- |
-| `id` | Stable result identity. |
-| `file` | WAV path relative to the manifest. Local WAV paths live below the ignored `local/` directory. |
-| `split` | `calibration` or `holdout`; settings are selected only from calibration. |
-| `label` | User-intent label: `speech` or `no_speech`. |
-| `category` | Failure class used during review. |
-| `device` / `room` | Hardware role and representative acoustic condition. |
-| `capture_seconds` / `prompt` | Reproduction instruction for the capture helper. |
-| `reference` | Expected transcript, or empty for no-speech. |
-| `speech_spans` | Reserved `[startSeconds, endSeconds]` annotations for later endpoint studies. The MVP result does not depend on them because accepted audio is never trimmed. |
-
-Private WAVs remain uncommitted. `results/raw.*`, no-gate transcripts, review HTML, frame probabilities, timelines, and per-fixture decisions are gitignored. Only aggregate metrics and conclusions are published.
-
-## Run the real bakeoff
-
-```sh
-./scripts/run.py fixtures/local-manifest.json --output results/raw.json
-./scripts/make-review.py results/raw.json fixtures/local-manifest.json --output results/review.html
-open results/review.html
-# After human review, publish aggregates and conclusions only:
-./scripts/publish-results.py results/raw.json results/final.json
-```
-
-`run.py` performs one Silero inference per fixture, then applies a small segmentation sweep without re-running the model:
-
-- probability thresholds `0.35`, `0.50`, `0.65`;
-- minimum speech durations `96`, `160`, `250` ms;
-- upstream defaults are therefore included exactly (`0.50` / `250` ms; upstream's 100 ms minimum silence and 30 ms speech padding remain unchanged).
-
-It selects settings on calibration by minimizing false rejects first, false accepts second, and distance from upstream defaults third. Holdout data never participates in selection.
-
-The runner also compares whole-clip and 100 ms framed RMS at `0.001`, `0.005`, `0.010`, and `0.020`; runs every clip through FluidAudio with no gate to expose hallucinations; derives the gated result without decoding rejected clips; records decoder calls skipped, VAD and decoder latency, raw probabilities, segments, transcripts, and errors; and emits JSON plus a compact Markdown table.
-
-For framing, it replays each fixture through capture buffers of 73, 511, 128, 2048, 17, 960, 333, 4096, and 255 samples. An accumulator sends only complete 512-sample Silero windows, with exactly one zero-padded tail at release. The streamed probabilities must exactly match one-shot inference. Never pass each arbitrary callback tail directly to Silero: whisper.cpp pads every partial call, so doing that manufactures silence and makes classification callback-size-dependent.
-
-The HTML review keeps recordings local and presents an audio control, selected classification, no-gate transcript, segments, and a frame-probability timeline for every fixture. Thurston—not the script—judges mistaken labels, clipped boundaries, transcript changes, and headphone isolation.
-
-## Acceptance bar
-
-The MVP setting is acceptable only when the separately reported holdout preserves all of these:
-
-- no final nonempty transcript for any no-speech hold;
-- no rejected quiet, whispered, clipped, or short speech fixture;
-- VAD median runtime within the accepted 15 ms absolute release-latency budget; the original provisional 10% ratio remains reported separately;
-- irregular capture-buffer replay produces the same probabilities as one-shot framing;
-- accepted audio reaches FluidAudio unchanged, including quiet spans around 15-second boundaries.
-
-Nearby intelligible open-speaker speech remains a general acoustic-VAD ambiguity, but it is not representative of this headphone-only environment. Do not add a transcript blacklist for it.
-
-## Results and verdict
-
-The real corpus contains 34 fixtures: 14 calibration and 20 holdout, split across the MacBook microphone and Shure MV7. Calibration selected Silero threshold `0.35` with upstream's `250 ms` minimum speech. This is the highest tested threshold with zero calibration false rejects. Upstream `0.50` rejected the Shure whispered calibration fixture; `0.35` preserved it while all calibration and holdout no-speech recordings remained far below the speech boundary.
-
-Thurston listened to the recordings and accepted the classifications, the absence of gate-induced clipping, and unchanged long-form stitching. PCM inspection found no saturated samples; the digital character he heard is therefore capture/playback behavior, not waveform clipping or gate trimming. The MVP gate passes complete accepted audio, so measured gate-induced onset clipping is exactly `0 ms`.
-
-Irregular capture-buffer replay matched one-shot Silero probabilities exactly. Under the deliberately broad buffer sequence, future endpoint confirmation measured `186 ms` median and `376 ms` maximum after the last above-threshold frame; that includes upstream's 100 ms silence requirement plus frame and callback scheduling. This is endpointing evidence only—the MVP still ends on key release.
-
-Median VAD inference was `10.1 ms`; median FluidAudio transcription was `59.7 ms`. The provisional ratio check failed at roughly 17%, but Thurston accepted the 10.1 ms absolute addition as negligible for release-to-text feel. The durable MVP budget is therefore 15 ms absolute, while the ratio remains visible in machine results rather than being rewritten into a pass.
-
-FluidAudio returned empty transcripts for the accepted built-in-microphone “yes” and “no” fixtures. Silero probabilities were `1.000` and `0.999`, so this is not a silence-gate false reject. The paired Shure “yes” and “no” fixtures transcribed correctly, which argues against a universal Parakeet single-word limit.
-
-FluidAudio did have a known integration defect: before [FluidAudio #531](https://github.com/FluidInference/FluidAudio/pull/531), `AsrManager` rejected every recording shorter than one second before Parakeet ran—explicitly including 500–700 ms words such as “yes,” “no,” and “stop.” The selected v0.15.5 contains the fix and admits recordings of at least 300 ms. These built-in-microphone clips were 1.5 and 1.2 seconds, reached inference, and returned empty rather than `invalidAudioData`, so they are not that known bug. No upstream report or real-model regression test was found establishing that Parakeet v2 itself generally loses sub-second words. An all-blank TDT decode can mechanically return empty, but the cause here remains unproven. Production regression tests must distinguish `gate rejected`, `engine rejected audio`, and `engine accepted audio but returned empty`.
-
-| Gate | Calibration false accepts / rejects | Holdout false accepts / rejects | No-speech hallucinations delivered | Decoder calls skipped | Role |
-| --- | ---: | ---: | ---: | ---: | --- |
-| No gate | 6 / 0 by definition | 8 / 0 by definition | 0 | 0 | Hallucination control |
-| Whole-clip RMS `0.001` | 3 / 1 | 5 / 0 | 0 after gate | 7 | Baseline only |
-| 100 ms framed RMS `0.001` | 6 / 0 | 6 / 0 | 0 after gate | 2 | Baseline only |
-| Silero upstream `0.50` / `250 ms` | 0 / 1 | 0 / 0 | 0 | 15 | Rejects the Shure calibration whisper |
-| **Silero selected `0.35` / `250 ms`** | **0 / 0** | **0 / 0** | **0** | **14** | **MVP recommendation** |
-
-Aggregate machine-readable metrics and conclusions are in [`results/final.json`](results/final.json); the aggregate report is [`results/final.md`](results/final.md). Private WAVs and all individual-run evidence remain gitignored; the committed manifest and harness reproduce the experiment when those local fixtures are available.
+A separate 24-fixture engine corpus (11.7 minutes, up to 93.5 seconds) completed with no ASR errors or empty transcripts, including all 15 long/boundary recordings, at 3.21% corpus WER. This confirms MiniWhisper still passes accepted originals into FluidAudio's established long-form merger.

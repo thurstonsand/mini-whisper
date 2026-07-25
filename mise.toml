@@ -20,6 +20,7 @@ enter = "mise bootstrap --yes --quiet && ([ -f buildServer.json ] || mise run bs
 "aqua:cpisciotta/xcbeautify" = "latest"
 hk = "1.50.0"
 markdownlint-cli2 = "0.23.1"
+ruff = "0.15.14"
 "http:xcode-build-server" = { version = "1.3.0", url = "https://github.com/SolaWing/xcode-build-server/archive/refs/tags/v{{ version }}.tar.gz", strip_components = 1, bin_path = "." }
 
 [tasks.bootstrap]
@@ -101,6 +102,18 @@ for pkg in Packages/*/; do
 done
 """
 
+[tasks.benchmark]
+description = "Run deterministic interaction performance benchmarks"
+run = [
+    "swift test --package-path Packages/HotkeyListener --filter InteractionPerformanceBenchmarkTests",
+    "swift test --package-path Packages/AudioCapture --filter InteractionPerformanceBenchmarkTests",
+]
+
+[tasks.benchmark-live]
+description = "Run the instrumented app interaction benchmark"
+depends = ["build"]
+run = "./scripts/benchmark_interactions"
+
 # === Code Quality ===
 
 [tasks.format]
@@ -115,11 +128,19 @@ run = "swift format lint --recursive --strict MiniWhisper/ MiniWhisperTests/ Min
 description = "Lint Markdown documentation"
 run = "markdownlint-cli2 \"**/*.md\""
 
+[tasks.lint-python]
+description = "Check and lint Python code"
+run = [
+    "ruff format --check .",
+    "ruff check --fix --unsafe-fixes .",
+]
+
 [tasks.lint]
 description = "Run pre-commit checks"
 run = [
     "mise run format-check",
     "mise run lint-markdown",
+    "mise run lint-python",
     "mise run build",
     "mise run test-packages",
 ]

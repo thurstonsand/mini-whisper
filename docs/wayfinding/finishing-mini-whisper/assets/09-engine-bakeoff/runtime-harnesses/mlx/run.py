@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
 import json
+from pathlib import Path
 import re
 import resource
 import statistics
 import sys
 import time
-from pathlib import Path
 
 import mlx.core as mx
 
@@ -66,6 +66,7 @@ else:
         mx.synchronize()
         return output["text"].strip(), (time.perf_counter() - start) * 1_000
 
+
 cold_load_milliseconds = (time.perf_counter() - load_start) * 1_000
 fixtures = json.loads((root / "fixtures/local-manifest.json").read_text())["fixtures"]
 warmup = min(fixtures, key=lambda fixture: fixture["durationSeconds"])
@@ -85,7 +86,8 @@ def distance(reference, hypothesis):
                 min(
                     current[-1] + 1,
                     previous[hypothesis_index] + 1,
-                    previous[hypothesis_index - 1] + (reference_word != hypothesis_word),
+                    previous[hypothesis_index - 1]
+                    + (reference_word != hypothesis_word),
                 )
             )
         previous = current
@@ -122,13 +124,17 @@ for fixture in fixtures:
     )
 
 successful_latencies = [
-    fixture["holdReleaseMilliseconds"] for fixture in fixture_results if fixture["error"] is None
+    fixture["holdReleaseMilliseconds"]
+    for fixture in fixture_results
+    if fixture["error"] is None
 ]
 result = {
     "runtime": "MLX",
     "implementation": "mlx-audio" if family == "parakeet" else "mlx-whisper",
     "runtimeVersion": "mlx 0.32.0",
-    "implementationVersion": "mlx-audio 0.4.5" if family == "parakeet" else "mlx-whisper 0.4.3",
+    "implementationVersion": "mlx-audio 0.4.5"
+    if family == "parakeet"
+    else "mlx-whisper 0.4.3",
     "backend": "MLX Metal",
     "model": {key: value for key, value in configuration.items() if key != "snapshot"},
     "coldLoadMilliseconds": cold_load_milliseconds,

@@ -16,18 +16,28 @@ def main():
     output = args.output or args.results.with_name("review.html")
     cards = []
     for fixture in result["fixtures"]:
-        source = (args.manifest.parent / manifest[fixture["id"]]["file"]).resolve().as_uri()
+        source = (
+            (args.manifest.parent / manifest[fixture["id"]]["file"]).resolve().as_uri()
+        )
         points = " ".join(
             f"{index * 3},{100 - min(100, probability * 100):.1f}"
             for index, probability in enumerate(fixture["probabilities"])
         )
         width = max(300, len(fixture["probabilities"]) * 3)
-        segments = html.escape(json.dumps(fixture["segments"][f"t{result['selected_settings']['threshold']:.2f}-m{result['selected_settings']['minimum_speech_ms']}"]))
-        transcript = html.escape(fixture.get("no_gate_transcript") or "") or "<em>empty</em>"
+        segments = html.escape(
+            json.dumps(
+                fixture["segments"][
+                    f"t{result['selected_settings']['threshold']:.2f}-m{result['selected_settings']['minimum_speech_ms']}"
+                ]
+            )
+        )
+        transcript = (
+            html.escape(fixture.get("no_gate_transcript") or "") or "<em>empty</em>"
+        )
         cards.append(f"""
 <section>
-  <h2>{html.escape(fixture['id'])}</h2>
-  <p><strong>{fixture['split']} · {fixture['label']} · {'ACCEPT' if fixture['selected_accepts'] else 'REJECT'}</strong></p>
+  <h2>{html.escape(fixture["id"])}</h2>
+  <p><strong>{fixture["split"]} · {fixture["label"]} · {"ACCEPT" if fixture["selected_accepts"] else "REJECT"}</strong></p>
   <audio controls src="{source}"></audio>
   <div class="timeline"><svg viewBox="0 0 {width} 100" preserveAspectRatio="none"><line x1="0" y1="50" x2="{width}" y2="50"/><polyline points="{points}"/></svg></div>
   <p>Segments: <code>{segments}</code></p>
@@ -45,7 +55,7 @@ code {{ overflow-wrap: anywhere }} em {{ color: #aaa }}
 </style>
 <h1>Silence rejection review</h1>
 <p>Blue is Silero speech probability; the dashed line is 0.5. Listen before accepting the labels.</p>
-{''.join(cards)}
+{"".join(cards)}
 """
     output.write_text(document)
     print(output)
