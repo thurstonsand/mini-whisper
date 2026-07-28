@@ -7,6 +7,8 @@ import OSLog
 
 private let gestureLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "gesture")
 private let engineLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "engine")
+private let deliveryLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "delivery")
+private let soundsLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "sounds")
 private let performanceLogger = Logger(
   subsystem: "com.thurstonsand.MiniWhisper", category: "performance")
 private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
@@ -17,6 +19,7 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
     var pill = PillFeature.State()
     var engineReadiness: EngineReadiness = .modelMissing
     var transcriptionGeneration = 0
+    var soundsEnabled = false
 
     var menuBar: MenuBarViewState {
       MenuBarViewState(micStatus: recording.micStatus, engineReadiness: engineReadiness)
@@ -31,15 +34,21 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
     case hotkeyListenerFailed(String)
     case setupEngine
     case engineReadinessUpdated(EngineReadiness)
+    case soundsEnabledLoaded(Bool)
+    case soundsSettingsFailed(String)
     case transcriptionCompleted(Int, suppressNoSpeechNotice: Bool, TranscriptionOutcome)
     case transcriptionFailed(Int, String)
+    case deliveryCompleted(Int, DeliveryOutcome)
+    case deliveryFailed(Int, String)
   }
 
   private enum CancelID { case transcription }
 
   @Dependency(\.asrEngine) var asrEngine
   @Dependency(\.audioCapture) var audioCapture
+  @Dependency(\.delivery) var delivery
   @Dependency(\.hotkeyListener) var hotkeyListener
+  @Dependency(\.sounds) var sounds
 
   var body: some ReducerOf<Self> {
     Scope(state: \.recording, action: \.recording) { RecordingFeature() }
@@ -48,19 +57,25 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
     Reduce { state, action in
       switch action {
       case .task:
-        return .merge(
-          .send(.recording(.task)),
+        return .concatenate(
           .run { send in
-            for await readiness in asrEngine.prepareInstalled() {
-              await send(.engineReadinessUpdated(readiness))
+            do { await send(.soundsEnabledLoaded(try await sounds.loadIsEnabled())) } catch {
+              await send(.soundsSettingsFailed(error.localizedDescription))
             }
           },
-          .run { send in
-            do {
-              let events = try await hotkeyListener.events()
-              for await event in events { await send(.hotkeyListenerEvent(event)) }
-            } catch { await send(.hotkeyListenerFailed(String(describing: error))) }
-          })
+          .merge(
+            .send(.recording(.task)),
+            .run { send in
+              for await readiness in asrEngine.prepareInstalled() {
+                await send(.engineReadinessUpdated(readiness))
+              }
+            },
+            .run { send in
+              do {
+                let events = try await hotkeyListener.events()
+                for await event in events { await send(.hotkeyListenerEvent(event)) }
+              } catch { await send(.hotkeyListenerFailed(String(describing: error))) }
+            }))
       case .hotkeyListenerEvent(.inputMonitoringPermissionMissing):
         gestureLogger.error(
           "Input Monitoring permission missing — grant in System Settings and relaunch")
@@ -84,6 +99,7 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
                   inputDeviceName: audioCapture.currentInputDeviceName() ?? "Microphone"))),
             .merge(
               .cancel(id: CancelID.transcription), .send(.recording(.startRecording)),
+              playSound(.recordStart, enabled: state.soundsEnabled),
               .run { send in
                 for await readiness in asrEngine.prepareForActivation() {
                   await send(.engineReadinessUpdated(readiness))
@@ -106,6 +122,11 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
           }
         }
       case .engineReadinessUpdated(let readiness):
+        let wasFailed =
+          switch state.engineReadiness {
+          case .failed: true
+          default: false
+          }
         state.engineReadiness = readiness
         switch readiness {
         case .modelMissing: engineLogger.error("Pinned speech models are missing")
@@ -118,6 +139,16 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
         case .failed(let message):
           engineLogger.error("Speech engine setup failed: \(message, privacy: .public)")
         }
+        if case .failed = readiness, !wasFailed {
+          return playSound(.error, enabled: state.soundsEnabled)
+        }
+        return .none
+      case .soundsEnabledLoaded(let enabled):
+        state.soundsEnabled = enabled
+        return .none
+      case .soundsSettingsFailed(let message):
+        state.soundsEnabled = false
+        soundsLogger.error("Sounds setting failed to load: \(message, privacy: .public)")
         return .none
       case .recording(.delegate(.recordingStarted(let inputDeviceName))):
         return .send(.pill(.recordingStarted(inputDeviceName: inputDeviceName)))
@@ -137,28 +168,70 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
                   try await asrEngine.submit(recording)))
             } catch { await send(.transcriptionFailed(generation, error.localizedDescription)) }
           }.cancellable(id: CancelID.transcription, cancelInFlight: true))
-      case .recording(.delegate(.discarded)): return .send(.pill(.cancel))
+      case .recording(.delegate(.discarded)):
+        return .merge(.send(.pill(.cancel)), playSound(.cancel, enabled: state.soundsEnabled))
+      case .recording(.delegate(.failed)):
+        return .merge(.send(.pill(.cancel)), playSound(.error, enabled: state.soundsEnabled))
       case .recording: return .none
       case .transcriptionCompleted(let generation, _, .transcript(let transcript)):
         guard generation == state.transcriptionGeneration else { return .none }
         engineLogger.notice("Transcript: \(transcript, privacy: .public)")
-        return .send(.pill(.dismiss))
+        return .run { send in
+          do {
+            await send(.deliveryCompleted(generation, try await delivery.deliver(transcript)))
+          } catch { await send(.deliveryFailed(generation, error.localizedDescription)) }
+        }
       case .transcriptionCompleted(let generation, let suppressNotice, .noSpeech):
         guard generation == state.transcriptionGeneration else { return .none }
         engineLogger.notice("Gate rejected recording: no speech")
-        return .send(.pill(suppressNotice ? .dismiss : .noSpeechDetected))
+        return .merge(
+          .send(.pill(suppressNotice ? .dismiss : .noSpeechDetected)),
+          playSound(.cancel, enabled: state.soundsEnabled))
       case .transcriptionCompleted(let generation, _, .engineEmpty):
         guard generation == state.transcriptionGeneration else { return .none }
         engineLogger.notice("Engine accepted speech but returned an empty transcript")
-        return .send(.pill(.noSpeechDetected))
+        return .merge(
+          .send(.pill(.noSpeechDetected)), playSound(.cancel, enabled: state.soundsEnabled))
       case .transcriptionFailed(let generation, let message):
         guard generation == state.transcriptionGeneration else { return .none }
         state.engineReadiness = .failed(message)
         engineLogger.error("Transcription failed: \(message, privacy: .public)")
-        return .send(.pill(.dismiss))
+        return .merge(.send(.pill(.dismiss)), playSound(.error, enabled: state.soundsEnabled))
+      case .deliveryCompleted(let generation, .pasted(let restoration)):
+        guard generation == state.transcriptionGeneration else { return .none }
+        switch restoration {
+        case .restored: deliveryLogger.notice("Transcript pasted; prior clipboard restored")
+        case .skipped:
+          deliveryLogger.notice("Transcript pasted; clipboard changed, so restore was skipped")
+        case .failed: deliveryLogger.error("Transcript pasted; prior clipboard restore failed")
+        }
+        return .merge(.send(.pill(.dismiss)), playSound(.commit, enabled: state.soundsEnabled))
+      case .deliveryCompleted(let generation, .copied(let fallback)):
+        guard generation == state.transcriptionGeneration else { return .none }
+        switch fallback {
+        case .accessibilityPermissionMissing:
+          deliveryLogger.error(
+            "Accessibility permission missing — grant MiniWhisper in System Settings > Privacy & Security > Accessibility"
+          )
+        case .secureInput:
+          deliveryLogger.notice("Secure input is active; transcript kept on clipboard")
+        case .eventCreationFailed:
+          deliveryLogger.error("Paste command creation failed; transcript kept on clipboard")
+        }
+        return .merge(
+          .send(.pill(.copiedToClipboard)), playSound(.error, enabled: state.soundsEnabled))
+      case .deliveryFailed(let generation, let message):
+        guard generation == state.transcriptionGeneration else { return .none }
+        deliveryLogger.error("Transcript delivery failed: \(message, privacy: .public)")
+        return .merge(.send(.pill(.dismiss)), playSound(.error, enabled: state.soundsEnabled))
       case .pill: return .none
       }
     }
+  }
+
+  private func playSound(_ cue: SoundCue, enabled: Bool) -> Effect<Action> {
+    guard enabled else { return .none }
+    return .run { _ in await sounds.play(cue) }
   }
 }
 

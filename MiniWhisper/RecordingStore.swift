@@ -34,6 +34,7 @@ private let performanceLogger = Logger(
       case levelChanged(Float)
       case completed(CanonicalRecording)
       case discarded
+      case failed
     }
 
     case task
@@ -184,7 +185,7 @@ private let performanceLogger = Logger(
         } else {
           cleanup = .send(.captureCancelled(generation))
         }
-        return .concatenate(.send(.delegate(.discarded)), cleanup)
+        return .concatenate(.send(.delegate(.failed)), cleanup)
       case .captureEventsFinished(let generation):
         guard generation == state.captureGeneration else { return .none }
         switch state.phase {

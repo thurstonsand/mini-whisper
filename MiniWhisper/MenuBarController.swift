@@ -71,8 +71,6 @@ import SwiftUI
   private func buildPillDemoItem() -> NSMenuItem {
     let item = NSMenuItem(title: "Pill Demos", action: nil, keyEquivalent: "")
     let submenu = NSMenu()
-    submenu.addItem(demoItem(title: "Copied to Clipboard", action: #selector(showCopiedDemo)))
-    submenu.addItem(.separator())
     submenu.addItem(demoItem(title: "Hide Pill", action: #selector(hidePillDemo)))
     item.submenu = submenu
     return item
@@ -85,8 +83,6 @@ import SwiftUI
   }
 
   @objc private func setupEngine() { store.send(.setupEngine) }
-
-  @objc private func showCopiedDemo() { store.send(.pill(.copiedToClipboard)) }
 
   @objc private func hidePillDemo() { store.send(.pill(.dismiss)) }
 }

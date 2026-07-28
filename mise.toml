@@ -153,6 +153,7 @@ run = [
     "tccutil reset Microphone com.thurstonsand.MiniWhisper",
     "tccutil reset ListenEvent com.thurstonsand.MiniWhisper",
     "tccutil reset Accessibility com.thurstonsand.MiniWhisper",
+    "tccutil reset PostEvent com.thurstonsand.MiniWhisper",
 ]
 
 [tasks.clean]

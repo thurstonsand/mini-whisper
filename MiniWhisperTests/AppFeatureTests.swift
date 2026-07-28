@@ -31,6 +31,7 @@ import Testing
       $0.audioCapture.currentInputDeviceName = { "Test Microphone" }
       $0.audioCapture.writeDebugWAV = { _ in debugURL }
       $0.asrEngine.submit = { _ in .noSpeech }
+      $0.sounds.loadIsEnabled = { false }
       $0.continuousClock = clock
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
@@ -165,6 +166,27 @@ import Testing
     await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
   }
 
+  @Test func repeatedEngineFailurePlaysTheErrorCueOnlyOnce() async {
+    let sounds = SoundRecorder()
+    var state = AppFeature.State()
+    state.engineReadiness = .ready
+    state.soundsEnabled = true
+    let store = TestStore(initialState: state) {
+      AppFeature()
+    } withDependencies: {
+      $0.sounds.play = { cue in await sounds.record(cue) }
+    }
+
+    await store.send(.engineReadinessUpdated(.failed("first failure"))) {
+      $0.engineReadiness = .failed("first failure")
+    }
+    await store.send(.engineReadinessUpdated(.failed("second failure"))) {
+      $0.engineReadiness = .failed("second failure")
+    }
+    await store.finish()
+    #expect(await sounds.recorded == [.error])
+  }
+
   @Test func staleTranscriptionCannotDismissANewerRecording() async {
     var state = AppFeature.State()
     state.transcriptionGeneration = 3
@@ -183,6 +205,7 @@ import Testing
       continuation.finish()
     }
     let (micGate, micContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (soundsGate, soundsContinuation) = AsyncStream.makeStream(of: Void.self)
     let store = TestStore(initialState: AppFeature.State()) {
       AppFeature()
     } withDependencies: {
@@ -193,9 +216,16 @@ import Testing
       }
       $0.audioCapture.prepare = {}
       $0.asrEngine.prepareInstalled = { AsyncStream { $0.finish() } }
+      $0.sounds.loadIsEnabled = {
+        for await _ in soundsGate { return false }
+        return false
+      }
     }
 
     await store.send(.task)
+    soundsContinuation.yield(())
+    await store.receive(.soundsEnabledLoaded(false))
+    soundsContinuation.finish()
     await store.receive(.recording(.task))
     await store.receive(.hotkeyListenerEvent(.inputMonitoringPermissionMissing))
     micContinuation.yield(())
@@ -205,4 +235,173 @@ import Testing
     micContinuation.finish()
     await store.finish()
   }
+
+  @Test func transcriptDeliveryRestoresClipboardAndCommits() async {
+    let sounds = SoundRecorder()
+    var state = AppFeature.State()
+    state.transcriptionGeneration = 1
+    state.soundsEnabled = true
+    state.pill.presentation = .transcribing
+    let store = TestStore(initialState: state) {
+      AppFeature()
+    } withDependencies: {
+      $0.delivery.deliver = { transcript in
+        #expect(transcript == "delivered text")
+        return .pasted(.restored)
+      }
+      $0.sounds.play = { cue in await sounds.record(cue) }
+    }
+
+    await store.send(
+      .transcriptionCompleted(1, suppressNoSpeechNotice: false, .transcript("delivered text")))
+    await store.receive(.deliveryCompleted(1, .pasted(.restored)))
+    await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
+    await store.finish()
+    #expect(await sounds.recorded == [.commit])
+  }
+
+  @Test func changedClipboardSkipsRestoreWithoutTurningPasteIntoFailure() async {
+    let sounds = SoundRecorder()
+    var state = AppFeature.State()
+    state.transcriptionGeneration = 2
+    state.soundsEnabled = true
+    state.pill.presentation = .transcribing
+    let store = TestStore(initialState: state) {
+      AppFeature()
+    } withDependencies: {
+      $0.sounds.play = { cue in await sounds.record(cue) }
+    }
+
+    await store.send(.deliveryCompleted(2, .pasted(.skipped)))
+    await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
+    await store.finish()
+    #expect(await sounds.recorded == [.commit])
+  }
+
+  @Test func missingAccessibilityKeepsTranscriptCopiedAndShowsFallback() async {
+    let sounds = SoundRecorder()
+    let clock = TestClock()
+    var state = AppFeature.State()
+    state.transcriptionGeneration = 3
+    state.soundsEnabled = true
+    state.pill.presentation = .transcribing
+    let store = TestStore(initialState: state) {
+      AppFeature()
+    } withDependencies: {
+      $0.delivery.deliver = { _ in .copied(.accessibilityPermissionMissing) }
+      $0.sounds.play = { cue in await sounds.record(cue) }
+      $0.continuousClock = clock
+    }
+
+    await store.send(
+      .transcriptionCompleted(3, suppressNoSpeechNotice: false, .transcript("copy me")))
+    await store.receive(.deliveryCompleted(3, .copied(.accessibilityPermissionMissing)))
+    await store.receive(.pill(.copiedToClipboard)) {
+      $0.pill.noticeGeneration = 1
+      $0.pill.presentation = .notice(.copiedToClipboard)
+    }
+    await store.send(.pill(.dismiss)) { $0.pill.presentation = nil }
+    await store.finish()
+    #expect(await sounds.recorded == [.error])
+  }
+
+  @Test func recordingStartAndDiscardUseTheirDistinctCues() async {
+    let sounds = SoundRecorder()
+    var state = AppFeature.State()
+    state.soundsEnabled = true
+    state.recording.phase = .recording
+    let store = TestStore(initialState: state) {
+      AppFeature()
+    } withDependencies: {
+      $0.audioCapture.currentInputDeviceName = { "Microphone" }
+      $0.asrEngine.prepareForActivation = { AsyncStream { $0.finish() } }
+      $0.sounds.play = { cue in await sounds.record(cue) }
+    }
+
+    await store.send(.hotkeyListenerEvent(.gesture(.startRecording))) {
+      $0.transcriptionGeneration = 1
+    }
+    await store.receive(.pill(.recordingStarting(inputDeviceName: "Microphone"))) {
+      $0.pill.presentation = .recording(
+        PillFeature.State.Presentation.Recording(
+          inputDeviceName: "Microphone", level: 0, isLive: false))
+    }
+    await store.receive(.recording(.startRecording))
+    await store.send(.recording(.delegate(.discarded)))
+    await store.receive(.pill(.cancel)) { $0.pill.presentation = nil }
+    await store.finish()
+    let recorded = await sounds.recorded
+    #expect(recorded.count == 2)
+    #expect(recorded.contains(.recordStart))
+    #expect(recorded.contains(.cancel))
+  }
+
+  @Test func secureInputUsesTheCopiedFallback() async {
+    let sounds = SoundRecorder()
+    let clock = TestClock()
+    var state = AppFeature.State()
+    state.transcriptionGeneration = 4
+    state.soundsEnabled = true
+    state.pill.presentation = .transcribing
+    let store = TestStore(initialState: state) {
+      AppFeature()
+    } withDependencies: {
+      $0.sounds.play = { cue in await sounds.record(cue) }
+      $0.continuousClock = clock
+    }
+
+    await store.send(.deliveryCompleted(4, .copied(.secureInput)))
+    await store.receive(.pill(.copiedToClipboard)) {
+      $0.pill.noticeGeneration = 1
+      $0.pill.presentation = .notice(.copiedToClipboard)
+    }
+    await store.send(.pill(.dismiss)) { $0.pill.presentation = nil }
+    await store.finish()
+    #expect(await sounds.recorded == [.error])
+  }
+
+  @Test func deliveryFailureDismissesThePillAndPlaysTheErrorCue() async {
+    let sounds = SoundRecorder()
+    var state = AppFeature.State()
+    state.transcriptionGeneration = 5
+    state.soundsEnabled = true
+    state.pill.presentation = .transcribing
+    let store = TestStore(initialState: state) {
+      AppFeature()
+    } withDependencies: {
+      $0.delivery.deliver = { _ in throw DeliveryError.pasteboardWriteFailed }
+      $0.sounds.play = { cue in await sounds.record(cue) }
+    }
+    let message = DeliveryError.pasteboardWriteFailed.localizedDescription
+
+    await store.send(
+      .transcriptionCompleted(5, suppressNoSpeechNotice: false, .transcript("undeliverable")))
+    await store.receive(.deliveryFailed(5, message))
+    await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
+    await store.finish()
+    #expect(await sounds.recorded == [.error])
+  }
+
+  @Test func disabledSoundsSuppressEveryDeliveryCue() async {
+    let sounds = SoundRecorder()
+    var state = AppFeature.State()
+    state.transcriptionGeneration = 4
+    state.pill.presentation = .transcribing
+    let store = TestStore(initialState: state) {
+      AppFeature()
+    } withDependencies: {
+      $0.sounds.play = { cue in await sounds.record(cue) }
+    }
+
+    await store.send(.deliveryCompleted(4, .pasted(.restored)))
+    await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
+    await store.finish()
+    #expect(await sounds.recorded.isEmpty)
+  }
+}
+
+private actor SoundRecorder {
+  private(set) var recorded: [SoundCue] = []
+
+  func record(_ cue: SoundCue) { recorded.append(cue) }
 }

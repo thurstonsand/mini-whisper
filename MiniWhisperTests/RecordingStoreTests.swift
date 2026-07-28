@@ -198,7 +198,7 @@ import Testing
       $0.micStatus = .denied
       $0.captureError = .microphonePermission(.denied)
     }
-    await store.receive(.delegate(.discarded))
+    await store.receive(.delegate(.failed))
     await store.receive(.captureCancelled(1)) { $0.phase = .idle }
   }
 
@@ -220,7 +220,7 @@ import Testing
       $0.micStatus = .denied
       $0.captureError = .microphonePermission(.denied)
     }
-    await store.receive(.delegate(.discarded))
+    await store.receive(.delegate(.failed))
     await store.receive(.captureCancelled(1)) {
       $0.captureSessionID = nil
       $0.phase = .idle
@@ -266,7 +266,7 @@ import Testing
       $0.phase = .cancelling
       $0.captureError = .engineConfigurationChanged
     }
-    await store.receive(.delegate(.discarded))
+    await store.receive(.delegate(.failed))
     await store.receive(.captureCancelled(1)) {
       $0.captureSessionID = nil
       $0.phase = .idle

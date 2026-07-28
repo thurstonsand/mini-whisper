@@ -40,11 +40,11 @@ An accepted MVP design doc in `docs/designs/` — every decision resolved for th
 
 ## Not yet specified
 
-- The eight post-MVP stakes and streaming graduated to tickets on user request, all blocked by the [MVP spec](tickets/08-mvp-spec.md) and opening only once the MVP is daily-driven: [History](tickets/11-history.md), [Paste-last-transcript recovery](tickets/12-paste-last-recovery.md), [Dictionary](tickets/13-dictionary.md), [Warm-mic fast start](tickets/14-warm-mic.md), [Second engine / fallback hardening](tickets/15-second-engine.md) (stake #5 reworded per the bakeoff inversion), [Settings UI](tickets/16-settings-ui.md), [Model download UI](tickets/17-model-download-ui.md), [LLM cleanup pass](tickets/18-llm-cleanup.md), [Streaming transcription and the live-text pill](tickets/19-streaming.md).
+- The eight post-MVP stakes and streaming graduated to tickets on user request, all blocked by the [MVP spec](tickets/08-mvp-spec.md) and opening only once the MVP is daily-driven: [History](tickets/11-history.md), [Paste-last-transcript recovery](tickets/12-paste-last-recovery.md), [Dictionary](tickets/13-dictionary.md), [Warm-mic fast start](tickets/14-warm-mic.md), [Second engine / fallback hardening](tickets/15-second-engine.md) (stake #5 reworded per the bakeoff inversion), [Settings UI](tickets/16-settings-ui.md), [Model download UI](tickets/17-model-download-ui.md), [LLM cleanup pass](tickets/18-llm-cleanup.md), [Streaming transcription and the live-text pill](tickets/19-streaming.md), [Context capture](tickets/20-context-capture.md) (added post-Phase-5: read the focused field's real text before delivery — spacing and edit-awareness without guessing).
 
 ## Out of scope
 
 - Product-ization: App Store distribution, licensing, other users' needs, marketing. This app is made for one person.
 - Cloud transcription services. Speech-to-text stays local; only cleanup may cross the network, and only via the controlled gateway.
 - Non-macOS platforms.
-- Ruled out in [Prune the feature set](tickets/06-prune-the-feature-set.md): word remap/find-replace, per-app modes and screen/selection context awareness, snippets/voice shortcuts, meeting/file transcription, diarization, translation, shared/team features.
+- Ruled out in [Prune the feature set](tickets/06-prune-the-feature-set.md): word remap/find-replace, per-app modes and screen-wide context awareness (focused-field text capture later reopened as [Context capture](tickets/20-context-capture.md)), snippets/voice shortcuts, meeting/file transcription, diarization, translation, shared/team features.
