@@ -66,6 +66,38 @@ import Testing
     #expect(try String(contentsOf: location, encoding: .utf8) == original)
   }
 
+  @Test func savingSoundsPreservesTheHotkeyAndTheDocumentedShape() throws {
+    let location = temporarySettingsURL()
+    defer { try? FileManager.default.removeItem(at: location.deletingLastPathComponent()) }
+    try FileManager.default.createDirectory(
+      at: location.deletingLastPathComponent(), withIntermediateDirectories: true)
+    try Data(
+      #"{"hotkey":{"keyCode":0,"modifiers":["leftCommand"]},"soundsEnabled":true,"extra":1}"#.utf8
+    ).write(to: location)
+    let store = SettingsStore(fileURL: location)
+
+    try store.saveSoundsEnabled(false)
+
+    let settings = try store.load()
+    #expect(settings.soundsEnabled == false)
+    #expect(settings.hotkey == (try Hotkey(keyCode: 0, modifiers: [.leftCommand])))
+    let object = try #require(
+      JSONSerialization.jsonObject(with: Data(contentsOf: location)) as? [String: Any])
+    #expect(Set(object.keys) == ["hotkey", "soundsEnabled"])
+  }
+
+  @Test func savingSoundsOntoAMissingFileStartsFromDefaults() throws {
+    let location = temporarySettingsURL()
+    defer { try? FileManager.default.removeItem(at: location.deletingLastPathComponent()) }
+    let store = SettingsStore(fileURL: location)
+
+    try store.saveSoundsEnabled(false)
+
+    let settings = try store.load()
+    #expect(settings.soundsEnabled == false)
+    #expect(settings.hotkey == MiniWhisperSettings.defaults.hotkey)
+  }
+
   @Test func hotkeyValidationRejectsEmptyAndReservedKeys() {
     #expect(throws: HotkeyValidationError.empty) { try Hotkey(modifiers: []) }
     #expect(throws: HotkeyValidationError.reservedKeyCode(PhysicalKey.escapeKeyCode)) {

@@ -227,7 +227,10 @@ import Testing
     await store.receive(.soundsEnabledLoaded(false))
     soundsContinuation.finish()
     await store.receive(.recording(.task))
-    await store.receive(.hotkeyListenerEvent(.inputMonitoringPermissionMissing))
+    await store.receive(.hotkeyListenerEvent(.inputMonitoringPermissionMissing)) {
+      $0.hotkeyTap = .inputMonitoringMissing
+    }
+    await store.receive(.hotkeyListenerFinished)
     micContinuation.yield(())
     await store.receive(.recording(.micStatusUpdated(.granted))) {
       $0.recording.micStatus = .granted
@@ -253,7 +256,8 @@ import Testing
     }
 
     await store.send(
-      .transcriptionCompleted(1, suppressNoSpeechNotice: false, .transcript("delivered text")))
+      .transcriptionCompleted(1, suppressNoSpeechNotice: false, .transcript("delivered text"))
+    ) { $0.lastTranscript = "delivered text" }
     await store.receive(.deliveryCompleted(1, .pasted(.restored)))
     await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
@@ -294,7 +298,8 @@ import Testing
     }
 
     await store.send(
-      .transcriptionCompleted(3, suppressNoSpeechNotice: false, .transcript("copy me")))
+      .transcriptionCompleted(3, suppressNoSpeechNotice: false, .transcript("copy me"))
+    ) { $0.lastTranscript = "copy me" }
     await store.receive(.deliveryCompleted(3, .copied(.accessibilityPermissionMissing)))
     await store.receive(.pill(.copiedToClipboard)) {
       $0.pill.noticeGeneration = 1
@@ -375,7 +380,8 @@ import Testing
     let message = DeliveryError.pasteboardWriteFailed.localizedDescription
 
     await store.send(
-      .transcriptionCompleted(5, suppressNoSpeechNotice: false, .transcript("undeliverable")))
+      .transcriptionCompleted(5, suppressNoSpeechNotice: false, .transcript("undeliverable"))
+    ) { $0.lastTranscript = "undeliverable" }
     await store.receive(.deliveryFailed(5, message))
     await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()

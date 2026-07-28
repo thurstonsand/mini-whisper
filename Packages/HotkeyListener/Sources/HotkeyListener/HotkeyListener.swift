@@ -21,10 +21,26 @@ public enum HotkeyListenerEvent: Equatable, Sendable {
 public enum HotkeyListenerError: Error, Equatable, Sendable { case eventTapCreationFailed }
 
 public enum HotkeyListener {
+  /// Starts listening, asking macOS for Input Monitoring when it has never been granted. Only
+  /// first-run startup may prompt; everything else must use ``eventsWithoutPrompting(hotkey:)``.
   public static func events(hotkey: Hotkey) async throws -> AsyncStream<HotkeyListenerEvent> {
+    try await events(hotkey: hotkey, requestingPermission: true)
+  }
+
+  /// Starts listening without ever raising a permission dialog; a missing grant is reported as
+  /// `.inputMonitoringPermissionMissing` so the caller can send the user to System Settings.
+  public static func eventsWithoutPrompting(
+    hotkey: Hotkey
+  ) async throws -> AsyncStream<HotkeyListenerEvent> {
+    try await events(hotkey: hotkey, requestingPermission: false)
+  }
+
+  private static func events(
+    hotkey: Hotkey, requestingPermission: Bool
+  ) async throws -> AsyncStream<HotkeyListenerEvent> {
     let (stream, continuation) = AsyncStream.makeStream(of: HotkeyListenerEvent.self)
     guard CGPreflightListenEventAccess() else {
-      _ = CGRequestListenEventAccess()
+      if requestingPermission { _ = CGRequestListenEventAccess() }
       continuation.yield(.inputMonitoringPermissionMissing)
       continuation.finish()
       return stream

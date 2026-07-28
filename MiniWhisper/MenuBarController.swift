@@ -1,99 +1,98 @@
+import AppKit
 import ComposableArchitecture
-import SwiftUI
 
-@MainActor final class MenuBarController {
-  private var statusItem: NSStatusItem?
+@MainActor final class MenuBarController: NSObject, NSMenuDelegate {
   private let store: StoreOf<AppFeature>
-  private var lastRenderedState: MenuBarViewState?
+  private let statusItem: NSStatusItem
+  private let menu = NSMenu()
+  private var renderedIconSymbolName: String?
 
   init(store: StoreOf<AppFeature>) {
     self.store = store
-    setupStatusItem()
-    observeStore()
-    render(store.state.menuBar)
-  }
-
-  private func setupStatusItem() {
     statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-    statusItem?.button?.setAccessibilityIdentifier("MiniWhisperStatusItem")
+    super.init()
+
+    statusItem.button?.setAccessibilityIdentifier("MiniWhisperStatusItem")
+    menu.autoenablesItems = false
+    menu.delegate = self
+    statusItem.menu = menu
+    observeIcon()
+    renderIcon(store.state.menuBar.iconSymbolName)
   }
 
-  private func observeStore() {
+  func menuNeedsUpdate(_ menu: NSMenu) {
+    store.send(.menuWillOpen)
+    rebuild(menu, state: store.state.menuBar)
+  }
+
+  private func observeIcon() {
     withObservationTracking {
-      _ = self.store.state.menuBar
+      _ = self.store.state.menuBar.iconSymbolName
     } onChange: { [weak self] in
       Task { @MainActor [weak self] in
         guard let self else { return }
-        self.observeStore()
-        self.render(self.store.state.menuBar)
+        self.observeIcon()
+        self.renderIcon(self.store.state.menuBar.iconSymbolName)
       }
     }
   }
 
-  private func render(_ state: MenuBarViewState) {
-    guard state != lastRenderedState else { return }
-    lastRenderedState = state
-    statusItem?.button?.image = NSImage(
-      systemSymbolName: state.iconSymbolName, accessibilityDescription: "MiniWhisper")
-    statusItem?.button?.image?.isTemplate = true
-    statusItem?.menu = buildMenu(state)
+  private func renderIcon(_ symbolName: String) {
+    guard symbolName != renderedIconSymbolName else { return }
+    renderedIconSymbolName = symbolName
+    let image = NSImage(systemSymbolName: symbolName, accessibilityDescription: "MiniWhisper")
+    image?.isTemplate = true
+    statusItem.button?.image = image
   }
 
-  private func buildMenu(_ state: MenuBarViewState) -> NSMenu {
-    let menu = NSMenu()
+  private func rebuild(_ menu: NSMenu, state: MenuBarViewState) {
+    menu.removeAllItems()
 
-    let headerItem = NSMenuItem()
-    let headerView = NSHostingView(rootView: MenuHeaderView(statusText: state.statusText))
-    headerView.frame.size = headerView.fittingSize
-    headerItem.view = headerView
-    menu.addItem(headerItem)
+    let statusLine = NSMenuItem(title: state.statusText, action: nil, keyEquivalent: "")
+    statusLine.isEnabled = false
+    menu.addItem(statusLine)
 
-    if let engineSetupTitle = state.engineSetupTitle {
+    if let repairTitle = state.repairTitle {
       menu.addItem(.separator())
-      let setupItem = NSMenuItem(
-        title: engineSetupTitle, action: #selector(setupEngine), keyEquivalent: "")
-      setupItem.target = self
-      setupItem.isEnabled = state.canSetupEngine
-      menu.addItem(setupItem)
+      menu.addItem(item(title: repairTitle, action: #selector(repairDegradedState)))
     }
 
     menu.addItem(.separator())
-    menu.addItem(buildPillDemoItem())
+    let copyItem = item(title: "Copy Last Transcript", action: #selector(copyLastTranscript))
+    copyItem.isEnabled = state.canCopyLastTranscript
+    menu.addItem(copyItem)
+
+    let soundsItem = item(title: "Sounds", action: #selector(toggleSounds))
+    soundsItem.state = state.soundsEnabled ? .on : .off
+    menu.addItem(soundsItem)
+
+    let launchItem = item(title: "Launch at Login", action: #selector(toggleLaunchAtLogin))
+    launchItem.state = state.launchAtLoginRegistered ? .on : .off
+    menu.addItem(launchItem)
+
+    menu.addItem(item(title: "Settings File…", action: #selector(openSettingsFile)))
+
     menu.addItem(.separator())
-    menu.addItem(
-      NSMenuItem(
-        title: "Quit MiniWhisper", action: #selector(NSApplication.terminate(_:)),
-        keyEquivalent: "q"))
-
-    return menu
+    let quitItem = NSMenuItem(
+      title: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+    quitItem.isEnabled = true
+    menu.addItem(quitItem)
   }
 
-  private func buildPillDemoItem() -> NSMenuItem {
-    let item = NSMenuItem(title: "Pill Demos", action: nil, keyEquivalent: "")
-    let submenu = NSMenu()
-    submenu.addItem(demoItem(title: "Hide Pill", action: #selector(hidePillDemo)))
-    item.submenu = submenu
-    return item
-  }
-
-  private func demoItem(title: String, action: Selector) -> NSMenuItem {
+  private func item(title: String, action: Selector) -> NSMenuItem {
     let item = NSMenuItem(title: title, action: action, keyEquivalent: "")
     item.target = self
+    item.isEnabled = true
     return item
   }
 
-  @objc private func setupEngine() { store.send(.setupEngine) }
+  @objc private func repairDegradedState() { store.send(.repairDegradedState) }
 
-  @objc private func hidePillDemo() { store.send(.pill(.dismiss)) }
-}
+  @objc private func copyLastTranscript() { store.send(.copyLastTranscript) }
 
-struct MenuHeaderView: View {
-  var statusText: String
+  @objc private func toggleSounds() { store.send(.toggleSounds) }
 
-  var body: some View {
-    VStack(alignment: .leading, spacing: 4) {
-      Text("MiniWhisper").font(.headline)
-      Text(statusText).font(.subheadline).foregroundStyle(.secondary)
-    }.padding(.horizontal, 14).padding(.vertical, 8)
-  }
+  @objc private func toggleLaunchAtLogin() { store.send(.toggleLaunchAtLogin) }
+
+  @objc private func openSettingsFile() { store.send(.openSettingsFile) }
 }

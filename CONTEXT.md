@@ -12,6 +12,7 @@
 - The gate: the silence-rejection implementation — one whole-utterance Silero VAD classification at release; accepted audio passes to the engine unchanged.
 - Engine: an implementation of the transcription protocol in `ASREngine` (pinned FluidAudio + Parakeet TDT v2 for MVP; whisper.cpp Medium.en is the recorded fallback, not shipped).
 - The pill: the bottom-center HUD panel that owns all dictation-time state (recording, latch, transcribing, transient notices). Success is its disappearance.
+- Degraded: a failure state represented in the menu bar — missing Input Monitoring, blocked microphone, a dead event tap, or an uninstalled/failed model.
 - Onboarding: the app's only modal flow — first-run permission sequence plus model download/compile/prewarm.
 - Settings file: `~/Library/Application Support/MiniWhisper/settings.json`, the human-editable settings surface until the settings UI stake lands.
 - Cleanup pass: the optional post-transcription LLM pass, talking to a configurable OpenAI-compatible endpoint.

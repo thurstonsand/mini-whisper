@@ -9,6 +9,7 @@ private let gestureLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", ca
 private let engineLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "engine")
 private let deliveryLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "delivery")
 private let soundsLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "sounds")
+private let menuLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "menu")
 private let performanceLogger = Logger(
   subsystem: "com.thurstonsand.MiniWhisper", category: "performance")
 private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
@@ -20,9 +21,16 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
     var engineReadiness: EngineReadiness = .modelMissing
     var transcriptionGeneration = 0
     var soundsEnabled = false
+    var hotkeyTap = HotkeyTapStatus.starting
+    var inputDeviceName: String?
+    var launchAtLoginRegistered = false
+    var lastTranscript: String?
 
     var menuBar: MenuBarViewState {
-      MenuBarViewState(micStatus: recording.micStatus, engineReadiness: engineReadiness)
+      MenuBarViewState(
+        hotkeyTap: hotkeyTap, micStatus: recording.micStatus, engineReadiness: engineReadiness,
+        inputDeviceName: inputDeviceName, hasLastTranscript: lastTranscript != nil,
+        soundsEnabled: soundsEnabled, launchAtLoginRegistered: launchAtLoginRegistered)
     }
   }
 
@@ -32,6 +40,19 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
     case pill(PillFeature.Action)
     case hotkeyListenerEvent(HotkeyListenerEvent)
     case hotkeyListenerFailed(String)
+    case hotkeyListenerFinished
+    case menuWillOpen
+    case repairDegradedState
+    case copyLastTranscript
+    case copyLastTranscriptFailed(String)
+    case toggleSounds
+    case soundsEnabledSaved(Bool)
+    case soundsPersistenceFailed(String)
+    case toggleLaunchAtLogin
+    case launchAtLoginUpdated(Bool)
+    case launchAtLoginFailed(String)
+    case openSettingsFile
+    case workspaceOpenFailed(String)
     case setupEngine
     case engineReadinessUpdated(EngineReadiness)
     case soundsEnabledLoaded(Bool)
@@ -42,13 +63,15 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
     case deliveryFailed(Int, String)
   }
 
-  private enum CancelID { case transcription }
+  private enum CancelID { case transcription, hotkeyEvents }
 
   @Dependency(\.asrEngine) var asrEngine
   @Dependency(\.audioCapture) var audioCapture
   @Dependency(\.delivery) var delivery
   @Dependency(\.hotkeyListener) var hotkeyListener
+  @Dependency(\.launchAtLogin) var launchAtLogin
   @Dependency(\.sounds) var sounds
+  @Dependency(\.workspace) var workspace
 
   var body: some ReducerOf<Self> {
     Scope(state: \.recording, action: \.recording) { RecordingFeature() }
@@ -69,21 +92,19 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
               for await readiness in asrEngine.prepareInstalled() {
                 await send(.engineReadinessUpdated(readiness))
               }
-            },
-            .run { send in
-              do {
-                let events = try await hotkeyListener.events()
-                for await event in events { await send(.hotkeyListenerEvent(event)) }
-              } catch { await send(.hotkeyListenerFailed(String(describing: error))) }
-            }))
+            }, listenForHotkeyEvents(mayPromptForPermission: true)))
       case .hotkeyListenerEvent(.inputMonitoringPermissionMissing):
+        state.hotkeyTap = .inputMonitoringMissing
         gestureLogger.error(
           "Input Monitoring permission missing — grant in System Settings and relaunch")
         return .none
       case .hotkeyListenerEvent(.monitoringStarted):
+        state.hotkeyTap = .active
         gestureLogger.notice("Hotkey event tap installed")
         return .none
       case .hotkeyListenerEvent(.monitoringInterrupted(let reason)):
+        // Timeout and user-input disables are re-enabled in place; only invalidation kills the tap.
+        if reason == .invalidated { state.hotkeyTap = .dead }
         gestureLogger.error("Hotkey event tap interrupted: \(reason.rawValue, privacy: .public)")
         return .none
       case .hotkeyListenerEvent(.gesture(let event)):
@@ -112,7 +133,70 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
         case .cancel: return .send(.recording(.cancelRecording))
         }
       case .hotkeyListenerFailed(let error):
+        state.hotkeyTap = .dead
         gestureLogger.error("Hotkey listener failed: \(error, privacy: .public)")
+        return .none
+      case .hotkeyListenerFinished:
+        if state.hotkeyTap != .inputMonitoringMissing {
+          state.hotkeyTap = .dead
+          gestureLogger.error("Hotkey event stream ended; the tap is no longer listening")
+        }
+        return .none
+      case .menuWillOpen:
+        state.inputDeviceName = audioCapture.currentInputDeviceName()
+        state.launchAtLoginRegistered = launchAtLogin.isRegistered()
+        return .none
+      case .repairDegradedState:
+        switch state.menuBar.repair {
+        case .openInputMonitoringSettings: return open(SystemSettingsPane.inputMonitoring)
+        case .openMicrophoneSettings: return open(SystemSettingsPane.microphone)
+        case .restartHotkeyListening:
+          state.hotkeyTap = .starting
+          return listenForHotkeyEvents(mayPromptForPermission: false)
+        case .installModel, .retryModelSetup: return .send(.setupEngine)
+        case nil: return .none
+        }
+      case .copyLastTranscript:
+        guard let transcript = state.lastTranscript else { return .none }
+        return .run { send in
+          do { try await delivery.copy(transcript) } catch {
+            await send(.copyLastTranscriptFailed(error.localizedDescription))
+          }
+        }
+      case .copyLastTranscriptFailed(let message):
+        deliveryLogger.error("Copying the last transcript failed: \(message, privacy: .public)")
+        return .none
+      case .toggleSounds:
+        let enabled = !state.soundsEnabled
+        return .run { send in
+          do {
+            try await sounds.setIsEnabled(enabled)
+            await send(.soundsEnabledSaved(enabled))
+          } catch { await send(.soundsPersistenceFailed(error.localizedDescription)) }
+        }
+      case .soundsEnabledSaved(let enabled):
+        state.soundsEnabled = enabled
+        return .none
+      case .soundsPersistenceFailed(let message):
+        soundsLogger.error("Sounds setting failed to save: \(message, privacy: .public)")
+        return .none
+      case .toggleLaunchAtLogin:
+        let registered = !state.launchAtLoginRegistered
+        return .run { send in
+          do { try launchAtLogin.setRegistered(registered) } catch {
+            await send(.launchAtLoginFailed(error.localizedDescription))
+          }
+          await send(.launchAtLoginUpdated(launchAtLogin.isRegistered()))
+        }
+      case .launchAtLoginUpdated(let registered):
+        state.launchAtLoginRegistered = registered
+        return .none
+      case .launchAtLoginFailed(let message):
+        menuLogger.error("Launch at login change failed: \(message, privacy: .public)")
+        return .none
+      case .openSettingsFile: return open(SettingsStore.defaultFileURL)
+      case .workspaceOpenFailed(let message):
+        menuLogger.error("Opening a menu destination failed: \(message, privacy: .public)")
         return .none
       case .setupEngine:
         engineLogger.notice("Pinned model setup requested")
@@ -175,6 +259,7 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
       case .recording: return .none
       case .transcriptionCompleted(let generation, _, .transcript(let transcript)):
         guard generation == state.transcriptionGeneration else { return .none }
+        state.lastTranscript = transcript
         engineLogger.notice("Transcript: \(transcript, privacy: .public)")
         return .run { send in
           do {
@@ -229,60 +314,30 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
     }
   }
 
+  /// Only first-run startup may raise the Input Monitoring dialog; a menu repair must preflight and
+  /// send the user to System Settings instead.
+  private func listenForHotkeyEvents(mayPromptForPermission: Bool) -> Effect<Action> {
+    .run { send in
+      do {
+        let events =
+          mayPromptForPermission
+          ? try await hotkeyListener.events() : try await hotkeyListener.eventsWithoutPrompting()
+        for await event in events { await send(.hotkeyListenerEvent(event)) }
+        await send(.hotkeyListenerFinished)
+      } catch { await send(.hotkeyListenerFailed(String(describing: error))) }
+    }.cancellable(id: CancelID.hotkeyEvents, cancelInFlight: true)
+  }
+
+  private func open(_ url: URL) -> Effect<Action> {
+    .run { send in
+      do { try await workspace.open(url) } catch {
+        await send(.workspaceOpenFailed(error.localizedDescription))
+      }
+    }
+  }
+
   private func playSound(_ cue: SoundCue, enabled: Bool) -> Effect<Action> {
     guard enabled else { return .none }
     return .run { _ in await sounds.play(cue) }
-  }
-}
-
-struct MenuBarViewState: Equatable {
-  var iconSymbolName: String
-  var statusText: String
-  var engineSetupTitle: String?
-  var canSetupEngine = false
-
-  init(micStatus: MicPermissionStatus, engineReadiness: EngineReadiness) {
-    switch micStatus {
-    case .denied:
-      self.iconSymbolName = "mic.slash"
-      self.statusText = "Microphone permission required"
-    case .restricted:
-      self.iconSymbolName = "mic.slash"
-      self.statusText = "Microphone access restricted"
-    case .undetermined:
-      self.iconSymbolName = "mic"
-      self.statusText = "Microphone permission not yet requested"
-    case .unknown:
-      self.iconSymbolName = "mic.slash"
-      self.statusText = "Microphone permission unavailable"
-    case .granted:
-      switch engineReadiness {
-      case .modelMissing:
-        self.iconSymbolName = "mic.badge.xmark"
-        self.statusText = "Parakeet v2 model required"
-        self.engineSetupTitle = "Download & Prepare Parakeet v2…"
-        self.canSetupEngine = true
-      case .downloading(let fraction):
-        self.iconSymbolName = "mic.badge.plus"
-        self.statusText = "Downloading Parakeet v2 · \(Int(fraction * 100))%"
-        self.engineSetupTitle = "Downloading Parakeet v2… \(Int(fraction * 100))%"
-      case .compiling:
-        self.iconSymbolName = "mic.badge.plus"
-        self.statusText = "Compiling Parakeet v2"
-        self.engineSetupTitle = "Compiling Parakeet v2…"
-      case .prewarming:
-        self.iconSymbolName = "mic.badge.plus"
-        self.statusText = "Prewarming Parakeet v2"
-        self.engineSetupTitle = "Prewarming Parakeet v2…"
-      case .ready:
-        self.iconSymbolName = "mic"
-        self.statusText = "Ready · Parakeet v2"
-      case .failed:
-        self.iconSymbolName = "mic.badge.xmark"
-        self.statusText = "Parakeet v2 setup failed"
-        self.engineSetupTitle = "Retry Parakeet v2 Setup…"
-        self.canSetupEngine = true
-      }
-    }
   }
 }

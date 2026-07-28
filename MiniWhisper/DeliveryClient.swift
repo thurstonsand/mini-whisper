@@ -25,12 +25,13 @@ enum DeliveryError: Error, Equatable, Sendable { case pasteboardWriteFailed }
 
 @DependencyClient struct DeliveryClient: Sendable {
   var deliver: @Sendable (String) async throws -> DeliveryOutcome
+  var copy: @Sendable (String) async throws -> Void
 }
 
 extension DeliveryClient: DependencyKey {
-  static let liveValue = Self(deliver: { transcript in
-    try await TranscriptDelivery.deliver(transcript)
-  })
+  static let liveValue = Self(
+    deliver: { transcript in try await TranscriptDelivery.deliver(transcript) },
+    copy: { transcript in try await TranscriptDelivery.copy(transcript) })
 }
 
 extension DependencyValues {
@@ -44,15 +45,19 @@ extension DependencyValues {
   private static let clipboardRestoreDelay = Duration.milliseconds(250)
   private static let pasteShortcutEventDelay = Duration.milliseconds(10)
 
-  static func deliver(_ transcript: String) async throws -> DeliveryOutcome {
+  @discardableResult static func copy(_ transcript: String) throws -> Int {
     let pasteboard = NSPasteboard.general
-    let snapshot = snapshot(pasteboard)
-
     pasteboard.clearContents()
     guard pasteboard.setString(transcript, forType: .string) else {
       throw DeliveryError.pasteboardWriteFailed
     }
-    let transcriptChangeCount = pasteboard.changeCount
+    return pasteboard.changeCount
+  }
+
+  static func deliver(_ transcript: String) async throws -> DeliveryOutcome {
+    let pasteboard = NSPasteboard.general
+    let snapshot = snapshot(pasteboard)
+    let transcriptChangeCount = try copy(transcript)
 
     guard !IsSecureEventInputEnabled() else { return .copied(.secureInput) }
     guard CGPreflightPostEventAccess() else {

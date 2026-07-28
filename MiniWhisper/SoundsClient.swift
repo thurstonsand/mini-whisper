@@ -14,12 +14,14 @@ enum SoundCue: Equatable, Sendable {
 
 @DependencyClient struct SoundsClient: Sendable {
   var loadIsEnabled: @Sendable () async throws -> Bool = { true }
+  var setIsEnabled: @Sendable (Bool) async throws -> Void
   var play: @Sendable (SoundCue) async -> Void
 }
 
 extension SoundsClient: DependencyKey {
   static let liveValue = Self(
     loadIsEnabled: { try SettingsStore().load().soundsEnabled },
+    setIsEnabled: { enabled in try SettingsStore().saveSoundsEnabled(enabled) },
     play: { cue in await SystemSounds.play(cue) })
 }
 

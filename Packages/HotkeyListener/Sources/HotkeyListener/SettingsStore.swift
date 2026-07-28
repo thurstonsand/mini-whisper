@@ -39,6 +39,11 @@ public struct SettingsStore: Sendable {
     }
   }
 
+  public func saveSoundsEnabled(_ soundsEnabled: Bool) throws {
+    let settings = try load()
+    try write(MiniWhisperSettings(hotkey: settings.hotkey, soundsEnabled: soundsEnabled))
+  }
+
   private func write(_ settings: MiniWhisperSettings) throws {
     let directory = fileURL.deletingLastPathComponent()
     try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
