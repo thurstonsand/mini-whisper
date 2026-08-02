@@ -28,8 +28,9 @@ jobs:
             ~/Library/org.swift.swiftpm
             .build/DerivedData/SourcePackages
             Packages/*/.build
-          key: ci-swift-${{ runner.os }}-${{ hashFiles('**/Package.swift') }}
+          key: ci-swift-${{ runner.os }}-${{ hashFiles('**/Package.resolved') }}-${{ hashFiles('**/Package.swift') }}
           restore-keys: |
+            ci-swift-${{ runner.os }}-${{ hashFiles('**/Package.resolved') }}-
             ci-swift-${{ runner.os }}-
 
       - name: Lint

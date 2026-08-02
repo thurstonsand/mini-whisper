@@ -7,7 +7,9 @@ DerivedData/
 
 # SwiftPM
 .swiftpm/
-Package.resolved
+# Research harnesses under docs/ are throwaway; the app's own lockfiles are tracked
+# so releases resolve to the exact dependency versions that were tested.
+docs/**/Package.resolved
 
 # macOS
 .DS_Store
