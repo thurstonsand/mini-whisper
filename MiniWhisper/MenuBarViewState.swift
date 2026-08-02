@@ -13,6 +13,7 @@ enum MenuBarDegradation: Equatable, Sendable {
   case inputMonitoringMissing
   case hotkeyTapDead
   case microphoneAccessDenied
+  case pasteAccessDenied
   case modelMissing
   case modelSetupFailed
 }
@@ -21,6 +22,7 @@ enum MenuBarRepair: Equatable, Sendable {
   case openInputMonitoringSettings
   case restartHotkeyListening
   case openMicrophoneSettings
+  case openAccessibilitySettings
   case installModel
   case retryModelSetup
 }
@@ -37,12 +39,13 @@ struct MenuBarViewState: Equatable {
   var iconSymbolName: String { degradation == nil ? "mic" : "mic.slash" }
 
   init(
-    hotkeyTap: HotkeyTapStatus, micStatus: MicPermissionStatus, engineReadiness: EngineReadiness,
-    inputDeviceName: String?, hasLastTranscript: Bool, soundsEnabled: Bool,
-    launchAtLoginRegistered: Bool
+    hotkeyTap: HotkeyTapStatus, micStatus: MicPermissionStatus, pasteAccessGranted: Bool?,
+    engineReadiness: EngineReadiness, inputDeviceName: String?, hasLastTranscript: Bool,
+    soundsEnabled: Bool, launchAtLoginRegistered: Bool
   ) {
     let degradation = MenuBarViewState.degradation(
-      hotkeyTap: hotkeyTap, micStatus: micStatus, engineReadiness: engineReadiness)
+      hotkeyTap: hotkeyTap, micStatus: micStatus, pasteAccessGranted: pasteAccessGranted,
+      engineReadiness: engineReadiness)
     self.degradation = degradation
     self.statusText =
       degradation.map(MenuBarViewState.statusText)
@@ -56,7 +59,8 @@ struct MenuBarViewState: Equatable {
   }
 
   private static func degradation(
-    hotkeyTap: HotkeyTapStatus, micStatus: MicPermissionStatus, engineReadiness: EngineReadiness
+    hotkeyTap: HotkeyTapStatus, micStatus: MicPermissionStatus, pasteAccessGranted: Bool?,
+    engineReadiness: EngineReadiness
   ) -> MenuBarDegradation? {
     switch hotkeyTap {
     case .inputMonitoringMissing: return .inputMonitoringMissing
@@ -69,6 +73,7 @@ struct MenuBarViewState: Equatable {
     case .denied, .restricted, .unknown: return .microphoneAccessDenied
     case .granted, .undetermined: break
     }
+    if pasteAccessGranted == false { return .pasteAccessDenied }
     switch engineReadiness {
     case .modelMissing: return .modelMissing
     case .failed: return .modelSetupFailed
@@ -81,6 +86,7 @@ struct MenuBarViewState: Equatable {
     case .inputMonitoringMissing: "Input Monitoring is off, so MiniWhisper can't see your hotkey"
     case .hotkeyTapDead: "Hotkey listening stopped"
     case .microphoneAccessDenied: "Microphone access is off, so nothing can be recorded"
+    case .pasteAccessDenied: "Paste access is off, so transcripts can only be copied"
     case .modelMissing: "Parakeet v2 isn't installed yet"
     case .modelSetupFailed: "Parakeet v2 setup failed"
     }
@@ -105,6 +111,7 @@ struct MenuBarViewState: Equatable {
     case .inputMonitoringMissing: .openInputMonitoringSettings
     case .hotkeyTapDead: .restartHotkeyListening
     case .microphoneAccessDenied: .openMicrophoneSettings
+    case .pasteAccessDenied: .openAccessibilitySettings
     case .modelMissing: .installModel
     case .modelSetupFailed: .retryModelSetup
     }
@@ -115,6 +122,7 @@ struct MenuBarViewState: Equatable {
     case .openInputMonitoringSettings: "Open Input Monitoring Settings…"
     case .restartHotkeyListening: "Restart Hotkey Listening"
     case .openMicrophoneSettings: "Open Microphone Settings…"
+    case .openAccessibilitySettings: "Open Accessibility Settings…"
     case .installModel: "Download & Prepare Parakeet v2…"
     case .retryModelSetup: "Retry Parakeet v2 Setup…"
     }
@@ -126,4 +134,6 @@ enum SystemSettingsPane {
     string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent")!
   static let microphone = URL(
     string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone")!
+  static let accessibility = URL(
+    string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!
 }

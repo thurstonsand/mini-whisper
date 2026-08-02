@@ -17,11 +17,16 @@ import SwiftUI
 
   private var menuBarController: MenuBarController!
   private var pillPanelController: PillPanelController!
+  private var onboardingWindowController: OnboardingWindowController!
 
   func applicationDidFinishLaunching(_ notification: Notification) {
+    guard ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil else { return }
+
     logger.notice("App started; structured logging ready")
     menuBarController = MenuBarController(store: store)
     pillPanelController = PillPanelController(store: store.scope(state: \.pill, action: \.pill))
+    onboardingWindowController = OnboardingWindowController(
+      store: store.scope(state: \.onboarding, action: \.onboarding))
     store.send(.task)
 
     if ProcessInfo.processInfo.environment["MINIWHISPER_BENCHMARK_ACTIVATION"] == "1" {

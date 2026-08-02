@@ -1,4 +1,5 @@
 import AppKit
+import ApplicationServices
 import Carbon
 import ComposableArchitecture
 import CoreGraphics
@@ -24,13 +25,25 @@ enum DeliveryOutcome: Equatable, Sendable {
 enum DeliveryError: Error, Equatable, Sendable { case pasteboardWriteFailed }
 
 @DependencyClient struct DeliveryClient: Sendable {
+  var hasPasteAccess: @Sendable () -> Bool = { false }
+  var requestPasteAccess: @MainActor @Sendable () -> Bool = { false }
   var deliver: @Sendable (String) async throws -> DeliveryOutcome
   var copy: @Sendable (String) async throws -> Void
 }
 
 extension DeliveryClient: DependencyKey {
   static let liveValue = Self(
-    deliver: { transcript in try await TranscriptDelivery.deliver(transcript) },
+    // CGPreflightPostEventAccess caches its first answer for the life of the process, so a grant
+    // made while MiniWhisper runs would need a relaunch to be seen; Accessibility trust is the
+    // same permission and reports live.
+    hasPasteAccess: { AXIsProcessTrusted() },
+    // CGRequestPostEventAccess prompts unreliably and leaves no MiniWhisper row in Accessibility;
+    // the Accessibility trust prompt both asks and seeds the row that grants post-event access.
+    requestPasteAccess: {
+      // kAXTrustedCheckOptionPrompt is imported as shared mutable state, so spell its value out.
+      AXIsProcessTrustedWithOptions(
+        ["AXTrustedCheckOptionPrompt" as CFString: true] as CFDictionary)
+    }, deliver: { transcript in try await TranscriptDelivery.deliver(transcript) },
     copy: { transcript in try await TranscriptDelivery.copy(transcript) })
 }
 
@@ -60,10 +73,7 @@ extension DependencyValues {
     let transcriptChangeCount = try copy(transcript)
 
     guard !IsSecureEventInputEnabled() else { return .copied(.secureInput) }
-    guard CGPreflightPostEventAccess() else {
-      _ = CGRequestPostEventAccess()
-      return .copied(.accessibilityPermissionMissing)
-    }
+    guard AXIsProcessTrusted() else { return .copied(.accessibilityPermissionMissing) }
     guard let events = pasteShortcutEvents() else { return .copied(.eventCreationFailed) }
 
     for event in events {

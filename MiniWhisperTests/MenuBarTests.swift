@@ -11,14 +11,15 @@ import Testing
 @Suite struct MenuBarDerivationTests {
   private func viewState(
     hotkeyTap: HotkeyTapStatus = .active, micStatus: MicPermissionStatus = .granted,
-    engineReadiness: EngineReadiness = .ready, inputDeviceName: String? = "Shure MV7",
-    hasLastTranscript: Bool = false, soundsEnabled: Bool = true,
-    launchAtLoginRegistered: Bool = false
+    pasteAccessGranted: Bool? = true, engineReadiness: EngineReadiness = .ready,
+    inputDeviceName: String? = "Shure MV7", hasLastTranscript: Bool = false,
+    soundsEnabled: Bool = true, launchAtLoginRegistered: Bool = false
   ) -> MenuBarViewState {
     MenuBarViewState(
-      hotkeyTap: hotkeyTap, micStatus: micStatus, engineReadiness: engineReadiness,
-      inputDeviceName: inputDeviceName, hasLastTranscript: hasLastTranscript,
-      soundsEnabled: soundsEnabled, launchAtLoginRegistered: launchAtLoginRegistered)
+      hotkeyTap: hotkeyTap, micStatus: micStatus, pasteAccessGranted: pasteAccessGranted,
+      engineReadiness: engineReadiness, inputDeviceName: inputDeviceName,
+      hasLastTranscript: hasLastTranscript, soundsEnabled: soundsEnabled,
+      launchAtLoginRegistered: launchAtLoginRegistered)
   }
 
   @Test func healthyShowsTheStaticMicAndThePassiveStatusLine() {
@@ -71,6 +72,22 @@ import Testing
 
   @Test func anUnrequestedMicrophoneIsLeftToOnboarding() {
     #expect(viewState(micStatus: .undetermined).degradation == nil)
+  }
+
+  @Test func missingPasteAccessDegradesToAccessibilitySettings() {
+    let state = viewState(pasteAccessGranted: false)
+
+    #expect(state.degradation == .pasteAccessDenied)
+    #expect(state.statusText == "Paste access is off, so transcripts can only be copied")
+    #expect(state.repair == .openAccessibilitySettings)
+    #expect(state.repairTitle == "Open Accessibility Settings…")
+  }
+
+  @Test func unresolvedPasteAccessDoesNotOutrankKnownDegradation() {
+    #expect(viewState(pasteAccessGranted: nil).degradation == nil)
+    #expect(
+      viewState(pasteAccessGranted: nil, engineReadiness: .modelMissing).degradation
+        == .modelMissing)
   }
 
   @Test func missingModelDegradesToSetup() {
@@ -150,16 +167,21 @@ private struct MenuActionFailure: LocalizedError {
 
 @MainActor @Suite struct MenuBarActionTests {
   @Test func openingTheMenuRefreshesTheDeviceAndTheLoginItem() async {
-    let store = TestStore(initialState: AppFeature.State()) {
+    var state = AppFeature.State()
+    state.onboardingCompleted = true
+    let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
       $0.audioCapture.currentInputDeviceName = { "Shure MV7" }
+      $0.delivery.hasPasteAccess = { true }
+      $0.hotkeyListener.hasInputMonitoringPermission = { false }
       $0.launchAtLogin.isRegistered = { true }
     }
 
     await store.send(.menuWillOpen) {
       $0.inputDeviceName = "Shure MV7"
       $0.launchAtLoginRegistered = true
+      $0.pasteAccessGranted = true
     }
   }
 
@@ -193,24 +215,46 @@ private struct MenuActionFailure: LocalizedError {
     #expect(opened.values == [SystemSettingsPane.microphone])
   }
 
-  @Test func aMissingModelRepairsThroughEngineSetup() async {
+  @Test func missingPasteAccessOpensAccessibilitySettings() async {
+    let opened = Collector<URL>()
     var state = AppFeature.State()
     state.hotkeyTap = .active
     state.recording.micStatus = .granted
+    state.pasteAccessGranted = false
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
-      $0.asrEngine.installAndPrepare = {
-        AsyncStream { continuation in
-          continuation.yield(.ready)
-          continuation.finish()
-        }
-      }
+      $0.workspace.open = { opened.append($0) }
     }
 
     await store.send(.repairDegradedState)
-    await store.receive(.setupEngine)
-    await store.receive(.engineReadinessUpdated(.ready)) { $0.engineReadiness = .ready }
+    #expect(opened.values == [SystemSettingsPane.accessibility])
+  }
+
+  @Test func aMissingModelReentersOnboardingAtModelSetup() async {
+    var state = AppFeature.State()
+    state.hotkeyTap = .active
+    state.recording.micStatus = .granted
+    state.pasteAccessGranted = true
+    state.onboardingCompleted = false
+    state.modelDownloadConsented = true
+    let store = TestStore(initialState: state) {
+      AppFeature()
+    } withDependencies: {
+      $0.asrEngine.installAndPrepare = { AsyncStream { $0.finish() } }
+      $0.hotkeyListener.hasInputMonitoringPermission = { true }
+    }
+    let snapshot = OnboardingSnapshot(
+      permissions: OnboardingPermissionStatuses(
+        hasInputMonitoringPermission: true, microphoneStatus: .granted, hasPasteAccess: true),
+      engineReadiness: .modelMissing, hasModelDownloadConsent: true, isCompleted: false)
+
+    await store.send(.repairDegradedState)
+    await store.receive(.onboarding(.present(snapshot))) {
+      $0.onboarding.isPresented = true
+      $0.onboarding.snapshot = snapshot
+    }
+    #expect(store.state.onboarding.step == .model)
   }
 
   @Test func aDeadTapIsRepairedByRestartingTheListenerWithoutPrompting() async {
@@ -220,10 +264,10 @@ private struct MenuActionFailure: LocalizedError {
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
-      $0.hotkeyListener.eventsWithoutPrompting = { events }
-      $0.hotkeyListener.events = {
-        Issue.record("A menu repair must never take the permission-prompting path")
-        return AsyncStream { $0.finish() }
+      $0.hotkeyListener.events = { events }
+      $0.hotkeyListener.requestInputMonitoringPermission = {
+        Issue.record("A menu repair must never request Input Monitoring")
+        return false
       }
     }
 

@@ -1,5 +1,11 @@
 import CryptoKit
+import Darwin
 import Foundation
+import OSLog
+
+private let downloadLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "engine")
+
+private enum PinnedModelDownloadError: Error { case restartFromZero }
 
 struct PinnedModelStore: Sendable {
   static let asrRepository = "FluidInference/parakeet-tdt-0.6b-v2-coreml"
@@ -9,6 +15,7 @@ struct PinnedModelStore: Sendable {
 
   private static let asrFolder = "parakeet-tdt-0.6b-v2"
   private static let vadFolder = "silero-vad"
+  private static let stagingPinsFilename = ".pins"
   private static let expectedASRRoots = [
     "Preprocessor.mlmodelc/", "Encoder.mlmodelc/", "Decoder.mlmodelc/", "JointDecision.mlmodelc/",
   ]
@@ -27,16 +34,18 @@ struct PinnedModelStore: Sendable {
     modelsDirectory.appending(path: Self.asrFolder, directoryHint: .isDirectory)
   }
   var vadBaseDirectory: URL { root }
+  var stagingRoot: URL { root.appendingPathExtension("partial") }
+  var stagingPinsURL: URL { stagingRoot.appending(path: Self.stagingPinsFilename) }
 
   func download(progress: @escaping @Sendable (Double) -> Void) async throws {
     let fileManager = FileManager.default
     let parent = root.deletingLastPathComponent()
     try fileManager.createDirectory(at: parent, withIntermediateDirectories: true)
-    let temporaryRoot = parent.appending(
-      path: ".\(root.lastPathComponent)-\(UUID().uuidString)", directoryHint: .isDirectory)
-    defer { try? fileManager.removeItem(at: temporaryRoot) }
-    try fileManager.createDirectory(at: temporaryRoot, withIntermediateDirectories: true)
+    let downloadLock = try ModelDownloadLock(
+      at: parent.appending(path: ".\(root.lastPathComponent)-download.lock"))
+    defer { withExtendedLifetime(downloadLock) {} }
 
+    try prepareStagingRoot()
     let specifications = [
       RepositorySpecification(
         repository: Self.asrRepository, revision: Self.asrRevision, localFolder: Self.asrFolder,
@@ -45,51 +54,64 @@ struct PinnedModelStore: Sendable {
         repository: Self.vadRepository, revision: Self.vadRevision, localFolder: Self.vadFolder,
         expectedDirectoryRoots: Self.expectedVADRoots, expectedFiles: []),
     ]
-    var preparedRepositories: [PreparedRepository] = []
+    var plan: [PlannedFile] = []
     for specification in specifications {
       let files = try await listFiles(specification)
       try validateTree(files, specification: specification)
-      preparedRepositories.append(PreparedRepository(specification: specification, files: files))
+      plan.append(
+        contentsOf: files.map {
+          PlannedFile(
+            specification: specification, file: $0,
+            destination: destination(for: $0, specification: specification))
+        })
     }
 
-    let totalBytes = preparedRepositories.flatMap(\.files).reduce(0) { $0 + $1.size }
-    var completedBytes = 0
-    var repositories: [Provenance.Repository] = []
-    progress(0)
-    for preparedRepository in preparedRepositories {
-      let specification = preparedRepository.specification
-      for file in preparedRepository.files {
-        let destination = temporaryRoot.appending(path: "Models", directoryHint: .isDirectory)
-          .appending(path: specification.localFolder, directoryHint: .isDirectory).appending(
-            path: file.path)
-        try fileManager.createDirectory(
-          at: destination.deletingLastPathComponent(), withIntermediateDirectories: true)
-        try await download(file, specification: specification, to: destination)
-        completedBytes += file.size
-        progress(Double(completedBytes) / Double(totalBytes))
-      }
-      repositories.append(
+    for index in plan.indices { plan[index].resolvedHash = try reusableHash(for: plan[index]) }
+
+    let totalBytes = plan.reduce(0) { $0 + $1.file.size }
+    var completedBytes = plan.reduce(0) { $0 + ($1.resolvedHash == nil ? 0 : $1.file.size) }
+    let aggregateProgress = AggregateDownloadProgress(totalBytes: totalBytes, progress: progress)
+    aggregateProgress.report(completedBytes)
+
+    for index in plan.indices where plan[index].resolvedHash == nil {
+      let planned = plan[index]
+      try fileManager.createDirectory(
+        at: planned.destination.deletingLastPathComponent(), withIntermediateDirectories: true)
+      let completedBytesBeforeFile = completedBytes
+      plan[index].resolvedHash = try await download(
+        planned.file, specification: planned.specification, to: planned.destination,
+        progress: { transferredBytes in
+          aggregateProgress.report(
+            completedBytesBeforeFile + min(transferredBytes, planned.file.size))
+        })
+      completedBytes += planned.file.size
+      aggregateProgress.report(completedBytes)
+    }
+
+    let provenance = Provenance(
+      repositories: specifications.map { specification in
         Provenance.Repository(
           repository: specification.repository, revision: specification.revision,
-          files: preparedRepository.files.map {
-            Provenance.File(path: $0.path, size: $0.size, sha256: $0.lfs?.oid)
-          }))
-    }
-    let provenance = Provenance(repositories: repositories)
+          files: plan.filter { $0.specification.repository == specification.repository }.map {
+            Provenance.File(path: $0.file.path, size: $0.file.size, sha256: $0.resolvedHash)
+          })
+      })
     let encoder = JSONEncoder()
     encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
     try encoder.encode(provenance).write(
-      to: temporaryRoot.appending(path: "provenance.json"), options: .atomic)
-    try validateArtifact(at: temporaryRoot, provenance: provenance)
+      to: stagingRoot.appending(path: "provenance.json"), options: .atomic)
+    try validateArtifact(at: stagingRoot, provenance: provenance)
+    downloadLogger.notice("Pinned model staging artifact complete and SHA-256 verified")
 
     if fileManager.fileExists(atPath: root.path) {
       let backupName = ".\(root.lastPathComponent)-backup-\(UUID().uuidString)"
       _ = try fileManager.replaceItemAt(
-        root, withItemAt: temporaryRoot, backupItemName: backupName, options: [])
+        root, withItemAt: stagingRoot, backupItemName: backupName, options: [])
       try? fileManager.removeItem(at: parent.appending(path: backupName))
     } else {
-      try fileManager.moveItem(at: temporaryRoot, to: root)
+      try fileManager.moveItem(at: stagingRoot, to: root)
     }
+    try? fileManager.removeItem(at: root.appending(path: Self.stagingPinsFilename))
   }
 
   func validateInstalledArtifact() throws {
@@ -107,6 +129,8 @@ struct PinnedModelStore: Sendable {
       provenance.revision(for: Self.vadRepository) == Self.vadRevision
     else { throw ASREngineError.invalidArtifact("revision provenance does not match code pins") }
     try validateArtifact(at: root, provenance: provenance)
+    try? FileManager.default.removeItem(at: root.appending(path: Self.stagingPinsFilename))
+    try? FileManager.default.removeItem(at: stagingRoot)
   }
 
   private func listFiles(_ specification: RepositorySpecification) async throws -> [RemoteFile] {
@@ -142,30 +166,142 @@ struct PinnedModelStore: Sendable {
   }
 
   private func download(
-    _ file: RemoteFile, specification: RepositorySpecification, to destination: URL
-  ) async throws {
+    _ file: RemoteFile, specification: RepositorySpecification, to destination: URL,
+    progress: @escaping @Sendable (Int) -> Void
+  ) async throws -> String {
+    let fileManager = FileManager.default
+    let partialURL = destination.appendingPathExtension("partial")
+    if file.size == 0 {
+      try Data().write(to: partialURL, options: .atomic)
+      let hash = try verifiedHash(of: partialURL, for: file, resumed: false)
+      try promote(partialURL, to: destination)
+      return hash
+    }
+    // Only an LFS oid can prove a partial correct, so anything else starts from zero.
+    if file.lfs == nil { try? fileManager.removeItem(at: partialURL) }
+
+    var resumeOffset = try fileSize(at: partialURL)
+    if resumeOffset > file.size {
+      try fileManager.removeItem(at: partialURL)
+      resumeOffset = 0
+    }
+    if resumeOffset == file.size {
+      let hash = try sha256(partialURL)
+      if hash == file.lfs?.oid {
+        try promote(partialURL, to: destination)
+        return hash
+      }
+      downloadLogger.error(
+        "Pinned model partial failed SHA-256; restarting \(file.path, privacy: .public)")
+      try fileManager.removeItem(at: partialURL)
+      resumeOffset = 0
+    }
+
+    let url = remoteURL(for: file, specification: specification)
+    let fetch: @Sendable (Int) async throws -> Void = { offset in
+      if offset > 0 {
+        downloadLogger.notice(
+          "Resuming pinned model file \(file.path, privacy: .public) from byte offset \(offset, privacy: .public)"
+        )
+      }
+      let downloader = ProgressDownload(
+        configuration: session.configuration, destination: partialURL, expectedBytes: file.size,
+        resumeOffset: offset, progress: progress)
+      do { try await downloader.download(from: url) } catch ProgressDownloadError.restartRequired {
+        guard offset > 0 else {
+          throw ASREngineError.invalidDownload("server rejected download for \(file.path)")
+        }
+        throw PinnedModelDownloadError.restartFromZero
+      } catch ProgressDownloadError.invalidResponse(let message) {
+        throw ASREngineError.invalidDownload("\(message) for \(file.path)")
+      }
+    }
+
+    let hash: String
+    do {
+      try await fetch(resumeOffset)
+      hash = try verifiedHash(of: partialURL, for: file, resumed: resumeOffset > 0)
+    } catch PinnedModelDownloadError.restartFromZero {
+      try? fileManager.removeItem(at: partialURL)
+      try await fetch(0)
+      hash = try verifiedHash(of: partialURL, for: file, resumed: false)
+    }
+    try promote(partialURL, to: destination)
+    return hash
+  }
+
+  /// Hashes `url` exactly once: the result is both the acceptance check and the provenance record.
+  private func verifiedHash(of url: URL, for file: RemoteFile, resumed: Bool) throws -> String {
+    guard try fileSize(at: url) == file.size else {
+      throw ASREngineError.invalidDownload("size mismatch for \(file.path)")
+    }
+    let hash = try sha256(url)
+    if let expectedHash = file.lfs?.oid, hash != expectedHash {
+      guard resumed else {
+        throw ASREngineError.invalidDownload("SHA-256 mismatch for \(file.path)")
+      }
+      downloadLogger.error(
+        "Pinned model partial failed SHA-256; restarting \(file.path, privacy: .public)")
+      throw PinnedModelDownloadError.restartFromZero
+    }
+    return hash
+  }
+
+  private func promote(_ partial: URL, to destination: URL) throws {
+    try? FileManager.default.removeItem(at: destination)
+    try FileManager.default.moveItem(at: partial, to: destination)
+  }
+
+  /// A staged file survives only when the pinned manifest can vouch for its bytes, which keeps a
+  /// revision splice from smuggling stale content into the artifact.
+  func reusableHash(for planned: PlannedFile) throws -> String? {
+    guard let expectedHash = planned.file.lfs?.oid,
+      try fileSize(at: planned.destination) == planned.file.size,
+      try sha256(planned.destination) == expectedHash
+    else {
+      try? FileManager.default.removeItem(at: planned.destination)
+      return nil
+    }
+    return expectedHash
+  }
+
+  func prepareStagingRoot() throws {
+    let fileManager = FileManager.default
+    let pins = Data(
+      "\(Self.asrRepository)@\(Self.asrRevision)\n\(Self.vadRepository)@\(Self.vadRevision)\n".utf8)
+    if fileManager.fileExists(atPath: stagingRoot.path),
+      (try? Data(contentsOf: stagingPinsURL)) != pins
+    {
+      try fileManager.removeItem(at: stagingRoot)
+    }
+    try fileManager.createDirectory(at: stagingRoot, withIntermediateDirectories: true)
+    try pins.write(to: stagingPinsURL, options: .atomic)
+  }
+
+  private func destination(for file: RemoteFile, specification: RepositorySpecification) -> URL {
+    stagingRoot.appending(path: "Models", directoryHint: .isDirectory).appending(
+      path: specification.localFolder, directoryHint: .isDirectory
+    ).appending(path: file.path)
+  }
+
+  private func remoteURL(for file: RemoteFile, specification: RepositorySpecification) -> URL {
     let encodedPath = file.path.split(separator: "/").map {
       String($0).addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)!
     }.joined(separator: "/")
-    let url = URL(
+    return URL(
       string:
         "https://huggingface.co/\(specification.repository)/resolve/\(specification.revision)/\(encodedPath)"
     )!
-    let (temporaryURL, response) = try await session.download(from: url)
-    try validate(response: response, data: nil)
-    let attributes = try FileManager.default.attributesOfItem(atPath: temporaryURL.path)
-    guard attributes[.size] as? Int == file.size else {
-      throw ASREngineError.invalidDownload("size mismatch for \(file.path)")
-    }
-    if let expectedHash = file.lfs?.oid {
-      let actualHash = try sha256(temporaryURL)
-      guard actualHash == expectedHash else {
-        throw ASREngineError.invalidDownload("SHA-256 mismatch for \(file.path)")
-      }
-    }
-    try FileManager.default.moveItem(at: temporaryURL, to: destination)
   }
 
+  private func fileSize(at url: URL) throws -> Int {
+    guard FileManager.default.fileExists(atPath: url.path) else { return 0 }
+    return try FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Int ?? 0
+  }
+
+  /// Existence and size only: every file is SHA-256 verified against the pinned manifest as it is
+  /// written, and rehashing the 465 MB corpus costs ~200 ms of launch for a check that CoreML
+  /// compile and prewarm would fail on anyway.
   private func validateArtifact(at root: URL, provenance: Provenance) throws {
     for repository in provenance.repositories {
       let folder: String
@@ -176,12 +312,11 @@ struct PinnedModelStore: Sendable {
       }
       for file in repository.files {
         let url = root.appending(path: "Models/\(folder)/\(file.path)")
-        let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
-        guard attributes[.size] as? Int == file.size else {
-          throw ASREngineError.invalidArtifact("size mismatch for \(file.path)")
+        guard FileManager.default.fileExists(atPath: url.path) else {
+          throw ASREngineError.invalidArtifact("missing \(file.path)")
         }
-        if let expectedHash = file.sha256, try sha256(url) != expectedHash {
-          throw ASREngineError.invalidArtifact("SHA-256 mismatch for \(file.path)")
+        guard try fileSize(at: url) == file.size else {
+          throw ASREngineError.invalidArtifact("size mismatch for \(file.path)")
         }
       }
     }
@@ -211,7 +346,46 @@ struct PinnedModelStore: Sendable {
   }
 }
 
-private struct RepositorySpecification: Sendable {
+private final class ModelDownloadLock {
+  private let descriptor: Int32
+
+  init(at url: URL) throws {
+    let descriptor = open(url.path, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)
+    guard descriptor >= 0 else { throw POSIXError(.init(rawValue: errno) ?? .EIO) }
+    guard flock(descriptor, LOCK_EX) == 0 else {
+      close(descriptor)
+      throw POSIXError(.init(rawValue: errno) ?? .EIO)
+    }
+    self.descriptor = descriptor
+  }
+
+  deinit {
+    flock(descriptor, LOCK_UN)
+    close(descriptor)
+  }
+}
+
+private final class AggregateDownloadProgress: @unchecked Sendable {
+  private let totalBytes: Int
+  private let progress: @Sendable (Double) -> Void
+  private let lock = NSLock()
+  private var reportedBytes = 0
+
+  init(totalBytes: Int, progress: @escaping @Sendable (Double) -> Void) {
+    self.totalBytes = totalBytes
+    self.progress = progress
+  }
+
+  func report(_ bytes: Int) {
+    let fraction = lock.withLock {
+      reportedBytes = max(reportedBytes, min(bytes, totalBytes))
+      return totalBytes == 0 ? 1 : Double(reportedBytes) / Double(totalBytes)
+    }
+    progress(fraction)
+  }
+}
+
+struct RepositorySpecification: Sendable {
   let repository: String
   let revision: String
   let localFolder: String
@@ -219,12 +393,14 @@ private struct RepositorySpecification: Sendable {
   let expectedFiles: [String]
 }
 
-private struct PreparedRepository: Sendable {
+struct PlannedFile: Sendable {
   let specification: RepositorySpecification
-  let files: [RemoteFile]
+  let file: RemoteFile
+  let destination: URL
+  var resolvedHash: String?
 }
 
-private struct RemoteFile: Decodable, Sendable {
+struct RemoteFile: Decodable, Sendable {
   struct LFS: Decodable, Sendable { let oid: String }
 
   let path: String

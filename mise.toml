@@ -67,7 +67,7 @@ depends = ["build"]
 run = "open $APP_PATH"
 
 [tasks.mw-fresh]
-description = "Build and run with fresh permissions"
+description = "Build and run fresh; set FRESH_MODEL=1 to delete the speech model too"
 depends = ["reset-permissions", "mw"]
 
 
@@ -150,10 +150,14 @@ run = [
 [tasks.reset-permissions]
 description = "Reset TCC permissions; Input Monitoring and Accessibility must be re-granted in System Settings"
 run = [
+    "killall MiniWhisper 2>/dev/null || true",
     "tccutil reset Microphone com.thurstonsand.MiniWhisper",
     "tccutil reset ListenEvent com.thurstonsand.MiniWhisper",
     "tccutil reset Accessibility com.thurstonsand.MiniWhisper",
     "tccutil reset PostEvent com.thurstonsand.MiniWhisper",
+    'rm -f "$HOME/Library/Application Support/MiniWhisper/onboarding-completed"',
+    'rm -f "$HOME/Library/Application Support/MiniWhisper/model-download-consented"',
+    'if [ "${FRESH_MODEL:-0}" = "1" ]; then rm -rf "$HOME/Library/Application Support/MiniWhisper/Engine/pinned-v1" "$HOME/Library/Application Support/MiniWhisper/Engine/pinned-v1.partial"; fi',
 ]
 
 [tasks.clean]

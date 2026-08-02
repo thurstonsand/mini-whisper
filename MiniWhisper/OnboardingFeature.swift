@@ -1,0 +1,422 @@
+import ASREngine
+import AudioCapture
+import ComposableArchitecture
+import Foundation
+import OSLog
+
+private let onboardingLogger = Logger(
+  subsystem: "com.thurstonsand.MiniWhisper", category: "onboarding")
+
+enum OnboardingPermission: Int, CaseIterable, Equatable, Hashable, Sendable {
+  case inputMonitoring
+  case microphone
+  case pasteAccess
+
+  var settingsPane: URL {
+    switch self {
+    case .inputMonitoring: SystemSettingsPane.inputMonitoring
+    case .microphone: SystemSettingsPane.microphone
+    case .pasteAccess: SystemSettingsPane.accessibility
+    }
+  }
+}
+
+struct OnboardingPermissionStatuses: Equatable, Sendable {
+  var hasInputMonitoringPermission: Bool
+  var microphoneStatus: MicPermissionStatus
+  var hasPasteAccess: Bool
+
+  var allGranted: Bool {
+    hasInputMonitoringPermission && microphoneStatus == .granted && hasPasteAccess
+  }
+
+  func isGranted(_ permission: OnboardingPermission) -> Bool {
+    switch permission {
+    case .inputMonitoring: hasInputMonitoringPermission
+    case .microphone: microphoneStatus == .granted
+    case .pasteAccess: hasPasteAccess
+    }
+  }
+}
+
+struct OnboardingPermissionObservation: Equatable, Sendable {
+  var hasInputMonitoringPermission: Bool
+  var microphoneStatus: MicPermissionStatus
+  var hasPasteAccess: Bool?
+}
+
+struct OnboardingSnapshot: Equatable, Sendable {
+  var permissions: OnboardingPermissionStatuses
+  var engineReadiness: EngineReadiness
+  var hasModelDownloadConsent: Bool
+  var isCompleted: Bool
+}
+
+enum OnboardingStep: Int, Equatable, Sendable {
+  case permissions
+  case model
+  case tryIt
+  case ready
+
+  static func derive(from snapshot: OnboardingSnapshot) -> Self {
+    guard snapshot.permissions.allGranted else { return .permissions }
+    guard snapshot.engineReadiness == .ready else { return .model }
+    return snapshot.isCompleted ? .ready : .tryIt
+  }
+}
+
+@Reducer struct OnboardingFeature {
+  static let permissionPollInterval = Duration.seconds(1)
+
+  @ObservableState struct State: Equatable {
+    enum CompletionIntent: Equatable {
+      case dictation
+      case skip
+    }
+
+    var isPresented = false
+    var snapshot = OnboardingSnapshot(
+      permissions: OnboardingPermissionStatuses(
+        hasInputMonitoringPermission: false, microphoneStatus: .undetermined, hasPasteAccess: false),
+      engineReadiness: .modelMissing, hasModelDownloadConsent: false, isCompleted: false)
+    var selectedStep: OnboardingStep?
+    var isShowingWelcome = false
+    var isRecordingModelDownloadConsent = false
+    var requestingPermission: OnboardingPermission?
+    var pendingSystemPermissionPrompt: OnboardingPermission?
+    var requestedPermissions: Set<OnboardingPermission> = []
+    var tryItText = ""
+    var completionIntent: CompletionIntent?
+    var failureMessage: String?
+
+    var step: OnboardingStep { OnboardingStep.derive(from: snapshot) }
+    var visibleStep: OnboardingStep { selectedStep ?? step }
+    var isRevisitingPermissions: Bool { selectedStep == .permissions }
+    var canSkip: Bool { isPresented && step == .tryIt && visibleStep == .tryIt }
+    var isMarkingCompletion: Bool { completionIntent != nil }
+
+    var shouldShowWelcome: Bool { !snapshot.isCompleted && !snapshot.hasModelDownloadConsent }
+
+    var activePermission: OnboardingPermission? {
+      OnboardingPermission.allCases.first { !snapshot.permissions.isGranted($0) }
+    }
+
+    /// macOS prompts at most once per permission, so an unfulfilled request means the rest of the
+    /// fix has to happen in System Settings.
+    func needsSystemSettings(for permission: OnboardingPermission) -> Bool {
+      guard !snapshot.permissions.isGranted(permission) else { return false }
+      return requestedPermissions.contains(permission)
+        || (permission == .microphone
+          && (snapshot.permissions.microphoneStatus == .denied
+            || snapshot.permissions.microphoneStatus == .restricted))
+    }
+
+    func canRequest(_ permission: OnboardingPermission) -> Bool {
+      guard activePermission == permission, !requestedPermissions.contains(permission) else {
+        return false
+      }
+      return permission != .pasteAccess || snapshot.permissions.hasInputMonitoringPermission
+        || requestedPermissions.contains(.inputMonitoring)
+    }
+
+    func needsRestart(for permission: OnboardingPermission) -> Bool {
+      permission == .inputMonitoring && !snapshot.permissions.hasInputMonitoringPermission
+        && requestedPermissions.contains(.inputMonitoring)
+    }
+
+    var modelSetupIsInProgress: Bool {
+      switch snapshot.engineReadiness {
+      case .downloading, .compiling, .prewarming: true
+      case .modelMissing, .ready, .failed: false
+      }
+    }
+  }
+
+  enum Action: Equatable {
+    enum Delegate: Equatable {
+      case dismissed
+      case engineReadinessUpdated(EngineReadiness)
+      case permissionsUpdated(OnboardingPermissionStatuses)
+      case completed
+    }
+
+    case present(OnboardingSnapshot)
+    case downloadModel
+    case modelDownloadConsented
+    case modelDownloadConsentFailed(String)
+    case navigate(OnboardingStep)
+    case requestPermission(OnboardingPermission)
+    case inputMonitoringPermissionRequested(Bool)
+    case microphonePermissionRequested(MicPermissionStatus)
+    case pasteAccessRequested(Bool)
+    case permissionStatusesObserved(OnboardingPermissionObservation)
+    case refreshPermissionStatuses
+    case applicationBecameActive
+    case openSystemSettings(OnboardingPermission)
+    case restartApplication
+    case workspaceOpenFailed(String)
+    case setupModel
+    case engineReadinessUpdated(EngineReadiness)
+    case tryItTextChanged(String)
+    case tryItFailed(String)
+    case dictationDelivered(String)
+    case skip
+    case completionMarked
+    case completionMarkFailed(String)
+    case finish
+    case delegate(Delegate)
+  }
+
+  private enum CancelID { case permissionPolling }
+
+  @Dependency(\.asrEngine) var asrEngine
+  @Dependency(\.continuousClock) var clock
+  @Dependency(\.delivery) var delivery
+  @Dependency(\.hotkeyListener) var hotkeyListener
+  @Dependency(\.microphonePermission) var microphonePermission
+  @Dependency(\.modelDownloadConsent) var modelDownloadConsent
+  @Dependency(\.onboardingCompletion) var onboardingCompletion
+  @Dependency(\.workspace) var workspace
+
+  var body: some ReducerOf<Self> {
+    Reduce { state, action in
+      switch action {
+      case .present(let snapshot):
+        state.isPresented = true
+        state.snapshot = snapshot
+        state.selectedStep = nil
+        state.isShowingWelcome = state.shouldShowWelcome
+        state.isRecordingModelDownloadConsent = false
+        state.requestingPermission = nil
+        state.pendingSystemPermissionPrompt = nil
+        state.requestedPermissions = []
+        state.tryItText = ""
+        state.completionIntent = nil
+        state.failureMessage = nil
+        let polling = permissionPollingEffect(for: state)
+        return snapshot.hasModelDownloadConsent
+          ? .merge(polling, modelSetupEffect(for: &state)) : polling
+      case .downloadModel:
+        guard !state.isRecordingModelDownloadConsent else { return .none }
+        state.isRecordingModelDownloadConsent = true
+        state.failureMessage = nil
+        return .run { send in
+          do {
+            try modelDownloadConsent.markConsented()
+            await send(.modelDownloadConsented)
+          } catch { await send(.modelDownloadConsentFailed(error.localizedDescription)) }
+        }
+      case .modelDownloadConsented:
+        state.snapshot.hasModelDownloadConsent = true
+        state.isShowingWelcome = false
+        state.isRecordingModelDownloadConsent = false
+        return modelSetupEffect(for: &state)
+      case .modelDownloadConsentFailed(let message):
+        state.isRecordingModelDownloadConsent = false
+        state.failureMessage = message
+        return .none
+      case .navigate(let step):
+        guard step != .ready else { return .none }
+        state.selectedStep = step
+        let polling = permissionPollingEffect(for: state)
+        return step == .permissions
+          ? .merge(refreshPermissionStatuses(for: state), polling) : polling
+      case .requestPermission(let permission):
+        guard state.requestingPermission == nil, state.canRequest(permission) else { return .none }
+        state.requestingPermission = permission
+        state.pendingSystemPermissionPrompt = permission
+        state.requestedPermissions.insert(permission)
+        state.failureMessage = nil
+        let request: Effect<Action>
+        switch permission {
+        case .inputMonitoring:
+          request = .run { send in
+            onboardingLogger.notice("Requesting Input Monitoring permission from onboarding")
+            let granted = await hotkeyListener.requestInputMonitoringPermission()
+            onboardingLogger.notice("Input Monitoring request returned granted=\(granted)")
+            await send(.inputMonitoringPermissionRequested(granted))
+          }
+        case .microphone:
+          request = .run { send in
+            onboardingLogger.notice("Requesting Microphone permission from onboarding")
+            let status = await microphonePermission.requestIfNeeded()
+            onboardingLogger.notice("Microphone request returned")
+            await send(.microphonePermissionRequested(status))
+          }
+        case .pasteAccess:
+          request = .run { send in
+            onboardingLogger.notice("Requesting Paste Access permission from onboarding")
+            let granted = await delivery.requestPasteAccess()
+            onboardingLogger.notice("Paste Access request returned granted=\(granted)")
+            await send(.pasteAccessRequested(granted))
+          }
+        }
+        return .concatenate(.cancel(id: CancelID.permissionPolling), request)
+      case .inputMonitoringPermissionRequested(let granted):
+        state.requestingPermission = nil
+        if granted { state.pendingSystemPermissionPrompt = nil }
+        var statuses = state.snapshot.permissions
+        statuses.hasInputMonitoringPermission = granted
+        let update = apply(statuses, to: &state)
+        return granted ? .merge(update, permissionPollingEffect(for: state)) : update
+      case .microphonePermissionRequested(let status):
+        state.requestingPermission = nil
+        state.pendingSystemPermissionPrompt = nil
+        var statuses = state.snapshot.permissions
+        statuses.microphoneStatus = status
+        return .merge(apply(statuses, to: &state), permissionPollingEffect(for: state))
+      case .pasteAccessRequested(let granted):
+        state.requestingPermission = nil
+        if granted { state.pendingSystemPermissionPrompt = nil }
+        var statuses = state.snapshot.permissions
+        statuses.hasPasteAccess = granted
+        let update = apply(statuses, to: &state)
+        return granted ? .merge(update, permissionPollingEffect(for: state)) : update
+      case .permissionStatusesObserved(let observation):
+        guard state.pendingSystemPermissionPrompt == nil else { return .none }
+        state.requestingPermission = nil
+        var statuses = state.snapshot.permissions
+        statuses.hasInputMonitoringPermission = observation.hasInputMonitoringPermission
+        statuses.microphoneStatus = observation.microphoneStatus
+        if let hasPasteAccess = observation.hasPasteAccess {
+          statuses.hasPasteAccess = hasPasteAccess
+        }
+        return apply(statuses, to: &state)
+      case .refreshPermissionStatuses: return refreshPermissionStatuses(for: state)
+      case .applicationBecameActive:
+        onboardingLogger.notice("Onboarding became active; resuming permission observation")
+        state.pendingSystemPermissionPrompt = nil
+        return .merge(refreshPermissionStatuses(for: state), permissionPollingEffect(for: state))
+      case .openSystemSettings(let permission):
+        let destination = permission.settingsPane
+        return .run { send in
+          do { try await workspace.open(destination) } catch {
+            await send(.workspaceOpenFailed(error.localizedDescription))
+          }
+        }
+      case .restartApplication:
+        return .run { send in
+          do { try await workspace.relaunch() } catch {
+            await send(.workspaceOpenFailed(error.localizedDescription))
+          }
+        }
+      case .workspaceOpenFailed(let message):
+        state.failureMessage = message
+        return .none
+      case .setupModel: return modelSetupEffect(for: &state)
+      case .engineReadinessUpdated(let readiness):
+        state.snapshot.engineReadiness = readiness
+        if case .failed(let message) = readiness { state.failureMessage = message }
+        return .none
+      case .tryItTextChanged(let text):
+        state.tryItText = text
+        return .none
+      case .tryItFailed(let message):
+        guard state.step == .tryIt else { return .none }
+        state.failureMessage = message
+        return .none
+      case .dictationDelivered(let transcript):
+        guard state.step == .tryIt, !state.isMarkingCompletion else { return .none }
+        state.tryItText = transcript
+        state.completionIntent = .dictation
+        state.failureMessage = nil
+        return markCompletion()
+      case .skip:
+        guard state.canSkip, !state.isMarkingCompletion else { return .none }
+        state.completionIntent = .skip
+        state.failureMessage = nil
+        return markCompletion()
+      case .completionMarked:
+        let dismissesAfterCompletion = state.completionIntent == .skip
+        state.snapshot.isCompleted = true
+        state.selectedStep = nil
+        state.completionIntent = nil
+        let completed = Effect<Action>.send(.delegate(.completed))
+        return dismissesAfterCompletion ? .concatenate(completed, .send(.finish)) : completed
+      case .completionMarkFailed(let message):
+        state.completionIntent = nil
+        state.failureMessage = message
+        return .none
+      case .finish:
+        guard state.step == .ready else { return .none }
+        state.isPresented = false
+        return .merge(.cancel(id: CancelID.permissionPolling), .send(.delegate(.dismissed)))
+      case .delegate: return .none
+      }
+    }
+  }
+
+  private func apply(
+    _ statuses: OnboardingPermissionStatuses, to state: inout State
+  ) -> Effect<Action> {
+    let previous = state.snapshot.permissions
+    state.snapshot.permissions = statuses
+    guard statuses != previous else { return .none }
+
+    let update = Effect<Action>.send(.delegate(.permissionsUpdated(statuses)))
+    return statuses.allGranted && !previous.allGranted
+      ? .merge(update, .cancel(id: CancelID.permissionPolling)) : update
+  }
+
+  private func observePermissionStatuses(
+    inputMonitoringWasRequested: Bool
+  ) async -> OnboardingPermissionObservation {
+    let hasInputMonitoringPermission = hotkeyListener.hasInputMonitoringPermission()
+    let microphoneStatus = await microphonePermission.status()
+    // Accessibility trust suppresses macOS's Keystroke Receiving dialog when queried before the
+    // IOHID request. Probe it only after IOHID is granted or that request has already fired.
+    let hasPasteAccess =
+      hasInputMonitoringPermission || inputMonitoringWasRequested ? delivery.hasPasteAccess() : nil
+    return OnboardingPermissionObservation(
+      hasInputMonitoringPermission: hasInputMonitoringPermission,
+      microphoneStatus: microphoneStatus, hasPasteAccess: hasPasteAccess)
+  }
+
+  private func refreshPermissionStatuses(for state: State) -> Effect<Action> {
+    guard state.pendingSystemPermissionPrompt == nil else { return .none }
+    let inputMonitoringWasRequested = state.requestedPermissions.contains(.inputMonitoring)
+    return .run { send in
+      await send(
+        .permissionStatusesObserved(
+          await observePermissionStatuses(inputMonitoringWasRequested: inputMonitoringWasRequested))
+      )
+    }
+  }
+
+  private func permissionPollingEffect(for state: State) -> Effect<Action> {
+    guard state.pendingSystemPermissionPrompt == nil, state.isPresented,
+      state.step == .permissions || state.isRevisitingPermissions
+    else { return .cancel(id: CancelID.permissionPolling) }
+    return .run { send in
+      while true {
+        try await clock.sleep(for: Self.permissionPollInterval)
+        await send(.refreshPermissionStatuses)
+      }
+    }.cancellable(id: CancelID.permissionPolling, cancelInFlight: true)
+  }
+
+  private func markCompletion() -> Effect<Action> {
+    .run { send in
+      do {
+        try onboardingCompletion.markCompleted()
+        await send(.completionMarked)
+      } catch { await send(.completionMarkFailed(error.localizedDescription)) }
+    }
+  }
+
+  private func modelSetupEffect(for state: inout State) -> Effect<Action> {
+    guard state.snapshot.hasModelDownloadConsent, !state.modelSetupIsInProgress else {
+      return .none
+    }
+    switch state.snapshot.engineReadiness {
+    case .modelMissing, .failed: break
+    case .downloading, .compiling, .prewarming, .ready: return .none
+    }
+    state.failureMessage = nil
+    return .run { send in
+      for await readiness in asrEngine.installAndPrepare() {
+        await send(.delegate(.engineReadinessUpdated(readiness)))
+      }
+    }
+  }
+}

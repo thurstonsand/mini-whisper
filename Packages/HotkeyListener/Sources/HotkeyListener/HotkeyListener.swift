@@ -1,5 +1,6 @@
 import CoreGraphics
 import Foundation
+import IOKit.hidsystem
 import OSLog
 
 private let performanceLogger = Logger(
@@ -21,26 +22,22 @@ public enum HotkeyListenerEvent: Equatable, Sendable {
 public enum HotkeyListenerError: Error, Equatable, Sendable { case eventTapCreationFailed }
 
 public enum HotkeyListener {
-  /// Starts listening, asking macOS for Input Monitoring when it has never been granted. Only
-  /// first-run startup may prompt; everything else must use ``eventsWithoutPrompting(hotkey:)``.
-  public static func events(hotkey: Hotkey) async throws -> AsyncStream<HotkeyListenerEvent> {
-    try await events(hotkey: hotkey, requestingPermission: true)
+  /// `IOHIDCheckAccess` is correct at launch but stays denied after an in-process pane grant. A
+  /// keyboard-only tap still creates before the grant, and `monitoringStarted` only proves creation,
+  /// so onboarding requires a quit and reopen rather than trusting either false positive.
+  public static func hasInputMonitoringPermission() -> Bool {
+    IOHIDCheckAccess(kIOHIDRequestTypeListenEvent) == kIOHIDAccessTypeGranted
   }
 
-  /// Starts listening without ever raising a permission dialog; a missing grant is reported as
+  @MainActor @discardableResult public static func requestInputMonitoringPermission() -> Bool {
+    IOHIDRequestAccess(kIOHIDRequestTypeListenEvent)
+  }
+
+  /// Starts listening without raising a permission dialog. A missing grant is reported as
   /// `.inputMonitoringPermissionMissing` so the caller can send the user to System Settings.
-  public static func eventsWithoutPrompting(
-    hotkey: Hotkey
-  ) async throws -> AsyncStream<HotkeyListenerEvent> {
-    try await events(hotkey: hotkey, requestingPermission: false)
-  }
-
-  private static func events(
-    hotkey: Hotkey, requestingPermission: Bool
-  ) async throws -> AsyncStream<HotkeyListenerEvent> {
+  public static func events(hotkey: Hotkey) async throws -> AsyncStream<HotkeyListenerEvent> {
     let (stream, continuation) = AsyncStream.makeStream(of: HotkeyListenerEvent.self)
-    guard CGPreflightListenEventAccess() else {
-      if requestingPermission { _ = CGRequestListenEventAccess() }
+    guard hasInputMonitoringPermission() else {
       continuation.yield(.inputMonitoringPermissionMissing)
       continuation.finish()
       return stream

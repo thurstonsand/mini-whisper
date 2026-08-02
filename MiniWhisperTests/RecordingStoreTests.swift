@@ -7,16 +7,17 @@ import Testing
 @testable import MiniWhisper
 
 @MainActor @Suite struct RecordingFeatureTests {
-  @Test func taskLoadsPermissionStatus() async {
+  @Test func taskPreparesAudioCapture() async {
+    let preparations = RecordingCounter()
     let store = TestStore(initialState: RecordingFeature.State()) {
       RecordingFeature()
     } withDependencies: {
-      $0.microphonePermission.status = { .granted }
-      $0.audioCapture.prepare = {}
+      $0.audioCapture.prepare = { preparations.increment() }
     }
 
     await store.send(.task)
-    await store.receive(.micStatusUpdated(.granted)) { $0.micStatus = .granted }
+    await store.finish()
+    #expect(preparations.value == 1)
   }
 
   @Test func cancelDiscardsTheActiveRecording() async {
@@ -307,4 +308,12 @@ import Testing
     await store.send(.captureStopped(1, CanonicalRecording(samples: [1])))
     await store.send(.levelUpdated(1, AudioLevel(decibels: 0, normalizedPower: 1)))
   }
+}
+
+private final class RecordingCounter: @unchecked Sendable {
+  private let lock = NSLock()
+  private var count = 0
+
+  func increment() { lock.withLock { count += 1 } }
+  var value: Int { lock.withLock { count } }
 }

@@ -58,19 +58,16 @@ private let performanceLogger = Logger(
   private enum CancelID { case captureEvents, stop }
 
   @Dependency(\.audioCapture) var audioCapture
-  @Dependency(\.microphonePermission) var microphonePermission
 
   var body: some ReducerOf<Self> {
     Reduce { state, action in
       switch action {
       case .task:
-        return .merge(
-          .run { send in await send(.micStatusUpdated(await microphonePermission.status())) },
-          .run { send in
-            do { try await audioCapture.prepare() } catch {
-              await send(.capturePreparationFailed(captureError(from: error)))
-            }
-          })
+        return .run { send in
+          do { try await audioCapture.prepare() } catch {
+            await send(.capturePreparationFailed(captureError(from: error)))
+          }
+        }
       case .micStatusUpdated(let status):
         state.micStatus = status
         return .none

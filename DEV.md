@@ -15,8 +15,9 @@ mise run test-packages  # Fast package-only tests (prefer this for quick feedbac
 mise run lint           # Run the pre-commit formatting, linting, build, and package-test gate
 mise run format         # Format code with swift-format
 mise run mw             # Build and run MiniWhisper
-mise run mw-fresh       # Reset mic/Input Monitoring/Accessibility permissions, then build and run
-mise run logs           # run in background; streams and tees to .build/miniwhisper.log
+mise run mw-fresh                 # Reset TCC permissions and onboarding, then build and run
+FRESH_MODEL=1 mise run mw-fresh   # Also delete the speech model to exercise its full setup path
+mise run logs                     # run in background; streams and tees to .build/miniwhisper.log
 mise run benchmark      # Run deterministic interaction performance budgets
 mise run benchmark-live # Build, launch, measure three real capture cycles, and enforce UX budgets
 ./scripts/capture_menu_screenshot [output.png]  # Screenshot menu dropdown (app must be running)
