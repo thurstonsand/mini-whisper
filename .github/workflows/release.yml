@@ -40,11 +40,10 @@ jobs:
             release_tag="${GITHUB_REF_NAME}"
           else
             base_tag="$(git describe --tags --abbrev=0 --match 'v[0-9]*' 2>/dev/null || true)"
-            if [[ -z "${base_tag}" ]]; then
-              base_version="0.0.0"
-            else
-              base_version="${base_tag#v}"
-            fi
+            IFS=. read -r major minor patch <<<"${base_tag:-v0.0.0}"
+            # Nightlies must outrank the last stable release and never regress, so
+            # claim the smallest version greater than it rather than guessing higher.
+            base_version="${major#v}.${minor}.$((patch + 1))"
 
             short_sha="${GITHUB_SHA::7}"
             archive_version="${base_version}-dev-${GITHUB_RUN_ID}-${short_sha}"
