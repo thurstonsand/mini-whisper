@@ -6,30 +6,40 @@ version="${version#v}"
 name="MiniWhisper_${version}_darwin_arm64"
 work_dir=".build/release"
 derived_data="${work_dir}/DerivedData"
-archive_path="${work_dir}/MiniWhisper.xcarchive"
+built_app="${derived_data}/Build/Products/Release/MiniWhisper.app"
 app_path="${work_dir}/MiniWhisper.app"
 archive="dist/${name}.zip"
 plist="${app_path}/Contents/Info.plist"
 
 # Everything this run produces is discarded, but DerivedData survives so an
 # incremental rebuild can reuse the compiled dependency graph.
-rm -rf dist "${archive_path}" "${app_path}"
+rm -rf dist "${app_path}"
 mkdir -p dist "${work_dir}"
 
+# `build` rather than `archive` because only `build` reuses incremental state:
+# an archive action compiles into its own intermediates root every time. The
+# settings below restore what an archive would otherwise imply — deployment
+# postprocessing strips the binary, and coverage instrumentation (which the
+# scheme enables for testing) has no place in a shipped build. Together they
+# produce a byte-for-byte size match with the archived product.
 xcodebuild \
   -scheme MiniWhisper \
   -configuration Release \
   -destination "generic/platform=macOS" \
-  -archivePath "${archive_path}" \
   -derivedDataPath "${derived_data}" \
   -skipMacroValidation \
   -skipPackagePluginValidation \
   CODE_SIGNING_ALLOWED=NO \
   ARCHS=arm64 \
   ONLY_ACTIVE_ARCH=YES \
-  archive
+  DEPLOYMENT_POSTPROCESSING=YES \
+  STRIP_INSTALLED_PRODUCT=YES \
+  ENABLE_CODE_COVERAGE=NO \
+  CLANG_ENABLE_CODE_COVERAGE=NO \
+  SWIFT_ENABLE_CODE_COVERAGE=NO \
+  build
 
-/usr/bin/ditto "${archive_path}/Products/Applications/MiniWhisper.app" "${app_path}"
+/usr/bin/ditto "${built_app}" "${app_path}"
 /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName MiniWhisper" "${plist}"
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${version}" "${plist}"
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${version}" "${plist}"
@@ -65,4 +75,4 @@ fi
 
 /usr/bin/ditto -c -k --sequesterRsrc --keepParent "${app_path}" "${archive}"
 (cd dist && shasum -a 256 "${name}.zip" > "${name}.zip.sha256")
-rm -rf "${archive_path}" "${app_path}" "${work_dir}/MiniWhisper-notarization.zip"
+rm -rf "${app_path}" "${work_dir}/MiniWhisper-notarization.zip"
