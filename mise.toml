@@ -135,12 +135,18 @@ run = [
     "ruff check --fix --unsafe-fixes .",
 ]
 
-[tasks.lint]
-description = "Run pre-commit checks"
+[tasks.lint-static]
+description = "Run the checks that need no compilation"
 run = [
     "mise run format-check",
     "mise run lint-markdown",
     "mise run lint-python",
+]
+
+[tasks.lint]
+description = "Run pre-commit checks"
+run = [
+    "mise run lint-static",
     "mise run build",
     "mise run test-packages",
 ]

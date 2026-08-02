@@ -5,6 +5,8 @@ version="${RELEASE_VERSION:-$(git describe --tags --always --dirty)}"
 version="${version#v}"
 name="MiniWhisper_${version}_darwin_arm64"
 work_dir=".build/release"
+# Kept outside work_dir so CI can cache dependency clones across runs.
+source_packages=".build/SourcePackages"
 archive_path="${work_dir}/MiniWhisper.xcarchive"
 app_path="${work_dir}/MiniWhisper.app"
 archive="dist/${name}.zip"
@@ -19,6 +21,7 @@ xcodebuild \
   -destination "generic/platform=macOS" \
   -archivePath "${archive_path}" \
   -derivedDataPath "${work_dir}/DerivedData" \
+  -clonedSourcePackagesDirPath "${source_packages}" \
   -skipMacroValidation \
   -skipPackagePluginValidation \
   CODE_SIGNING_ALLOWED=NO \

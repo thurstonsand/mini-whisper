@@ -20,9 +20,23 @@ jobs:
           install: true
           cache: true
 
-      - name: Lint
-        run: mise run lint
+      - name: Cache Swift dependencies
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/Library/Caches/org.swift.swiftpm
+            ~/Library/org.swift.swiftpm
+            .build/DerivedData/SourcePackages
+            Packages/*/.build
+          key: ci-swift-${{ runner.os }}-${{ hashFiles('**/Package.swift') }}
+          restore-keys: |
+            ci-swift-${{ runner.os }}-
 
+      - name: Lint
+        run: mise run lint-static
+
+      # `test` builds the app and its test targets, so a separate build step would
+      # only recompile what the test run already covers.
       - name: Test app and UI
         run: mise run test
 
