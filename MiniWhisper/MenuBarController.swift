@@ -73,6 +73,8 @@ import ComposableArchitecture
     menu.addItem(item(title: "Settings File…", action: #selector(openSettingsFile)))
 
     menu.addItem(.separator())
+    menu.addItem(item(title: "About MiniWhisper", action: #selector(showAbout)))
+
     let quitItem = NSMenuItem(
       title: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
     quitItem.isEnabled = true
@@ -95,4 +97,17 @@ import ComposableArchitecture
   @objc private func toggleLaunchAtLogin() { store.send(.toggleLaunchAtLogin) }
 
   @objc private func openSettingsFile() { store.send(.openSettingsFile) }
+
+  @objc private func showAbout() {
+    let credits = NSAttributedString(
+      string: """
+        Speech recognition uses NVIDIA Parakeet TDT 0.6B v2, licensed under CC BY 4.0.
+        https://huggingface.co/nvidia/parakeet-tdt-0.6b-v2
+
+        MiniWhisper uses FluidAudio, licensed under the Apache License 2.0.
+        https://github.com/FluidInference/FluidAudio
+        """)
+    NSApp.activate(ignoringOtherApps: true)
+    NSApp.orderFrontStandardAboutPanel(options: [.credits: credits])
+  }
 }

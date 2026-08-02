@@ -538,7 +538,7 @@
 				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = MiniWhisper/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Mini Whisper";
+				INFOPLIST_KEY_CFBundleDisplayName = MiniWhisper;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -587,7 +587,7 @@
 				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = MiniWhisper/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Mini Whisper";
+				INFOPLIST_KEY_CFBundleDisplayName = MiniWhisper;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";

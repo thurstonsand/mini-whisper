@@ -1,0 +1,17 @@
+name: Pull Request
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: CI
+    uses: ./.github/workflows/ci.yml

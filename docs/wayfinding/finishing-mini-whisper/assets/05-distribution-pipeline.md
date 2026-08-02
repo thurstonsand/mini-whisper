@@ -281,10 +281,10 @@ Apple Developer Forums are not API reference, but the cited answers are from App
 
 ### Local proven machinery
 
-- `/Users/thurstonsand/Develop/ghosttykit/.github/workflows/release.yml`
-- `/Users/thurstonsand/Develop/ghosttykit/scripts/build-release-archive.sh`
-- `/Users/thurstonsand/Develop/ghosttykit/docs/release.md`
-- `/Users/thurstonsand/Develop/ghosttykit/docs/tcc-macos.md`
-- `/Users/thurstonsand/Develop/homebrew-tap/Casks/wt.rb`
-- `/Users/thurstonsand/Develop/homebrew-tap/.github/workflows/casks.yml`
+- [ghosttykit `release.yml`](https://github.com/thurstonsand/ghosttykit/blob/main/.github/workflows/release.yml)
+- [ghosttykit `build-release-archive.sh`](https://github.com/thurstonsand/ghosttykit/blob/main/scripts/build-release-archive.sh)
+- [ghosttykit `docs/release.md`](https://github.com/thurstonsand/ghosttykit/blob/main/docs/release.md)
+- [ghosttykit `docs/tcc-macos.md`](https://github.com/thurstonsand/ghosttykit/blob/main/docs/tcc-macos.md)
+- [homebrew-tap `Casks/wt.rb`](https://github.com/thurstonsand/homebrew-tap/blob/main/Casks/wt.rb)
+- [homebrew-tap `casks.yml`](https://github.com/thurstonsand/homebrew-tap/blob/main/.github/workflows/casks.yml)
 - [Homebrew Cask Cookbook](https://docs.brew.sh/Cask-Cookbook)

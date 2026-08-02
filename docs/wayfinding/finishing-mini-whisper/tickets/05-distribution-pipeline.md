@@ -9,7 +9,7 @@ blocked-by: []
 
 ## Question
 
-What does the release pipeline look like so an installed MiniWhisper complies at work? The user already has the Apple developer account and signing machinery proven in ghosttykit — read `/Users/thurstonsand/Develop/ghosttykit`'s GitHub Actions workflows and reuse the approach.
+What does the release pipeline look like so an installed MiniWhisper complies at work? The user already has the Apple developer account and signing machinery proven in ghosttykit — read [ghosttykit](https://github.com/thurstonsand/ghosttykit)'s GitHub Actions workflows and reuse the approach.
 
 - Developer ID signing + notarization for a menu bar app with mic + Input Monitoring + Apple Events entitlements; whether the embedded whisper.xcframework changes anything.
 - Cask in the existing `thurstonsand/homebrew-tap`: artifact shape (zip/dmg), versioning, release automation from GHA.

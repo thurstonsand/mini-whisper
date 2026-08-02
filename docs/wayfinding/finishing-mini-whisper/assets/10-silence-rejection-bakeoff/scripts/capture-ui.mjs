@@ -3,7 +3,11 @@ import { spawn } from 'node:child_process';
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { open } from '/Users/thurstonsand/.pi/agent/npm/node_modules/glimpseui/src/glimpse.mjs';
+import { homedir } from 'node:os';
+
+const { open } = await import(
+  resolve(homedir(), '.pi/agent/npm/node_modules/glimpseui/src/glimpse.mjs')
+);
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const args = Object.fromEntries(process.argv.slice(2).map((value, index, all) => value.startsWith('--') ? [value.slice(2), all[index + 1]] : null).filter(Boolean));

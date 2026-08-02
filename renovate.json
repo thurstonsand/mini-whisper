@@ -34,6 +34,15 @@
       "matchPackageNames": ["jdx/hk"],
       "groupName": "hk",
       "groupSlug": "hk"
+    },
+    {
+      "matchManagers": ["swift"],
+      "matchDatasources": ["github-tags"],
+      "matchPackageNames": ["FluidInference/FluidAudio"],
+      "groupName": "FluidAudio",
+      "groupSlug": "fluid-audio",
+      "labels": ["dependencies", "fluid-audio"],
+      "description": "Review FluidAudio dependency changes and rerun the MVP regression corpus before merging."
     }
   ]
 }

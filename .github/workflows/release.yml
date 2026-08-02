@@ -1,0 +1,293 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: CI
+    uses: ./.github/workflows/ci.yml
+
+  resolve:
+    name: Resolve release metadata
+    runs-on: ubuntu-latest
+    outputs:
+      archive_version: ${{ steps.release.outputs.archive_version }}
+      release_tag: ${{ steps.release.outputs.release_tag }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Resolve release metadata
+        id: release
+        run: |
+          set -euo pipefail
+
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            archive_version="${GITHUB_REF_NAME#v}"
+            release_tag="${GITHUB_REF_NAME}"
+          else
+            base_tag="$(git describe --tags --abbrev=0 --match 'v[0-9]*' 2>/dev/null || true)"
+            if [[ -z "${base_tag}" ]]; then
+              base_version="0.0.0"
+            else
+              base_version="${base_tag#v}"
+            fi
+
+            short_sha="${GITHUB_SHA::7}"
+            archive_version="${base_version}-dev-${GITHUB_RUN_ID}-${short_sha}"
+            release_tag="nightly-${archive_version}"
+          fi
+
+          {
+            echo "archive_version=${archive_version}"
+            echo "release_tag=${release_tag}"
+          } >> "${GITHUB_OUTPUT}"
+
+  build-macos:
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - name: darwin-arm64
+            runner: macos-26
+    name: Build (${{ matrix.name }})
+    needs: resolve
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up mise
+        uses: jdx/mise-action@v4
+        with:
+          install: true
+          cache: true
+
+      - name: Validate signing secrets
+        env:
+          APPLE_CODESIGN_IDENTITY: ${{ secrets.APPLE_CODESIGN_IDENTITY }}
+          APPLE_DEVELOPER_ID_CERTIFICATE_BASE64: ${{ secrets.APPLE_DEVELOPER_ID_CERTIFICATE_BASE64 }}
+          APPLE_DEVELOPER_ID_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_CERTIFICATE_PASSWORD }}
+          APPLE_NOTARY_ISSUER_ID: ${{ secrets.APPLE_NOTARY_ISSUER_ID }}
+          APPLE_NOTARY_KEY: ${{ secrets.APPLE_NOTARY_KEY }}
+          APPLE_NOTARY_KEY_ID: ${{ secrets.APPLE_NOTARY_KEY_ID }}
+        run: |
+          test -n "${APPLE_CODESIGN_IDENTITY}"
+          test -n "${APPLE_DEVELOPER_ID_CERTIFICATE_BASE64}"
+          test -n "${APPLE_DEVELOPER_ID_CERTIFICATE_PASSWORD}"
+          test -n "${APPLE_NOTARY_ISSUER_ID}"
+          test -n "${APPLE_NOTARY_KEY}"
+          test -n "${APPLE_NOTARY_KEY_ID}"
+
+      - name: Import Developer ID certificate
+        uses: apple-actions/import-codesign-certs@v7
+        with:
+          p12-file-base64: ${{ secrets.APPLE_DEVELOPER_ID_CERTIFICATE_BASE64 }}
+          p12-password: ${{ secrets.APPLE_DEVELOPER_ID_CERTIFICATE_PASSWORD }}
+
+      - name: Write notarization key
+        env:
+          APPLE_NOTARY_KEY: ${{ secrets.APPLE_NOTARY_KEY }}
+          APPLE_NOTARY_KEY_ID: ${{ secrets.APPLE_NOTARY_KEY_ID }}
+          APPLE_NOTARY_ISSUER_ID: ${{ secrets.APPLE_NOTARY_ISSUER_ID }}
+        run: |
+          key_path="${RUNNER_TEMP}/AuthKey_${APPLE_NOTARY_KEY_ID}.p8"
+          printf '%s' "${APPLE_NOTARY_KEY}" > "${key_path}"
+          chmod 600 "${key_path}"
+          {
+            echo "APPLE_NOTARY_KEY_PATH=${key_path}"
+            echo "APPLE_NOTARY_KEY_ID=${APPLE_NOTARY_KEY_ID}"
+            echo "APPLE_NOTARY_ISSUER_ID=${APPLE_NOTARY_ISSUER_ID}"
+          } >> "${GITHUB_ENV}"
+
+      - name: Build release archive
+        env:
+          RELEASE_VERSION: ${{ needs.resolve.outputs.archive_version }}
+          CODESIGN_IDENTITY: ${{ secrets.APPLE_CODESIGN_IDENTITY }}
+        run: scripts/build-release-archive.sh
+
+      - name: Upload release archive
+        uses: actions/upload-artifact@v7
+        with:
+          name: mini-whisper-${{ matrix.name }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 7
+
+  publish-release:
+    name: Publish GitHub Release
+    needs: [ci, resolve, build-macos]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Download archives
+        uses: actions/download-artifact@v8
+        with:
+          path: dist
+          pattern: mini-whisper-*
+          merge-multiple: true
+
+      - name: Publish tag release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.resolve.outputs.release_tag }}
+        run: |
+          scripts/extract-release-notes.sh "$TAG" > /tmp/mini-whisper-release-notes.md
+          gh release create "$TAG" dist/* \
+            --verify-tag \
+            --title "$TAG" \
+            --notes-file /tmp/mini-whisper-release-notes.md
+
+      - name: Publish main release
+        if: github.ref_type == 'branch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.resolve.outputs.release_tag }}
+        run: |
+          if ! git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null 2>&1; then
+            git tag "$TAG" "$GITHUB_SHA"
+            git push origin "refs/tags/$TAG"
+          fi
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" \
+              --target "$GITHUB_SHA" \
+              --title "$TAG" \
+              --prerelease \
+              --latest=false \
+              --notes "Automated release for ${GITHUB_SHA}."
+            gh release upload "$TAG" dist/* --clobber
+          else
+            gh release create "$TAG" dist/* \
+              --verify-tag \
+              --target "$GITHUB_SHA" \
+              --title "$TAG" \
+              --prerelease \
+              --latest=false \
+              --notes "Automated release for ${GITHUB_SHA}."
+          fi
+
+  update-homebrew-tap:
+    name: Update Homebrew Tap
+    needs: [resolve, publish-release]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Download archives
+        uses: actions/download-artifact@v8
+        with:
+          path: dist
+          pattern: mini-whisper-*
+          merge-multiple: true
+
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@2026.07.29.1
+
+      - name: Checkout Homebrew tap
+        uses: actions/checkout@v7
+        with:
+          repository: thurstonsand/homebrew-tap
+          ssh-key: ${{ secrets.HOMEBREW_TAP_PRIVATE_KEY }}
+          path: homebrew-tap
+
+      - name: Update cask
+        env:
+          RELEASE_REF_TYPE: ${{ github.ref_type }}
+          RELEASE_REF_NAME: ${{ github.ref_name }}
+          RELEASE_TAG: ${{ needs.resolve.outputs.release_tag }}
+          ASSET_VERSION: ${{ needs.resolve.outputs.archive_version }}
+        run: |
+          set -euo pipefail
+
+          arm64_sha="$(cut -d ' ' -f 1 dist/MiniWhisper_*_darwin_arm64.zip.sha256)"
+
+          if [[ "${RELEASE_REF_TYPE}" == "tag" ]]; then
+            cask="homebrew-tap/Casks/mini-whisper.rb"
+            token="mini-whisper"
+            cask_version="${RELEASE_REF_NAME#v}"
+            conflict_cask="mini-whisper-nightly"
+            livecheck=""
+          else
+            cask="homebrew-tap/Casks/mini-whisper-nightly.rb"
+            token="mini-whisper-nightly"
+            cask_version="${ASSET_VERSION}"
+            conflict_cask="mini-whisper"
+            livecheck=$'\n  livecheck do\n    skip "Nightly builds are published from main."\n  end\n'
+          fi
+
+          cat > "${cask}" <<EOF
+          # typed: strict
+          # frozen_string_literal: true
+
+          cask "${token}" do
+            version "${cask_version}"
+            sha256 "${arm64_sha}"
+
+            url "https://github.com/thurstonsand/mini-whisper/releases/download/${RELEASE_TAG}/MiniWhisper_${ASSET_VERSION}_darwin_arm64.zip"
+            name "MiniWhisper"
+            desc "Local speech-to-text dictation"
+            homepage "https://github.com/thurstonsand/mini-whisper"
+          ${livecheck}
+            conflicts_with cask: "${conflict_cask}"
+            depends_on arch: :arm64
+            depends_on macos: :sonoma
+
+            app "MiniWhisper.app"
+
+            # This also removes the downloaded speech model.
+            zap trash: "~/Library/Application Support/MiniWhisper"
+          end
+          EOF
+
+          ruby -c "${cask}"
+          brew style "${cask}"
+
+      - name: Commit cask update
+        working-directory: homebrew-tap
+        env:
+          RELEASE_REF_TYPE: ${{ github.ref_type }}
+          RELEASE_REF_NAME: ${{ github.ref_name }}
+          ASSET_VERSION: ${{ needs.resolve.outputs.archive_version }}
+        run: |
+          set -euo pipefail
+
+          if git diff --quiet -- Casks && [[ -z "$(git ls-files --others --exclude-standard Casks)" ]]; then
+            echo "Cask is already current."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Casks
+
+          if [[ "${RELEASE_REF_TYPE}" == "tag" ]]; then
+            git commit -m "mini-whisper ${RELEASE_REF_NAME#v}"
+          else
+            git commit -m "mini-whisper-nightly ${ASSET_VERSION}"
+          fi
+
+          git push

@@ -21,6 +21,7 @@ buildServer.json
 .bundle/
 
 # Archives & build products
+dist/
 *.ipa
 *.dSYM.zip
 *.dSYM

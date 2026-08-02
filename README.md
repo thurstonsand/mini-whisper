@@ -1,0 +1,51 @@
+# MiniWhisper
+
+MiniWhisper is a macOS menu bar dictation app. It records from the default microphone, transcribes speech locally, and pastes the result into the frontmost app.
+
+Hold right Option to dictate and release it to transcribe. Double-tap right Option to keep recording without holding it; tap once to finish.
+
+## Install
+
+MiniWhisper requires an Apple silicon Mac running macOS 14 or later.
+
+```sh
+brew install thurstonsand/tap/mini-whisper
+```
+
+The speech model is downloaded on first run and is not included in the app bundle.
+
+## Permissions
+
+Onboarding asks for three macOS permissions:
+
+- **Input Monitoring** lets MiniWhisper observe the right Option hotkey while another app is active.
+- **Microphone** lets it record speech for local transcription.
+- **Paste access** lets it send Command-V to the frontmost app. macOS manages this grant under Accessibility.
+
+If automatic paste is unavailable, MiniWhisper leaves the transcript on the clipboard instead.
+
+## Settings
+
+Settings are stored at `~/Library/Application Support/MiniWhisper/settings.json`. The file currently controls the hotkey and sounds.
+
+## Building from source
+
+Building requires Xcode and [mise](https://mise.jdx.dev).
+
+```sh
+git clone https://github.com/thurstonsand/mini-whisper.git
+cd mini-whisper
+mise trust && mise bootstrap
+mise run mw   # build and run
+mise run test # run the test suite
+```
+
+## Attribution
+
+MiniWhisper downloads and uses [NVIDIA Parakeet TDT 0.6B v2](https://huggingface.co/nvidia/parakeet-tdt-0.6b-v2) for speech recognition. NVIDIA licenses the model weights under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The model is downloaded at first run and is not redistributed in the MiniWhisper app bundle.
+
+Transcription is integrated through [FluidAudio](https://github.com/FluidInference/FluidAudio), licensed under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0).
+
+## License
+
+MiniWhisper's source code is available under the [MIT License](LICENSE).
