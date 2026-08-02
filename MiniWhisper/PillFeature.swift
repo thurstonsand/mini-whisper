@@ -12,6 +12,7 @@ import ComposableArchitecture
       enum Notice: Equatable {
         case noSpeechDetected
         case copiedToClipboard
+        case fieldContextUnavailable
       }
 
       case recording(Recording)
@@ -35,6 +36,7 @@ import ComposableArchitecture
     case transcribingStarted
     case noSpeechDetected
     case copiedToClipboard
+    case fieldContextUnavailable
     case dismiss
     case cancel
     case noticeDisplayElapsed(Int)
@@ -91,6 +93,8 @@ import ComposableArchitecture
         return showNotice(.noSpeechDetected, for: .milliseconds(1_500), state: &state)
       case .copiedToClipboard:
         return showNotice(.copiedToClipboard, for: .seconds(3), state: &state)
+      case .fieldContextUnavailable:
+        return showNotice(.fieldContextUnavailable, for: .milliseconds(1_500), state: &state)
       case .dismiss, .cancel:
         state.presentation = nil
         state.isFadingOut = false

@@ -8,6 +8,7 @@ struct PillView: View {
     case transcribing
     case noSpeechDetected
     case copiedToClipboard
+    case fieldContextUnavailable
   }
 
   @Bindable var store: StoreOf<PillFeature>
@@ -41,6 +42,7 @@ struct PillView: View {
     case .transcribing: .transcribing
     case .notice(.noSpeechDetected): .noSpeechDetected
     case .notice(.copiedToClipboard): .copiedToClipboard
+    case .notice(.fieldContextUnavailable): .fieldContextUnavailable
     case nil: .hidden
     }
   }
@@ -77,6 +79,11 @@ struct PillView: View {
       SemanticText(
         "Copied — ⌘V to paste", identifier: AccessibilityID.pillNotice, label: "Dictation notice"
       ).font(.system(size: 13, weight: .medium)).foregroundStyle(.primary)
+    case .notice(.fieldContextUnavailable):
+      SemanticText(
+        "Pasted — could not collect surrounding context", identifier: AccessibilityID.pillNotice,
+        label: "Dictation notice"
+      ).font(.system(size: 13, weight: .medium)).foregroundStyle(.secondary)
     }
   }
 
@@ -100,6 +107,10 @@ struct PillView: View {
       )
     case .notice(.copiedToClipboard):
       semanticLeaf(identifier: AccessibilityID.pillPhase, label: "Dictation phase", value: "Copied")
+    case .notice(.fieldContextUnavailable):
+      semanticLeaf(
+        identifier: AccessibilityID.pillPhase, label: "Dictation phase",
+        value: "Pasted without field context")
     }
   }
 

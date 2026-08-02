@@ -15,5 +15,6 @@
 - Degraded: a failure state represented in the menu bar — missing Input Monitoring, blocked microphone, a dead event tap, or an uninstalled/failed model.
 - Onboarding: the app's only modal flow — welcome, sequential permissions, model download/compile/prewarm, and one real try-it dictation; the welcome button records bandwidth consent and starts a durable background download that resumes across relaunches.
 - Settings file: `~/Library/Application Support/MiniWhisper/settings.json`, the human-editable settings surface until the settings UI stake lands.
+- Field context: the text around the insertion point of the focused field.
 - Cleanup pass: the optional post-transcription LLM pass, talking to a configurable OpenAI-compatible endpoint.
 - The allowlist: A list of permitted software/libraries.

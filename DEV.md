@@ -31,6 +31,7 @@ mise run benchmark-live # Build, launch, measure three real capture cycles, and 
 - `MiniWhisper/` — SwiftUI app target (thin shell, NSStatusItem menu, TCA features and clients)
 - `Packages/AudioCapture` — AVAudioEngine mic capture, canonical whole-utterance accumulation, level metering
 - `Packages/ASREngine` — silence gate + transcription
+- `Packages/FieldContext` — focused-field capture payload, fallback taxonomy, and the transcript join rules
 - `Packages/TranscriptCleanup` — optional LLM cleanup client
 - `Packages/HotkeyListener` — pinned-modifier event pipeline and hold/latch state machine
 

@@ -1,6 +1,7 @@
 import ASREngine
 import AudioCapture
 import ComposableArchitecture
+import FieldContext
 import Foundation
 import HotkeyListener
 import Testing
@@ -32,6 +33,7 @@ import Testing
       $0.audioCapture.currentInputDeviceName = { "Test Microphone" }
       $0.audioCapture.writeDebugWAV = { _ in debugURL }
       $0.asrEngine.submit = { _ in .noSpeech }
+      $0.contextCapture.prewarmFrontmostApp = {}
       $0.continuousClock = clock
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
@@ -473,8 +475,10 @@ import Testing
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
+      // The captured field ends in a sentence, so the joined paste gains a space and a capital.
+      $0.contextCapture.capture = { .available(context(before: "We arrived at noon.")) }
       $0.delivery.deliver = { transcript in
-        #expect(transcript == "delivered text")
+        #expect(transcript == " Delivered text")
         return .pasted(.restored)
       }
       $0.sounds.play = { cue in await sounds.record(cue) }
@@ -483,8 +487,88 @@ import Testing
     await store.send(
       .transcriptionCompleted(1, suppressNoSpeechNotice: false, .transcript("delivered text"))
     ) { $0.lastTranscript = "delivered text" }
-    await store.receive(.deliveryCompleted(1, .pasted(.restored)))
+    await store.receive(.contextCaptured(1, .available(context(before: "We arrived at noon.")))) {
+      $0.currentFocusedContext = .available(context(before: "We arrived at noon."))
+    }
+    await store.receive(.deliveryCompleted(1, .pasted(.restored))) {
+      $0.currentFocusedContext = nil
+    }
     await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
+    await store.finish()
+    #expect(await sounds.recorded == [.commit])
+  }
+
+  @Test func aStalledCaptureCannotPasteIntoTheDictationThatReplacedIt() async {
+    let (gate, openGate) = AsyncStream.makeStream(of: Void.self)
+    let deliveries = PrewarmCounter()
+    var state = AppFeature.State()
+    state.transcriptionGeneration = 1
+    state.onboardingCompleted = true
+    state.pill.presentation = .transcribing
+    let store = TestStore(initialState: state) {
+      AppFeature()
+    } withDependencies: {
+      $0.contextCapture.capture = {
+        for await _ in gate {}
+        return .unavailable(.noFocusedElement)
+      }
+      $0.contextCapture.prewarmFrontmostApp = {}
+      $0.delivery.deliver = { _ in
+        await deliveries.record()
+        return .pasted(.restored)
+      }
+      $0.audioCapture.start = {
+        AudioCaptureSession(
+          id: UUID(), inputDeviceName: "Test Microphone", events: AsyncStream { $0.finish() })
+      }
+      $0.audioCapture.cancel = { _ in }
+      $0.audioCapture.currentInputDeviceName = { "Test Microphone" }
+      $0.asrEngine.prepareForActivation = { AsyncStream { $0.finish() } }
+      $0.continuousClock = TestClock()
+    }
+    store.exhaustivity = .off(showSkippedAssertions: false)
+
+    await store.send(
+      .transcriptionCompleted(1, suppressNoSpeechNotice: false, .transcript("late arrival")))
+    await store.send(.hotkeyListenerEvent(.gesture(.startRecording)))
+    openGate.finish()
+    await store.finish()
+    #expect(await deliveries.count == 0)
+    #expect(store.state.currentFocusedContext == nil)
+  }
+
+  @Test func unavailableContextPastesBlindAndSaysSo() async {
+    let sounds = SoundRecorder()
+    let clock = TestClock()
+    var state = AppFeature.State()
+    state.transcriptionGeneration = 1
+    state.soundsEnabled = true
+    state.pill.presentation = .transcribing
+    let unavailable = ContextCapture.unavailable(.gridSemantics(bundleID: "com.mitchellh.ghostty"))
+    let store = TestStore(initialState: state) {
+      AppFeature()
+    } withDependencies: {
+      $0.contextCapture.capture = { unavailable }
+      $0.delivery.deliver = { transcript in
+        #expect(transcript == "delivered text")
+        return .pasted(.restored)
+      }
+      $0.sounds.play = { cue in await sounds.record(cue) }
+      $0.continuousClock = clock
+    }
+
+    await store.send(
+      .transcriptionCompleted(1, suppressNoSpeechNotice: false, .transcript("delivered text"))
+    ) { $0.lastTranscript = "delivered text" }
+    await store.receive(.contextCaptured(1, unavailable)) { $0.currentFocusedContext = unavailable }
+    await store.receive(.deliveryCompleted(1, .pasted(.restored))) {
+      $0.currentFocusedContext = nil
+    }
+    await store.receive(.pill(.fieldContextUnavailable)) {
+      $0.pill.noticeGeneration = 1
+      $0.pill.presentation = .notice(.fieldContextUnavailable)
+    }
+    await store.send(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
     #expect(await sounds.recorded == [.commit])
   }
@@ -517,6 +601,7 @@ import Testing
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
+      $0.contextCapture.capture = { .unavailable(.accessibilityPermissionMissing) }
       $0.delivery.deliver = { _ in .copied(.accessibilityPermissionMissing) }
       $0.sounds.play = { cue in await sounds.record(cue) }
       $0.continuousClock = clock
@@ -525,7 +610,12 @@ import Testing
     await store.send(
       .transcriptionCompleted(3, suppressNoSpeechNotice: false, .transcript("copy me"))
     ) { $0.lastTranscript = "copy me" }
-    await store.receive(.deliveryCompleted(3, .copied(.accessibilityPermissionMissing)))
+    await store.receive(.contextCaptured(3, .unavailable(.accessibilityPermissionMissing))) {
+      $0.currentFocusedContext = .unavailable(.accessibilityPermissionMissing)
+    }
+    await store.receive(.deliveryCompleted(3, .copied(.accessibilityPermissionMissing))) {
+      $0.currentFocusedContext = nil
+    }
     await store.receive(.pill(.copiedToClipboard)) {
       $0.pill.noticeGeneration = 1
       $0.pill.presentation = .notice(.copiedToClipboard)
@@ -537,6 +627,7 @@ import Testing
 
   @Test func recordingStartAndDiscardUseTheirDistinctCues() async {
     let sounds = SoundRecorder()
+    let prewarms = PrewarmCounter()
     var state = AppFeature.State()
     state.soundsEnabled = true
     state.recording.phase = .recording
@@ -546,6 +637,7 @@ import Testing
     } withDependencies: {
       $0.audioCapture.currentInputDeviceName = { "Microphone" }
       $0.asrEngine.prepareForActivation = { AsyncStream { $0.finish() } }
+      $0.contextCapture.prewarmFrontmostApp = { await prewarms.record() }
       $0.sounds.play = { cue in await sounds.record(cue) }
     }
 
@@ -565,6 +657,8 @@ import Testing
     #expect(recorded.count == 2)
     #expect(recorded.contains(.recordStart))
     #expect(recorded.contains(.cancel))
+    // Chromium's wake walk belongs to recording start, never to delivery.
+    #expect(await prewarms.count == 1)
   }
 
   @Test func secureInputUsesTheCopiedFallback() async {
@@ -600,6 +694,7 @@ import Testing
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
+      $0.contextCapture.capture = { .unavailable(.noFocusedElement) }
       $0.delivery.deliver = { _ in throw DeliveryError.pasteboardWriteFailed }
       $0.sounds.play = { cue in await sounds.record(cue) }
     }
@@ -608,7 +703,10 @@ import Testing
     await store.send(
       .transcriptionCompleted(5, suppressNoSpeechNotice: false, .transcript("undeliverable"))
     ) { $0.lastTranscript = "undeliverable" }
-    await store.receive(.deliveryFailed(5, message))
+    await store.receive(.contextCaptured(5, .unavailable(.noFocusedElement))) {
+      $0.currentFocusedContext = .unavailable(.noFocusedElement)
+    }
+    await store.receive(.deliveryFailed(5, message)) { $0.currentFocusedContext = nil }
     await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
     #expect(await sounds.recorded == [.error])
@@ -636,4 +734,17 @@ private actor SoundRecorder {
   private(set) var recorded: [SoundCue] = []
 
   func record(_ cue: SoundCue) { recorded.append(cue) }
+}
+
+private actor PrewarmCounter {
+  private(set) var count = 0
+
+  func record() { count += 1 }
+}
+
+private func context(before: String) -> FocusedTextContext {
+  FocusedTextContext(
+    role: "AXTextArea", before: before, selected: "", after: "",
+    selectedRange: before.utf16.count..<before.utf16.count, beforeWasTruncated: false,
+    selectionWasTruncated: false, afterWasTruncated: false)
 }

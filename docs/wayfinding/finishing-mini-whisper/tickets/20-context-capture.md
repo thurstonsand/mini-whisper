@@ -1,10 +1,14 @@
 ---
-status: open
+status: closed
 type: grilling
 blocked-by: [8]
 ---
 
 # Context capture: read the focused field before delivering
+
+## Resolution
+
+Prototyped, then implemented. The probe evidence and design (target matrix, payload, taxonomy, prior-art comparison) live in [the research asset](../assets/20-context-capture.md). Implementation: `Packages/FieldContext` (payload, validated range planner, join rules) plus an app-side reader — per-app focus resolution (never system-wide), 20 ms per-element timeouts under a 60 ms capture deadline, bounded 256-unit windows with surrogate-safe cuts, all-or-nothing conformance; any unavailable case pastes blind and shows a transient pill notice. No new permission ask: the Paste Access grant covers AX reads. One design reversal recorded during implementation: the mechanical terminal earn-back was withdrawn — the probe's own Terminal.app/nvim row (`{193, 0}` over pure grid) proved a nonzero in-bounds caret cannot distinguish document from grid semantics, so terminals stay `gridSemantics` until a per-terminal, per-version validated contract exists (Ghostty's upstream AX work is the likely first). The captured context feeds spacing/capitalization now and is shaped for the LLM cleanup pass ([ticket 18](18-llm-cleanup.md)) later.
 
 ## Question
 

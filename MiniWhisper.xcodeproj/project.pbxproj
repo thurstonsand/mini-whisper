@@ -19,6 +19,7 @@
 		60292D092EF609C2009AD5D1 /* AudioCapture in Frameworks */ = {isa = PBXBuildFile; productRef = 60292D082EF609C2009AD5D1 /* AudioCapture */; };
 		60292D0B2EF609C5009AD5D1 /* HotkeyListener in Frameworks */ = {isa = PBXBuildFile; productRef = 60292D0A2EF609C5009AD5D1 /* HotkeyListener */; };
 		60292D0D2EF609C7009AD5D1 /* TranscriptCleanup in Frameworks */ = {isa = PBXBuildFile; productRef = 60292D0C2EF609C7009AD5D1 /* TranscriptCleanup */; };
+		60FC0001000000000000FC01 /* FieldContext in Frameworks */ = {isa = PBXBuildFile; productRef = 60FC0002000000000000FC02 /* FieldContext */; };
 		60292D0F2EF609C9009AD5D1 /* DependenciesMacros in Frameworks */ = {isa = PBXBuildFile; productRef = 60292D0E2EF609C9009AD5D1 /* DependenciesMacros */; };
 /* End PBXBuildFile section */
 
@@ -47,6 +48,7 @@
 		604379AB2EF60DC600B83635 /* AudioCapture */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = AudioCapture; sourceTree = "<group>"; };
 		604379AC2EF60DC600B83635 /* HotkeyListener */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = HotkeyListener; sourceTree = "<group>"; };
 		604379AD2EF60DC600B83635 /* TranscriptCleanup */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = TranscriptCleanup; sourceTree = "<group>"; };
+		60FC0003000000000000FC03 /* FieldContext */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = FieldContext; sourceTree = "<group>"; };
 		604379AF2EF6153500B83635 /* justfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = justfile; sourceTree = "<group>"; };
 		604379B02EF6153C00B83635 /* Bootstrap-Guide.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "Bootstrap-Guide.md"; sourceTree = "<group>"; };
 		604379B12EF6153C00B83635 /* Scaffolding.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Scaffolding.md; sourceTree = "<group>"; };
@@ -102,6 +104,7 @@
 				60292D0B2EF609C5009AD5D1 /* HotkeyListener in Frameworks */,
 				60292D072EF609BE009AD5D1 /* ASREngine in Frameworks */,
 				60292D0D2EF609C7009AD5D1 /* TranscriptCleanup in Frameworks */,
+				60FC0001000000000000FC01 /* FieldContext in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -165,6 +168,7 @@
 				604379AB2EF60DC600B83635 /* AudioCapture */,
 				604379AC2EF60DC600B83635 /* HotkeyListener */,
 				604379AD2EF60DC600B83635 /* TranscriptCleanup */,
+				60FC0003000000000000FC03 /* FieldContext */,
 			);
 			path = Packages;
 			sourceTree = "<group>";
@@ -226,6 +230,7 @@
 				60292D082EF609C2009AD5D1 /* AudioCapture */,
 				60292D0A2EF609C5009AD5D1 /* HotkeyListener */,
 				60292D0C2EF609C7009AD5D1 /* TranscriptCleanup */,
+				60FC0002000000000000FC02 /* FieldContext */,
 			);
 			productName = MiniWhisper;
 			productReference = 60292CD52EF603C8009AD5D1 /* MiniWhisper.app */;
@@ -822,6 +827,10 @@
 		60292D0C2EF609C7009AD5D1 /* TranscriptCleanup */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = TranscriptCleanup;
+		};
+		60FC0002000000000000FC02 /* FieldContext */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FieldContext;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

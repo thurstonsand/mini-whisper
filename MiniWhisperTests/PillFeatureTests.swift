@@ -93,6 +93,27 @@ import Testing
     }
   }
 
+  @Test func fieldContextNoticeIsAsBriefAsTheNoSpeechOne() async {
+    let clock = TestClock()
+    let store = TestStore(initialState: PillFeature.State()) {
+      PillFeature()
+    } withDependencies: {
+      $0.continuousClock = clock
+    }
+
+    await store.send(.fieldContextUnavailable) {
+      $0.noticeGeneration = 1
+      $0.presentation = .notice(.fieldContextUnavailable)
+    }
+    await clock.advance(by: .milliseconds(1_500))
+    await store.receive(.noticeDisplayElapsed(1)) { $0.isFadingOut = true }
+    await clock.advance(by: .milliseconds(180))
+    await store.receive(.noticeFadeElapsed(1)) {
+      $0.presentation = nil
+      $0.isFadingOut = false
+    }
+  }
+
   @Test func copiedNoticeLingersForThreeSeconds() async {
     let clock = TestClock()
     let store = TestStore(initialState: PillFeature.State()) {

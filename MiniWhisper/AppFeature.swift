@@ -1,6 +1,7 @@
 import ASREngine
 import AudioCapture
 import ComposableArchitecture
+import FieldContext
 import Foundation
 import HotkeyListener
 import OSLog
@@ -41,6 +42,7 @@ private func canProbePasteAccess(
     var inputDeviceName: String?
     var launchAtLoginRegistered = false
     var lastTranscript: String?
+    var currentFocusedContext: ContextCapture?
     var pasteAccessGranted = false
     var onboardingCompleted = false
     var modelDownloadConsented = false
@@ -85,14 +87,16 @@ private func canProbePasteAccess(
     case soundsSettingsFailed(String)
     case transcriptionCompleted(Int, suppressNoSpeechNotice: Bool, TranscriptionOutcome)
     case transcriptionFailed(Int, String)
+    case contextCaptured(Int, ContextCapture)
     case deliveryCompleted(Int, DeliveryOutcome)
     case deliveryFailed(Int, String)
   }
 
-  private enum CancelID { case transcription, hotkeyEvents }
+  private enum CancelID { case transcription, delivery, hotkeyEvents }
 
   @Dependency(\.asrEngine) var asrEngine
   @Dependency(\.audioCapture) var audioCapture
+  @Dependency(\.contextCapture) var contextCapture
   @Dependency(\.delivery) var delivery
   @Dependency(\.hotkeyListener) var hotkeyListener
   @Dependency(\.launchAtLogin) var launchAtLogin
@@ -164,14 +168,18 @@ private func canProbePasteAccess(
         case .startRecording:
           performanceLogger.notice("benchmark app-activation-received")
           state.transcriptionGeneration += 1
+          state.currentFocusedContext = nil
           return .concatenate(
             .send(
               .pill(
                 .recordingStarting(
                   inputDeviceName: audioCapture.currentInputDeviceName() ?? "Microphone"))),
             .merge(
-              .cancel(id: CancelID.transcription), .send(.recording(.startRecording)),
+              .cancel(id: CancelID.transcription), .cancel(id: CancelID.delivery),
+              .send(.recording(.startRecording)),
               playSound(.recordStart, enabled: state.soundsEnabled),
+              // Waking a Chromium tree costs far more than delivery can spend, so it happens here.
+              .run { _ in await contextCapture.prewarmFrontmostApp() },
               .run { send in
                 for await readiness in asrEngine.prepareForActivation() {
                   await send(.engineReadinessUpdated(readiness))
@@ -312,10 +320,16 @@ private func canProbePasteAccess(
         state.lastTranscript = transcript
         engineLogger.notice("Transcript: \(transcript, privacy: .public)")
         return .run { send in
+          let capture = await contextCapture.capture()
+          // A newer dictation has already claimed the field; this paste would land in it.
+          guard !Task.isCancelled else { return }
+          await send(.contextCaptured(generation, capture))
+          let adjusted = capture.adjusted(transcript)
+          guard !Task.isCancelled else { return }
           do {
-            await send(.deliveryCompleted(generation, try await delivery.deliver(transcript)))
+            await send(.deliveryCompleted(generation, try await delivery.deliver(adjusted)))
           } catch { await send(.deliveryFailed(generation, error.localizedDescription)) }
-        }
+        }.cancellable(id: CancelID.delivery, cancelInFlight: true)
       case .transcriptionCompleted(let generation, let suppressNotice, .noSpeech):
         guard generation == state.transcriptionGeneration else { return .none }
         engineLogger.notice("Gate rejected recording: no speech")
@@ -339,6 +353,10 @@ private func canProbePasteAccess(
         return .merge(
           .send(.pill(.dismiss)), onboardingTryIt(.failed(message), state),
           playSound(.error, enabled: state.soundsEnabled))
+      case .contextCaptured(let generation, let capture):
+        guard generation == state.transcriptionGeneration else { return .none }
+        state.currentFocusedContext = capture
+        return .none
       case .deliveryCompleted(let generation, .pasted(let restoration)):
         guard generation == state.transcriptionGeneration else { return .none }
         switch restoration {
@@ -349,9 +367,13 @@ private func canProbePasteAccess(
         }
         let onboardingSuccess =
           state.lastTranscript.map { onboardingTryIt(.delivered($0), state) } ?? .none
+        let pill: PillFeature.Action =
+          if case .unavailable = state.currentFocusedContext { .fieldContextUnavailable } else {
+            .dismiss
+          }
+        state.currentFocusedContext = nil
         return .merge(
-          .send(.pill(.dismiss)), onboardingSuccess,
-          playSound(.commit, enabled: state.soundsEnabled))
+          .send(.pill(pill)), onboardingSuccess, playSound(.commit, enabled: state.soundsEnabled))
       case .deliveryCompleted(let generation, .copied(let fallback)):
         guard generation == state.transcriptionGeneration else { return .none }
         switch fallback {
@@ -364,6 +386,7 @@ private func canProbePasteAccess(
         case .eventCreationFailed:
           deliveryLogger.error("Paste command creation failed; transcript kept on clipboard")
         }
+        state.currentFocusedContext = nil
         return .merge(
           .send(.pill(.copiedToClipboard)),
           onboardingTryIt(
@@ -372,6 +395,7 @@ private func canProbePasteAccess(
             ), state), playSound(.error, enabled: state.soundsEnabled))
       case .deliveryFailed(let generation, let message):
         guard generation == state.transcriptionGeneration else { return .none }
+        state.currentFocusedContext = nil
         deliveryLogger.error("Transcript delivery failed: \(message, privacy: .public)")
         return .merge(
           .send(.pill(.dismiss)), onboardingTryIt(.failed(message), state),
