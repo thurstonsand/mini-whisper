@@ -41,7 +41,14 @@ if [[ -n "${CODESIGN_IDENTITY:-}" ]]; then
     "${app_path}"
 fi
 
-if [[ -n "${APPLE_NOTARY_KEY_PATH:-}" && -n "${APPLE_NOTARY_KEY_ID:-}" && -n "${APPLE_NOTARY_ISSUER_ID:-}" ]]; then
+# A partially configured notary environment must fail rather than silently ship an
+# unnotarized archive that Gatekeeper will reject on the user's machine.
+if [[ -n "${APPLE_NOTARY_KEY_PATH:-}${APPLE_NOTARY_KEY_ID:-}${APPLE_NOTARY_ISSUER_ID:-}" ]]; then
+  : "${CODESIGN_IDENTITY:?CODESIGN_IDENTITY is required for notarization}"
+  : "${APPLE_NOTARY_KEY_PATH:?APPLE_NOTARY_KEY_PATH is required for notarization}"
+  : "${APPLE_NOTARY_KEY_ID:?APPLE_NOTARY_KEY_ID is required for notarization}"
+  : "${APPLE_NOTARY_ISSUER_ID:?APPLE_NOTARY_ISSUER_ID is required for notarization}"
+
   notary_archive="${work_dir}/MiniWhisper-notarization.zip"
   /usr/bin/ditto -c -k --sequesterRsrc --keepParent "${app_path}" "${notary_archive}"
   xcrun notarytool submit "${notary_archive}" \
