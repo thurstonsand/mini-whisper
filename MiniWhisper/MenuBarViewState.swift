@@ -37,6 +37,7 @@ struct MenuBarViewState: Equatable {
   let launchAtLoginRegistered: Bool
 
   var iconSymbolName: String { degradation == nil ? "mic" : "mic.slash" }
+  var accessibilityStatusText: String { statusText.replacingOccurrences(of: " · ", with: "; ") }
 
   init(
     hotkeyTap: HotkeyTapStatus, micStatus: MicPermissionStatus, pasteAccessGranted: Bool?,

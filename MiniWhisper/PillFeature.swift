@@ -23,6 +23,7 @@ import ComposableArchitecture
     var isFadingOut = false
     var bounceCount = 0
     var isLatchBouncePending = false
+    var accessibilityLevel = 0
     var noticeGeneration = 0
   }
 
@@ -51,11 +52,13 @@ import ComposableArchitecture
         state.presentation = .recording(
           State.Presentation.Recording(inputDeviceName: inputDeviceName, level: 0, isLive: false))
         state.isFadingOut = false
+        state.accessibilityLevel = 0
         return .cancel(id: CancelID.notice)
       case .recordingStarted(let inputDeviceName):
         state.presentation = .recording(
           State.Presentation.Recording(inputDeviceName: inputDeviceName, level: 0, isLive: true))
         state.isFadingOut = false
+        state.accessibilityLevel = 0
         if state.isLatchBouncePending {
           state.bounceCount += 1
           state.isLatchBouncePending = false
@@ -67,6 +70,10 @@ import ComposableArchitecture
         }
         recording.level = level
         state.presentation = .recording(recording)
+        let accessibilityLevel = Self.accessibilityPercentageBucket(level)
+        if accessibilityLevel != state.accessibilityLevel {
+          state.accessibilityLevel = accessibilityLevel
+        }
         return .none
       case .latchEngaged:
         if case .recording = state.presentation {
@@ -107,6 +114,10 @@ import ComposableArchitecture
         return .none
       }
     }
+  }
+
+  private static func accessibilityPercentageBucket(_ level: Float) -> Int {
+    Int((min(max(level, 0), 1) * 10).rounded()) * 10
   }
 
   private func showNotice(

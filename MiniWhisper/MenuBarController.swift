@@ -4,15 +4,20 @@ import ComposableArchitecture
 @MainActor final class MenuBarController: NSObject, NSMenuDelegate {
   private let store: StoreOf<AppFeature>
   private let statusItem: NSStatusItem
+  private let refreshesStateOnOpen: Bool
   private let menu = NSMenu()
+  private let aboutWindowController = AboutWindowController()
   private var renderedIconSymbolName: String?
 
-  init(store: StoreOf<AppFeature>) {
+  init(store: StoreOf<AppFeature>, refreshesStateOnOpen: Bool = true) {
     self.store = store
+    self.refreshesStateOnOpen = refreshesStateOnOpen
     statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     super.init()
 
-    statusItem.button?.setAccessibilityIdentifier("MiniWhisperStatusItem")
+    statusItem.button?.setAccessibilityIdentifier(AccessibilityID.menuStatusItem)
+    statusItem.button?.setAccessibilityLabel("MiniWhisper")
+    statusItem.button?.setAccessibilityHelp("Open the MiniWhisper menu")
     menu.autoenablesItems = false
     menu.delegate = self
     statusItem.menu = menu
@@ -21,9 +26,11 @@ import ComposableArchitecture
   }
 
   func menuNeedsUpdate(_ menu: NSMenu) {
-    store.send(.menuWillOpen)
+    if refreshesStateOnOpen { store.send(.menuWillOpen) }
     rebuild(menu, state: store.state.menuBar)
   }
+
+  func refreshAgentScene() { rebuild(menu, state: store.state.menuBar) }
 
   private func observeIcon() {
     withObservationTracking {
@@ -48,43 +55,69 @@ import ComposableArchitecture
   private func rebuild(_ menu: NSMenu, state: MenuBarViewState) {
     menu.removeAllItems()
 
-    let statusLine = NSMenuItem(title: state.statusText, action: nil, keyEquivalent: "")
-    statusLine.isEnabled = false
-    menu.addItem(statusLine)
+    menu.addItem(
+      item(
+        title: state.statusText, identifier: AccessibilityID.menuStatus, label: "Status",
+        value: state.accessibilityStatusText, action: nil, isEnabled: false))
 
     if let repairTitle = state.repairTitle {
       menu.addItem(.separator())
-      menu.addItem(item(title: repairTitle, action: #selector(repairDegradedState)))
+      menu.addItem(
+        item(
+          title: repairTitle, identifier: AccessibilityID.menuRepair, label: repairTitle,
+          action: #selector(repairDegradedState)))
     }
 
     menu.addItem(.separator())
-    let copyItem = item(title: "Copy Last Transcript", action: #selector(copyLastTranscript))
-    copyItem.isEnabled = state.canCopyLastTranscript
-    menu.addItem(copyItem)
+    menu.addItem(
+      item(
+        title: "Copy Last Transcript", identifier: AccessibilityID.menuCopyLastTranscript,
+        label: "Copy Last Transcript", action: #selector(copyLastTranscript),
+        isEnabled: state.canCopyLastTranscript))
 
-    let soundsItem = item(title: "Sounds", action: #selector(toggleSounds))
+    let soundsValue = state.soundsEnabled ? "On" : "Off"
+    let soundsItem = item(
+      title: "Sounds", identifier: AccessibilityID.menuSounds, label: "Sounds", value: soundsValue,
+      action: #selector(toggleSounds))
     soundsItem.state = state.soundsEnabled ? .on : .off
     menu.addItem(soundsItem)
 
-    let launchItem = item(title: "Launch at Login", action: #selector(toggleLaunchAtLogin))
+    let launchValue = state.launchAtLoginRegistered ? "On" : "Off"
+    let launchItem = item(
+      title: "Launch at Login", identifier: AccessibilityID.menuLaunchAtLogin,
+      label: "Launch at Login", value: launchValue, action: #selector(toggleLaunchAtLogin))
     launchItem.state = state.launchAtLoginRegistered ? .on : .off
     menu.addItem(launchItem)
 
-    menu.addItem(item(title: "Settings File…", action: #selector(openSettingsFile)))
+    menu.addItem(
+      item(
+        title: "Settings File…", identifier: AccessibilityID.menuSettingsFile,
+        label: "Open Settings File", action: #selector(openSettingsFile)))
 
     menu.addItem(.separator())
-    menu.addItem(item(title: "About MiniWhisper", action: #selector(showAbout)))
+    menu.addItem(
+      item(
+        title: "About MiniWhisper", identifier: AccessibilityID.menuAbout,
+        label: "About MiniWhisper", action: #selector(showAbout)))
 
-    let quitItem = NSMenuItem(
-      title: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
-    quitItem.isEnabled = true
+    let quitItem = item(
+      title: "Quit", identifier: AccessibilityID.menuQuit, label: "Quit MiniWhisper",
+      action: #selector(NSApplication.terminate(_:)))
+    quitItem.target = nil
+    quitItem.keyEquivalent = "q"
     menu.addItem(quitItem)
   }
 
-  private func item(title: String, action: Selector) -> NSMenuItem {
+  private func item(
+    title: String, identifier: String, label: String, value: String? = nil, action: Selector?,
+    isEnabled: Bool = true
+  ) -> NSMenuItem {
     let item = NSMenuItem(title: title, action: action, keyEquivalent: "")
     item.target = self
-    item.isEnabled = true
+    item.isEnabled = isEnabled
+    item.setAccessibilityIdentifier(identifier)
+    item.setAccessibilityLabel(label)
+    item.setAccessibilityValue(value)
     return item
   }
 
@@ -98,16 +131,7 @@ import ComposableArchitecture
 
   @objc private func openSettingsFile() { store.send(.openSettingsFile) }
 
-  @objc private func showAbout() {
-    let credits = NSAttributedString(
-      string: """
-        Speech recognition uses NVIDIA Parakeet TDT 0.6B v2, licensed under CC BY 4.0.
-        https://huggingface.co/nvidia/parakeet-tdt-0.6b-v2
+  func presentAbout() { aboutWindowController.present() }
 
-        MiniWhisper uses FluidAudio, licensed under the Apache License 2.0.
-        https://github.com/FluidInference/FluidAudio
-        """)
-    NSApp.activate(ignoringOtherApps: true)
-    NSApp.orderFrontStandardAboutPanel(options: [.credits: credits])
-  }
+  @objc private func showAbout() { presentAbout() }
 }

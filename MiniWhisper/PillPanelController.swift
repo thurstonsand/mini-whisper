@@ -18,6 +18,11 @@ private let performanceLogger = Logger(
     self.store = store
     self.panel = NonactivatingPillPanel()
 
+    panel.title = "MiniWhisper dictation"
+    panel.setAccessibilityIdentifier(AccessibilityID.pill)
+    panel.setAccessibilityLabel("MiniWhisper dictation")
+    panel.setAccessibilityTitle("MiniWhisper dictation")
+
     let hostingView = NSHostingView(rootView: PillView(store: store))
     hostingView.frame = NSRect(origin: .zero, size: Self.panelSize)
     panel.contentView = hostingView
@@ -53,6 +58,7 @@ private let performanceLogger = Logger(
   }
 
   private func render(isVisible: Bool) {
+    panel.setAccessibilityValue(isVisible ? "Visible" : "Hidden")
     guard isVisible != lastVisibility else { return }
     lastVisibility = isVisible
 

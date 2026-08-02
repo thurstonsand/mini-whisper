@@ -1,0 +1,90 @@
+enum AccessibilityID {
+  static let menuStatusItem = "miniwhisper.menu.status-item"
+  static let menuStatus = "miniwhisper.menu.status"
+  static let menuRepair = "miniwhisper.menu.repair"
+  static let menuCopyLastTranscript = "miniwhisper.menu.copy-last-transcript"
+  static let menuSounds = "miniwhisper.menu.sounds"
+  static let menuLaunchAtLogin = "miniwhisper.menu.launch-at-login"
+  static let menuSettingsFile = "miniwhisper.menu.settings-file"
+  static let menuAbout = "miniwhisper.menu.about"
+  static let menuQuit = "miniwhisper.menu.quit"
+
+  static let aboutWindow = "miniwhisper.about.window"
+  static let aboutContent = "miniwhisper.about.content"
+  static let aboutIcon = "miniwhisper.about.icon"
+  static let aboutAppName = "miniwhisper.about.app-name"
+  static let aboutVersion = "miniwhisper.about.version"
+  static let aboutAttribution = "miniwhisper.about.attribution"
+  static let aboutModelLink = "miniwhisper.about.model-link"
+  static let aboutFluidAudioAttribution = "miniwhisper.about.fluid-audio-attribution"
+  static let aboutFluidAudioLink = "miniwhisper.about.fluid-audio-link"
+  static let aboutClose = "miniwhisper.about.close"
+
+  static let onboardingWindow = "miniwhisper.onboarding.window"
+  static let onboardingWelcome = "miniwhisper.onboarding.welcome"
+  static let onboardingWelcomeTitle = "miniwhisper.onboarding.welcome.title"
+  static let onboardingWelcomeSummary = "miniwhisper.onboarding.welcome.summary"
+  static let onboardingWelcomeModelInfo = "miniwhisper.onboarding.welcome.model-info"
+  static let onboardingDownloadModel = "miniwhisper.onboarding.download-model"
+  static let onboardingWelcomeFailure = "miniwhisper.onboarding.welcome.failure"
+
+  static let onboardingRail = "miniwhisper.onboarding.rail"
+  static let onboardingRailBrand = "miniwhisper.onboarding.rail.brand"
+  static let onboardingRailTagline = "miniwhisper.onboarding.rail.tagline"
+  static let onboardingRailPermissions = "miniwhisper.onboarding.rail.permissions"
+  static let onboardingRailModel = "miniwhisper.onboarding.rail.model"
+  static let onboardingRailTryIt = "miniwhisper.onboarding.rail.try-it"
+
+  static let onboardingPermissions = "miniwhisper.onboarding.permissions"
+  static let onboardingPermissionsTitle = "miniwhisper.onboarding.permissions.title"
+  static let onboardingPermissionsSummary = "miniwhisper.onboarding.permissions.summary"
+  static let onboardingPermissionInputMonitoring =
+    "miniwhisper.onboarding.permission.input-monitoring"
+  static let onboardingPermissionInputMonitoringStatus =
+    "miniwhisper.onboarding.permission.input-monitoring.status"
+  static let onboardingPermissionInputMonitoringAction =
+    "miniwhisper.onboarding.permission.input-monitoring.action"
+  static let onboardingPermissionMicrophone = "miniwhisper.onboarding.permission.microphone"
+  static let onboardingPermissionMicrophoneStatus =
+    "miniwhisper.onboarding.permission.microphone.status"
+  static let onboardingPermissionMicrophoneAction =
+    "miniwhisper.onboarding.permission.microphone.action"
+  static let onboardingPermissionPasteAccess = "miniwhisper.onboarding.permission.paste-access"
+  static let onboardingPermissionPasteAccessStatus =
+    "miniwhisper.onboarding.permission.paste-access.status"
+  static let onboardingPermissionPasteAccessAction =
+    "miniwhisper.onboarding.permission.paste-access.action"
+  static let onboardingPermissionsGuidance = "miniwhisper.onboarding.permissions.guidance"
+
+  static let onboardingModel = "miniwhisper.onboarding.model"
+  static let onboardingModelTitle = "miniwhisper.onboarding.model.title"
+  static let onboardingModelSummary = "miniwhisper.onboarding.model.summary"
+  static let onboardingModelStatus = "miniwhisper.onboarding.model.status"
+  static let onboardingModelProgress = "miniwhisper.onboarding.model-progress"
+  static let onboardingModelRetry = "miniwhisper.onboarding.model.retry"
+
+  static let onboardingTryIt = "miniwhisper.onboarding.try-it"
+  static let onboardingTryItTitle = "miniwhisper.onboarding.try-it.title"
+  static let onboardingTryItInstructions = "miniwhisper.onboarding.try-it.instructions"
+  static let onboardingTryItAvailability = "miniwhisper.onboarding.try-it.availability"
+  static let onboardingTryItText = "miniwhisper.onboarding.try-it.text"
+  static let onboardingTryItHotkey = "miniwhisper.onboarding.try-it.hotkey"
+  static let onboardingTryItCompletion = "miniwhisper.onboarding.try-it.completion"
+  static let onboardingTryItCompletionSummary = "miniwhisper.onboarding.try-it.completion-summary"
+  static let onboardingTryItGuidance = "miniwhisper.onboarding.try-it.guidance"
+  static let onboardingTryItSkip = "miniwhisper.onboarding.try-it.skip"
+
+  static let onboardingReady = "miniwhisper.onboarding.ready"
+  static let onboardingReadyTitle = "miniwhisper.onboarding.ready.title"
+  static let onboardingReadySummary = "miniwhisper.onboarding.ready.summary"
+  static let onboardingReadyTranscript = "miniwhisper.onboarding.ready.transcript"
+  static let onboardingReadyFinish = "miniwhisper.onboarding.ready.finish"
+  static let onboardingFailure = "miniwhisper.onboarding.failure"
+
+  static let pill = "miniwhisper.pill"
+  static let pillPhase = "miniwhisper.pill.phase"
+  static let pillCaptureStatus = "miniwhisper.pill.capture-status"
+  static let pillInputDevice = "miniwhisper.pill.input-device"
+  static let pillAudioLevel = "miniwhisper.pill.audio-level"
+  static let pillNotice = "miniwhisper.pill.notice"
+}

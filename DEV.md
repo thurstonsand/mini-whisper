@@ -10,7 +10,8 @@ mise trust && mise bootstrap
 
 ```sh
 mise run build          # Build the app
-mise run test           # Run all tests (app + UI)
+mise run test           # Run app unit tests (headless)
+mise run test-ui        # Interactive XCUITest suite — takes over the screen, keyboard, and focus
 mise run test-packages  # Fast package-only tests (prefer this for quick feedback)
 mise run lint           # Run the pre-commit formatting, linting, build, and package-test gate
 mise run format         # Format code with swift-format
@@ -34,3 +35,7 @@ mise run benchmark-live # Build, launch, measure three real capture cycles, and 
 - `Packages/HotkeyListener` — pinned-modifier event pipeline and hold/latch state machine
 
 Design principle: the app target is a thin shell; business logic lives in packages. Features (`@Reducer`) orchestrate, clients (`@DependencyClient`) wrap system boundaries, pure decision logic gets plain unit tests in its package.
+
+## Accessibility contract
+
+`mise run test-ui` runs the curated XCUITest manifest for onboarding, the menu, About, and every pill presentation. It commandeers the screen and focus, so it is deliberately excluded from `mise run test` and the lint gate: run it when you are specifically testing something interactive, or as an end-to-end pass when concluding a unit of work — not habitually. Debug UI-test launches select deterministic production surfaces with `MINIWHISPER_AGENT_SCENE`; the supported scene catalogue and state mutations live in `AgentDriveabilityScene.swift` and `AgentDriveabilitySceneDriver.swift`. This is an internal test seam, not a demo mode, and Release builds fail fast if the variable is set.

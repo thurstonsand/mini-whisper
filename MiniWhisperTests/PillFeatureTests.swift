@@ -32,6 +32,18 @@ import Testing
       $0.presentation = .recording(
         PillFeature.State.Presentation.Recording(
           inputDeviceName: "Shure MV7", level: 0.72, isLive: true))
+      $0.accessibilityLevel = 70
+    }
+    await store.send(.levelUpdated(0.74)) {
+      $0.presentation = .recording(
+        PillFeature.State.Presentation.Recording(
+          inputDeviceName: "Shure MV7", level: 0.74, isLive: true))
+    }
+    await store.send(.levelUpdated(0.31)) {
+      $0.presentation = .recording(
+        PillFeature.State.Presentation.Recording(
+          inputDeviceName: "Shure MV7", level: 0.31, isLive: true))
+      $0.accessibilityLevel = 30
     }
     await store.send(.latchEngaged) { $0.bounceCount = 1 }
   }

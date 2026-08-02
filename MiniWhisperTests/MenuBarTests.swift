@@ -28,6 +28,7 @@ import Testing
     #expect(state.degradation == nil)
     #expect(state.iconSymbolName == "mic")
     #expect(state.statusText == "Ready · Parakeet v2 · Shure MV7")
+    #expect(state.accessibilityStatusText == "Ready; Parakeet v2; Shure MV7")
     #expect(state.repair == nil)
     #expect(state.repairTitle == nil)
   }
@@ -38,9 +39,9 @@ import Testing
       #expect(state.degradation == nil)
       #expect(state.iconSymbolName == "mic")
     }
-    #expect(
-      viewState(engineReadiness: .downloading(0.42)).statusText
-        == "Downloading Parakeet v2 · 42% · Shure MV7")
+    let downloading = viewState(engineReadiness: .downloading(0.42))
+    #expect(downloading.statusText == "Downloading Parakeet v2 · 42% · Shure MV7")
+    #expect(downloading.accessibilityStatusText == "Downloading Parakeet v2; 42%; Shure MV7")
   }
 
   @Test func missingInputMonitoringDegradesToTheSettingsDeepLink() {

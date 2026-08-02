@@ -302,6 +302,7 @@ import Testing
       $0.pill.presentation = .recording(
         PillFeature.State.Presentation.Recording(
           inputDeviceName: "Test Microphone", level: 0.8, isLive: true))
+      $0.pill.accessibilityLevel = 80
     }
   }
 

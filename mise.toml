@@ -72,13 +72,26 @@ depends = ["reset-permissions", "mw"]
 
 
 [tasks.test]
-description = "Run app tests"
+description = "Run app unit tests (UI tests live in test-ui)"
 run = """
 xcodebuild -scheme $SCHEME \
     -destination "$DEST" \
     -derivedDataPath $DERIVED_DATA \
     -skipMacroValidation \
     -skipPackagePluginValidation \
+    -skip-testing:MiniWhisperUITests \
+    test | xcbeautify -q --disable-colored-output --disable-logging
+"""
+
+[tasks.test-ui]
+description = "Run interactive XCUITest suite (takes over the screen; run deliberately)"
+run = """
+xcodebuild -scheme $SCHEME \
+    -destination "$DEST" \
+    -derivedDataPath $DERIVED_DATA \
+    -skipMacroValidation \
+    -skipPackagePluginValidation \
+    -only-testing:MiniWhisperUITests \
     test | xcbeautify -q --disable-colored-output --disable-logging
 """
 

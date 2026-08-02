@@ -9,12 +9,15 @@ import SwiftUI
   private var renderedVisibility: Bool?
   private var renderedPermissions: OnboardingPermissionStatuses?
 
-  init(store: StoreOf<OnboardingFeature>) {
+  init(store: StoreOf<OnboardingFeature>, observesApplicationActivation: Bool = true) {
     self.store = store
     self.window = NSWindow(
       contentRect: .zero, styleMask: [.titled, .fullSizeContentView], backing: .buffered,
       defer: false)
     window.title = "Set Up MiniWhisper"
+    window.setAccessibilityIdentifier(AccessibilityID.onboardingWindow)
+    window.setAccessibilityLabel("Set Up MiniWhisper")
+    window.setAccessibilityTitle("Set Up MiniWhisper")
     window.titlebarAppearsTransparent = true
     window.titleVisibility = .hidden
     window.isMovableByWindowBackground = true
@@ -23,9 +26,11 @@ import SwiftUI
     window.contentView = NSHostingView(rootView: OnboardingView(store: store))
     window.setContentSize(NSSize(width: 720, height: 500))
 
-    activationObserver = NotificationCenter.default.addObserver(
-      forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main
-    ) { [weak self] _ in MainActor.assumeIsolated { self?.applicationBecameActive() } }
+    if observesApplicationActivation {
+      activationObserver = NotificationCenter.default.addObserver(
+        forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main
+      ) { [weak self] _ in MainActor.assumeIsolated { self?.applicationBecameActive() } }
+    }
 
     observeStore()
     render()

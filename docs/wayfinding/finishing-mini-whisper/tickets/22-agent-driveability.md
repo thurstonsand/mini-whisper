@@ -1,10 +1,14 @@
 ---
-status: open
+status: closed
 type: grilling
 blocked-by: [8]
 ---
 
 # Agent-driveability: maximal accessibility compatibility
+
+## Resolution
+
+Researched and implemented. Findings and the agent-facing contract live in [the research asset](../assets/22-agent-driveability.md); the implementation landed one `miniwhisper.<surface>.<element>` identifier vocabulary across onboarding, menu, About (now a custom accessible window), and the pill (whose phase/capture status/notice/level are readable out-of-process from the nonactivating panel — level quantized to 10% buckets), a curated per-surface XCUITest manifest gate run via `mise run test-ui`, and a debug-only deterministic scene driver. The raw-AX spike settled the open unknown: the UI-test runner is not a trusted AX client (`kAXErrorAPIDisabled`), so the gate stays XCU-shaped; out-of-process fidelity was proven separately with a Ghostty-attributed raw reader.
 
 ## Question
 
