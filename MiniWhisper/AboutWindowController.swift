@@ -10,6 +10,7 @@ import SwiftUI
     if let window {
       NSApp.activate(ignoringOtherApps: true)
       window.makeKeyAndOrderFront(nil)
+      window.makeFirstResponder(nil)
       return
     }
 
@@ -32,6 +33,10 @@ import SwiftUI
 
     NSApp.activate(ignoringOtherApps: true)
     window.makeKeyAndOrderFront(nil)
+    // SwiftUI makes the first link the initial first responder, which opens the window with a
+    // focus ring around it. Nothing has been chosen yet, so nothing should look chosen; the links
+    // stay in the key-view loop for anyone who tabs to them.
+    window.makeFirstResponder(nil)
   }
 
   // MARK: Private

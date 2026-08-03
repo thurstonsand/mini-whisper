@@ -11,7 +11,7 @@ import OSLog
 enum FocusedFieldReader {
   // MARK: Internal
 
-  static func capture() -> ContextCapture {
+  static func capture(source: ContextCaptureSource) -> ContextCapture {
     let clock = ContinuousClock()
     let started = clock.now
     let frontmost = NSWorkspace.shared.frontmostApplication
@@ -19,7 +19,7 @@ enum FocusedFieldReader {
     let duration = started.duration(to: clock.now).components
     let elapsed = Double(duration.seconds) * 1000 + Double(duration.attoseconds) / 1e15
     contextLogger.info(
-      "Context capture \(capture.logDescription, privacy: .public) pid=\(frontmost?.processIdentifier ?? -1) elapsed=\(elapsed, format: .fixed(precision: 3))ms",
+      "Context capture source=\(source.rawValue, privacy: .public) \(capture.logDescription, privacy: .public) pid=\(frontmost?.processIdentifier ?? -1) elapsed=\(elapsed, format: .fixed(precision: 3))ms",
     )
     return capture
   }
@@ -45,8 +45,8 @@ enum FocusedFieldReader {
       }
 
       let application = AXUIElementCreateApplication(frontmost.processIdentifier)
-      guard timeoutInstalled(on: application) else {
-        return .unavailable(.axFailure(operation: .focusedElement, error: AXError.failure.rawValue))
+      if let blocked = arm(application, cap: firstContactTimeout, for: .focusedElement) {
+        return .unavailable(blocked)
       }
 
       let focused: AXUIElement
@@ -76,11 +76,7 @@ enum FocusedFieldReader {
     private enum Secureness {
       case secure
       case plain
-      case failed(AXRead.Failure)
-    }
-
-    private var hasBudget: Bool {
-      ContinuousClock.now < deadline
+      case blocked(ContextUnavailable)
     }
 
     /// Chromium hands out a valueless container (`AXWebArea`); the node that owns the value and
@@ -91,11 +87,8 @@ enum FocusedFieldReader {
       var element = focused
       var lastRole: String?
       for _ in 0 ..< maximumFocusDepth {
-        guard timeoutInstalled(on: element) else {
-          return .failure(.axFailure(operation: .role, error: AXError.failure.rawValue))
-        }
-        guard hasBudget else {
-          return .failure(.timedOut(operation: .role))
+        if let blocked = arm(element, for: .role) {
+          return .failure(blocked)
         }
 
         let role: String?
@@ -114,13 +107,16 @@ enum FocusedFieldReader {
           switch secureness(of: element, role: role) {
           case .secure:
             return .failure(.protectedField(role: role))
-          case let .failed(failure):
-            return .failure(classify(failure, .subrole, downgrade: .nonTextElement(role: role)))
+          case let .blocked(reason):
+            return .failure(reason)
           case .plain:
             break
           }
 
           if !FieldTargetPolicy.isContainer(role: role) {
+            if let blocked = arm(element, for: .characterCount) {
+              return .failure(blocked)
+            }
             switch AXRead.count(element, kAXNumberOfCharactersAttribute) {
             case let .success(characterCount):
               return .success(
@@ -149,6 +145,10 @@ enum FocusedFieldReader {
     }
 
     private func focusedChild(of element: AXUIElement) -> Result<AXUIElement?, ContextUnavailable> {
+      if let blocked = arm(element, for: .children) {
+        return .failure(blocked)
+      }
+
       let children: [AXUIElement]
       switch AXRead.children(element) {
       case let .success(values):
@@ -161,11 +161,8 @@ enum FocusedFieldReader {
       }
 
       for child in children.prefix(maximumChildWidth) {
-        guard hasBudget else {
-          return .failure(.timedOut(operation: .children))
-        }
-        guard timeoutInstalled(on: child) else {
-          return .failure(.axFailure(operation: .children, error: AXError.failure.rawValue))
+        if let blocked = arm(child, for: .children) {
+          return .failure(blocked)
         }
         switch AXRead.bool(child, kAXFocusedAttribute) {
         case .success(true):
@@ -190,17 +187,21 @@ enum FocusedFieldReader {
       guard FieldTargetPolicy.needsSubroleCheck(role: role) else {
         return .plain
       }
+      if let blocked = arm(element, for: .subrole) {
+        return .blocked(blocked)
+      }
       switch AXRead.string(element, kAXSubroleAttribute) {
       case let .success(subrole):
         return FieldTargetPolicy.isSecure(role: role, subrole: subrole) ? .secure : .plain
       case let .failure(failure):
-        return failure.isTransient ? .failed(failure) : .plain
+        return failure.isTransient
+          ? .blocked(classify(failure, .subrole, downgrade: .nonTextElement(role: role))) : .plain
       }
     }
 
     private func readSlices(from target: TextTarget) -> ContextCapture {
-      guard hasBudget else {
-        return .unavailable(.timedOut(operation: .selectedRange))
+      if let blocked = arm(target.element, for: .selectedRange) {
+        return .unavailable(blocked)
       }
 
       let selection: CFRange
@@ -230,8 +231,8 @@ enum FocusedFieldReader {
           texts.append("")
           continue
         }
-        guard hasBudget else {
-          return .unavailable(.timedOut(operation: .stringForRange))
+        if let blocked = arm(target.element, for: .stringForRange) {
+          return .unavailable(blocked)
         }
         switch AXRead.stringForRange(
           target.element, CFRange(location: slice.location, length: slice.length),
@@ -250,14 +251,30 @@ enum FocusedFieldReader {
       switch plan.assemble(role: target.role, before: texts[0], selected: texts[1], after: texts[2])
       {
       case let .success(context):
-        return .available(context)
+        return context.isZeroWidthSink
+          ? .unavailable(.zeroWidthSink(role: target.role)) : .available(context)
       case .failure:
         return .unavailable(.noTextRange(role: target.role))
       }
     }
 
-    private func timeoutInstalled(on element: AXUIElement) -> Bool {
-      AXUIElementSetMessagingTimeout(element, messagingTimeout) == .success
+    /// Every AX request is bounded twice: by its own cap and by whatever is left of the capture
+    /// budget. The Accessibility API offers no whole-capture deadline, so the budget is enforced
+    /// the only way it can be — by shrinking each individual request's messaging timeout to fit
+    /// inside it. A request that would start with nothing left never starts.
+    private func arm(
+      _ element: AXUIElement, cap: Float = messagingTimeout, for operation: ContextAXOperation,
+    ) -> ContextUnavailable? {
+      let remaining = ContinuousClock.now.duration(to: deadline).components
+      let seconds =
+        Float(remaining.seconds) + Float(remaining.attoseconds) / 1e18
+      guard seconds > 0 else {
+        return .timedOut(operation: operation)
+      }
+      guard AXUIElementSetMessagingTimeout(element, min(cap, seconds)) == .success else {
+        return .axFailure(operation: operation, error: AXError.failure.rawValue)
+      }
+      return nil
     }
 
     /// Only an explicit "this target does not offer that" downgrades. Timeouts and hung targets
@@ -277,6 +294,12 @@ enum FocusedFieldReader {
   }
 
   private static let messagingTimeout: Float = 0.020
+  /// The first message to an application this process has not spoken to yet costs the connection
+  /// itself: measured 8–20 ms against a running Dia and up to 17 ms against Chrome, while every
+  /// read that follows it is sub-millisecond. A 20 ms cap sits inside that distribution, so the
+  /// handshake gets its own, wider one; the budget still bounds it, because every request is
+  /// installed at no more than the time remaining.
+  private static let firstContactTimeout: Float = 0.040
   private static let captureBudget = Duration.milliseconds(60)
   private static let maximumFocusDepth = 16
   private static let maximumChildWidth = 64
@@ -425,6 +448,8 @@ extension ContextUnavailable {
       "noTextRange role=\(role ?? "?")"
     case let .gridSemantics(bundleID):
       "gridSemantics bundle=\(bundleID ?? "?")"
+    case let .zeroWidthSink(role):
+      "zeroWidthSink role=\(role ?? "?")"
     case let .protectedField(role):
       "protectedField role=\(role ?? "?")"
     case let .axFailure(operation, error):

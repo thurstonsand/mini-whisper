@@ -101,20 +101,39 @@ enum ChromiumAccessibility {
     return visited
   }
 
-  /// Chromium-family apps embed a single `<product> Framework.framework`; Electron's is named
-  /// exactly that. Reading the bundle beats keeping a bundle-ID allowlist that ages badly.
+  /// Every Chromium build ships a renderer helper beside its content framework, so that helper is
+  /// the family's signature. Framework *names* are not: Chrome embeds `Google Chrome
+  /// Framework.framework`, but Dia hides the same Chromium inside `ArcCore.framework`, and a name
+  /// test walked straight past it. Reading the bundle still beats a bundle-ID allowlist.
   private static func family(of bundleURL: URL?) -> Family? {
     guard let bundleURL else {
       return nil
     }
-    let frameworks =
-      (try? FileManager.default.contentsOfDirectory(
-        atPath: bundleURL.appending(path: "Contents/Frameworks").path,
-      )) ?? []
-    guard frameworks.contains(where: { $0.hasSuffix(" Framework.framework") }) else {
+    let frameworksDirectory = bundleURL.appending(path: "Contents/Frameworks")
+    let frameworks = contents(of: frameworksDirectory)
+    guard !frameworks.isEmpty else {
       return nil
     }
-    return frameworks.contains("Electron Framework.framework") ? .electron : .chromiumBrowser
+    if frameworks.contains("Electron Framework.framework") {
+      return .electron
+    }
+
+    // Chrome: <name> Framework.framework/Versions/<version>/Helpers/<name> Helper (Renderer).app
+    // Dia:    ArcCore.framework/Versions/A/Helpers/Browser Helper (Renderer).app
+    for framework in frameworks where framework.hasSuffix(".framework") {
+      let versions = frameworksDirectory.appending(path: "\(framework)/Versions")
+      for version in contents(of: versions) {
+        let helpers = contents(of: versions.appending(path: "\(version)/Helpers"))
+        if helpers.contains(where: { $0.hasSuffix(" (Renderer).app") }) {
+          return .chromiumBrowser
+        }
+      }
+    }
+    return nil
+  }
+
+  private static func contents(of directory: URL) -> [String] {
+    (try? FileManager.default.contentsOfDirectory(atPath: directory.path)) ?? []
   }
 }
 

@@ -37,6 +37,28 @@ public struct FocusedTextContext: Equatable, Sendable {
   public var beforeWasTruncated: Bool
   public var selectionWasTruncated: Bool
   public var afterWasTruncated: Bool
+
+  /// A whole, untruncated field whose text is nothing but zero-width characters. The known
+  /// producer is a canvas editor's keystroke sink: Google Docs' focused `AXTextArea` answers
+  /// `\u{200B}\u{200B}` with the caret at index 1 no matter what the document says. Joining
+  /// against that invents a preceding character that is not on screen.
+  ///
+  /// Truncation disqualifies it. A window that reached its cap is a slice of a larger document,
+  /// and zero-width padding around the caret of a real document is not a sink.
+  public var isZeroWidthSink: Bool {
+    guard !beforeWasTruncated, !selectionWasTruncated, !afterWasTruncated else {
+      return false
+    }
+    let captured = before + selected + after
+    return !captured.isEmpty
+      && captured.unicodeScalars.allSatisfy { Self.zeroWidthScalars.contains($0) }
+  }
+
+  // MARK: Private
+
+  private static let zeroWidthScalars: Set<Unicode.Scalar> = [
+    "\u{200B}", "\u{200C}", "\u{200D}", "\u{FEFF}",
+  ]
 }
 
 // MARK: - FocusedTextWindow
@@ -66,6 +88,8 @@ public enum ContextUnavailable: Error, Equatable, Sendable {
   case nonTextElement(role: String?)
   case noTextRange(role: String?)
   case gridSemantics(bundleID: String?)
+  /// The field served only zero-width characters, so it is a canvas editor's keystroke sink.
+  case zeroWidthSink(role: String?)
   case protectedField(role: String?)
   case axFailure(operation: ContextAXOperation, error: Int32)
   /// The whole capture ran out of its budget; delivery refuses to wait any longer.

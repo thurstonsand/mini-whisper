@@ -49,6 +49,14 @@ private let activationSettle =
   } ?? 1
 private let messagingTimeout = arguments.first(where: { $0.hasPrefix("--messaging-timeout=") })
   .flatMap { Float($0.dropFirst("--messaging-timeout=".count)) }
+private let pollCount =
+  arguments.first(where: { $0.hasPrefix("--poll=") }).flatMap {
+    Int($0.dropFirst("--poll=".count))
+  } ?? 0
+private let pollInterval =
+  arguments.first(where: { $0.hasPrefix("--poll-interval=") }).flatMap {
+    Double($0.dropFirst("--poll-interval=".count))
+  } ?? 0.25
 private let system = AXUIElementCreateSystemWide()
 
 // AXUIElementCreateSystemWide's focused-element read fails with cannotComplete on this host
@@ -202,6 +210,27 @@ private func activateChromiumAccessibility() {
   }
 }
 
+// Does anything on the focus chain identify the document being edited? A canvas editor that
+// serves stale text is only safely detectable if some ancestor names itself.
+private func showIdentity(of element: AXUIElement) {
+  var current: AXUIElement? = element
+  var level = 0
+  while let node = current, level < 8 {
+    let role = (try? copiedString(node, kAXRoleAttribute as CFString)) ?? "?"
+    let identity = ["AXURL", "AXDocument", "AXTitle", "AXDescription", "AXSubrole"].compactMap {
+      attribute -> String? in
+      guard let value = try? copiedValue(node, attribute as CFString) else { return nil }
+      let rendered =
+        (value as? String) ?? (value as? URL)?.absoluteString ?? String(describing: value)
+      return "\(attribute)=\(rendered.prefix(120))"
+    }
+    print("identity[\(level)] role=\(role) \(identity.joined(separator: " "))")
+    let parent = try? copiedValue(node, kAXParentAttribute as CFString)
+    current = parent.flatMap { CFGetTypeID($0) == AXUIElementGetTypeID() ? ($0 as! AXUIElement) : nil }
+    level += 1
+  }
+}
+
 private func children(of element: AXUIElement) -> [AXUIElement] {
   guard let values = try? copiedValue(element, kAXChildrenAttribute as CFString) as? [Any] else {
     return []
@@ -310,5 +339,41 @@ if case .success(let range) = selectedRange.value {
   ) { quoted($0) }
   show("insertion-point line", elapsed { try lineTextAtInsertionPoint(element, range.location) }) {
     quoted($0)
+  }
+}
+
+showIdentity(of: element)
+
+// Staleness measurement: re-read the same element on an interval and stamp each answer, so the
+// lag between a keystroke and the AX tree catching up is a measured number.
+if pollCount > 0 {
+  let formatter = DateFormatter()
+  formatter.dateFormat = "HH:mm:ss.SSS"
+  for index in 0..<pollCount {
+    if index > 0 { Thread.sleep(forTimeInterval: pollInterval) }
+    let stamp = formatter.string(from: Date())
+    let range = elapsed { try copiedRange(element, kAXSelectedTextRangeAttribute as CFString) }
+    let count = elapsed {
+      try copiedValue(element, kAXNumberOfCharactersAttribute as CFString) as! Int
+    }
+    let value = elapsed { try copiedString(element, kAXValueAttribute as CFString) }
+    let rangeText: String
+    switch range.value {
+    case .success(let value): rangeText = "{\(value.location), \(value.length)}"
+    case .failure(let error): rangeText = "ERROR \(error)"
+    }
+    let countText: String
+    switch count.value {
+    case .success(let value): countText = String(value)
+    case .failure(let error): countText = "ERROR \(error)"
+    }
+    let valueText: String
+    switch value.value {
+    case .success(let text): valueText = quoted(String(text.suffix(120)))
+    case .failure(let error): valueText = "ERROR \(error)"
+    }
+    print(
+      "poll[\(index)] \(stamp) range=\(rangeText) count=\(countText) [\(String(format: "%.3f", value.milliseconds)) ms] tail=\(valueText)"
+    )
   }
 }

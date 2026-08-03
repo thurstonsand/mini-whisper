@@ -527,7 +527,7 @@ import Testing
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
-      $0.contextCapture.capture = { captured }
+      $0.contextCapture.capture = { _ in captured }
       $0.delivery.deliver = { transcript in
         #expect(transcript == " Delivered text")
         return .pasted(.restored)
@@ -559,7 +559,7 @@ import Testing
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
-      $0.contextCapture.capture = { await captures.next() }
+      $0.contextCapture.capture = { _ in await captures.next() }
       // Only the delivery-time read can produce this joined text.
       $0.delivery.deliver = { transcript in
         #expect(transcript == " Delivered text")
@@ -593,7 +593,7 @@ import Testing
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
-      $0.contextCapture.capture = { await captures.next() }
+      $0.contextCapture.capture = { _ in await captures.next() }
       $0.delivery.deliver = { _ in
         await deliveries.record()
         return .pasted(.restored)
@@ -627,10 +627,10 @@ import Testing
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
-      $0.contextCapture.capture = {
+      $0.contextCapture.capture = { source in
         await reads.record()
         // The warm-up returns at once; the delivery read is the one left hanging.
-        guard await reads.count > 1 else {
+        guard source == .delivery else {
           return .unavailable(.noFocusedElement)
         }
         for await _ in gate {}
@@ -665,7 +665,7 @@ import Testing
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
-      $0.contextCapture.capture = {
+      $0.contextCapture.capture = { _ in
         for await _ in gate {}
         return .unavailable(.noFocusedElement)
       }
@@ -696,7 +696,7 @@ import Testing
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
-      $0.contextCapture.capture = {
+      $0.contextCapture.capture = { _ in
         for await _ in gate {}
         return .unavailable(.noFocusedElement)
       }
@@ -723,7 +723,7 @@ import Testing
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
-      $0.contextCapture.capture = {
+      $0.contextCapture.capture = { _ in
         for await _ in gate {}
         return .unavailable(.noFocusedElement)
       }
@@ -751,7 +751,7 @@ import Testing
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
-      $0.contextCapture.capture = {
+      $0.contextCapture.capture = { _ in
         for await _ in gate {}
         return .unavailable(.noFocusedElement)
       }
@@ -793,7 +793,7 @@ import Testing
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
-      $0.contextCapture.capture = { unavailable }
+      $0.contextCapture.capture = { _ in unavailable }
       $0.delivery.deliver = { transcript in
         #expect(transcript == "delivered text")
         return .pasted(.restored)
@@ -846,7 +846,7 @@ import Testing
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
-      $0.contextCapture.capture = { .unavailable(.accessibilityPermissionMissing) }
+      $0.contextCapture.capture = { _ in .unavailable(.accessibilityPermissionMissing) }
       $0.delivery.deliver = { _ in .copied(.accessibilityPermissionMissing) }
       $0.sounds.play = { cue in await sounds.record(cue) }
       $0.continuousClock = clock
@@ -941,7 +941,7 @@ import Testing
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
-      $0.contextCapture.capture = { .unavailable(.noFocusedElement) }
+      $0.contextCapture.capture = { _ in .unavailable(.noFocusedElement) }
       $0.delivery.deliver = { _ in throw DeliveryError.pasteboardWriteFailed }
       $0.sounds.play = { cue in await sounds.record(cue) }
     }
@@ -1016,6 +1016,10 @@ private actor CaptureSequence {
 
 private actor PrewarmCounter {
   private(set) var count = 0
+
+  var isEmpty: Bool {
+    count == 0
+  }
 
   func record() {
     count += 1

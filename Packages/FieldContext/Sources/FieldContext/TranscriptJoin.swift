@@ -18,6 +18,8 @@ public struct TranscriptJoin: Equatable, Sendable {
   // MARK: Public
 
   public let needsLeadingSpace: Bool
+  /// A sentence start capitalizes the transcript's first letter; a continuation lowercases it,
+  /// because the engine capitalizes the first word of every utterance it returns.
   public let capitalizesFirstCharacter: Bool
 
   public func apply(to transcript: String) -> String {
@@ -25,11 +27,8 @@ public struct TranscriptJoin: Equatable, Sendable {
       return transcript
     }
 
-    let body =
-      capitalizesFirstCharacter && first.isLowercase
-        ? first.uppercased() + transcript.dropFirst() : transcript
     let separator = needsLeadingSpace && !first.isWhitespace ? " " : ""
-    return separator + body
+    return separator + recased(transcript)
   }
 
   // MARK: Private
@@ -40,6 +39,31 @@ public struct TranscriptJoin: Equatable, Sendable {
     "(", "[", "{", ")", "]", "}", "\"", "'", "“", "”", "‘", "’", "«", "»", "‹", "›",
   ]
   private static let sentenceEnding: Set<Character> = [".", "!", "?"]
+
+  private static func firstLetterIndex(in transcript: String) -> String.Index? {
+    var index = transcript.startIndex
+    while index < transcript.endIndex {
+      let character = transcript[index]
+      guard character.isWhitespace || character.isPunctuation || character.isSymbol else {
+        return index
+      }
+      index = transcript.index(after: index)
+    }
+    return nil
+  }
+
+  /// The one capital a continuation may keep. Anything longer that merely starts with `I` is a
+  /// word, so `Italy` after a comma is lowercased — a proper noun costs one wrong letter, while
+  /// leaving every engine capital in place costs one on every dictation.
+  private static func startsWithFirstPersonI(_ transcript: Substring) -> Bool {
+    guard transcript.first == "I" else {
+      return false
+    }
+    guard let next = transcript.dropFirst().first else {
+      return true
+    }
+    return !next.isLetter
+  }
 
   private static func needsSeparator(after precedingText: String, wasTruncated: Bool) -> Bool {
     guard let last = precedingText.last else {
@@ -79,5 +103,31 @@ public struct TranscriptJoin: Equatable, Sendable {
       return false
     }
     return sentenceEnding.contains(last)
+  }
+
+  /// The engine's capital is not always at index 0: an utterance can open with a quote, a bracket,
+  /// or a space the target inherited. Only the first letter is re-cased, and only if punctuation
+  /// and whitespace are all that precede it — a transcript that opens with a digit or a caseless
+  /// script is left exactly as the engine wrote it.
+  private func recased(_ transcript: String) -> String {
+    guard let index = Self.firstLetterIndex(in: transcript) else {
+      return transcript
+    }
+    let letter = String(transcript[index])
+    let mapped: String
+    if capitalizesFirstCharacter {
+      mapped = letter.uppercased()
+    } else {
+      guard !Self.startsWithFirstPersonI(transcript[index...]) else {
+        return transcript
+      }
+      mapped = letter.lowercased()
+    }
+    // Case mapping, not `isUppercase`: titlecase letters answer neither question usefully, and a
+    // mapping that changes nothing (a digit, a caseless script) means there is nothing to re-case.
+    guard mapped != letter else {
+      return transcript
+    }
+    return transcript[..<index] + mapped + transcript[transcript.index(after: index)...]
   }
 }

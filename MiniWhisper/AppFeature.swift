@@ -506,7 +506,7 @@ private func canProbePasteAccess(
   }
 
   private func warmUpCaptureEffect() -> Effect<Action> {
-    .run { _ in _ = await contextCapture.capture() }.cancellable(
+    .run { _ in _ = await contextCapture.capture(.warmUp) }.cancellable(
       id: CancelID.capture, cancelInFlight: true,
     )
   }
@@ -519,7 +519,7 @@ private func canProbePasteAccess(
   /// as long as a transcription.
   private func deliveryEffect(generation: Int, transcript: String) -> Effect<Action> {
     .run { send in
-      let capture = await contextCapture.capture()
+      let capture = await contextCapture.capture(.delivery)
       // A newer dictation has already claimed the field; this paste would land in it.
       guard !Task.isCancelled else {
         return
