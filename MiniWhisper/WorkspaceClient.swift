@@ -12,6 +12,7 @@ enum WorkspaceError: Error, Equatable {
 // MARK: - WorkspaceClient
 
 @DependencyClient struct WorkspaceClient {
+  var applicationLocation: @Sendable () -> URL = { Bundle.main.bundleURL }
   var open: @Sendable (URL) async throws -> Void
   var relaunch: @Sendable () async throws -> Void
 }
@@ -20,6 +21,7 @@ enum WorkspaceError: Error, Equatable {
 
 extension WorkspaceClient: DependencyKey {
   static let liveValue = Self(
+    applicationLocation: { Bundle.main.bundleURL },
     open: { url in
       let opened = await MainActor.run { NSWorkspace.shared.open(url) }
       guard opened else {

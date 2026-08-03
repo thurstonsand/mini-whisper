@@ -123,7 +123,7 @@ struct MenuBarViewState: Equatable {
   private static func statusText(_ degradation: MenuBarDegradation) -> String {
     switch degradation {
     case .inputMonitoringMissing:
-      "Input Monitoring is off, so MiniWhisper can't see your hotkey"
+      "Input Monitoring is off, so MiniWhisper can't see your hotkey · switch it on or add it"
     case .hotkeyTapDead:
       "Hotkey listening stopped"
     case .microphoneAccessDenied:

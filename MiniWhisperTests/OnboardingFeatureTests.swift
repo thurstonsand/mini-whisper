@@ -229,6 +229,7 @@ struct OnboardingStepDerivationTests {
         return false
       }
       $0.microphonePermission.status = { .undetermined }
+      $0.workspace.applicationLocation = { applicationLocation }
       $0.delivery.hasPasteAccess = {
         pasteProbes.increment()
         return false
@@ -259,6 +260,7 @@ struct OnboardingStepDerivationTests {
     }
     await store.receive(.inputMonitoringPermissionRequested(false)) {
       $0.requestingPermission = nil
+      $0.applicationPath = applicationLocation.path(percentEncoded: false)
     }
     await store.send(.requestPermission(.inputMonitoring))
     #expect(requests.value == 1)
@@ -342,6 +344,7 @@ struct OnboardingStepDerivationTests {
       $0.continuousClock = TestClock()
       $0.hotkeyListener.hasInputMonitoringPermission = { false }
       $0.hotkeyListener.requestInputMonitoringPermission = { false }
+      $0.workspace.applicationLocation = { applicationLocation }
       $0.workspace.open = { url in opened.append(url) }
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
@@ -353,6 +356,7 @@ struct OnboardingStepDerivationTests {
     }
     await store.receive(.inputMonitoringPermissionRequested(false)) {
       $0.requestingPermission = nil
+      $0.applicationPath = applicationLocation.path(percentEncoded: false)
     }
     #expect(store.state.needsSystemSettings(for: .inputMonitoring))
 
@@ -360,6 +364,115 @@ struct OnboardingStepDerivationTests {
     await store.send(.permissionStatusesObserved(observation(grantedPermissionStatuses)))
     await store.finish()
     #expect(opened.values == [SystemSettingsPane.inputMonitoring])
+  }
+
+  @Test func `an unfulfilled input monitoring request asks for A manual add`() async {
+    let copied = SynchronousStrings()
+    let store = TestStore(initialState: presentedPermissionsState()) {
+      OnboardingFeature()
+    } withDependencies: {
+      $0.continuousClock = TestClock()
+      $0.hotkeyListener.hasInputMonitoringPermission = { false }
+      $0.hotkeyListener.requestInputMonitoringPermission = { false }
+      $0.microphonePermission.status = { .undetermined }
+      $0.workspace.applicationLocation = { applicationLocation }
+      $0.delivery.hasPasteAccess = { false }
+      $0.delivery.copy = { copied.append($0) }
+    }
+    store.exhaustivity = .off(showSkippedAssertions: false)
+
+    #expect(!store.state.needsManualInputMonitoringAdd)
+    await store.send(.requestPermission(.inputMonitoring)) {
+      $0.requestingPermission = .inputMonitoring
+      $0.pendingSystemPermissionPrompt = .inputMonitoring
+      $0.requestedPermissions = [.inputMonitoring]
+    }
+    // The request is still in flight, so any dialog macOS might be showing still owns the outcome.
+    #expect(!store.state.needsManualInputMonitoringAdd)
+
+    await store.receive(.inputMonitoringPermissionRequested(false)) {
+      $0.requestingPermission = nil
+      $0.applicationPath = applicationLocation.path(percentEncoded: false)
+    }
+    #expect(store.state.needsManualInputMonitoringAdd)
+    #expect(store.state.needsRestart(for: .inputMonitoring))
+
+    await store.send(.copyApplicationPath)
+    await store.finish()
+    #expect(copied.values == [applicationLocation.path(percentEncoded: false)])
+
+    // Returning from System Settings must not retract the guidance.
+    await store.send(.applicationBecameActive) { $0.pendingSystemPermissionPrompt = nil }
+    #expect(store.state.needsManualInputMonitoringAdd)
+
+    await store.send(.permissionStatusesObserved(observation(grantedPermissionStatuses))) {
+      $0.snapshot.permissions = grantedPermissionStatuses
+    }
+    #expect(!store.state.needsManualInputMonitoringAdd)
+  }
+
+  @Test func `A late refusal cannot undo an observed input monitoring grant`() async {
+    var state = presentedPermissionsState()
+    state.requestedPermissions = [.inputMonitoring]
+    state.requestingPermission = .inputMonitoring
+    state.pendingSystemPermissionPrompt = .inputMonitoring
+    let store = TestStore(initialState: state) {
+      OnboardingFeature()
+    } withDependencies: {
+      $0.continuousClock = TestClock()
+      $0.hotkeyListener.hasInputMonitoringPermission = { true }
+      $0.microphonePermission.status = { .granted }
+      $0.delivery.hasPasteAccess = { true }
+      $0.workspace.applicationLocation = { applicationLocation }
+    }
+    store.exhaustivity = .off(showSkippedAssertions: false)
+
+    await store.send(.applicationBecameActive) { $0.pendingSystemPermissionPrompt = nil }
+    await store.receive(.permissionStatusesObserved(observation(grantedPermissionStatuses))) {
+      $0.snapshot.permissions = grantedPermissionStatuses
+    }
+    #expect(!store.state.needsManualInputMonitoringAdd)
+
+    // The request that was still in flight finally answers, and its answer is the older truth.
+    await store.send(.inputMonitoringPermissionRequested(false)) { $0.requestingPermission = nil }
+    #expect(store.state.snapshot.permissions.hasInputMonitoringPermission)
+    #expect(!store.state.needsManualInputMonitoringAdd)
+    #expect(store.state.applicationPath.isEmpty)
+    #expect(store.state.step == .model)
+  }
+
+  @Test func `A granted input monitoring request never asks for A manual add`() async {
+    let store = TestStore(initialState: presentedPermissionsState()) {
+      OnboardingFeature()
+    } withDependencies: {
+      $0.continuousClock = TestClock()
+      $0.hotkeyListener.hasInputMonitoringPermission = { true }
+      $0.hotkeyListener.requestInputMonitoringPermission = { true }
+      $0.microphonePermission.status = { .undetermined }
+      $0.delivery.hasPasteAccess = { false }
+    }
+    store.exhaustivity = .off(showSkippedAssertions: false)
+
+    await store.send(.requestPermission(.inputMonitoring)) {
+      $0.requestingPermission = .inputMonitoring
+      $0.pendingSystemPermissionPrompt = .inputMonitoring
+      $0.requestedPermissions = [.inputMonitoring]
+    }
+    await store.receive(.inputMonitoringPermissionRequested(true)) {
+      $0.requestingPermission = nil
+      $0.pendingSystemPermissionPrompt = nil
+      $0.snapshot.permissions.hasInputMonitoringPermission = true
+    }
+    #expect(!store.state.needsManualInputMonitoringAdd)
+    #expect(!store.state.needsRestart(for: .inputMonitoring))
+    #expect(store.state.applicationPath.isEmpty)
+
+    await store.send(.applicationBecameActive)
+    #expect(!store.state.needsManualInputMonitoringAdd)
+
+    await store.send(.permissionStatusesObserved(observation(grantedPermissionStatuses))) {
+      $0.snapshot.permissions = grantedPermissionStatuses
+    }
   }
 
   @Test func `stale input monitoring offers an application restart`() async {
@@ -646,6 +759,10 @@ struct OnboardingStepDerivationTests {
   }
 }
 
+private let applicationLocation = URL(
+  fileURLWithPath: "/Users/dev/.build/DerivedData/Debug/MiniWhisper.app",
+)
+
 private let grantedPermissionStatuses = OnboardingPermissionStatuses(
   hasInputMonitoringPermission: true, microphoneStatus: .granted, hasPasteAccess: true,
 )
@@ -697,6 +814,25 @@ private final class SynchronousStatuses: @unchecked Sendable {
   private var statuses = OnboardingPermissionStatuses(
     hasInputMonitoringPermission: false, microphoneStatus: .undetermined, hasPasteAccess: false,
   )
+}
+
+// MARK: - SynchronousStrings
+
+private final class SynchronousStrings: @unchecked Sendable {
+  // MARK: Internal
+
+  var values: [String] {
+    lock.withLock { storage }
+  }
+
+  func append(_ value: String) {
+    lock.withLock { storage.append(value) }
+  }
+
+  // MARK: Private
+
+  private let lock = NSLock()
+  private var storage: [String] = []
 }
 
 // MARK: - SynchronousValues

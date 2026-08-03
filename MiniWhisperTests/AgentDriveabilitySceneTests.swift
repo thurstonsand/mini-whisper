@@ -18,4 +18,12 @@ struct AgentDriveabilitySceneTests {
     #expect(!pasteAccess.snapshot.permissions.hasPasteAccess)
     #expect(pasteAccess.activePermission == .pasteAccess)
   }
+
+  @Test func `the manual add scene has asked for input monitoring and been refused`() {
+    let manualAdd = AgentDriveabilityScene.onboardingPermissionsManualAdd.initialState.onboarding
+
+    #expect(manualAdd.activePermission == .inputMonitoring)
+    #expect(manualAdd.needsManualInputMonitoringAdd)
+    #expect(manualAdd.applicationPath == "/Applications/MiniWhisper.app")
+  }
 }

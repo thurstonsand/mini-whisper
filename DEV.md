@@ -26,6 +26,8 @@ mise run benchmark-live # Build, launch, measure three real capture cycles, and 
 
 Debug builds are `com.thurstonsand.MiniWhisper.dev` and show up as "MiniWhisper Dev"; Release builds keep `com.thurstonsand.MiniWhisper`. macOS keys permissions by bundle identifier and signing identity, so this is what lets a locally built app hold its own Input Monitoring, Microphone, and Accessibility grants alongside an installed release build — `mise run reset-permissions` only ever touches the dev identity. Settings, onboarding markers, and the downloaded model still live in the shared `~/Library/Application Support/MiniWhisper`, so `mw-fresh` also clears the installed build's onboarding markers. The OSLog subsystem stays `com.thurstonsand.MiniWhisper` in both configurations, so `mise run logs` covers either build.
 
+On macOS 26 the dev build has to be added to Input Monitoring by hand once after every reset: tccd refuses to prompt for that permission and seeds no row, so open Input Monitoring, click +, press ⇧⌘G, and paste the absolute path to the build — `echo "$PWD/.build/DerivedData/Build/Products/Debug/MiniWhisper.app"` from the repo root prints it, and Go to Folder takes nothing relative — then switch it on and relaunch. Onboarding says the same thing with the exact path. This is OS behavior, not a bug — see the Phase 7 findings in `docs/designs/01-mvp.md`.
+
 `benchmark-live` requires microphone permission and a downloaded engine model. Quit MiniWhisper before running it. Logs at `.build/{miniwhisper-performance.log,miniwhisper-performance-app.log}`.
 
 ## Architecture

@@ -8,6 +8,7 @@ import Foundation
     case menuDegraded = "menu-degraded"
     case onboardingWelcome = "onboarding-welcome"
     case onboardingPermissionsInputMonitoring = "onboarding-permissions-input-monitoring"
+    case onboardingPermissionsManualAdd = "onboarding-permissions-manual-add"
     case onboardingPermissionsMicrophone = "onboarding-permissions-microphone"
     case onboardingPermissionsPasteAccess = "onboarding-permissions-paste-access"
     case onboardingModel = "onboarding-model"
@@ -68,6 +69,13 @@ import Foundation
         state.onboarding = onboardingState(
           permissions: permissions(), readiness: .downloading(0.42),
         )
+      case .onboardingPermissionsManualAdd:
+        state.onboardingCompleted = false
+        state.onboarding = onboardingState(
+          permissions: permissions(), readiness: .downloading(0.42),
+          requestedPermissions: [.inputMonitoring],
+          applicationPath: "/Applications/MiniWhisper.app",
+        )
       case .onboardingPermissionsMicrophone:
         state.onboardingCompleted = false
         state.onboarding = onboardingState(
@@ -120,9 +128,12 @@ import Foundation
       permissions: OnboardingPermissionStatuses, readiness: EngineReadiness,
       hasConsent: Bool = true, isShowingWelcome: Bool = false, selectedStep: OnboardingStep? = nil,
       isCompleted: Bool = false, tryItText: String = "",
+      requestedPermissions: Set<OnboardingPermission> = [], applicationPath: String = "",
     ) -> OnboardingFeature.State {
       var state = OnboardingFeature.State()
       state.isPresented = true
+      state.requestedPermissions = requestedPermissions
+      state.applicationPath = applicationPath
       state.snapshot = OnboardingSnapshot(
         permissions: permissions, engineReadiness: readiness, hasModelDownloadConsent: hasConsent,
         isCompleted: isCompleted,

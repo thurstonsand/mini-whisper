@@ -115,6 +115,7 @@ enum OnboardingStep: Int, Equatable {
     var requestingPermission: OnboardingPermission?
     var pendingSystemPermissionPrompt: OnboardingPermission?
     var requestedPermissions: Set<OnboardingPermission> = []
+    var applicationPath = ""
     var tryItText = ""
     var completionIntent: CompletionIntent?
     var failureMessage: String?
@@ -160,6 +161,12 @@ enum OnboardingStep: Int, Equatable {
       }
     }
 
+    /// macOS 26's tccd refuses to prompt for Input Monitoring and seeds no row of its own, so a
+    /// finished request that left no grant behind means the user has to add MiniWhisper by hand.
+    var needsManualInputMonitoringAdd: Bool {
+      requestingPermission != .inputMonitoring && needsRestart(for: .inputMonitoring)
+    }
+
     /// macOS prompts at most once per permission, so an unfulfilled request means the rest of the
     /// fix has to happen in System Settings.
     func needsSystemSettings(for permission: OnboardingPermission) -> Bool {
@@ -200,6 +207,8 @@ enum OnboardingStep: Int, Equatable {
     case refreshPermissionStatuses
     case applicationBecameActive
     case openSystemSettings(OnboardingPermission)
+    case copyApplicationPath
+    case copyApplicationPathFailed(String)
     case restartApplication
     case workspaceOpenFailed(String)
     case setupModel
@@ -246,6 +255,7 @@ enum OnboardingStep: Int, Equatable {
         state.requestingPermission = nil
         state.pendingSystemPermissionPrompt = nil
         state.requestedPermissions = []
+        state.applicationPath = ""
         state.tryItText = ""
         state.completionIntent = nil
         state.failureMessage = nil
@@ -316,13 +326,21 @@ enum OnboardingStep: Int, Equatable {
         return .concatenate(.cancel(id: CancelID.permissionPolling), request)
       case let .inputMonitoringPermissionRequested(granted):
         state.requestingPermission = nil
-        if granted {
-          state.pendingSystemPermissionPrompt = nil
+        // A refusal only says the request went unanswered, never that a grant is absent: an
+        // observation may already have seen the row switched on while this result was in flight.
+        guard granted else {
+          if !state.snapshot.permissions.hasInputMonitoringPermission {
+            // The manual add needs the location of this exact build: a development copy lives in
+            // DerivedData, an installed one in /Applications, and the file picker takes neither
+            // on faith.
+            state.applicationPath = workspace.applicationLocation().path(percentEncoded: false)
+          }
+          return .none
         }
+        state.pendingSystemPermissionPrompt = nil
         var statuses = state.snapshot.permissions
-        statuses.hasInputMonitoringPermission = granted
-        let update = apply(statuses, to: &state)
-        return granted ? .merge(update, permissionPollingEffect(for: state)) : update
+        statuses.hasInputMonitoringPermission = true
+        return .merge(apply(statuses, to: &state), permissionPollingEffect(for: state))
       case let .microphonePermissionRequested(status):
         state.requestingPermission = nil
         state.pendingSystemPermissionPrompt = nil
@@ -331,13 +349,13 @@ enum OnboardingStep: Int, Equatable {
         return .merge(apply(statuses, to: &state), permissionPollingEffect(for: state))
       case let .pasteAccessRequested(granted):
         state.requestingPermission = nil
-        if granted {
-          state.pendingSystemPermissionPrompt = nil
+        guard granted else {
+          return .none
         }
+        state.pendingSystemPermissionPrompt = nil
         var statuses = state.snapshot.permissions
-        statuses.hasPasteAccess = granted
-        let update = apply(statuses, to: &state)
-        return granted ? .merge(update, permissionPollingEffect(for: state)) : update
+        statuses.hasPasteAccess = true
+        return .merge(apply(statuses, to: &state), permissionPollingEffect(for: state))
       case let .permissionStatusesObserved(observation):
         guard state.pendingSystemPermissionPrompt == nil else {
           return .none
@@ -363,6 +381,17 @@ enum OnboardingStep: Int, Equatable {
             await send(.workspaceOpenFailed(error.localizedDescription))
           }
         }
+      case .copyApplicationPath:
+        let path = state.applicationPath
+        state.failureMessage = nil
+        return .run { send in
+          do { try await delivery.copy(path) } catch {
+            await send(.copyApplicationPathFailed(error.localizedDescription))
+          }
+        }
+      case let .copyApplicationPathFailed(message):
+        state.failureMessage = message
+        return .none
       case .restartApplication:
         return .run { send in
           do { try await workspace.relaunch() } catch {

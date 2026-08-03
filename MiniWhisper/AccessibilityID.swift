@@ -55,6 +55,15 @@ enum AccessibilityID {
   static let onboardingPermissionPasteAccessAction =
     "miniwhisper.onboarding.permission.paste-access.action"
   static let onboardingPermissionsGuidance = "miniwhisper.onboarding.permissions.guidance"
+  static let onboardingPermissionsManualAdd = "miniwhisper.onboarding.permissions.manual-add"
+  static let onboardingPermissionsManualAddSteps =
+    "miniwhisper.onboarding.permissions.manual-add.steps"
+  static let onboardingPermissionsManualAddPath =
+    "miniwhisper.onboarding.permissions.manual-add.path"
+  static let onboardingPermissionsManualAddCopyPath =
+    "miniwhisper.onboarding.permissions.manual-add.copy-path"
+  static let onboardingPermissionsManualAddOpenSettings =
+    "miniwhisper.onboarding.permissions.manual-add.open-settings"
 
   static let onboardingModel = "miniwhisper.onboarding.model"
   static let onboardingModelTitle = "miniwhisper.onboarding.model.title"

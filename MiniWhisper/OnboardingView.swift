@@ -183,14 +183,15 @@ struct OnboardingView: View {
       .font(.system(size: 28, weight: .semibold))
       .padding(.top, 20)
       SemanticText(
-        "macOS will prompt you for each.", identifier: AccessibilityID.onboardingPermissionsSummary,
+        "macOS prompts for most of these. Input Monitoring may need to be added by hand.",
+        identifier: AccessibilityID.onboardingPermissionsSummary,
         label: "Permissions information",
       )
       .font(.system(size: 14))
       .foregroundStyle(.secondary)
-      .lineLimit(1)
+      .lineLimit(2)
       .frame(
-        height: 58, alignment: .topLeading,
+        height: store.state.needsManualInputMonitoringAdd ? 44 : 58, alignment: .topLeading,
       )
       .padding(.top, 10)
 
@@ -468,8 +469,48 @@ struct OnboardingView: View {
     .accessibilityLabel("MiniWhisper is ready")
   }
 
+  private var manualAddGuidance: some View {
+    VStack(alignment: .leading, spacing: 6) {
+      SemanticText(
+        "In Input Monitoring, switch MiniWhisper on, then restart. If it isn't listed, click +, press ⇧⌘G, and paste this path.",
+        identifier: AccessibilityID.onboardingPermissionsManualAddSteps,
+        label: "Input Monitoring manual steps",
+      )
+      .font(.system(size: 11))
+      .foregroundStyle(.secondary)
+      .fixedSize(horizontal: false, vertical: true)
+      HStack(spacing: 8) {
+        SemanticText(
+          store.applicationPath, identifier: AccessibilityID.onboardingPermissionsManualAddPath,
+          label: "MiniWhisper location",
+        )
+        .font(.system(size: 11, design: .monospaced))
+        .lineLimit(1)
+        .truncationMode(.head)
+        .textSelection(.enabled)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 3)
+        .background(.quaternary, in: RoundedRectangle(cornerRadius: 5))
+        Button("Copy Path") { store.send(.copyApplicationPath) }
+          .controlSize(.small)
+          .accessibilityIdentifier(AccessibilityID.onboardingPermissionsManualAddCopyPath)
+          .accessibilityLabel("Copy MiniWhisper Path")
+        Button("Open Settings") { store.send(.openSystemSettings(.inputMonitoring)) }
+          .controlSize(.small)
+          .accessibilityIdentifier(AccessibilityID.onboardingPermissionsManualAddOpenSettings)
+          .accessibilityLabel("Open Input Monitoring Settings")
+      }
+    }
+    .accessibilityElement(children: .contain)
+    .accessibilityIdentifier(AccessibilityID.onboardingPermissionsManualAdd)
+    .accessibilityLabel("Add MiniWhisper to Input Monitoring")
+  }
+
   private var footer: some View {
     VStack(alignment: .leading, spacing: 12) {
+      if store.visibleStep == .permissions, store.state.needsManualInputMonitoringAdd {
+        manualAddGuidance
+      }
       if let failureMessage = store.failureMessage {
         Label(failureMessage, systemImage: "exclamationmark.triangle.fill")
           .font(.system(size: 12))
@@ -628,7 +669,7 @@ struct OnboardingView: View {
         isGranted ? Color.green : Color.secondary,
       )
       if ownsAction, !isGranted, store.state.needsRestart(for: permission) {
-        Button("Restart MiniWhisper") { store.send(.restartApplication) }
+        Button("Restart") { store.send(.restartApplication) }
           .accessibilityIdentifier(
             permissionActionAccessibilityID(permission),
           )

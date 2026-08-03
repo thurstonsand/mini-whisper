@@ -39,7 +39,15 @@ struct MenuBarDerivationTests {
 
     #expect(state.degradation == .inputMonitoringMissing)
     #expect(state.iconSymbolName == "mic.slash")
-    #expect(state.statusText == "Input Monitoring is off, so MiniWhisper can't see your hotkey")
+    #expect(
+      state.statusText
+        ==
+        "Input Monitoring is off, so MiniWhisper can't see your hotkey · switch it on or add it",
+    )
+    #expect(
+      state.accessibilityStatusText
+        == "Input Monitoring is off, so MiniWhisper can't see your hotkey; switch it on or add it",
+    )
     #expect(state.repair == .openInputMonitoringSettings)
     #expect(state.repairTitle == "Open Input Monitoring Settings…")
   }
