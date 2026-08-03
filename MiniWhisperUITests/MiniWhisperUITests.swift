@@ -2,6 +2,10 @@ import AppKit
 import ApplicationServices
 import XCTest
 
+/// UI tests only ever drive the Debug product, which keeps its own bundle identifier so that its
+/// permission grants never collide with an installed release build.
+private let debugBundleIdentifier = "com.thurstonsand.MiniWhisper.dev"
+
 // MARK: - MiniWhisperUITests
 
 final class MiniWhisperUITests: XCTestCase {
@@ -270,8 +274,9 @@ final class MiniWhisperUITests: XCTestCase {
     XCTAssertTrue(xcuPhase.waitForExistence(timeout: 5))
 
     let application = try XCTUnwrap(
-      NSRunningApplication.runningApplications(withBundleIdentifier: "com.thurstonsand.MiniWhisper")
-        .first { $0.bundleURL?.path.contains("/.build/DerivedData/") == true },
+      NSRunningApplication.runningApplications(withBundleIdentifier: debugBundleIdentifier).first {
+        $0.bundleURL?.path.contains("/.build/DerivedData/") == true
+      },
     )
     let isTrusted = AXIsProcessTrusted()
     let result = RawAccessibilityProbe().read(

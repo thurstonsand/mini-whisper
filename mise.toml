@@ -9,6 +9,9 @@ SCHEME = "MiniWhisper"
 DEST = "platform=macOS,arch=arm64"
 DERIVED_DATA = ".build/DerivedData"
 APP_PATH = "{{ env.DERIVED_DATA }}/Build/Products/Debug/{{ env.SCHEME }}.app"
+# Debug builds carry their own bundle identifier so their TCC grants are independent of an
+# installed release build; the OSLog subsystem stays shared so `mise run logs` covers both.
+DEV_BUNDLE_ID = "com.thurstonsand.MiniWhisper.dev"
 
 [settings]
 experimental = true
@@ -168,13 +171,21 @@ run = [
 # === Maintenance ===
 
 [tasks.reset-permissions]
-description = "Reset TCC permissions; Input Monitoring and Accessibility must be re-granted in System Settings"
+description = "Reset the Debug build's TCC permissions and onboarding; an installed release build is left alone"
+dir = "{{ config_root }}"
 run = [
-    "killall MiniWhisper 2>/dev/null || true",
-    "tccutil reset Microphone com.thurstonsand.MiniWhisper",
-    "tccutil reset ListenEvent com.thurstonsand.MiniWhisper",
-    "tccutil reset Accessibility com.thurstonsand.MiniWhisper",
-    "tccutil reset PostEvent com.thurstonsand.MiniWhisper",
+    # Both builds run an executable named MiniWhisper, so this compares full executable paths
+    # rather than matching a pattern: an installed release build must survive.
+    '''
+    for pid in $(pgrep -x "$SCHEME" || true); do
+        [ "$(ps -ww -o comm= -p "$pid")" = "$PWD/$APP_PATH/Contents/MacOS/$SCHEME" ] && kill "$pid"
+    done
+    true
+    ''',
+    "tccutil reset Microphone $DEV_BUNDLE_ID",
+    "tccutil reset ListenEvent $DEV_BUNDLE_ID",
+    "tccutil reset Accessibility $DEV_BUNDLE_ID",
+    "tccutil reset PostEvent $DEV_BUNDLE_ID",
     'rm -f "$HOME/Library/Application Support/MiniWhisper/onboarding-completed"',
     'rm -f "$HOME/Library/Application Support/MiniWhisper/model-download-consented"',
     'if [ "${FRESH_MODEL:-0}" = "1" ]; then rm -rf "$HOME/Library/Application Support/MiniWhisper/Engine/pinned-v1" "$HOME/Library/Application Support/MiniWhisper/Engine/pinned-v1.partial"; fi',

@@ -192,8 +192,8 @@ private func canProbePasteAccess(
               ),
             ),
             .merge(
-              .cancel(id: CancelID.transcription), .cancel(id: CancelID.delivery),
-              .send(.recording(.startRecording)),
+              .cancel(id: CancelID.transcription), .cancel(id: CancelID.capture),
+              .cancel(id: CancelID.delivery), .send(.recording(.startRecording)),
               playSound(.recordStart, enabled: state.soundsEnabled),
               // Waking a Chromium tree costs far more than delivery can spend, so it happens here.
               .run { _ in await contextCapture.prewarmFrontmostApp() },
@@ -206,11 +206,21 @@ private func canProbePasteAccess(
           )
         case .stopAndTranscribe:
           performanceLogger.notice("benchmark recording-release-received")
-          return .send(.recording(.stopAndRetain))
+          // A throwaway read that runs beside transcription purely to warm the target: the first
+          // Accessibility call into a process costs 8-30 ms, every later one a fraction of a
+          // millisecond. Its result is deliberately discarded — by the time the transcript
+          // arrives the user may have typed, moved the caret, or switched windows, so only the
+          // read taken at delivery is trustworthy enough to join against.
+          return .merge(.send(.recording(.stopAndRetain)), warmUpCaptureEffect())
         case .latchEngaged:
           return .send(.pill(.latchEngaged))
         case .cancel:
-          return .send(.recording(.cancelRecording))
+          // Nothing from this dictation may reach a field after the user has waved it off.
+          state.currentFocusedContext = nil
+          return .merge(
+            .cancel(id: CancelID.transcription), .cancel(id: CancelID.capture),
+            .cancel(id: CancelID.delivery), .send(.recording(.cancelRecording)),
+          )
         }
       case let .hotkeyListenerFailed(error):
         state.hotkeyTap = .dead
@@ -346,9 +356,15 @@ private func canProbePasteAccess(
           }.cancellable(id: CancelID.transcription, cancelInFlight: true),
         )
       case .recording(.delegate(.discarded)):
-        return .merge(.send(.pill(.cancel)), playSound(.cancel, enabled: state.soundsEnabled))
+        return .merge(
+          .cancel(id: CancelID.capture), .send(.pill(.cancel)),
+          playSound(.cancel, enabled: state.soundsEnabled),
+        )
       case .recording(.delegate(.failed)):
-        return .merge(.send(.pill(.cancel)), playSound(.error, enabled: state.soundsEnabled))
+        return .merge(
+          .cancel(id: CancelID.capture), .send(.pill(.cancel)),
+          playSound(.error, enabled: state.soundsEnabled),
+        )
       case .recording:
         return .none
       case let .transcriptionCompleted(generation, _, .transcript(transcript)):
@@ -357,27 +373,14 @@ private func canProbePasteAccess(
         }
         state.lastTranscript = transcript
         engineLogger.notice("Transcript: \(transcript, privacy: .public)")
-        return .run { send in
-          let capture = await contextCapture.capture()
-          // A newer dictation has already claimed the field; this paste would land in it.
-          guard !Task.isCancelled else {
-            return
-          }
-          await send(.contextCaptured(generation, capture))
-          let adjusted = capture.adjusted(transcript)
-          guard !Task.isCancelled else {
-            return
-          }
-          do {
-            try await send(.deliveryCompleted(generation, delivery.deliver(adjusted)))
-          } catch { await send(.deliveryFailed(generation, error.localizedDescription)) }
-        }.cancellable(id: CancelID.delivery, cancelInFlight: true)
+        return deliveryEffect(generation: generation, transcript: transcript)
       case let .transcriptionCompleted(generation, suppressNotice, .noSpeech):
         guard generation == state.transcriptionGeneration else {
           return .none
         }
         engineLogger.notice("Gate rejected recording: no speech")
         return .merge(
+          .cancel(id: CancelID.capture),
           .send(.pill(suppressNotice ? .dismiss : .noSpeechDetected)),
           onboardingTryIt(
             .failed("No speech was detected. Hold Right Option and try again."), state,
@@ -390,7 +393,7 @@ private func canProbePasteAccess(
         }
         engineLogger.notice("Engine accepted speech but returned an empty transcript")
         return .merge(
-          .send(.pill(.noSpeechDetected)),
+          .cancel(id: CancelID.capture), .send(.pill(.noSpeechDetected)),
           onboardingTryIt(
             .failed("The speech model returned no text. Try a longer phrase."), state,
           ),
@@ -403,8 +406,8 @@ private func canProbePasteAccess(
         state.engineReadiness = .failed(message)
         engineLogger.error("Transcription failed: \(message, privacy: .public)")
         return .merge(
-          .send(.pill(.dismiss)), onboardingTryIt(.failed(message), state),
-          playSound(.error, enabled: state.soundsEnabled),
+          .cancel(id: CancelID.capture), .send(.pill(.dismiss)),
+          onboardingTryIt(.failed(message), state), playSound(.error, enabled: state.soundsEnabled),
         )
       case let .contextCaptured(generation, capture):
         guard generation == state.transcriptionGeneration else {
@@ -495,11 +498,42 @@ private func canProbePasteAccess(
 
   // MARK: Private
 
-  private enum CancelID { case transcription, delivery, hotkeyEvents }
+  private enum CancelID { case transcription, capture, delivery, hotkeyEvents }
 
   private enum OnboardingTryItResult {
     case delivered(String)
     case failed(String)
+  }
+
+  private func warmUpCaptureEffect() -> Effect<Action> {
+    .run { _ in _ = await contextCapture.capture() }.cancellable(
+      id: CancelID.capture, cancelInFlight: true,
+    )
+  }
+
+  /// The capture happens here, immediately before the paste, because it is the only moment whose
+  /// answer is still true: during transcription the user can type, move the caret, or switch
+  /// windows without ever leaving the application. It is a best-effort snapshot of the frontmost
+  /// field rather than a guarantee — nothing stops a third application from taking the front
+  /// between this read and the synthetic ⌘V — but the window is now microseconds wide instead of
+  /// as long as a transcription.
+  private func deliveryEffect(generation: Int, transcript: String) -> Effect<Action> {
+    .run { send in
+      let capture = await contextCapture.capture()
+      // A newer dictation has already claimed the field; this paste would land in it.
+      guard !Task.isCancelled else {
+        return
+      }
+      await send(.contextCaptured(generation, capture))
+      let adjusted = capture.adjusted(transcript)
+      guard !Task.isCancelled else {
+        return
+      }
+      do {
+        let outcome = try await delivery.deliver(adjusted)
+        await send(.deliveryCompleted(generation, outcome))
+      } catch { await send(.deliveryFailed(generation, error.localizedDescription)) }
+    }.cancellable(id: CancelID.delivery, cancelInFlight: true)
   }
 
   private func listenForHotkeyEvents() -> Effect<Action> {

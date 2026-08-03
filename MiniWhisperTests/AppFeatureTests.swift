@@ -518,6 +518,8 @@ import Testing
 
   @Test func `transcript delivery restores clipboard and commits`() async {
     let sounds = SoundRecorder()
+    // The captured field ends in a sentence, so the joined paste gains a space and a capital.
+    let captured = ContextCapture.available(context(before: "We arrived at noon."))
     var state = AppFeature.State()
     state.transcriptionGeneration = 1
     state.soundsEnabled = true
@@ -525,8 +527,7 @@ import Testing
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
-      // The captured field ends in a sentence, so the joined paste gains a space and a capital.
-      $0.contextCapture.capture = { .available(context(before: "We arrived at noon.")) }
+      $0.contextCapture.capture = { captured }
       $0.delivery.deliver = { transcript in
         #expect(transcript == " Delivered text")
         return .pasted(.restored)
@@ -537,15 +538,207 @@ import Testing
     await store.send(
       .transcriptionCompleted(1, suppressNoSpeechNotice: false, .transcript("delivered text")),
     ) { $0.lastTranscript = "delivered text" }
-    await store.receive(.contextCaptured(1, .available(context(before: "We arrived at noon.")))) {
-      $0.currentFocusedContext = .available(context(before: "We arrived at noon."))
-    }
+    await store.receive(.contextCaptured(1, captured)) { $0.currentFocusedContext = captured }
     await store.receive(.deliveryCompleted(1, .pasted(.restored))) {
       $0.currentFocusedContext = nil
     }
     await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
     #expect(await sounds.recorded == [.commit])
+  }
+
+  @Test func `release warms the field but delivery joins against A fresh read`() async {
+    let captures = CaptureSequence(captures: [
+      // What the release-time read saw, before the user kept typing during transcription.
+      .available(context(before: "we were still typing")),
+      .available(context(before: "We were still typing.")),
+    ])
+    var state = AppFeature.State()
+    state.transcriptionGeneration = 1
+    state.onboardingCompleted = true
+    let store = TestStore(initialState: state) {
+      AppFeature()
+    } withDependencies: {
+      $0.contextCapture.capture = { await captures.next() }
+      // Only the delivery-time read can produce this joined text.
+      $0.delivery.deliver = { transcript in
+        #expect(transcript == " Delivered text")
+        return .pasted(.restored)
+      }
+    }
+    store.exhaustivity = .off(showSkippedAssertions: false)
+
+    await store.send(.hotkeyListenerEvent(.gesture(.stopAndTranscribe)))
+    await store.send(
+      .transcriptionCompleted(1, suppressNoSpeechNotice: false, .transcript("delivered text")),
+    )
+    await store.receive(.contextCaptured(1, .available(context(before: "We were still typing.")))) {
+      $0.currentFocusedContext = .available(context(before: "We were still typing."))
+    }
+    await store.receive(.deliveryCompleted(1, .pasted(.restored)))
+    await store.finish()
+    // One warm-up read at release, one authoritative read at delivery.
+    #expect(await captures.taken == 2)
+  }
+
+  @Test func `a second release replaces the warm up without delivering twice`() async {
+    let deliveries = PrewarmCounter()
+    let captures = CaptureSequence(captures: [
+      .unavailable(.noFocusedElement), .unavailable(.noFocusedElement),
+      .available(context(before: "Field text.")),
+    ])
+    var state = AppFeature.State()
+    state.transcriptionGeneration = 1
+    state.onboardingCompleted = true
+    let store = TestStore(initialState: state) {
+      AppFeature()
+    } withDependencies: {
+      $0.contextCapture.capture = { await captures.next() }
+      $0.delivery.deliver = { _ in
+        await deliveries.record()
+        return .pasted(.restored)
+      }
+    }
+    store.exhaustivity = .off(showSkippedAssertions: false)
+
+    // A key that bounces on release must not turn one dictation into two pastes.
+    await store.send(.hotkeyListenerEvent(.gesture(.stopAndTranscribe)))
+    await store.send(.hotkeyListenerEvent(.gesture(.stopAndTranscribe)))
+    await store.send(
+      .transcriptionCompleted(1, suppressNoSpeechNotice: false, .transcript("delivered text")),
+    )
+    await store.receive(.contextCaptured(1, .available(context(before: "Field text."))))
+    await store.receive(.deliveryCompleted(1, .pasted(.restored)))
+    await store.finish()
+    #expect(await deliveries.count == 1)
+  }
+
+  @Test func `cancelling mid flight leaves nothing to deliver`() async {
+    let deliveries = PrewarmCounter()
+    let reads = PrewarmCounter()
+    let (gate, openGate) = AsyncStream.makeStream(of: Void.self)
+    var state = AppFeature.State()
+    state.transcriptionGeneration = 1
+    state.onboardingCompleted = true
+    state.recording.captureGeneration = 1
+    state.recording.captureSessionID = UUID()
+    state.recording.phase = .recording
+    state.currentFocusedContext = .available(context(before: "Left over."))
+    let store = TestStore(initialState: state) {
+      AppFeature()
+    } withDependencies: {
+      $0.contextCapture.capture = {
+        await reads.record()
+        // The warm-up returns at once; the delivery read is the one left hanging.
+        guard await reads.count > 1 else {
+          return .unavailable(.noFocusedElement)
+        }
+        for await _ in gate {}
+        return .available(context(before: "Read after the escape."))
+      }
+      $0.audioCapture.cancel = { _ in }
+      $0.delivery.deliver = { _ in
+        await deliveries.record()
+        return .pasted(.restored)
+      }
+    }
+    store.exhaustivity = .off(showSkippedAssertions: false)
+
+    await store.send(.hotkeyListenerEvent(.gesture(.stopAndTranscribe)))
+    await store.send(
+      .transcriptionCompleted(1, suppressNoSpeechNotice: false, .transcript("abandoned")),
+    )
+    await store.send(.hotkeyListenerEvent(.gesture(.cancel))) { $0.currentFocusedContext = nil }
+    openGate.finish()
+    await store.finish()
+    #expect(await deliveries.isEmpty)
+    #expect(store.state.currentFocusedContext == nil)
+  }
+
+  @Test func `rejected audio drops A capture still in flight without delivering`() async {
+    let deliveries = PrewarmCounter()
+    let (gate, openGate) = AsyncStream.makeStream(of: Void.self)
+    var state = AppFeature.State()
+    state.transcriptionGeneration = 1
+    state.onboardingCompleted = true
+    state.pill.presentation = .transcribing
+    let store = TestStore(initialState: state) {
+      AppFeature()
+    } withDependencies: {
+      $0.contextCapture.capture = {
+        for await _ in gate {}
+        return .unavailable(.noFocusedElement)
+      }
+      $0.delivery.deliver = { _ in
+        await deliveries.record()
+        return .pasted(.restored)
+      }
+      $0.continuousClock = TestClock()
+    }
+    store.exhaustivity = .off(showSkippedAssertions: false)
+
+    await store.send(.hotkeyListenerEvent(.gesture(.stopAndTranscribe)))
+    await store.send(.transcriptionCompleted(1, suppressNoSpeechNotice: false, .noSpeech))
+    openGate.finish()
+    await store.send(.pill(.dismiss))
+    await store.finish()
+    #expect(await deliveries.isEmpty)
+    #expect(store.state.currentFocusedContext == nil)
+  }
+
+  @Test func `a failed transcription drops the capture running beside it`() async {
+    let deliveries = PrewarmCounter()
+    let (gate, openGate) = AsyncStream.makeStream(of: Void.self)
+    var state = AppFeature.State()
+    state.transcriptionGeneration = 1
+    state.onboardingCompleted = true
+    state.pill.presentation = .transcribing
+    let store = TestStore(initialState: state) {
+      AppFeature()
+    } withDependencies: {
+      $0.contextCapture.capture = {
+        for await _ in gate {}
+        return .unavailable(.noFocusedElement)
+      }
+      $0.delivery.deliver = { _ in
+        await deliveries.record()
+        return .pasted(.restored)
+      }
+    }
+    store.exhaustivity = .off(showSkippedAssertions: false)
+
+    await store.send(.hotkeyListenerEvent(.gesture(.stopAndTranscribe)))
+    await store.send(.transcriptionFailed(1, "model failure"))
+    openGate.finish()
+    await store.finish()
+    #expect(await deliveries.isEmpty)
+  }
+
+  @Test func `a discarded recording drops the capture it started`() async {
+    let deliveries = PrewarmCounter()
+    let (gate, openGate) = AsyncStream.makeStream(of: Void.self)
+    var state = AppFeature.State()
+    state.transcriptionGeneration = 1
+    state.onboardingCompleted = true
+    let store = TestStore(initialState: state) {
+      AppFeature()
+    } withDependencies: {
+      $0.contextCapture.capture = {
+        for await _ in gate {}
+        return .unavailable(.noFocusedElement)
+      }
+      $0.delivery.deliver = { _ in
+        await deliveries.record()
+        return .pasted(.restored)
+      }
+    }
+    store.exhaustivity = .off(showSkippedAssertions: false)
+
+    await store.send(.hotkeyListenerEvent(.gesture(.stopAndTranscribe)))
+    await store.send(.recording(.delegate(.discarded)))
+    openGate.finish()
+    await store.finish()
+    #expect(await deliveries.isEmpty)
   }
 
   @Test func `a stalled capture cannot paste into the dictation that replaced it`() async {
@@ -794,14 +987,35 @@ private actor SoundRecorder {
   }
 }
 
+// MARK: - CaptureSequence
+
+/// Hands back a scripted sequence of captures so a test can tell the release-time warm-up read
+/// apart from the authoritative read taken at delivery.
+private actor CaptureSequence {
+  // MARK: Lifecycle
+
+  init(captures: [ContextCapture]) {
+    remaining = captures
+  }
+
+  // MARK: Internal
+
+  private(set) var taken = 0
+
+  func next() -> ContextCapture {
+    taken += 1
+    return remaining.isEmpty ? .unavailable(.noFocusedElement) : remaining.removeFirst()
+  }
+
+  // MARK: Private
+
+  private var remaining: [ContextCapture]
+}
+
 // MARK: - PrewarmCounter
 
 private actor PrewarmCounter {
   private(set) var count = 0
-
-  var isEmpty: Bool {
-    count == 0
-  }
 
   func record() {
     count += 1

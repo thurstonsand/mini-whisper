@@ -543,7 +543,7 @@
 				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = MiniWhisper/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = MiniWhisper;
+				INFOPLIST_KEY_CFBundleDisplayName = "MiniWhisper Dev";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -554,7 +554,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.thurstonsand.MiniWhisper;
+				PRODUCT_BUNDLE_IDENTIFIER = com.thurstonsand.MiniWhisper.dev;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;

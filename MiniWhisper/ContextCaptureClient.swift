@@ -7,9 +7,10 @@ let contextLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: 
 
 // MARK: - ContextCaptureClient
 
-/// Reads the focused field just before delivery. `capture` is on the delivery path and never
-/// retries or waits; `prewarmFrontmostApp` carries everything expensive and runs at recording
-/// start instead.
+/// Reads the focused field of whichever application is frontmost at the moment of the call. It
+/// never retries or waits, so it is cheap enough to run on the delivery path; the same call is
+/// also fired at release to warm the target's Accessibility tree, and `prewarmFrontmostApp`
+/// carries the far more expensive Chromium wake at recording start.
 @DependencyClient struct ContextCaptureClient {
   var capture: @Sendable () async -> ContextCapture = { .unavailable(.noFocusedElement) }
   var prewarmFrontmostApp: @Sendable () async -> Void

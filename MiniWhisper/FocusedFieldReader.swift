@@ -14,11 +14,12 @@ enum FocusedFieldReader {
   static func capture() -> ContextCapture {
     let clock = ContinuousClock()
     let started = clock.now
-    let capture = Session(deadline: started + captureBudget).read()
+    let frontmost = NSWorkspace.shared.frontmostApplication
+    let capture = Session(deadline: started + captureBudget).read(frontmost: frontmost)
     let duration = started.duration(to: clock.now).components
     let elapsed = Double(duration.seconds) * 1000 + Double(duration.attoseconds) / 1e15
     contextLogger.info(
-      "Context capture \(capture.logDescription, privacy: .public) elapsed=\(elapsed, format: .fixed(precision: 3))ms",
+      "Context capture \(capture.logDescription, privacy: .public) pid=\(frontmost?.processIdentifier ?? -1) elapsed=\(elapsed, format: .fixed(precision: 3))ms",
     )
     return capture
   }
@@ -30,11 +31,11 @@ enum FocusedFieldReader {
 
     let deadline: ContinuousClock.Instant
 
-    func read() -> ContextCapture {
+    func read(frontmost: NSRunningApplication?) -> ContextCapture {
       guard AXIsProcessTrusted() else {
         return .unavailable(.accessibilityPermissionMissing)
       }
-      guard let frontmost = NSWorkspace.shared.frontmostApplication else {
+      guard let frontmost else {
         return .unavailable(.noFocusedElement)
       }
 

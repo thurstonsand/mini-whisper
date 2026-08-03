@@ -1,6 +1,10 @@
 // MARK: - FocusedTextContext
 
-/// Text surrounding the insertion point of the focused field, read before delivery.
+/// Text surrounding the insertion point of the focused field, read immediately before delivery.
+///
+/// It is a best-effort snapshot of the frontmost application, not a promise about where the
+/// transcript ends up: nothing prevents another application from taking the front between this
+/// read and the paste that follows it.
 ///
 /// Offsets are in the Accessibility API's UTF-16 coordinate system, never `Character` offsets.
 /// `before` ends where the selection starts, `selected` is the text a paste replaces, and `after`
