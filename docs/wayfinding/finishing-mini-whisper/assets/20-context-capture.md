@@ -135,6 +135,8 @@ Six polls at 300 ms after typing never changed any of those answers, so **the su
 
 The join saw one zero-width space as the preceding text. `\u{200B}` is not whitespace and not punctuation, so the rules read it as a word character and added a separating space on top of the space the user had really typed — the double space reported from live use.
 
+Field check, 2026-08-02: the user ran Wispr Flow and Aqua Voice against Google Docs and both paste with no spacing or capitalization smarts either — the sink defeats the whole field, not just this implementation. Blind paste plus the notice is the industry ceiling for Docs; a sink-specific separator policy was considered and dropped once this evidence landed. The one unexplored avenue remains Docs' screen-reader mode (⌘⌥Z), which may change what the canvas exposes — unprobed.
+
 Detection was decided on content, not on a site allowlist. The `about:blank` `AXWebArea` above the sink carries no useful `AXURL`; the docs.google.com URL is two levels further up the parent chain, so identifying Docs by URL costs extra AX calls on the delivery path and only ever covers the one site. A field whose entire captured window is zero-width characters carries no context by definition, whoever built it, so the reader classifies that as `zeroWidthSink` and blind-pastes. An empty field stays `available` and empty, which is a different and correct answer.
 
 ## Prior art comparison
