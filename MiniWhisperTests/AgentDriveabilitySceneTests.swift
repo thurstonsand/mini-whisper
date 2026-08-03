@@ -1,10 +1,9 @@
 import AudioCapture
+@testable import MiniWhisper
 import Testing
 
-@testable import MiniWhisper
-
-@Suite struct AgentDriveabilitySceneTests {
-  @Test func permissionScenesAdvanceOnePermissionAtATime() {
+struct AgentDriveabilitySceneTests {
+  @Test func `permission scenes advance one permission at A time`() {
     let inputMonitoring = AgentDriveabilityScene.onboardingPermissionsInputMonitoring.initialState
       .onboarding
     let microphone = AgentDriveabilityScene.onboardingPermissionsMicrophone.initialState.onboarding

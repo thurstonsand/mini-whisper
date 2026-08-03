@@ -1,27 +1,37 @@
 import ComposableArchitecture
 import Foundation
 
-@DependencyClient struct OnboardingCompletionClient: Sendable {
+// MARK: - OnboardingCompletionClient
+
+@DependencyClient struct OnboardingCompletionClient {
   var isCompleted: @Sendable () -> Bool = { false }
   var markCompleted: @Sendable () throws -> Void
 }
 
+// MARK: DependencyKey
+
 extension OnboardingCompletionClient: DependencyKey {
   static let liveValue = Self(
     isCompleted: { FileManager.default.fileExists(atPath: markerURL.path) },
-    markCompleted: { try writeMarker(at: markerURL) })
+    markCompleted: { try writeMarker(at: markerURL) },
+  )
 }
 
-@DependencyClient struct ModelDownloadConsentClient: Sendable {
+// MARK: - ModelDownloadConsentClient
+
+@DependencyClient struct ModelDownloadConsentClient {
   var isConsented: @Sendable () -> Bool = { false }
   var markConsented: @Sendable () throws -> Void
 }
+
+// MARK: DependencyKey
 
 extension ModelDownloadConsentClient: DependencyKey {
   static let testValue = Self(isConsented: { false }, markConsented: {})
   static let liveValue = Self(
     isConsented: { FileManager.default.fileExists(atPath: consentMarkerURL.path) },
-    markConsented: { try writeMarker(at: consentMarkerURL) })
+    markConsented: { try writeMarker(at: consentMarkerURL) },
+  )
 }
 
 extension DependencyValues {
@@ -37,13 +47,16 @@ extension DependencyValues {
 }
 
 private let applicationSupportURL = FileManager.default.urls(
-  for: .applicationSupportDirectory, in: .userDomainMask)[0].appending(
-    path: "MiniWhisper", directoryHint: .isDirectory)
+  for: .applicationSupportDirectory, in: .userDomainMask,
+)[0].appending(
+  path: "MiniWhisper", directoryHint: .isDirectory,
+)
 private let markerURL = applicationSupportURL.appending(path: "onboarding-completed")
 private let consentMarkerURL = applicationSupportURL.appending(path: "model-download-consented")
 
 private func writeMarker(at url: URL) throws {
   try FileManager.default.createDirectory(
-    at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+    at: url.deletingLastPathComponent(), withIntermediateDirectories: true,
+  )
   try Data().write(to: url, options: .atomic)
 }

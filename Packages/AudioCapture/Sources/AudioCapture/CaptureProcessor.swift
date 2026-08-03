@@ -1,22 +1,14 @@
 import AVFAudio
 import Foundation
 
-final class CaptureProcessor: @unchecked Sendable {
-  private let acceptingLock = NSLock()
-  private let converter: CanonicalAudioConverter
-  private let continuation: AsyncStream<AudioCaptureEvent>.Continuation
-  private let inputBuffers: AudioBufferPool
-  private let worker = DispatchQueue(label: "MiniWhisper Audio Capture Processor")
+// MARK: - CaptureProcessor
 
-  private var accumulator = SampleAccumulator()
-  private var failure: AudioCaptureError?
-  private var pendingFailure: AudioCaptureError?
-  private var isAcceptingInput = true
-  private var isFinished = false
+final class CaptureProcessor: @unchecked Sendable {
+  // MARK: Lifecycle
 
   init(
     converter: CanonicalAudioConverter, continuation: AsyncStream<AudioCaptureEvent>.Continuation,
-    inputBuffers: AudioBufferPool
+    inputBuffers: AudioBufferPool,
   ) {
     converter.reset()
     self.converter = converter
@@ -25,17 +17,23 @@ final class CaptureProcessor: @unchecked Sendable {
   }
 
   convenience init(
-    inputFormat: AVAudioFormat, continuation: AsyncStream<AudioCaptureEvent>.Continuation
+    inputFormat: AVAudioFormat, continuation: AsyncStream<AudioCaptureEvent>.Continuation,
   ) throws(AudioCaptureError) {
     try self.init(
       converter: CanonicalAudioConverter(inputFormat: inputFormat), continuation: continuation,
       inputBuffers: AudioBufferPool(
         format: inputFormat,
-        bufferCapacity: CaptureBufferConfiguration.frameCount(sampleRate: inputFormat.sampleRate)))
+        bufferCapacity: CaptureBufferConfiguration.frameCount(sampleRate: inputFormat.sampleRate),
+      ),
+    )
   }
 
+  // MARK: Internal
+
   func process(_ buffer: AVAudioPCMBuffer) {
-    guard acceptingLock.withLock({ isAcceptingInput }) else { return }
+    guard acceptingLock.withLock({ isAcceptingInput }) else {
+      return
+    }
     guard let inputBuffer = inputBuffers.copy(buffer) else {
       fail(.captureOverrun)
       return
@@ -43,12 +41,16 @@ final class CaptureProcessor: @unchecked Sendable {
 
     worker.async { [self, inputBuffer] in
       defer { inputBuffers.checkIn(inputBuffer) }
-      guard !isFinished, failure == nil else { return }
+      guard !isFinished, failure == nil else {
+        return
+      }
 
       do {
         let samples = try converter.convert(inputBuffer.buffer)
         accumulator.append(samples)
-        if !samples.isEmpty { continuation.yield(.level(AudioLevel(samples: samples))) }
+        if !samples.isEmpty {
+          continuation.yield(.level(AudioLevel(samples: samples)))
+        }
       } catch let error as AudioCaptureError { failFromWorker(error) } catch {
         failFromWorker(.conversionFailed(error.localizedDescription))
       }
@@ -56,7 +58,9 @@ final class CaptureProcessor: @unchecked Sendable {
   }
 
   func fail(_ error: AudioCaptureError) {
-    guard reserveFailure(error) else { return }
+    guard reserveFailure(error) else {
+      return
+    }
     worker.async { [self] in recordFailure(error) }
   }
 
@@ -66,12 +70,16 @@ final class CaptureProcessor: @unchecked Sendable {
       return self.pendingFailure
     }
     let result: Result<CanonicalRecording, AudioCaptureError> = worker.sync {
-      guard !isFinished else { return .failure(.notRecording) }
+      guard !isFinished else {
+        return .failure(.notRecording)
+      }
       isFinished = true
-      if let failure = failure ?? pendingFailure { return .failure(failure) }
+      if let failure = failure ?? pendingFailure {
+        return .failure(failure)
+      }
 
       do {
-        accumulator.append(try converter.finish())
+        try accumulator.append(converter.finish())
         return .success(accumulator.recording())
       } catch let error as AudioCaptureError { return .failure(error) } catch {
         return .failure(.conversionFailed(error.localizedDescription))
@@ -84,21 +92,43 @@ final class CaptureProcessor: @unchecked Sendable {
   func cancel() {
     acceptingLock.withLock { isAcceptingInput = false }
     let shouldFinish = worker.sync {
-      guard !isFinished else { return false }
+      guard !isFinished else {
+        return false
+      }
       isFinished = true
       return true
     }
-    if shouldFinish { continuation.finish() }
+    if shouldFinish {
+      continuation.finish()
+    }
   }
 
+  // MARK: Private
+
+  private let acceptingLock = NSLock()
+  private let converter: CanonicalAudioConverter
+  private let continuation: AsyncStream<AudioCaptureEvent>.Continuation
+  private let inputBuffers: AudioBufferPool
+  private let worker = DispatchQueue(label: "MiniWhisper Audio Capture Processor")
+
+  private var accumulator = SampleAccumulator()
+  private var failure: AudioCaptureError?
+  private var pendingFailure: AudioCaptureError?
+  private var isAcceptingInput = true
+  private var isFinished = false
+
   private func failFromWorker(_ error: AudioCaptureError) {
-    guard reserveFailure(error) else { return }
+    guard reserveFailure(error) else {
+      return
+    }
     recordFailure(error)
   }
 
   private func reserveFailure(_ error: AudioCaptureError) -> Bool {
     acceptingLock.withLock {
-      guard isAcceptingInput else { return false }
+      guard isAcceptingInput else {
+        return false
+      }
       isAcceptingInput = false
       pendingFailure = error
       return true
@@ -106,12 +136,16 @@ final class CaptureProcessor: @unchecked Sendable {
   }
 
   private func recordFailure(_ error: AudioCaptureError) {
-    guard !isFinished, failure == nil else { return }
+    guard !isFinished, failure == nil else {
+      return
+    }
     failure = error
     continuation.yield(.failed(error))
     continuation.finish()
   }
 }
+
+// MARK: - CaptureBufferConfiguration
 
 enum CaptureBufferConfiguration {
   static let durationSeconds = 0.1
@@ -125,25 +159,28 @@ enum CaptureBufferConfiguration {
   }
 }
 
-final class AudioBufferPool: @unchecked Sendable {
-  private static let bufferCount = 8
+// MARK: - AudioBufferPool
 
-  private let lock = NSLock()
-  private var availableBuffers: [OwnedAudioBuffer]
+final class AudioBufferPool: @unchecked Sendable {
+  // MARK: Lifecycle
 
   init(format: AVAudioFormat, bufferCapacity: AVAudioFrameCount) throws(AudioCaptureError) {
     var buffers: [OwnedAudioBuffer] = []
-    for _ in 0..<Self.bufferCount {
+    for _ in 0 ..< Self.bufferCount {
       guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: bufferCapacity) else {
         throw .unexpected("An input audio buffer could not be allocated")
       }
       buffers.append(OwnedAudioBuffer(buffer))
     }
-    self.availableBuffers = buffers
+    availableBuffers = buffers
   }
 
+  // MARK: Internal
+
   func copy(_ source: AVAudioPCMBuffer) -> OwnedAudioBuffer? {
-    guard let destination = lock.withLock({ availableBuffers.popLast() }) else { return nil }
+    guard let destination = lock.withLock({ availableBuffers.popLast() }) else {
+      return nil
+    }
     guard copy(source, to: destination.buffer) else {
       checkIn(destination)
       return nil
@@ -156,22 +193,39 @@ final class AudioBufferPool: @unchecked Sendable {
     lock.withLock { availableBuffers.append(buffer) }
   }
 
+  // MARK: Private
+
+  private static let bufferCount = 8
+
+  private let lock = NSLock()
+  private var availableBuffers: [OwnedAudioBuffer]
+
   private func copy(_ source: AVAudioPCMBuffer, to destination: AVAudioPCMBuffer) -> Bool {
-    guard source.frameLength <= destination.frameCapacity else { return false }
+    guard source.frameLength <= destination.frameCapacity else {
+      return false
+    }
 
     destination.frameLength = destination.frameCapacity
     let sourceBuffers = UnsafeMutableAudioBufferListPointer(source.mutableAudioBufferList)
     let destinationBuffers = UnsafeMutableAudioBufferListPointer(destination.mutableAudioBufferList)
-    guard sourceBuffers.count == destinationBuffers.count else { return false }
+    guard sourceBuffers.count == destinationBuffers.count else {
+      return false
+    }
 
     for index in sourceBuffers.indices {
       let sourceBuffer = sourceBuffers[index]
       let byteCount = Int(sourceBuffer.mDataByteSize)
-      guard byteCount <= Int(destinationBuffers[index].mDataByteSize) else { return false }
-      guard byteCount > 0 else { continue }
+      guard byteCount <= Int(destinationBuffers[index].mDataByteSize) else {
+        return false
+      }
+      guard byteCount > 0 else {
+        continue
+      }
       guard let sourceData = sourceBuffer.mData,
-        let destinationData = destinationBuffers[index].mData
-      else { return false }
+            let destinationData = destinationBuffers[index].mData
+      else {
+        return false
+      }
       memcpy(destinationData, sourceData, byteCount)
     }
     destination.frameLength = source.frameLength
@@ -179,8 +233,16 @@ final class AudioBufferPool: @unchecked Sendable {
   }
 }
 
-final class OwnedAudioBuffer: @unchecked Sendable {
-  let buffer: AVAudioPCMBuffer
+// MARK: - OwnedAudioBuffer
 
-  init(_ buffer: AVAudioPCMBuffer) { self.buffer = buffer }
+final class OwnedAudioBuffer: @unchecked Sendable {
+  // MARK: Lifecycle
+
+  init(_ buffer: AVAudioPCMBuffer) {
+    self.buffer = buffer
+  }
+
+  // MARK: Internal
+
+  let buffer: AVAudioPCMBuffer
 }

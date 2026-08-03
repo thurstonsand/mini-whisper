@@ -1,15 +1,20 @@
 import AudioCapture
 import ComposableArchitecture
 
-@DependencyClient struct MicrophonePermissionClient: Sendable {
+// MARK: - MicrophonePermissionClient
+
+@DependencyClient struct MicrophonePermissionClient {
   var status: @Sendable () async -> MicPermissionStatus = { .undetermined }
   var requestIfNeeded: @Sendable () async -> MicPermissionStatus = { .undetermined }
 }
 
+// MARK: DependencyKey
+
 extension MicrophonePermissionClient: DependencyKey {
   static let liveValue = Self(
     status: { MicPermission.shared.status },
-    requestIfNeeded: { await MicPermission.shared.requestIfNeeded() })
+    requestIfNeeded: { await MicPermission.shared.requestIfNeeded() },
+  )
 }
 
 extension DependencyValues {

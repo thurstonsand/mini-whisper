@@ -11,20 +11,26 @@ public enum CanonicalWAVWriter {
     }
     guard
       let buffer = AVAudioPCMBuffer(
-        pcmFormat: format, frameCapacity: AVAudioFrameCount(max(recording.samples.count, 1))),
+        pcmFormat: format, frameCapacity: AVAudioFrameCount(max(recording.samples.count, 1)),
+      ),
       let channel = buffer.floatChannelData?.pointee
-    else { throw .wavWriteFailed("The canonical audio buffer could not be allocated") }
+    else {
+      throw .wavWriteFailed("The canonical audio buffer could not be allocated")
+    }
 
     buffer.frameLength = AVAudioFrameCount(recording.samples.count)
     recording.samples.withUnsafeBufferPointer { samples in
-      guard let baseAddress = samples.baseAddress else { return }
+      guard let baseAddress = samples.baseAddress else {
+        return
+      }
       channel.update(from: baseAddress, count: samples.count)
     }
 
     do {
       let file = try AVAudioFile(
         forWriting: url, settings: format.settings, commonFormat: .pcmFormatFloat32,
-        interleaved: false)
+        interleaved: false,
+      )
       try file.write(from: buffer)
     } catch { throw .wavWriteFailed(error.localizedDescription) }
   }

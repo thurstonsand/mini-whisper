@@ -4,39 +4,36 @@ import FieldContext
 import Foundation
 import OSLog
 
+// MARK: - FocusedFieldReader
+
 /// Resolves the frontmost application's focused text element and reads a bounded window around
 /// its selection.
 enum FocusedFieldReader {
-  private static let messagingTimeout: Float = 0.020
-  private static let captureBudget = Duration.milliseconds(60)
-  private static let maximumFocusDepth = 16
-  private static let maximumChildWidth = 64
+  // MARK: Internal
 
   static func capture() -> ContextCapture {
     let clock = ContinuousClock()
     let started = clock.now
     let capture = Session(deadline: started + captureBudget).read()
     let duration = started.duration(to: clock.now).components
-    let elapsed = Double(duration.seconds) * 1_000 + Double(duration.attoseconds) / 1e15
+    let elapsed = Double(duration.seconds) * 1000 + Double(duration.attoseconds) / 1e15
     contextLogger.info(
-      "Context capture \(capture.logDescription, privacy: .public) elapsed=\(elapsed, format: .fixed(precision: 3))ms"
+      "Context capture \(capture.logDescription, privacy: .public) elapsed=\(elapsed, format: .fixed(precision: 3))ms",
     )
     return capture
   }
 
+  // MARK: Private
+
   private struct Session {
+    // MARK: Internal
+
     let deadline: ContinuousClock.Instant
 
-    private var hasBudget: Bool { ContinuousClock.now < deadline }
-
-    private struct TextTarget {
-      var element: AXUIElement
-      var role: String
-      var characterCount: Int
-    }
-
     func read() -> ContextCapture {
-      guard AXIsProcessTrusted() else { return .unavailable(.accessibilityPermissionMissing) }
+      guard AXIsProcessTrusted() else {
+        return .unavailable(.accessibilityPermissionMissing)
+      }
       guard let frontmost = NSWorkspace.shared.frontmostApplication else {
         return .unavailable(.noFocusedElement)
       }
@@ -53,15 +50,36 @@ enum FocusedFieldReader {
 
       let focused: AXUIElement
       switch AXRead.element(application, kAXFocusedUIElementAttribute) {
-      case .success(let element): focused = element
-      case .failure(let failure):
+      case let .success(element):
+        focused = element
+      case let .failure(failure):
         return .unavailable(classify(failure, .focusedElement, downgrade: .noFocusedElement))
       }
 
       switch resolveTextTarget(focused) {
-      case .success(let target): return readSlices(from: target)
-      case .failure(let reason): return .unavailable(reason)
+      case let .success(target):
+        return readSlices(from: target)
+      case let .failure(reason):
+        return .unavailable(reason)
       }
+    }
+
+    // MARK: Private
+
+    private struct TextTarget {
+      var element: AXUIElement
+      var role: String
+      var characterCount: Int
+    }
+
+    private enum Secureness {
+      case secure
+      case plain
+      case failed(AXRead.Failure)
+    }
+
+    private var hasBudget: Bool {
+      ContinuousClock.now < deadline
     }
 
     /// Chromium hands out a valueless container (`AXWebArea`); the node that owns the value and
@@ -71,16 +89,19 @@ enum FocusedFieldReader {
     {
       var element = focused
       var lastRole: String?
-      for _ in 0..<maximumFocusDepth {
+      for _ in 0 ..< maximumFocusDepth {
         guard timeoutInstalled(on: element) else {
           return .failure(.axFailure(operation: .role, error: AXError.failure.rawValue))
         }
-        guard hasBudget else { return .failure(.timedOut(operation: .role)) }
+        guard hasBudget else {
+          return .failure(.timedOut(operation: .role))
+        }
 
         let role: String?
         switch AXRead.string(element, kAXRoleAttribute) {
-        case .success(let value): role = value
-        case .failure(let failure):
+        case let .success(value):
+          role = value
+        case let .failure(failure):
           guard !failure.isTransient else {
             return .failure(classify(failure, .role, downgrade: .nonTextElement(role: lastRole)))
           }
@@ -90,30 +111,37 @@ enum FocusedFieldReader {
 
         if let role {
           switch secureness(of: element, role: role) {
-          case .secure: return .failure(.protectedField(role: role))
-          case .failed(let failure):
+          case .secure:
+            return .failure(.protectedField(role: role))
+          case let .failed(failure):
             return .failure(classify(failure, .subrole, downgrade: .nonTextElement(role: role)))
-          case .plain: break
+          case .plain:
+            break
           }
 
           if !FieldTargetPolicy.isContainer(role: role) {
             switch AXRead.count(element, kAXNumberOfCharactersAttribute) {
-            case .success(let characterCount):
+            case let .success(characterCount):
               return .success(
-                TextTarget(element: element, role: role, characterCount: characterCount))
-            case .failure(let failure):
+                TextTarget(element: element, role: role, characterCount: characterCount),
+              )
+            case let .failure(failure):
               guard !failure.isTransient else {
                 return .failure(
-                  classify(failure, .characterCount, downgrade: .nonTextElement(role: role)))
+                  classify(failure, .characterCount, downgrade: .nonTextElement(role: role)),
+                )
               }
             }
           }
         }
 
         switch focusedChild(of: element) {
-        case .success(let child?): element = child
-        case .success(nil): return .failure(.nonTextElement(role: lastRole))
-        case .failure(let reason): return .failure(reason)
+        case let .success(child?):
+          element = child
+        case .success(nil):
+          return .failure(.nonTextElement(role: lastRole))
+        case let .failure(reason):
+          return .failure(reason)
         }
       }
       return .failure(.nonTextElement(role: lastRole))
@@ -122,8 +150,9 @@ enum FocusedFieldReader {
     private func focusedChild(of element: AXUIElement) -> Result<AXUIElement?, ContextUnavailable> {
       let children: [AXUIElement]
       switch AXRead.children(element) {
-      case .success(let values): children = values
-      case .failure(let failure):
+      case let .success(values):
+        children = values
+      case let .failure(failure):
         guard !failure.isTransient else {
           return .failure(classify(failure, .children, downgrade: .nonTextElement(role: nil)))
         }
@@ -131,14 +160,18 @@ enum FocusedFieldReader {
       }
 
       for child in children.prefix(maximumChildWidth) {
-        guard hasBudget else { return .failure(.timedOut(operation: .children)) }
+        guard hasBudget else {
+          return .failure(.timedOut(operation: .children))
+        }
         guard timeoutInstalled(on: child) else {
           return .failure(.axFailure(operation: .children, error: AXError.failure.rawValue))
         }
         switch AXRead.bool(child, kAXFocusedAttribute) {
-        case .success(true): return .success(child)
-        case .success(false): continue
-        case .failure(let failure):
+        case .success(true):
+          return .success(child)
+        case .success(false):
+          continue
+        case let .failure(failure):
           // A child that cannot answer is a hung target, not a child to skip past.
           guard !failure.isTransient else {
             return .failure(classify(failure, .children, downgrade: .nonTextElement(role: nil)))
@@ -149,40 +182,45 @@ enum FocusedFieldReader {
       return .success(nil)
     }
 
-    private enum Secureness {
-      case secure
-      case plain
-      case failed(AXRead.Failure)
-    }
-
     private func secureness(of element: AXUIElement, role: String) -> Secureness {
-      guard !FieldTargetPolicy.isSecure(role: role, subrole: nil) else { return .secure }
-      guard FieldTargetPolicy.needsSubroleCheck(role: role) else { return .plain }
+      guard !FieldTargetPolicy.isSecure(role: role, subrole: nil) else {
+        return .secure
+      }
+      guard FieldTargetPolicy.needsSubroleCheck(role: role) else {
+        return .plain
+      }
       switch AXRead.string(element, kAXSubroleAttribute) {
-      case .success(let subrole):
+      case let .success(subrole):
         return FieldTargetPolicy.isSecure(role: role, subrole: subrole) ? .secure : .plain
-      case .failure(let failure): return failure.isTransient ? .failed(failure) : .plain
+      case let .failure(failure):
+        return failure.isTransient ? .failed(failure) : .plain
       }
     }
 
     private func readSlices(from target: TextTarget) -> ContextCapture {
-      guard hasBudget else { return .unavailable(.timedOut(operation: .selectedRange)) }
+      guard hasBudget else {
+        return .unavailable(.timedOut(operation: .selectedRange))
+      }
 
       let selection: CFRange
       switch AXRead.range(target.element, kAXSelectedTextRangeAttribute) {
-      case .success(let range): selection = range
-      case .failure(let failure):
+      case let .success(range):
+        selection = range
+      case let .failure(failure):
         return .unavailable(
-          classify(failure, .selectedRange, downgrade: .noTextRange(role: target.role)))
+          classify(failure, .selectedRange, downgrade: .noTextRange(role: target.role)),
+        )
       }
 
       let plan: FocusedTextPlan
       switch FocusedTextPlan.plan(
         characterCount: target.characterCount, selectionLocation: selection.location,
-        selectionLength: selection.length)
-      {
-      case .success(let planned): plan = planned
-      case .failure: return .unavailable(.noTextRange(role: target.role))
+        selectionLength: selection.length,
+      ) {
+      case let .success(planned):
+        plan = planned
+      case .failure:
+        return .unavailable(.noTextRange(role: target.role))
       }
 
       var texts = [String]()
@@ -191,14 +229,18 @@ enum FocusedFieldReader {
           texts.append("")
           continue
         }
-        guard hasBudget else { return .unavailable(.timedOut(operation: .stringForRange)) }
+        guard hasBudget else {
+          return .unavailable(.timedOut(operation: .stringForRange))
+        }
         switch AXRead.stringForRange(
-          target.element, CFRange(location: slice.location, length: slice.length))
-        {
-        case .success(let text): texts.append(text)
-        case .failure(let failure):
+          target.element, CFRange(location: slice.location, length: slice.length),
+        ) {
+        case let .success(text):
+          texts.append(text)
+        case let .failure(failure):
           return .unavailable(
-            classify(failure, .stringForRange, downgrade: .noTextRange(role: target.role)))
+            classify(failure, .stringForRange, downgrade: .noTextRange(role: target.role)),
+          )
         }
       }
 
@@ -206,8 +248,10 @@ enum FocusedFieldReader {
       // surrogate pair, is not serving ranges: a partial capture is unavailable, not best effort.
       switch plan.assemble(role: target.role, before: texts[0], selected: texts[1], after: texts[2])
       {
-      case .success(let context): return .available(context)
-      case .failure: return .unavailable(.noTextRange(role: target.role))
+      case let .success(context):
+        return .available(context)
+      case .failure:
+        return .unavailable(.noTextRange(role: target.role))
       }
     }
 
@@ -218,17 +262,26 @@ enum FocusedFieldReader {
     /// Only an explicit "this target does not offer that" downgrades. Timeouts and hung targets
     /// end the capture where they happen, so nothing further is attempted on the delivery path.
     private func classify(
-      _ failure: AXRead.Failure, _ operation: ContextAXOperation, downgrade: ContextUnavailable
+      _ failure: AXRead.Failure, _ operation: ContextAXOperation, downgrade: ContextUnavailable,
     ) -> ContextUnavailable {
       switch failure {
-      case .ax(.cannotComplete): .timedOut(operation: operation)
-      case .ax(let error) where failure.isTransient:
+      case .ax(.cannotComplete):
+        .timedOut(operation: operation)
+      case let .ax(error) where failure.isTransient:
         .axFailure(operation: operation, error: error.rawValue)
-      default: downgrade
+      default:
+        downgrade
       }
     }
   }
+
+  private static let messagingTimeout: Float = 0.020
+  private static let captureBudget = Duration.milliseconds(60)
+  private static let maximumFocusDepth = 16
+  private static let maximumChildWidth = 64
 }
+
+// MARK: - AXRead
 
 /// Thin `Result`-returning wrappers over the C Accessibility API. This layer decides nothing.
 enum AXRead {
@@ -237,12 +290,18 @@ enum AXRead {
     case missingValue
     case wrongType
 
+    // MARK: Internal
+
     /// A target that is hung, busy, or refusing to serve the API — as opposed to one that answered
     /// clearly that it does not have what was asked for.
     var isTransient: Bool {
       switch self {
-      case .ax(.cannotComplete), .ax(.apiDisabled), .ax(.failure): true
-      default: false
+      case .ax(.cannotComplete),
+           .ax(.apiDisabled),
+           .ax(.failure):
+        true
+      default:
+        false
       }
     }
   }
@@ -250,42 +309,56 @@ enum AXRead {
   static func value(_ element: AXUIElement, _ attribute: String) -> Result<CFTypeRef, Failure> {
     var value: CFTypeRef?
     let error = AXUIElementCopyAttributeValue(element, attribute as CFString, &value)
-    guard error == .success else { return .failure(.ax(error)) }
-    guard let value else { return .failure(.missingValue) }
+    guard error == .success else {
+      return .failure(.ax(error))
+    }
+    guard let value else {
+      return .failure(.missingValue)
+    }
     return .success(value)
   }
 
   static func element(_ element: AXUIElement, _ attribute: String) -> Result<AXUIElement, Failure> {
     value(element, attribute).flatMap { value in
-      guard CFGetTypeID(value) == AXUIElementGetTypeID() else { return .failure(.wrongType) }
+      guard CFGetTypeID(value) == AXUIElementGetTypeID() else {
+        return .failure(.wrongType)
+      }
       return .success(value as! AXUIElement)
     }
   }
 
   static func string(_ element: AXUIElement, _ attribute: String) -> Result<String, Failure> {
     value(element, attribute).flatMap { value in
-      guard let string = value as? String else { return .failure(.wrongType) }
+      guard let string = value as? String else {
+        return .failure(.wrongType)
+      }
       return .success(string)
     }
   }
 
   static func count(_ element: AXUIElement, _ attribute: String) -> Result<Int, Failure> {
     value(element, attribute).flatMap { value in
-      guard let count = value as? Int else { return .failure(.wrongType) }
+      guard let count = value as? Int else {
+        return .failure(.wrongType)
+      }
       return .success(count)
     }
   }
 
   static func bool(_ element: AXUIElement, _ attribute: String) -> Result<Bool, Failure> {
     value(element, attribute).flatMap { value in
-      guard let flag = value as? Bool else { return .failure(.wrongType) }
+      guard let flag = value as? Bool else {
+        return .failure(.wrongType)
+      }
       return .success(flag)
     }
   }
 
   static func range(_ element: AXUIElement, _ attribute: String) -> Result<CFRange, Failure> {
     value(element, attribute).flatMap { value in
-      guard CFGetTypeID(value) == AXValueGetTypeID() else { return .failure(.wrongType) }
+      guard CFGetTypeID(value) == AXValueGetTypeID() else {
+        return .failure(.wrongType)
+      }
       var range = CFRange()
       let axValue = value as! AXValue
       guard AXValueGetType(axValue) == .cfRange, AXValueGetValue(axValue, .cfRange, &range) else {
@@ -297,20 +370,30 @@ enum AXRead {
 
   static func stringForRange(_ element: AXUIElement, _ range: CFRange) -> Result<String, Failure> {
     var requested = range
-    guard let parameter = AXValueCreate(.cfRange, &requested) else { return .failure(.wrongType) }
+    guard let parameter = AXValueCreate(.cfRange, &requested) else {
+      return .failure(.wrongType)
+    }
     var value: CFTypeRef?
     let error = AXUIElementCopyParameterizedAttributeValue(
-      element, kAXStringForRangeParameterizedAttribute as CFString, parameter, &value)
-    guard error == .success else { return .failure(.ax(error)) }
-    guard let string = value as? String else { return .failure(.wrongType) }
+      element, kAXStringForRangeParameterizedAttribute as CFString, parameter, &value,
+    )
+    guard error == .success else {
+      return .failure(.ax(error))
+    }
+    guard let string = value as? String else {
+      return .failure(.wrongType)
+    }
     return .success(string)
   }
 
   static func children(_ element: AXUIElement) -> Result<[AXUIElement], Failure> {
     value(element, kAXChildrenAttribute).flatMap { value in
-      guard let children = value as? [AnyObject] else { return .failure(.wrongType) }
+      guard let children = value as? [AnyObject] else {
+        return .failure(.wrongType)
+      }
       return .success(
-        children.filter { CFGetTypeID($0) == AXUIElementGetTypeID() }.map { $0 as! AXUIElement })
+        children.filter { CFGetTypeID($0) == AXUIElementGetTypeID() }.map { $0 as! AXUIElement },
+      )
     }
   }
 }
@@ -320,9 +403,10 @@ extension ContextCapture {
   /// classifications.
   var logDescription: String {
     switch self {
-    case .available(let context):
+    case let .available(context):
       "available role=\(context.role) before=\(context.before.utf16.count) selected=\(context.selected.utf16.count) after=\(context.after.utf16.count) truncated=\(context.beforeWasTruncated ? "b" : "-")\(context.selectionWasTruncated ? "s" : "-")\(context.afterWasTruncated ? "a" : "-")"
-    case .unavailable(let reason): "unavailable \(reason.logDescription)"
+    case let .unavailable(reason):
+      "unavailable \(reason.logDescription)"
     }
   }
 }
@@ -330,15 +414,22 @@ extension ContextCapture {
 extension ContextUnavailable {
   var logDescription: String {
     switch self {
-    case .accessibilityPermissionMissing: "accessibilityPermissionMissing"
-    case .noFocusedElement: "noFocusedElement"
-    case .nonTextElement(let role): "nonTextElement role=\(role ?? "?")"
-    case .noTextRange(let role): "noTextRange role=\(role ?? "?")"
-    case .gridSemantics(let bundleID): "gridSemantics bundle=\(bundleID ?? "?")"
-    case .protectedField(let role): "protectedField role=\(role ?? "?")"
-    case .axFailure(let operation, let error):
+    case .accessibilityPermissionMissing:
+      "accessibilityPermissionMissing"
+    case .noFocusedElement:
+      "noFocusedElement"
+    case let .nonTextElement(role):
+      "nonTextElement role=\(role ?? "?")"
+    case let .noTextRange(role):
+      "noTextRange role=\(role ?? "?")"
+    case let .gridSemantics(bundleID):
+      "gridSemantics bundle=\(bundleID ?? "?")"
+    case let .protectedField(role):
+      "protectedField role=\(role ?? "?")"
+    case let .axFailure(operation, error):
       "axFailure operation=\(operation.rawValue) ax=\(error)"
-    case .timedOut(let operation): "timedOut operation=\(operation.rawValue)"
+    case let .timedOut(operation):
+      "timedOut operation=\(operation.rawValue)"
     }
   }
 }

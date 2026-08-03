@@ -1,12 +1,10 @@
 import AVFAudio
 import Foundation
 
-final class CanonicalAudioConverter: @unchecked Sendable {
-  private static let outputBufferCapacity: AVAudioFrameCount = 4_096
+// MARK: - CanonicalAudioConverter
 
-  private let converter: AVAudioConverter
-  private let outputFormat: AVAudioFormat
-  private var reachedEndOfStream = false
+final class CanonicalAudioConverter: @unchecked Sendable {
+  // MARK: Lifecycle
 
   init(inputFormat: AVAudioFormat) throws(AudioCaptureError) {
     guard let outputFormat = CanonicalAudioFormat.make() else {
@@ -20,6 +18,8 @@ final class CanonicalAudioConverter: @unchecked Sendable {
     self.converter = converter
     self.outputFormat = outputFormat
   }
+
+  // MARK: Internal
 
   func reset() {
     converter.reset()
@@ -36,15 +36,25 @@ final class CanonicalAudioConverter: @unchecked Sendable {
   }
 
   func finish() throws(AudioCaptureError) -> [Float] {
-    guard !reachedEndOfStream else { return [] }
+    guard !reachedEndOfStream else {
+      return []
+    }
     reachedEndOfStream = true
 
     let input = ConverterInput(buffer: nil)
     return try drain { _, status in input.provide(status: status) }
   }
 
+  // MARK: Private
+
+  private static let outputBufferCapacity: AVAudioFrameCount = 4096
+
+  private let converter: AVAudioConverter
+  private let outputFormat: AVAudioFormat
+  private var reachedEndOfStream = false
+
   private func drain(
-    input: @escaping AVAudioConverterInputBlock
+    input: @escaping AVAudioConverterInputBlock,
   ) throws(AudioCaptureError) -> [Float] {
     var outputSamples: [Float] = []
     var shouldContinue = true
@@ -52,20 +62,31 @@ final class CanonicalAudioConverter: @unchecked Sendable {
     while shouldContinue {
       guard
         let outputBuffer = AVAudioPCMBuffer(
-          pcmFormat: outputFormat, frameCapacity: Self.outputBufferCapacity)
-      else { throw .conversionFailed("The canonical output buffer could not be allocated") }
+          pcmFormat: outputFormat, frameCapacity: Self.outputBufferCapacity,
+        )
+      else {
+        throw .conversionFailed("The canonical output buffer could not be allocated")
+      }
 
       var conversionError: NSError?
       let status = converter.convert(
-        to: outputBuffer, error: &conversionError, withInputFrom: input)
-      if let conversionError { throw .conversionFailed(conversionError.localizedDescription) }
+        to: outputBuffer, error: &conversionError, withInputFrom: input,
+      )
+      if let conversionError {
+        throw .conversionFailed(conversionError.localizedDescription)
+      }
 
-      outputSamples.append(contentsOf: try samples(from: outputBuffer))
+      try outputSamples.append(contentsOf: samples(from: outputBuffer))
       switch status {
-      case .haveData: shouldContinue = true
-      case .inputRanDry, .endOfStream: shouldContinue = false
-      case .error: throw .conversionFailed("AVAudioConverter returned an error without details")
-      @unknown default: throw .conversionFailed("AVAudioConverter returned an unknown status")
+      case .haveData:
+        shouldContinue = true
+      case .inputRanDry,
+           .endOfStream:
+        shouldContinue = false
+      case .error:
+        throw .conversionFailed("AVAudioConverter returned an error without details")
+      @unknown default:
+        throw .conversionFailed("AVAudioConverter returned an unknown status")
       }
     }
 
@@ -73,7 +94,9 @@ final class CanonicalAudioConverter: @unchecked Sendable {
   }
 
   private func samples(from buffer: AVAudioPCMBuffer) throws(AudioCaptureError) -> [Float] {
-    guard buffer.frameLength > 0 else { return [] }
+    guard buffer.frameLength > 0 else {
+      return []
+    }
     guard let channel = buffer.floatChannelData?.pointee else {
       throw .conversionFailed("Canonical Float32 samples were unavailable")
     }
@@ -81,12 +104,17 @@ final class CanonicalAudioConverter: @unchecked Sendable {
   }
 }
 
-// AVAudioConverter invokes its input block synchronously inside convert; this object cannot race.
-private final class ConverterInput: @unchecked Sendable {
-  private let buffer: AVAudioPCMBuffer?
-  private var suppliedBuffer = false
+// MARK: - ConverterInput
 
-  init(buffer: AVAudioPCMBuffer?) { self.buffer = buffer }
+/// AVAudioConverter invokes its input block synchronously inside convert; this object cannot race.
+private final class ConverterInput: @unchecked Sendable {
+  // MARK: Lifecycle
+
+  init(buffer: AVAudioPCMBuffer?) {
+    self.buffer = buffer
+  }
+
+  // MARK: Internal
 
   func provide(status: UnsafeMutablePointer<AVAudioConverterInputStatus>) -> AVAudioBuffer? {
     guard let buffer else {
@@ -102,4 +130,9 @@ private final class ConverterInput: @unchecked Sendable {
     status.pointee = .haveData
     return buffer
   }
+
+  // MARK: Private
+
+  private let buffer: AVAudioPCMBuffer?
+  private var suppliedBuffer = false
 }

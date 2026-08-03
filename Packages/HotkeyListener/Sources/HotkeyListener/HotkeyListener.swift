@@ -4,13 +4,18 @@ import IOKit.hidsystem
 import OSLog
 
 private let performanceLogger = Logger(
-  subsystem: "com.thurstonsand.MiniWhisper", category: "performance")
+  subsystem: "com.thurstonsand.MiniWhisper", category: "performance",
+)
+
+// MARK: - TapDisableReason
 
 public enum TapDisableReason: String, Equatable, Sendable {
   case timeout
   case userInput
   case invalidated
 }
+
+// MARK: - HotkeyListenerEvent
 
 public enum HotkeyListenerEvent: Equatable, Sendable {
   case inputMonitoringPermissionMissing
@@ -19,11 +24,16 @@ public enum HotkeyListenerEvent: Equatable, Sendable {
   case monitoringInterrupted(TapDisableReason)
 }
 
+// MARK: - HotkeyListenerError
+
 public enum HotkeyListenerError: Error, Equatable, Sendable { case eventTapCreationFailed }
+
+// MARK: - HotkeyListener
 
 public enum HotkeyListener {
   /// `IOHIDCheckAccess` is correct at launch but stays denied after an in-process pane grant. A
-  /// keyboard-only tap still creates before the grant, and `monitoringStarted` only proves creation,
+  /// keyboard-only tap still creates before the grant, and `monitoringStarted` only proves
+  /// creation,
   /// so onboarding requires a quit and reopen rather than trusting either false positive.
   public static func hasInputMonitoringPermission() -> Bool {
     IOHIDCheckAccess(kIOHIDRequestTypeListenEvent) == kIOHIDAccessTypeGranted
@@ -56,25 +66,18 @@ public enum HotkeyListener {
   }
 }
 
+// MARK: - EventTapSession
+
 private final class EventTapSession: @unchecked Sendable {
-  private static let capsLockKeyCode: UInt16 = 57
-
-  private let lock = NSLock()
-  private let hotkey: Hotkey
-
-  private var continuation: AsyncStream<HotkeyListenerEvent>.Continuation?
-  private var runLoop: CFRunLoop?
-  private var eventTap: CFMachPort?
-  private var stopWasRequested = false
-  private var pressedKeys: Set<PhysicalKey> = []
-  private var matcher: PhysicalChordMatcher
-  private var gestureMachine = HotkeyGestureMachine()
+  // MARK: Lifecycle
 
   init(hotkey: Hotkey, continuation: AsyncStream<HotkeyListenerEvent>.Continuation) {
     self.hotkey = hotkey
     self.continuation = continuation
-    self.matcher = PhysicalChordMatcher(hotkey: hotkey)
+    matcher = PhysicalChordMatcher(hotkey: hotkey)
   }
+
+  // MARK: Internal
 
   func start() async throws {
     try await withCheckedThrowingContinuation { startup in
@@ -90,8 +93,27 @@ private final class EventTapSession: @unchecked Sendable {
       stopWasRequested = true
       return self.runLoop
     }
-    if let runLoop { CFRunLoopStop(runLoop) } else { finishStream() }
+    if let runLoop {
+      CFRunLoopStop(runLoop)
+    } else {
+      finishStream()
+    }
   }
+
+  // MARK: Private
+
+  private static let capsLockKeyCode: UInt16 = 57
+
+  private let lock = NSLock()
+  private let hotkey: Hotkey
+
+  private var continuation: AsyncStream<HotkeyListenerEvent>.Continuation?
+  private var runLoop: CFRunLoop?
+  private var eventTap: CFMachPort?
+  private var stopWasRequested = false
+  private var pressedKeys: Set<PhysicalKey> = []
+  private var matcher: PhysicalChordMatcher
+  private var gestureMachine = HotkeyGestureMachine()
 
   private func run(startup: CheckedContinuation<Void, any Error>) {
     pressedKeys = currentlyPressedKeys()
@@ -107,17 +129,22 @@ private final class EventTapSession: @unchecked Sendable {
         tap: .cgSessionEventTap, place: .headInsertEventTap, options: options,
         eventsOfInterest: mask,
         callback: { _, type, event, userInfo in
-          guard let userInfo else { return Unmanaged.passUnretained(event) }
+          guard let userInfo else {
+            return Unmanaged.passUnretained(event)
+          }
           let session = Unmanaged<EventTapSession>.fromOpaque(userInfo).takeUnretainedValue()
           return session.receive(type: type, event: event)
-        }, userInfo: Unmanaged.passUnretained(self).toOpaque())
+        }, userInfo: Unmanaged.passUnretained(self).toOpaque(),
+      )
     else {
       startup.resume(throwing: HotkeyListenerError.eventTapCreationFailed)
       return
     }
 
     CFMachPortSetInvalidationCallBack(eventTap) { _, userInfo in
-      guard let userInfo else { return }
+      guard let userInfo else {
+        return
+      }
       let session = Unmanaged<EventTapSession>.fromOpaque(userInfo).takeUnretainedValue()
       session.stopAfterInvalidation()
     }
@@ -135,7 +162,9 @@ private final class EventTapSession: @unchecked Sendable {
     CFRunLoopRun()
 
     let expectedStop = lock.withLock { stopWasRequested }
-    if !expectedStop { interrupt(reason: .invalidated, reenable: false) }
+    if !expectedStop {
+      interrupt(reason: .invalidated, reenable: false)
+    }
     CGEvent.tapEnable(tap: eventTap, enable: false)
     CFRunLoopRemoveSource(runLoop, source, .commonModes)
     lock.withLock {
@@ -161,7 +190,9 @@ private final class EventTapSession: @unchecked Sendable {
       return Unmanaged.passUnretained(event)
     }
     let match = matcher.receive(transition)
-    if let input = match.input { emit(gestureMachine.receive(input)) }
+    if let input = match.input {
+      emit(gestureMachine.receive(input))
+    }
     return match.disposition == .suppress ? nil : Unmanaged.passUnretained(event)
   }
 
@@ -171,7 +202,7 @@ private final class EventTapSession: @unchecked Sendable {
     let phase: KeyPhase
 
     if type == .flagsChanged,
-      let modifier = ModifierKey.allCases.first(where: { $0.keyCode == keyCode })
+       let modifier = ModifierKey.allCases.first(where: { $0.keyCode == keyCode })
     {
       key = .modifier(modifier)
       if isModifierDown(modifier, event: event) {
@@ -195,11 +226,13 @@ private final class EventTapSession: @unchecked Sendable {
 
     return KeyTransition(
       key: key, phase: phase, isRepeat: event.getIntegerValueField(.keyboardEventAutorepeat) != 0,
-      pressedAfter: pressedKeys, time: time)
+      pressedAfter: pressedKeys, time: time,
+    )
   }
 
   private func isModifierDown(_ modifier: ModifierKey, event: CGEvent) -> Bool {
-    // A head-insert callback runs before session HID state updates, so event flags are authoritative.
+    // A head-insert callback runs before session HID state updates, so event flags are
+    // authoritative.
     modifier.isDown(in: event.flags)
   }
 
@@ -207,36 +240,51 @@ private final class EventTapSession: @unchecked Sendable {
     emit(gestureMachine.receive(.monitoringInterrupted))
     pressedKeys = currentlyPressedKeys()
     matcher.interrupt()
-    if pressedKeys.isEmpty { _ = gestureMachine.receive(.neutral) }
+    if pressedKeys.isEmpty {
+      _ = gestureMachine.receive(.neutral)
+    }
     yield(.monitoringInterrupted(reason))
-    if reenable, let eventTap { CGEvent.tapEnable(tap: eventTap, enable: true) }
+    if reenable, let eventTap {
+      CGEvent.tapEnable(tap: eventTap, enable: true)
+    }
   }
 
   private func stopAfterInvalidation() {
     let runLoop = lock.withLock { self.runLoop }
-    if let runLoop { CFRunLoopStop(runLoop) }
+    if let runLoop {
+      CFRunLoopStop(runLoop)
+    }
   }
 
   private func currentlyPressedKeys() -> Set<PhysicalKey> {
     Set(
-      (UInt16(0)...UInt16(127)).compactMap { keyCode in
+      (UInt16(0) ... UInt16(127)).compactMap { keyCode in
         // Caps Lock reports its toggle state rather than whether the physical key is held.
         guard keyCode != Self.capsLockKeyCode,
-          CGEventSource.keyState(.combinedSessionState, key: CGKeyCode(keyCode))
-        else { return nil }
+              CGEventSource.keyState(.combinedSessionState, key: CGKeyCode(keyCode))
+        else {
+          return nil
+        }
         if let modifier = ModifierKey.allCases.first(where: { $0.keyCode == keyCode }) {
           return .modifier(modifier)
         }
         return .keyCode(keyCode)
-      })
+      },
+    )
   }
 
   private func emit(_ event: GestureEvent?) {
-    guard let event else { return }
+    guard let event else {
+      return
+    }
     switch event {
-    case .startRecording: performanceLogger.notice("benchmark hotkey-press")
-    case .stopAndTranscribe: performanceLogger.notice("benchmark recording-release")
-    case .latchEngaged, .cancel: break
+    case .startRecording:
+      performanceLogger.notice("benchmark hotkey-press")
+    case .stopAndTranscribe:
+      performanceLogger.notice("benchmark recording-release")
+    case .latchEngaged,
+         .cancel:
+      break
     }
     yield(.gesture(event))
   }

@@ -1,3 +1,5 @@
+// MARK: - GestureEvent
+
 public enum GestureEvent: String, Equatable, Sendable {
   case startRecording
   case stopAndTranscribe
@@ -5,18 +7,33 @@ public enum GestureEvent: String, Equatable, Sendable {
   case cancel
 }
 
+// MARK: - HotkeyGestureMachine
+
 public struct HotkeyGestureMachine: Equatable, Sendable {
+  // MARK: Lifecycle
+
+  public init(timing: Timing = Timing(), initiallyBlocked: Bool = false) {
+    self.timing = timing
+    phase = initiallyBlocked ? .blockedUntilRelease : .idle
+  }
+
+  // MARK: Public
+
   public struct Timing: Equatable, Sendable {
-    public let doubleTapWindow: Duration
-    public let accidentalInputWindow: Duration
+    // MARK: Lifecycle
 
     public init(
       doubleTapWindow: Duration = .milliseconds(300),
-      accidentalInputWindow: Duration = .milliseconds(300)
+      accidentalInputWindow: Duration = .milliseconds(300),
     ) {
       self.doubleTapWindow = doubleTapWindow
       self.accidentalInputWindow = accidentalInputWindow
     }
+
+    // MARK: Public
+
+    public let doubleTapWindow: Duration
+    public let accidentalInputWindow: Duration
   }
 
   public enum Phase: Equatable, Sendable {
@@ -29,26 +46,31 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
   public private(set) var phase: Phase
   public let timing: Timing
 
-  private var previousReleaseAt: Duration?
-
-  public init(timing: Timing = Timing(), initiallyBlocked: Bool = false) {
-    self.timing = timing
-    self.phase = initiallyBlocked ? .blockedUntilRelease : .idle
-  }
-
   public mutating func receive(_ input: GestureInput) -> GestureEvent? {
     switch input {
-    case .escape: return escape()
-    case .monitoringInterrupted: return interrupt()
+    case .escape:
+      return escape()
+    case .monitoringInterrupted:
+      return interrupt()
     case .neutral:
-      if phase == .blockedUntilRelease { phase = .idle }
+      if phase == .blockedUntilRelease {
+        phase = .idle
+      }
       return nil
-    case .activation(let time): return activate(at: time)
-    case .release(let time): return release(at: time)
-    case .conflict(let time): return conflict(at: time)
-    case .mouseDown(let time): return mouseDown(at: time)
+    case let .activation(time):
+      return activate(at: time)
+    case let .release(time):
+      return release(at: time)
+    case let .conflict(time):
+      return conflict(at: time)
+    case let .mouseDown(time):
+      return mouseDown(at: time)
     }
   }
+
+  // MARK: Private
+
+  private var previousReleaseAt: Duration?
 
   private mutating func activate(at time: Duration) -> GestureEvent? {
     switch phase {
@@ -59,7 +81,9 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
       phase = .blockedUntilRelease
       previousReleaseAt = nil
       return .stopAndTranscribe
-    case .holding, .blockedUntilRelease: return nil
+    case .holding,
+         .blockedUntilRelease:
+      return nil
     }
   }
 
@@ -77,16 +101,22 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
     case .blockedUntilRelease:
       phase = .idle
       return nil
-    case .idle, .latched: return nil
+    case .idle,
+         .latched:
+      return nil
     }
   }
 
   private mutating func conflict(at time: Duration) -> GestureEvent? {
-    guard case .holding(let startedAt) = phase else {
-      if phase == .idle { phase = .blockedUntilRelease }
+    guard case let .holding(startedAt) = phase else {
+      if phase == .idle {
+        phase = .blockedUntilRelease
+      }
       return nil
     }
-    guard time - startedAt < timing.accidentalInputWindow else { return nil }
+    guard time - startedAt < timing.accidentalInputWindow else {
+      return nil
+    }
 
     phase = .blockedUntilRelease
     previousReleaseAt = nil
@@ -94,8 +124,10 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
   }
 
   private mutating func mouseDown(at time: Duration) -> GestureEvent? {
-    guard case .holding(let startedAt) = phase, time - startedAt < timing.accidentalInputWindow
-    else { return nil }
+    guard case let .holding(startedAt) = phase, time - startedAt < timing.accidentalInputWindow
+    else {
+      return nil
+    }
 
     phase = .blockedUntilRelease
     previousReleaseAt = nil
@@ -108,20 +140,26 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
       phase = .blockedUntilRelease
       previousReleaseAt = nil
       return nil
-    case .holding, .latched:
+    case .holding,
+         .latched:
       phase = .blockedUntilRelease
       previousReleaseAt = nil
       return .cancel
-    case .blockedUntilRelease: return nil
+    case .blockedUntilRelease:
+      return nil
     }
   }
 
   private mutating func interrupt() -> GestureEvent? {
-    let wasRecording: Bool
-    switch phase {
-    case .holding, .latched: wasRecording = true
-    case .idle, .blockedUntilRelease: wasRecording = false
-    }
+    let wasRecording =
+      switch phase {
+      case .holding,
+           .latched:
+        true
+      case .idle,
+           .blockedUntilRelease:
+        false
+      }
 
     phase = .blockedUntilRelease
     previousReleaseAt = nil

@@ -13,7 +13,9 @@ public enum TerminalBundleIDs {
   ]
 
   public static func contains(_ bundleID: String?) -> Bool {
-    guard let bundleID else { return false }
+    guard let bundleID else {
+      return false
+    }
     return all.contains(bundleID)
   }
 }

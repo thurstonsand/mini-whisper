@@ -5,31 +5,43 @@ import ComposableArchitecture
 import CoreGraphics
 import Foundation
 
-enum ClipboardRestoration: Equatable, Sendable {
+// MARK: - ClipboardRestoration
+
+enum ClipboardRestoration: Equatable {
   case restored
   case skipped
   case failed
 }
 
-enum DeliveryFallback: Equatable, Sendable {
+// MARK: - DeliveryFallback
+
+enum DeliveryFallback: Equatable {
   case accessibilityPermissionMissing
   case secureInput
   case eventCreationFailed
 }
 
-enum DeliveryOutcome: Equatable, Sendable {
+// MARK: - DeliveryOutcome
+
+enum DeliveryOutcome: Equatable {
   case pasted(ClipboardRestoration)
   case copied(DeliveryFallback)
 }
 
-enum DeliveryError: Error, Equatable, Sendable { case pasteboardWriteFailed }
+// MARK: - DeliveryError
 
-@DependencyClient struct DeliveryClient: Sendable {
+enum DeliveryError: Error, Equatable { case pasteboardWriteFailed }
+
+// MARK: - DeliveryClient
+
+@DependencyClient struct DeliveryClient {
   var hasPasteAccess: @Sendable () -> Bool = { false }
   var requestPasteAccess: @MainActor @Sendable () -> Bool = { false }
   var deliver: @Sendable (String) async throws -> DeliveryOutcome
   var copy: @Sendable (String) async throws -> Void
 }
+
+// MARK: DependencyKey
 
 extension DeliveryClient: DependencyKey {
   static let liveValue = Self(
@@ -42,9 +54,11 @@ extension DeliveryClient: DependencyKey {
     requestPasteAccess: {
       // kAXTrustedCheckOptionPrompt is imported as shared mutable state, so spell its value out.
       AXIsProcessTrustedWithOptions(
-        ["AXTrustedCheckOptionPrompt" as CFString: true] as CFDictionary)
+        ["AXTrustedCheckOptionPrompt" as CFString: true] as CFDictionary,
+      )
     }, deliver: { transcript in try await TranscriptDelivery.deliver(transcript) },
-    copy: { transcript in try await TranscriptDelivery.copy(transcript) })
+    copy: { transcript in try await TranscriptDelivery.copy(transcript) },
+  )
 }
 
 extension DependencyValues {
@@ -54,9 +68,10 @@ extension DependencyValues {
   }
 }
 
+// MARK: - TranscriptDelivery
+
 @MainActor private enum TranscriptDelivery {
-  private static let clipboardRestoreDelay = Duration.milliseconds(250)
-  private static let pasteShortcutEventDelay = Duration.milliseconds(10)
+  // MARK: Internal
 
   @discardableResult static func copy(_ transcript: String) throws -> Int {
     let pasteboard = NSPasteboard.general
@@ -72,9 +87,15 @@ extension DependencyValues {
     let snapshot = snapshot(pasteboard)
     let transcriptChangeCount = try copy(transcript)
 
-    guard !IsSecureEventInputEnabled() else { return .copied(.secureInput) }
-    guard AXIsProcessTrusted() else { return .copied(.accessibilityPermissionMissing) }
-    guard let events = pasteShortcutEvents() else { return .copied(.eventCreationFailed) }
+    guard !IsSecureEventInputEnabled() else {
+      return .copied(.secureInput)
+    }
+    guard AXIsProcessTrusted() else {
+      return .copied(.accessibilityPermissionMissing)
+    }
+    guard let events = pasteShortcutEvents() else {
+      return .copied(.eventCreationFailed)
+    }
 
     for event in events {
       event.post(tap: .cghidEventTap)
@@ -82,7 +103,9 @@ extension DependencyValues {
     }
 
     try await Task.sleep(for: clipboardRestoreDelay)
-    guard pasteboard.changeCount == transcriptChangeCount else { return .pasted(.skipped) }
+    guard pasteboard.changeCount == transcriptChangeCount else {
+      return .pasted(.skipped)
+    }
 
     pasteboard.clearContents()
     guard snapshot.isEmpty || pasteboard.writeObjects(pasteboardItems(from: snapshot)) else {
@@ -90,6 +113,11 @@ extension DependencyValues {
     }
     return .pasted(.restored)
   }
+
+  // MARK: Private
+
+  private static let clipboardRestoreDelay = Duration.milliseconds(250)
+  private static let pasteShortcutEventDelay = Duration.milliseconds(10)
 
   private static func snapshot(_ pasteboard: NSPasteboard) -> [[PasteboardRepresentation]] {
     // Eager resolution preserves every available type; promised data may briefly block delivery.
@@ -101,7 +129,7 @@ extension DependencyValues {
   }
 
   private static func pasteboardItems(
-    from snapshot: [[PasteboardRepresentation]]
+    from snapshot: [[PasteboardRepresentation]],
   ) -> [NSPasteboardItem] {
     snapshot.map { representations in
       let item = NSPasteboardItem()
@@ -115,10 +143,12 @@ extension DependencyValues {
   private static func pasteShortcutEvents() -> [CGEvent]? {
     let source = CGEventSource(stateID: .privateState)
     guard let commandDown = CGEvent(keyboardEventSource: source, virtualKey: 0x37, keyDown: true),
-      let vDown = CGEvent(keyboardEventSource: source, virtualKey: 0x09, keyDown: true),
-      let vUp = CGEvent(keyboardEventSource: source, virtualKey: 0x09, keyDown: false),
-      let commandUp = CGEvent(keyboardEventSource: source, virtualKey: 0x37, keyDown: false)
-    else { return nil }
+          let vDown = CGEvent(keyboardEventSource: source, virtualKey: 0x09, keyDown: true),
+          let vUp = CGEvent(keyboardEventSource: source, virtualKey: 0x09, keyDown: false),
+          let commandUp = CGEvent(keyboardEventSource: source, virtualKey: 0x37, keyDown: false)
+    else {
+      return nil
+    }
 
     commandDown.flags = .maskCommand
     vDown.flags = .maskCommand
@@ -126,6 +156,8 @@ extension DependencyValues {
     return [commandDown, vDown, vUp, commandUp]
   }
 }
+
+// MARK: - PasteboardRepresentation
 
 private struct PasteboardRepresentation {
   var type: NSPasteboard.PasteboardType

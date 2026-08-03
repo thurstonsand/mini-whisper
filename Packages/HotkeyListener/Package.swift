@@ -9,4 +9,5 @@ let package = Package(
   targets: [
     .target(name: "HotkeyListener"),
     .testTarget(name: "HotkeyListenerTests", dependencies: ["HotkeyListener"]),
-  ])
+  ],
+)

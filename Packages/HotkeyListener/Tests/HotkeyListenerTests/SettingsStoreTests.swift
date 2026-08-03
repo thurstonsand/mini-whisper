@@ -1,10 +1,11 @@
 import Foundation
+@testable import HotkeyListener
 import Testing
 
-@testable import HotkeyListener
+struct SettingsStoreTests {
+  // MARK: Internal
 
-@Suite struct SettingsStoreTests {
-  @Test func missingSettingsWriteAndReturnDefaults() throws {
+  @Test func `missing settings write and return defaults`() throws {
     let location = temporarySettingsURL()
     defer { try? FileManager.default.removeItem(at: location.deletingLastPathComponent()) }
 
@@ -13,48 +14,53 @@ import Testing
     #expect(settings == .defaults)
     #expect(FileManager.default.fileExists(atPath: location.path))
     let object = try #require(
-      JSONSerialization.jsonObject(with: Data(contentsOf: location)) as? [String: Any])
+      JSONSerialization.jsonObject(with: Data(contentsOf: location)) as? [String: Any],
+    )
     #expect(Set(object.keys) == ["hotkey", "soundsEnabled"])
   }
 
-  @Test func validSettingsAreLoadedWithoutBeingRewritten() throws {
+  @Test func `valid settings are loaded without being rewritten`() throws {
     let location = temporarySettingsURL()
     defer { try? FileManager.default.removeItem(at: location.deletingLastPathComponent()) }
     try FileManager.default.createDirectory(
-      at: location.deletingLastPathComponent(), withIntermediateDirectories: true)
+      at: location.deletingLastPathComponent(), withIntermediateDirectories: true,
+    )
     let original = """
-      {"hotkey":{"keyCode":0,"modifiers":["leftCommand"]},"soundsEnabled":false}
-      """
+    {"hotkey":{"keyCode":0,"modifiers":["leftCommand"]},"soundsEnabled":false}
+    """
     try Data(original.utf8).write(to: location)
 
     let settings = try SettingsStore(fileURL: location).load()
 
-    #expect(settings.hotkey == (try Hotkey(keyCode: 0, modifiers: [.leftCommand])))
+    #expect(try settings.hotkey == Hotkey(keyCode: 0, modifiers: [.leftCommand]))
     #expect(settings.soundsEnabled == false)
     #expect(try String(contentsOf: location, encoding: .utf8) == original)
   }
 
   @Test(arguments: ["not json", "{}", #"{"hotkey":{"modifiers":[]},"soundsEnabled":true}"#])
-  func invalidSettingsAreReplacedWithDefaults(contents: String) throws {
+  func `invalid settings are replaced with defaults`(contents: String) throws {
     let location = temporarySettingsURL()
     defer { try? FileManager.default.removeItem(at: location.deletingLastPathComponent()) }
     try FileManager.default.createDirectory(
-      at: location.deletingLastPathComponent(), withIntermediateDirectories: true)
+      at: location.deletingLastPathComponent(), withIntermediateDirectories: true,
+    )
     try Data(contents.utf8).write(to: location)
 
     let settings = try SettingsStore(fileURL: location).load()
 
     #expect(settings == .defaults)
     let persisted = try JSONDecoder().decode(
-      MiniWhisperSettings.self, from: Data(contentsOf: location))
+      MiniWhisperSettings.self, from: Data(contentsOf: location),
+    )
     #expect(persisted == .defaults)
   }
 
-  @Test func unknownKeysAndDuplicateModifiersDoNotDestroyValidSettings() throws {
+  @Test func `unknown keys and duplicate modifiers do not destroy valid settings`() throws {
     let location = temporarySettingsURL()
     defer { try? FileManager.default.removeItem(at: location.deletingLastPathComponent()) }
     try FileManager.default.createDirectory(
-      at: location.deletingLastPathComponent(), withIntermediateDirectories: true)
+      at: location.deletingLastPathComponent(), withIntermediateDirectories: true,
+    )
     let original =
       #"{"hotkey":{"modifiers":["rightOption","rightOption"],"typo":1},"soundsEnabled":false,"extra":1}"#
     try Data(original.utf8).write(to: location)
@@ -66,13 +72,14 @@ import Testing
     #expect(try String(contentsOf: location, encoding: .utf8) == original)
   }
 
-  @Test func savingSoundsPreservesTheHotkeyAndTheDocumentedShape() throws {
+  @Test func `saving sounds preserves the hotkey and the documented shape`() throws {
     let location = temporarySettingsURL()
     defer { try? FileManager.default.removeItem(at: location.deletingLastPathComponent()) }
     try FileManager.default.createDirectory(
-      at: location.deletingLastPathComponent(), withIntermediateDirectories: true)
+      at: location.deletingLastPathComponent(), withIntermediateDirectories: true,
+    )
     try Data(
-      #"{"hotkey":{"keyCode":0,"modifiers":["leftCommand"]},"soundsEnabled":true,"extra":1}"#.utf8
+      #"{"hotkey":{"keyCode":0,"modifiers":["leftCommand"]},"soundsEnabled":true,"extra":1}"#.utf8,
     ).write(to: location)
     let store = SettingsStore(fileURL: location)
 
@@ -80,13 +87,14 @@ import Testing
 
     let settings = try store.load()
     #expect(settings.soundsEnabled == false)
-    #expect(settings.hotkey == (try Hotkey(keyCode: 0, modifiers: [.leftCommand])))
+    #expect(try settings.hotkey == Hotkey(keyCode: 0, modifiers: [.leftCommand]))
     let object = try #require(
-      JSONSerialization.jsonObject(with: Data(contentsOf: location)) as? [String: Any])
+      JSONSerialization.jsonObject(with: Data(contentsOf: location)) as? [String: Any],
+    )
     #expect(Set(object.keys) == ["hotkey", "soundsEnabled"])
   }
 
-  @Test func savingSoundsOntoAMissingFileStartsFromDefaults() throws {
+  @Test func `saving sounds onto A missing file starts from defaults`() throws {
     let location = temporarySettingsURL()
     defer { try? FileManager.default.removeItem(at: location.deletingLastPathComponent()) }
     let store = SettingsStore(fileURL: location)
@@ -98,7 +106,7 @@ import Testing
     #expect(settings.hotkey == MiniWhisperSettings.defaults.hotkey)
   }
 
-  @Test func hotkeyValidationRejectsEmptyAndReservedKeys() {
+  @Test func `hotkey validation rejects empty and reserved keys`() {
     #expect(throws: HotkeyValidationError.empty) { try Hotkey(modifiers: []) }
     #expect(throws: HotkeyValidationError.reservedKeyCode(PhysicalKey.escapeKeyCode)) {
       try Hotkey(keyCode: PhysicalKey.escapeKeyCode, modifiers: [])
@@ -111,15 +119,20 @@ import Testing
     }
   }
 
-  @Test func defaultLocationMatchesDocumentedApplicationSupportPath() {
+  @Test func `default location matches documented application support path`() {
     let suffix = "Library/Application Support/MiniWhisper/settings.json"
 
     #expect(SettingsStore.defaultFileURL.path.hasSuffix(suffix))
   }
 
+  // MARK: Private
+
   private func temporarySettingsURL() -> URL {
-    FileManager.default.temporaryDirectory.appending(
-      path: UUID().uuidString, directoryHint: .isDirectory
-    ).appending(path: "settings.json")
+    FileManager.default
+      .temporaryDirectory
+      .appending(
+        path: UUID().uuidString, directoryHint: .isDirectory,
+      )
+      .appending(path: "settings.json")
   }
 }

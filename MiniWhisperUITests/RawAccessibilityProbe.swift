@@ -1,6 +1,8 @@
 import ApplicationServices
 import Foundation
 
+// MARK: - RawAccessibilitySnapshot
+
 struct RawAccessibilitySnapshot {
   let role: String
   let identifier: String
@@ -8,10 +10,14 @@ struct RawAccessibilitySnapshot {
   let value: String
 }
 
+// MARK: - RawAccessibilityFailure
+
 struct RawAccessibilityFailure {
   let attribute: String
   let error: AXError
 }
+
+// MARK: - RawAccessibilityResult
 
 enum RawAccessibilityResult {
   case snapshot(RawAccessibilitySnapshot)
@@ -19,7 +25,11 @@ enum RawAccessibilityResult {
   case notFound
 }
 
+// MARK: - RawAccessibilityProbe
+
 struct RawAccessibilityProbe {
+  // MARK: Internal
+
   func read(applicationPID: pid_t, identifier: String) -> RawAccessibilityResult {
     let application = AXUIElementCreateApplication(applicationPID)
     var pending = [application]
@@ -28,7 +38,9 @@ struct RawAccessibilityProbe {
     var visited: Set<CFHashCode> = []
 
     while let element = pending.popLast() {
-      guard visited.insert(CFHash(element)).inserted else { continue }
+      guard visited.insert(CFHash(element)).inserted else {
+        continue
+      }
       let identifierResult = string(element, attribute: kAXIdentifierAttribute)
       if identifierResult.value == identifier {
         return .snapshot(
@@ -36,25 +48,33 @@ struct RawAccessibilityProbe {
             role: string(element, attribute: kAXRoleAttribute).value,
             identifier: identifierResult.value,
             label: string(element, attribute: kAXDescriptionAttribute).value,
-            value: string(element, attribute: kAXValueAttribute).value))
+            value: string(element, attribute: kAXValueAttribute).value,
+          ),
+        )
       }
       if firstFailure == nil, let failure = identifierResult.failure, failure.error != .noValue,
-        failure.error != .attributeUnsupported
+         failure.error != .attributeUnsupported
       {
         firstFailure = failure
       }
 
       let childResult = elements(element, attribute: kAXChildrenAttribute)
       pending.append(contentsOf: childResult.elements)
-      if firstFailure == nil, let failure = childResult.failure { firstFailure = failure }
+      if firstFailure == nil, let failure = childResult.failure {
+        firstFailure = failure
+      }
     }
 
-    if let firstFailure { return .failure(firstFailure) }
+    if let firstFailure {
+      return .failure(firstFailure)
+    }
     return .notFound
   }
 
+  // MARK: Private
+
   private func string(
-    _ element: AXUIElement, attribute: String
+    _ element: AXUIElement, attribute: String,
   ) -> (value: String, failure: RawAccessibilityFailure?) {
     var rawValue: CFTypeRef?
     let error = AXUIElementCopyAttributeValue(element, attribute as CFString, &rawValue)
@@ -65,12 +85,14 @@ struct RawAccessibilityProbe {
   }
 
   private func elements(
-    _ element: AXUIElement, attribute: String
+    _ element: AXUIElement, attribute: String,
   ) -> (elements: [AXUIElement], failure: RawAccessibilityFailure?) {
     var rawValue: CFTypeRef?
     let error = AXUIElementCopyAttributeValue(element, attribute as CFString, &rawValue)
     guard error == .success, let rawValue else {
-      if error == .noValue || error == .attributeUnsupported { return ([], nil) }
+      if error == .noValue || error == .attributeUnsupported {
+        return ([], nil)
+      }
       return ([], RawAccessibilityFailure(attribute: attribute, error: error))
     }
     guard CFGetTypeID(rawValue) == CFArrayGetTypeID() else {
@@ -78,7 +100,7 @@ struct RawAccessibilityProbe {
     }
 
     let array = unsafeBitCast(rawValue, to: CFArray.self)
-    let elements = (0..<CFArrayGetCount(array)).map { index in
+    let elements = (0 ..< CFArrayGetCount(array)).map { index in
       unsafeBitCast(CFArrayGetValueAtIndex(array, index), to: AXUIElement.self)
     }
     return (elements, nil)

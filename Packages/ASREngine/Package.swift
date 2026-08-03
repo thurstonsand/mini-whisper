@@ -6,9 +6,10 @@ let package = Package(
   name: "ASREngine", platforms: [.macOS(.v14)],
   products: [.library(name: "ASREngine", targets: ["ASREngine"])],
   dependencies: [
-    .package(url: "https://github.com/FluidInference/FluidAudio.git", exact: "0.15.5")
+    .package(url: "https://github.com/FluidInference/FluidAudio.git", exact: "0.15.5"),
   ],
   targets: [
     .target(name: "ASREngine", dependencies: [.product(name: "FluidAudio", package: "FluidAudio")]),
     .testTarget(name: "ASREngineTests", dependencies: ["ASREngine"]),
-  ])
+  ],
+)

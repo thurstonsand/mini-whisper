@@ -1,10 +1,14 @@
 import ComposableArchitecture
 import ServiceManagement
 
-@DependencyClient struct LaunchAtLoginClient: Sendable {
+// MARK: - LaunchAtLoginClient
+
+@DependencyClient struct LaunchAtLoginClient {
   var isRegistered: @Sendable () -> Bool = { false }
   var setRegistered: @Sendable (Bool) throws -> Void
 }
+
+// MARK: DependencyKey
 
 extension LaunchAtLoginClient: DependencyKey {
   static let liveValue = Self(
@@ -15,15 +19,21 @@ extension LaunchAtLoginClient: DependencyKey {
       } else {
         try SMAppService.mainApp.unregister()
       }
-    })
+    },
+  )
 
   /// `requiresApproval` means the login item exists but the user has switched it off in System
   /// Settings, so registering again would be a no-op; only the unregistered states are unchecked.
   static func isRegistered(_ status: SMAppService.Status) -> Bool {
     switch status {
-    case .enabled, .requiresApproval: true
-    case .notRegistered, .notFound: false
-    @unknown default: false
+    case .enabled,
+         .requiresApproval:
+      true
+    case .notRegistered,
+         .notFound:
+      false
+    @unknown default:
+      false
     }
   }
 }

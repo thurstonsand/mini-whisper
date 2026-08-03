@@ -19,6 +19,8 @@ import Foundation
     case pillNoSpeech = "pill-no-speech"
     case pillCopied = "pill-copied"
 
+    // MARK: Internal
+
     static var current: Self? {
       guard let value = ProcessInfo.processInfo.environment["MINIWHISPER_AGENT_SCENE"] else {
         return nil
@@ -29,7 +31,10 @@ import Foundation
       return scene
     }
 
-    var presentsAbout: Bool { self == .about }
+    var presentsAbout: Bool {
+      self == .about
+    }
+
     var initialAction: AppFeature.Action? {
       self == .pillRecording ? .pill(.levelUpdated(0.67)) : nil
     }
@@ -49,62 +54,79 @@ import Foundation
         state.soundsEnabled = true
         state.launchAtLoginRegistered = true
         state.lastTranscript = "A previous transcript"
-      case .menuDegraded: state.hotkeyTap = .inputMonitoringMissing
+      case .menuDegraded:
+        state.hotkeyTap = .inputMonitoringMissing
       case .onboardingWelcome:
         state.onboardingCompleted = false
         state.modelDownloadConsented = false
         state.onboarding = onboardingState(
           permissions: permissions(), readiness: .modelMissing, hasConsent: false,
-          isShowingWelcome: true)
+          isShowingWelcome: true,
+        )
       case .onboardingPermissionsInputMonitoring:
         state.onboardingCompleted = false
         state.onboarding = onboardingState(
-          permissions: permissions(), readiness: .downloading(0.42))
+          permissions: permissions(), readiness: .downloading(0.42),
+        )
       case .onboardingPermissionsMicrophone:
         state.onboardingCompleted = false
         state.onboarding = onboardingState(
-          permissions: permissions(inputMonitoring: true), readiness: .downloading(0.42))
+          permissions: permissions(inputMonitoring: true), readiness: .downloading(0.42),
+        )
       case .onboardingPermissionsPasteAccess:
         state.onboardingCompleted = false
         state.onboarding = onboardingState(
           permissions: permissions(inputMonitoring: true, microphone: .granted),
-          readiness: .downloading(0.42))
+          readiness: .downloading(0.42),
+        )
       case .onboardingModel:
         state.onboardingCompleted = false
         state.onboarding = onboardingState(
           permissions: permissions(inputMonitoring: true, microphone: .granted, pasteAccess: true),
-          readiness: .downloading(0.42), selectedStep: .model)
+          readiness: .downloading(0.42), selectedStep: .model,
+        )
       case .onboardingTryIt:
         state.onboardingCompleted = false
         state.onboarding = onboardingState(
           permissions: permissions(inputMonitoring: true, microphone: .granted, pasteAccess: true),
-          readiness: .ready, selectedStep: .tryIt)
+          readiness: .ready, selectedStep: .tryIt,
+        )
       case .onboardingReady:
         state.onboarding = onboardingState(
           permissions: permissions(inputMonitoring: true, microphone: .granted, pasteAccess: true),
-          readiness: .ready, isCompleted: true, tryItText: "MiniWhisper is ready.")
-      case .about: break
+          readiness: .ready, isCompleted: true, tryItText: "MiniWhisper is ready.",
+        )
+      case .about:
+        break
       case .pillRecording:
         state.pill.presentation = .recording(
           PillFeature.State.Presentation.Recording(
-            inputDeviceName: "Test Microphone", level: 0, isLive: true))
-      case .pillTranscribing: state.pill.presentation = .transcribing
-      case .pillNoSpeech: state.pill.presentation = .notice(.noSpeechDetected)
-      case .pillCopied: state.pill.presentation = .notice(.copiedToClipboard)
+            inputDeviceName: "Test Microphone", level: 0, isLive: true,
+          ),
+        )
+      case .pillTranscribing:
+        state.pill.presentation = .transcribing
+      case .pillNoSpeech:
+        state.pill.presentation = .notice(.noSpeechDetected)
+      case .pillCopied:
+        state.pill.presentation = .notice(.copiedToClipboard)
       }
       return state
     }
 
+    // MARK: Private
+
     private func onboardingState(
       permissions: OnboardingPermissionStatuses, readiness: EngineReadiness,
       hasConsent: Bool = true, isShowingWelcome: Bool = false, selectedStep: OnboardingStep? = nil,
-      isCompleted: Bool = false, tryItText: String = ""
+      isCompleted: Bool = false, tryItText: String = "",
     ) -> OnboardingFeature.State {
       var state = OnboardingFeature.State()
       state.isPresented = true
       state.snapshot = OnboardingSnapshot(
         permissions: permissions, engineReadiness: readiness, hasModelDownloadConsent: hasConsent,
-        isCompleted: isCompleted)
+        isCompleted: isCompleted,
+      )
       state.selectedStep = selectedStep
       state.isShowingWelcome = isShowingWelcome
       state.tryItText = tryItText
@@ -113,11 +135,12 @@ import Foundation
 
     private func permissions(
       inputMonitoring: Bool = false, microphone: MicPermissionStatus = .undetermined,
-      pasteAccess: Bool = false
+      pasteAccess: Bool = false,
     ) -> OnboardingPermissionStatuses {
       OnboardingPermissionStatuses(
         hasInputMonitoringPermission: inputMonitoring, microphoneStatus: microphone,
-        hasPasteAccess: pasteAccess)
+        hasPasteAccess: pasteAccess,
+      )
     }
   }
 #else
@@ -125,12 +148,21 @@ import Foundation
     static var current: Self? {
       precondition(
         ProcessInfo.processInfo.environment["MINIWHISPER_AGENT_SCENE"] == nil,
-        "Agent-driveability scenes are available only in Debug builds")
+        "Agent-driveability scenes are available only in Debug builds",
+      )
       return nil
     }
 
-    var presentsAbout: Bool { preconditionFailure() }
-    var initialAction: AppFeature.Action? { preconditionFailure() }
-    var initialState: AppFeature.State { preconditionFailure() }
+    var presentsAbout: Bool {
+      preconditionFailure()
+    }
+
+    var initialAction: AppFeature.Action? {
+      preconditionFailure()
+    }
+
+    var initialState: AppFeature.State {
+      preconditionFailure()
+    }
   }
 #endif

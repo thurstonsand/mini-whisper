@@ -3,50 +3,57 @@ import HotkeyListener
 import OSLog
 import SwiftUI
 
+// MARK: - MiniWhisperApp
+
 @main struct MiniWhisperApp: App {
   @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
-  var body: some Scene { Settings { EmptyView() } }
+  var body: some Scene {
+    Settings { EmptyView() }
+  }
 }
 
-@MainActor final class AppDelegate: NSObject, NSApplicationDelegate {
-  private let logger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "lifecycle")
-  private let performanceLogger = Logger(
-    subsystem: "com.thurstonsand.MiniWhisper", category: "performance")
-  private let agentScene: AgentDriveabilityScene?
-  private let store: StoreOf<AppFeature>
+// MARK: - AppDelegate
 
-  private var menuBarController: MenuBarController!
-  private var pillPanelController: PillPanelController!
-  private var onboardingWindowController: OnboardingWindowController!
-  private var agentSceneDriver: AgentDriveabilitySceneDriver?
+@MainActor final class AppDelegate: NSObject, NSApplicationDelegate {
+  // MARK: Lifecycle
 
   override init() {
     let agentScene: AgentDriveabilityScene? = AgentDriveabilityScene.current
     let initialState = agentScene?.initialState ?? AppFeature.State()
     self.agentScene = agentScene
-    self.store = Store(initialState: initialState) { AppFeature() }
+    store = Store(initialState: initialState) { AppFeature() }
     super.init()
   }
 
-  func applicationDidFinishLaunching(_ notification: Notification) {
+  // MARK: Internal
+
+  func applicationDidFinishLaunching(_: Notification) {
     guard
       agentScene != nil || ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil
-    else { return }
+    else {
+      return
+    }
 
     logger.notice("App started; structured logging ready")
     menuBarController = MenuBarController(store: store, refreshesStateOnOpen: agentScene == nil)
     pillPanelController = PillPanelController(store: store.scope(state: \.pill, action: \.pill))
     onboardingWindowController = OnboardingWindowController(
       store: store.scope(state: \.onboarding, action: \.onboarding),
-      observesApplicationActivation: agentScene == nil)
+      observesApplicationActivation: agentScene == nil,
+    )
 
     if let agentScene {
       agentSceneDriver = AgentDriveabilitySceneDriver(
         store: store,
-        refreshMenu: { [weak menuBarController] in menuBarController?.refreshAgentScene() })
-      if let initialAction = agentScene.initialAction { store.send(initialAction) }
-      if agentScene.presentsAbout { menuBarController.presentAbout() }
+        refreshMenu: { [weak menuBarController] in menuBarController?.refreshAgentScene() },
+      )
+      if let initialAction = agentScene.initialAction {
+        store.send(initialAction)
+      }
+      if agentScene.presentsAbout {
+        menuBarController.presentAbout()
+      }
       return
     }
 
@@ -55,7 +62,7 @@ import SwiftUI
     if ProcessInfo.processInfo.environment["MINIWHISPER_BENCHMARK_ACTIVATION"] == "1" {
       Task {
         try await Task.sleep(for: .seconds(2))
-        for _ in 0..<3 {
+        for _ in 0 ..< 3 {
           performanceLogger.notice("benchmark activation-triggered")
           store.send(.hotkeyListenerEvent(.gesture(.startRecording)))
           try await Task.sleep(for: .seconds(2))
@@ -67,4 +74,18 @@ import SwiftUI
       }
     }
   }
+
+  // MARK: Private
+
+  private let logger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "lifecycle")
+  private let performanceLogger = Logger(
+    subsystem: "com.thurstonsand.MiniWhisper", category: "performance",
+  )
+  private let agentScene: AgentDriveabilityScene?
+  private let store: StoreOf<AppFeature>
+
+  private var menuBarController: MenuBarController!
+  private var pillPanelController: PillPanelController!
+  private var onboardingWindowController: OnboardingWindowController!
+  private var agentSceneDriver: AgentDriveabilitySceneDriver?
 }

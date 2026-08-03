@@ -8,4 +8,5 @@ let package = Package(
   targets: [
     .target(name: "FieldContext"),
     .testTarget(name: "FieldContextTests", dependencies: ["FieldContext"]),
-  ])
+  ],
+)

@@ -4,19 +4,20 @@ import OSLog
 import SwiftUI
 
 private let pillPanelLogger = Logger(
-  subsystem: "com.thurstonsand.MiniWhisper", category: "pill-panel")
+  subsystem: "com.thurstonsand.MiniWhisper", category: "pill-panel",
+)
 private let performanceLogger = Logger(
-  subsystem: "com.thurstonsand.MiniWhisper", category: "performance")
+  subsystem: "com.thurstonsand.MiniWhisper", category: "performance",
+)
+
+// MARK: - PillPanelController
 
 @MainActor final class PillPanelController {
-  private let store: StoreOf<PillFeature>
-  private let panel: NonactivatingPillPanel
-  private var screenParametersObserver: (any NSObjectProtocol)?
-  private var lastVisibility: Bool?
+  // MARK: Lifecycle
 
   init(store: StoreOf<PillFeature>) {
     self.store = store
-    self.panel = NonactivatingPillPanel()
+    panel = NonactivatingPillPanel()
 
     panel.title = "MiniWhisper dictation"
     panel.setAccessibilityIdentifier(AccessibilityID.pill)
@@ -29,7 +30,7 @@ private let performanceLogger = Logger(
     panel.setContentSize(Self.panelSize)
 
     screenParametersObserver = NotificationCenter.default.addObserver(
-      forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main
+      forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main,
     ) { [weak self] _ in MainActor.assumeIsolated { self?.positionPanel() } }
 
     observeStore()
@@ -42,24 +43,35 @@ private let performanceLogger = Logger(
     }
   }
 
+  // MARK: Private
+
   private static let panelSize = NSSize(width: 420, height: 76)
   private static let bottomMargin: CGFloat = 14
+
+  private let store: StoreOf<PillFeature>
+  private let panel: NonactivatingPillPanel
+  private var screenParametersObserver: (any NSObjectProtocol)?
+  private var lastVisibility: Bool?
 
   private func observeStore() {
     withObservationTracking {
       _ = self.store.presentation
     } onChange: { [weak self] in
       Task { @MainActor [weak self] in
-        guard let self else { return }
-        self.observeStore()
-        self.render(isVisible: self.store.presentation != nil)
+        guard let self else {
+          return
+        }
+        observeStore()
+        render(isVisible: store.presentation != nil)
       }
     }
   }
 
   private func render(isVisible: Bool) {
     panel.setAccessibilityValue(isVisible ? "Visible" : "Hidden")
-    guard isVisible != lastVisibility else { return }
+    guard isVisible != lastVisibility else {
+      return
+    }
     lastVisibility = isVisible
 
     guard isVisible else {
@@ -82,20 +94,23 @@ private let performanceLogger = Logger(
     let frame = NSRect(
       x: screen.frame.midX - Self.panelSize.width / 2,
       y: screen.visibleFrame.minY + Self.bottomMargin, width: Self.panelSize.width,
-      height: Self.panelSize.height)
+      height: Self.panelSize.height,
+    )
     panel.setFrame(frame, display: panel.isVisible)
   }
 }
 
+// MARK: - NonactivatingPillPanel
+
 private final class NonactivatingPillPanel: NSPanel {
-  override var canBecomeKey: Bool { false }
-  override var canBecomeMain: Bool { false }
+  // MARK: Lifecycle
 
   init() {
     super.init(
       contentRect: .zero,
       styleMask: [.borderless, .fullSizeContentView, .nonactivatingPanel, .utilityWindow],
-      backing: .buffered, defer: false)
+      backing: .buffered, defer: false,
+    )
     level = .statusBar
     backgroundColor = .clear
     isOpaque = false
@@ -104,5 +119,15 @@ private final class NonactivatingPillPanel: NSPanel {
     hidesOnDeactivate = false
     isReleasedWhenClosed = false
     collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
+  }
+
+  // MARK: Internal
+
+  override var canBecomeKey: Bool {
+    false
+  }
+
+  override var canBecomeMain: Bool {
+    false
   }
 }

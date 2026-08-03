@@ -18,6 +18,16 @@
       "versioningTemplate": "semver-coerced",
       "extractVersionTemplate": "^v(?<version>.+)",
       "autoReplaceStringTemplate": "package://github.com/jdx/hk/releases/download/v{{{newValue}}}/hk@{{{newValue}}}#/{{{depType}}}.pkl"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/(^|/)\\.swiftformat$/"],
+      "matchStrings": ["--swiftversion (?<currentValue>\\S+)"],
+      "depNameTemplate": "swift",
+      "packageNameTemplate": "swiftlang/swift",
+      "datasourceTemplate": "github-releases",
+      "versioningTemplate": "semver-coerced",
+      "extractVersionTemplate": "^swift-(?<version>.+)-RELEASE$"
     }
   ],
   "packageRules": [

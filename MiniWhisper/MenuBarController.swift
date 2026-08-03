@@ -2,12 +2,7 @@ import AppKit
 import ComposableArchitecture
 
 @MainActor final class MenuBarController: NSObject, NSMenuDelegate {
-  private let store: StoreOf<AppFeature>
-  private let statusItem: NSStatusItem
-  private let refreshesStateOnOpen: Bool
-  private let menu = NSMenu()
-  private let aboutWindowController = AboutWindowController()
-  private var renderedIconSymbolName: String?
+  // MARK: Lifecycle
 
   init(store: StoreOf<AppFeature>, refreshesStateOnOpen: Bool = true) {
     self.store = store
@@ -25,27 +20,50 @@ import ComposableArchitecture
     renderIcon(store.state.menuBar.iconSymbolName)
   }
 
+  // MARK: Internal
+
   func menuNeedsUpdate(_ menu: NSMenu) {
-    if refreshesStateOnOpen { store.send(.menuWillOpen) }
+    if refreshesStateOnOpen {
+      store.send(.menuWillOpen)
+    }
     rebuild(menu, state: store.state.menuBar)
   }
 
-  func refreshAgentScene() { rebuild(menu, state: store.state.menuBar) }
+  func refreshAgentScene() {
+    rebuild(menu, state: store.state.menuBar)
+  }
+
+  func presentAbout() {
+    aboutWindowController.present()
+  }
+
+  // MARK: Private
+
+  private let store: StoreOf<AppFeature>
+  private let statusItem: NSStatusItem
+  private let refreshesStateOnOpen: Bool
+  private let menu = NSMenu()
+  private let aboutWindowController = AboutWindowController()
+  private var renderedIconSymbolName: String?
 
   private func observeIcon() {
     withObservationTracking {
       _ = self.store.state.menuBar.iconSymbolName
     } onChange: { [weak self] in
       Task { @MainActor [weak self] in
-        guard let self else { return }
-        self.observeIcon()
-        self.renderIcon(self.store.state.menuBar.iconSymbolName)
+        guard let self else {
+          return
+        }
+        observeIcon()
+        renderIcon(store.state.menuBar.iconSymbolName)
       }
     }
   }
 
   private func renderIcon(_ symbolName: String) {
-    guard symbolName != renderedIconSymbolName else { return }
+    guard symbolName != renderedIconSymbolName else {
+      return
+    }
     renderedIconSymbolName = symbolName
     let image = NSImage(systemSymbolName: symbolName, accessibilityDescription: "MiniWhisper")
     image?.isTemplate = true
@@ -58,14 +76,18 @@ import ComposableArchitecture
     menu.addItem(
       item(
         title: state.statusText, identifier: AccessibilityID.menuStatus, label: "Status",
-        value: state.accessibilityStatusText, action: nil, isEnabled: false))
+        value: state.accessibilityStatusText, action: nil, isEnabled: false,
+      ),
+    )
 
     if let repairTitle = state.repairTitle {
       menu.addItem(.separator())
       menu.addItem(
         item(
           title: repairTitle, identifier: AccessibilityID.menuRepair, label: repairTitle,
-          action: #selector(repairDegradedState)))
+          action: #selector(repairDegradedState),
+        ),
+      )
     }
 
     menu.addItem(.separator())
@@ -73,36 +95,45 @@ import ComposableArchitecture
       item(
         title: "Copy Last Transcript", identifier: AccessibilityID.menuCopyLastTranscript,
         label: "Copy Last Transcript", action: #selector(copyLastTranscript),
-        isEnabled: state.canCopyLastTranscript))
+        isEnabled: state.canCopyLastTranscript,
+      ),
+    )
 
     let soundsValue = state.soundsEnabled ? "On" : "Off"
     let soundsItem = item(
       title: "Sounds", identifier: AccessibilityID.menuSounds, label: "Sounds", value: soundsValue,
-      action: #selector(toggleSounds))
+      action: #selector(toggleSounds),
+    )
     soundsItem.state = state.soundsEnabled ? .on : .off
     menu.addItem(soundsItem)
 
     let launchValue = state.launchAtLoginRegistered ? "On" : "Off"
     let launchItem = item(
       title: "Launch at Login", identifier: AccessibilityID.menuLaunchAtLogin,
-      label: "Launch at Login", value: launchValue, action: #selector(toggleLaunchAtLogin))
+      label: "Launch at Login", value: launchValue, action: #selector(toggleLaunchAtLogin),
+    )
     launchItem.state = state.launchAtLoginRegistered ? .on : .off
     menu.addItem(launchItem)
 
     menu.addItem(
       item(
         title: "Settings File…", identifier: AccessibilityID.menuSettingsFile,
-        label: "Open Settings File", action: #selector(openSettingsFile)))
+        label: "Open Settings File", action: #selector(openSettingsFile),
+      ),
+    )
 
     menu.addItem(.separator())
     menu.addItem(
       item(
         title: "About MiniWhisper", identifier: AccessibilityID.menuAbout,
-        label: "About MiniWhisper", action: #selector(showAbout)))
+        label: "About MiniWhisper", action: #selector(showAbout),
+      ),
+    )
 
     let quitItem = item(
       title: "Quit", identifier: AccessibilityID.menuQuit, label: "Quit MiniWhisper",
-      action: #selector(NSApplication.terminate(_:)))
+      action: #selector(NSApplication.terminate(_:)),
+    )
     quitItem.target = nil
     quitItem.keyEquivalent = "q"
     menu.addItem(quitItem)
@@ -110,7 +141,7 @@ import ComposableArchitecture
 
   private func item(
     title: String, identifier: String, label: String, value: String? = nil, action: Selector?,
-    isEnabled: Bool = true
+    isEnabled: Bool = true,
   ) -> NSMenuItem {
     let item = NSMenuItem(title: title, action: action, keyEquivalent: "")
     item.target = self
@@ -121,17 +152,27 @@ import ComposableArchitecture
     return item
   }
 
-  @objc private func repairDegradedState() { store.send(.repairDegradedState) }
+  @objc private func repairDegradedState() {
+    store.send(.repairDegradedState)
+  }
 
-  @objc private func copyLastTranscript() { store.send(.copyLastTranscript) }
+  @objc private func copyLastTranscript() {
+    store.send(.copyLastTranscript)
+  }
 
-  @objc private func toggleSounds() { store.send(.toggleSounds) }
+  @objc private func toggleSounds() {
+    store.send(.toggleSounds)
+  }
 
-  @objc private func toggleLaunchAtLogin() { store.send(.toggleLaunchAtLogin) }
+  @objc private func toggleLaunchAtLogin() {
+    store.send(.toggleLaunchAtLogin)
+  }
 
-  @objc private func openSettingsFile() { store.send(.openSettingsFile) }
+  @objc private func openSettingsFile() {
+    store.send(.openSettingsFile)
+  }
 
-  func presentAbout() { aboutWindowController.present() }
-
-  @objc private func showAbout() { presentAbout() }
+  @objc private func showAbout() {
+    presentAbout()
+  }
 }

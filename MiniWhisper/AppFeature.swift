@@ -12,19 +12,24 @@ private let deliveryLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", c
 private let soundsLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "sounds")
 private let menuLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "menu")
 private let performanceLogger = Logger(
-  subsystem: "com.thurstonsand.MiniWhisper", category: "performance")
+  subsystem: "com.thurstonsand.MiniWhisper", category: "performance",
+)
 private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
 
 private func canProbePasteAccess(
-  onboardingCompleted: Bool, hasInputMonitoringPermission: Bool
+  onboardingCompleted: Bool, hasInputMonitoringPermission: Bool,
 ) -> Bool {
   // AXIsProcessTrusted suppresses macOS's Keystroke Receiving dialog when queried before the IOHID
   // request. Completed users and an existing IOHID grant have already crossed that boundary.
   onboardingCompleted || hasInputMonitoringPermission
 }
 
+// MARK: - AppFeature
+
 @Reducer struct AppFeature {
-  struct StartupFacts: Equatable, Sendable {
+  // MARK: Internal
+
+  struct StartupFacts: Equatable {
     var onboardingCompleted: Bool
     var modelDownloadConsented: Bool
     var permissions: OnboardingPermissionStatuses
@@ -48,7 +53,9 @@ private func canProbePasteAccess(
     var modelDownloadConsented = false
 
     var canBeginDictation: Bool {
-      guard onboarding.isPresented else { return onboardingCompleted }
+      guard onboarding.isPresented else {
+        return onboardingCompleted
+      }
       return onboarding.step == .tryIt && onboarding.visibleStep == .tryIt
     }
 
@@ -57,7 +64,8 @@ private func canProbePasteAccess(
         hotkeyTap: hotkeyTap, micStatus: recording.micStatus,
         pasteAccessGranted: pasteAccessGranted, engineReadiness: engineReadiness,
         inputDeviceName: inputDeviceName, hasLastTranscript: lastTranscript != nil,
-        soundsEnabled: soundsEnabled, launchAtLoginRegistered: launchAtLoginRegistered)
+        soundsEnabled: soundsEnabled, launchAtLoginRegistered: launchAtLoginRegistered,
+      )
     }
   }
 
@@ -92,8 +100,6 @@ private func canProbePasteAccess(
     case deliveryFailed(Int, String)
   }
 
-  private enum CancelID { case transcription, delivery, hotkeyEvents }
-
   @Dependency(\.asrEngine) var asrEngine
   @Dependency(\.audioCapture) var audioCapture
   @Dependency(\.contextCapture) var contextCapture
@@ -117,11 +123,12 @@ private func canProbePasteAccess(
         return .merge(
           .send(.recording(.task)), startupEffect(),
           .run { send in
-            do { await send(.soundsEnabledLoaded(try await sounds.loadIsEnabled())) } catch {
+            do { try await send(.soundsEnabledLoaded(sounds.loadIsEnabled())) } catch {
               await send(.soundsSettingsFailed(error.localizedDescription))
             }
-          })
-      case .startupResolved(let facts):
+          },
+        )
+      case let .startupResolved(facts):
         state.onboardingCompleted = facts.onboardingCompleted
         state.modelDownloadConsented = facts.modelDownloadConsented
         state.pasteAccessGranted = facts.permissions.hasPasteAccess
@@ -142,7 +149,12 @@ private func canProbePasteAccess(
                 .present(
                   OnboardingSnapshot(
                     permissions: facts.permissions, engineReadiness: facts.engineReadiness,
-                    hasModelDownloadConsent: facts.modelDownloadConsented, isCompleted: false)))))
+                    hasModelDownloadConsent: facts.modelDownloadConsented, isCompleted: false,
+                  ),
+                ),
+              ),
+            ),
+          )
         }
         return .merge(effects)
       case .hotkeyListenerEvent(.inputMonitoringPermissionMissing):
@@ -153,12 +165,14 @@ private func canProbePasteAccess(
         state.hotkeyTap = .active
         gestureLogger.notice("Hotkey event tap installed")
         return .none
-      case .hotkeyListenerEvent(.monitoringInterrupted(let reason)):
+      case let .hotkeyListenerEvent(.monitoringInterrupted(reason)):
         // Timeout and user-input disables are re-enabled in place; only invalidation kills the tap.
-        if reason == .invalidated { state.hotkeyTap = .dead }
+        if reason == .invalidated {
+          state.hotkeyTap = .dead
+        }
         gestureLogger.error("Hotkey event tap interrupted: \(reason.rawValue, privacy: .public)")
         return .none
-      case .hotkeyListenerEvent(.gesture(let event)):
+      case let .hotkeyListenerEvent(.gesture(event)):
         gestureLogger.notice("\(event.rawValue, privacy: .public)")
         guard state.canBeginDictation else {
           gestureLogger.notice("Dictation ignored until setup reaches its try-it step")
@@ -173,7 +187,10 @@ private func canProbePasteAccess(
             .send(
               .pill(
                 .recordingStarting(
-                  inputDeviceName: audioCapture.currentInputDeviceName() ?? "Microphone"))),
+                  inputDeviceName: audioCapture.currentInputDeviceName() ?? "Microphone",
+                ),
+              ),
+            ),
             .merge(
               .cancel(id: CancelID.transcription), .cancel(id: CancelID.delivery),
               .send(.recording(.startRecording)),
@@ -184,14 +201,18 @@ private func canProbePasteAccess(
                 for await readiness in asrEngine.prepareForActivation() {
                   await send(.engineReadinessUpdated(readiness))
                 }
-              }))
+              },
+            ),
+          )
         case .stopAndTranscribe:
           performanceLogger.notice("benchmark recording-release-received")
           return .send(.recording(.stopAndRetain))
-        case .latchEngaged: return .send(.pill(.latchEngaged))
-        case .cancel: return .send(.recording(.cancelRecording))
+        case .latchEngaged:
+          return .send(.pill(.latchEngaged))
+        case .cancel:
+          return .send(.recording(.cancelRecording))
         }
-      case .hotkeyListenerFailed(let error):
+      case let .hotkeyListenerFailed(error):
         state.hotkeyTap = .dead
         gestureLogger.error("Hotkey listener failed: \(error, privacy: .public)")
         return .none
@@ -207,31 +228,38 @@ private func canProbePasteAccess(
         let hasInputMonitoringPermission = hotkeyListener.hasInputMonitoringPermission()
         if canProbePasteAccess(
           onboardingCompleted: state.onboardingCompleted,
-          hasInputMonitoringPermission: hasInputMonitoringPermission)
-        {
+          hasInputMonitoringPermission: hasInputMonitoringPermission,
+        ) {
           state.pasteAccessGranted = delivery.hasPasteAccess()
         }
         return .none
       case .repairDegradedState:
         switch state.menuBar.repair {
-        case .openInputMonitoringSettings: return open(SystemSettingsPane.inputMonitoring)
-        case .openMicrophoneSettings: return open(SystemSettingsPane.microphone)
+        case .openInputMonitoringSettings:
+          return open(SystemSettingsPane.inputMonitoring)
+        case .openMicrophoneSettings:
+          return open(SystemSettingsPane.microphone)
         case .restartHotkeyListening:
           state.hotkeyTap = .starting
           return listenForHotkeyEvents()
-        case .openAccessibilitySettings: return open(SystemSettingsPane.accessibility)
-        case .installModel, .retryModelSetup:
+        case .openAccessibilitySettings:
+          return open(SystemSettingsPane.accessibility)
+        case .installModel,
+             .retryModelSetup:
           return .send(.onboarding(.present(onboardingSnapshot(state))))
-        case nil: return .none
+        case nil:
+          return .none
         }
       case .copyLastTranscript:
-        guard let transcript = state.lastTranscript else { return .none }
+        guard let transcript = state.lastTranscript else {
+          return .none
+        }
         return .run { send in
           do { try await delivery.copy(transcript) } catch {
             await send(.copyLastTranscriptFailed(error.localizedDescription))
           }
         }
-      case .copyLastTranscriptFailed(let message):
+      case let .copyLastTranscriptFailed(message):
         deliveryLogger.error("Copying the last transcript failed: \(message, privacy: .public)")
         return .none
       case .toggleSounds:
@@ -242,10 +270,10 @@ private func canProbePasteAccess(
             await send(.soundsEnabledSaved(enabled))
           } catch { await send(.soundsPersistenceFailed(error.localizedDescription)) }
         }
-      case .soundsEnabledSaved(let enabled):
+      case let .soundsEnabledSaved(enabled):
         state.soundsEnabled = enabled
         return .none
-      case .soundsPersistenceFailed(let message):
+      case let .soundsPersistenceFailed(message):
         soundsLogger.error("Sounds setting failed to save: \(message, privacy: .public)")
         return .none
       case .toggleLaunchAtLogin:
@@ -256,47 +284,51 @@ private func canProbePasteAccess(
           }
           await send(.launchAtLoginUpdated(launchAtLogin.isRegistered()))
         }
-      case .launchAtLoginUpdated(let registered):
+      case let .launchAtLoginUpdated(registered):
         state.launchAtLoginRegistered = registered
         return .none
-      case .launchAtLoginFailed(let message):
+      case let .launchAtLoginFailed(message):
         menuLogger.error("Launch at login change failed: \(message, privacy: .public)")
         return .none
-      case .openSettingsFile: return open(SettingsStore.defaultFileURL)
-      case .workspaceOpenFailed(let message):
+      case .openSettingsFile:
+        return open(SettingsStore.defaultFileURL)
+      case let .workspaceOpenFailed(message):
         menuLogger.error("Opening a menu destination failed: \(message, privacy: .public)")
         return .none
-      case .engineReadinessUpdated(let readiness):
+      case let .engineReadinessUpdated(readiness):
         let wasFailed =
           switch state.engineReadiness {
-          case .failed: true
-          default: false
+          case .failed:
+            true
+          default:
+            false
           }
         state.engineReadiness = readiness
         logEngineReadiness(readiness)
         let onboardingUpdate =
           state.onboarding.isPresented
-          ? Effect<Action>.send(.onboarding(.engineReadinessUpdated(readiness))) : .none
-        let failureSound: Effect<Action>
-        if case .failed = readiness, !wasFailed {
-          failureSound = playSound(.error, enabled: state.soundsEnabled)
-        } else {
-          failureSound = .none
-        }
+            ? Effect<Action>.send(.onboarding(.engineReadinessUpdated(readiness))) : .none
+        let failureSound: Effect<Action> =
+          if case .failed = readiness, !wasFailed {
+            playSound(.error, enabled: state.soundsEnabled)
+          } else {
+            .none
+          }
         return .merge(onboardingUpdate, failureSound)
-      case .soundsEnabledLoaded(let enabled):
+      case let .soundsEnabledLoaded(enabled):
         state.soundsEnabled = enabled
         return .none
-      case .soundsSettingsFailed(let message):
+      case let .soundsSettingsFailed(message):
         state.soundsEnabled = false
         soundsLogger.error("Sounds setting failed to load: \(message, privacy: .public)")
         return .none
-      case .recording(.micStatusUpdated): return .none
-      case .recording(.delegate(.recordingStarted(let inputDeviceName))):
+      case .recording(.micStatusUpdated):
+        return .none
+      case let .recording(.delegate(.recordingStarted(inputDeviceName))):
         return .send(.pill(.recordingStarted(inputDeviceName: inputDeviceName)))
-      case .recording(.delegate(.levelChanged(let level))):
+      case let .recording(.delegate(.levelChanged(level))):
         return .send(.pill(.levelUpdated(level)))
-      case .recording(.delegate(.completed(let recording))):
+      case let .recording(.delegate(.completed(recording))):
         let generation = state.transcriptionGeneration
         let suppressNoSpeechNotice = recording.durationSeconds <= maximumAccidentalLoneTapDuration
         return .concatenate(
@@ -304,82 +336,114 @@ private func canProbePasteAccess(
           .run { send in
             performanceLogger.notice("benchmark transcription-started")
             do {
-              await send(
+              try await send(
                 .transcriptionCompleted(
                   generation, suppressNoSpeechNotice: suppressNoSpeechNotice,
-                  try await asrEngine.submit(recording)))
+                  asrEngine.submit(recording),
+                ),
+              )
             } catch { await send(.transcriptionFailed(generation, error.localizedDescription)) }
-          }.cancellable(id: CancelID.transcription, cancelInFlight: true))
+          }.cancellable(id: CancelID.transcription, cancelInFlight: true),
+        )
       case .recording(.delegate(.discarded)):
         return .merge(.send(.pill(.cancel)), playSound(.cancel, enabled: state.soundsEnabled))
       case .recording(.delegate(.failed)):
         return .merge(.send(.pill(.cancel)), playSound(.error, enabled: state.soundsEnabled))
-      case .recording: return .none
-      case .transcriptionCompleted(let generation, _, .transcript(let transcript)):
-        guard generation == state.transcriptionGeneration else { return .none }
+      case .recording:
+        return .none
+      case let .transcriptionCompleted(generation, _, .transcript(transcript)):
+        guard generation == state.transcriptionGeneration else {
+          return .none
+        }
         state.lastTranscript = transcript
         engineLogger.notice("Transcript: \(transcript, privacy: .public)")
         return .run { send in
           let capture = await contextCapture.capture()
           // A newer dictation has already claimed the field; this paste would land in it.
-          guard !Task.isCancelled else { return }
+          guard !Task.isCancelled else {
+            return
+          }
           await send(.contextCaptured(generation, capture))
           let adjusted = capture.adjusted(transcript)
-          guard !Task.isCancelled else { return }
+          guard !Task.isCancelled else {
+            return
+          }
           do {
-            await send(.deliveryCompleted(generation, try await delivery.deliver(adjusted)))
+            try await send(.deliveryCompleted(generation, delivery.deliver(adjusted)))
           } catch { await send(.deliveryFailed(generation, error.localizedDescription)) }
         }.cancellable(id: CancelID.delivery, cancelInFlight: true)
-      case .transcriptionCompleted(let generation, let suppressNotice, .noSpeech):
-        guard generation == state.transcriptionGeneration else { return .none }
+      case let .transcriptionCompleted(generation, suppressNotice, .noSpeech):
+        guard generation == state.transcriptionGeneration else {
+          return .none
+        }
         engineLogger.notice("Gate rejected recording: no speech")
         return .merge(
           .send(.pill(suppressNotice ? .dismiss : .noSpeechDetected)),
           onboardingTryIt(
-            .failed("No speech was detected. Hold Right Option and try again."), state),
-          playSound(.cancel, enabled: state.soundsEnabled))
-      case .transcriptionCompleted(let generation, _, .engineEmpty):
-        guard generation == state.transcriptionGeneration else { return .none }
+            .failed("No speech was detected. Hold Right Option and try again."), state,
+          ),
+          playSound(.cancel, enabled: state.soundsEnabled),
+        )
+      case let .transcriptionCompleted(generation, _, .engineEmpty):
+        guard generation == state.transcriptionGeneration else {
+          return .none
+        }
         engineLogger.notice("Engine accepted speech but returned an empty transcript")
         return .merge(
           .send(.pill(.noSpeechDetected)),
           onboardingTryIt(
-            .failed("The speech model returned no text. Try a longer phrase."), state),
-          playSound(.cancel, enabled: state.soundsEnabled))
-      case .transcriptionFailed(let generation, let message):
-        guard generation == state.transcriptionGeneration else { return .none }
+            .failed("The speech model returned no text. Try a longer phrase."), state,
+          ),
+          playSound(.cancel, enabled: state.soundsEnabled),
+        )
+      case let .transcriptionFailed(generation, message):
+        guard generation == state.transcriptionGeneration else {
+          return .none
+        }
         state.engineReadiness = .failed(message)
         engineLogger.error("Transcription failed: \(message, privacy: .public)")
         return .merge(
           .send(.pill(.dismiss)), onboardingTryIt(.failed(message), state),
-          playSound(.error, enabled: state.soundsEnabled))
-      case .contextCaptured(let generation, let capture):
-        guard generation == state.transcriptionGeneration else { return .none }
+          playSound(.error, enabled: state.soundsEnabled),
+        )
+      case let .contextCaptured(generation, capture):
+        guard generation == state.transcriptionGeneration else {
+          return .none
+        }
         state.currentFocusedContext = capture
         return .none
-      case .deliveryCompleted(let generation, .pasted(let restoration)):
-        guard generation == state.transcriptionGeneration else { return .none }
+      case let .deliveryCompleted(generation, .pasted(restoration)):
+        guard generation == state.transcriptionGeneration else {
+          return .none
+        }
         switch restoration {
-        case .restored: deliveryLogger.notice("Transcript pasted; prior clipboard restored")
+        case .restored:
+          deliveryLogger.notice("Transcript pasted; prior clipboard restored")
         case .skipped:
           deliveryLogger.notice("Transcript pasted; clipboard changed, so restore was skipped")
-        case .failed: deliveryLogger.error("Transcript pasted; prior clipboard restore failed")
+        case .failed:
+          deliveryLogger.error("Transcript pasted; prior clipboard restore failed")
         }
         let onboardingSuccess =
           state.lastTranscript.map { onboardingTryIt(.delivered($0), state) } ?? .none
         let pill: PillFeature.Action =
-          if case .unavailable = state.currentFocusedContext { .fieldContextUnavailable } else {
+          if case .unavailable = state.currentFocusedContext {
+            .fieldContextUnavailable
+          } else {
             .dismiss
           }
         state.currentFocusedContext = nil
         return .merge(
-          .send(.pill(pill)), onboardingSuccess, playSound(.commit, enabled: state.soundsEnabled))
-      case .deliveryCompleted(let generation, .copied(let fallback)):
-        guard generation == state.transcriptionGeneration else { return .none }
+          .send(.pill(pill)), onboardingSuccess, playSound(.commit, enabled: state.soundsEnabled),
+        )
+      case let .deliveryCompleted(generation, .copied(fallback)):
+        guard generation == state.transcriptionGeneration else {
+          return .none
+        }
         switch fallback {
         case .accessibilityPermissionMissing:
           deliveryLogger.error(
-            "Accessibility permission missing — grant MiniWhisper in System Settings > Privacy & Security > Accessibility"
+            "Accessibility permission missing — grant MiniWhisper in System Settings > Privacy & Security > Accessibility",
           )
         case .secureInput:
           deliveryLogger.notice("Secure input is active; transcript kept on clipboard")
@@ -391,24 +455,29 @@ private func canProbePasteAccess(
           .send(.pill(.copiedToClipboard)),
           onboardingTryIt(
             .failed(
-              "The transcript was copied, but macOS did not allow it to be pasted. Check Accessibility and try again."
-            ), state), playSound(.error, enabled: state.soundsEnabled))
-      case .deliveryFailed(let generation, let message):
-        guard generation == state.transcriptionGeneration else { return .none }
+              "The transcript was copied, but macOS did not allow it to be pasted. Check Accessibility and try again.",
+            ), state,
+          ), playSound(.error, enabled: state.soundsEnabled),
+        )
+      case let .deliveryFailed(generation, message):
+        guard generation == state.transcriptionGeneration else {
+          return .none
+        }
         state.currentFocusedContext = nil
         deliveryLogger.error("Transcript delivery failed: \(message, privacy: .public)")
         return .merge(
           .send(.pill(.dismiss)), onboardingTryIt(.failed(message), state),
-          playSound(.error, enabled: state.soundsEnabled))
-      case .onboarding(.delegate(.engineReadinessUpdated(let readiness))):
+          playSound(.error, enabled: state.soundsEnabled),
+        )
+      case let .onboarding(.delegate(.engineReadinessUpdated(readiness))):
         return .send(.engineReadinessUpdated(readiness))
-      case .onboarding(.delegate(.permissionsUpdated(let permissions))):
+      case let .onboarding(.delegate(.permissionsUpdated(permissions))):
         state.pasteAccessGranted = permissions.hasPasteAccess
         var effects = [
-          Effect<Action>.send(.recording(.micStatusUpdated(permissions.microphoneStatus)))
+          Effect<Action>.send(.recording(.micStatusUpdated(permissions.microphoneStatus))),
         ]
         if permissions.hasInputMonitoringPermission, state.hotkeyTap != .active,
-          state.hotkeyTap != .starting
+           state.hotkeyTap != .starting
         {
           state.hotkeyTap = .starting
           effects.append(listenForHotkeyEvents())
@@ -417,16 +486,29 @@ private func canProbePasteAccess(
       case .onboarding(.delegate(.completed)):
         state.onboardingCompleted = true
         return .none
-      case .onboarding, .pill: return .none
+      case .onboarding,
+           .pill:
+        return .none
       }
     }
+  }
+
+  // MARK: Private
+
+  private enum CancelID { case transcription, delivery, hotkeyEvents }
+
+  private enum OnboardingTryItResult {
+    case delivered(String)
+    case failed(String)
   }
 
   private func listenForHotkeyEvents() -> Effect<Action> {
     .run { send in
       do {
         let events = try await hotkeyListener.events()
-        for await event in events { await send(.hotkeyListenerEvent(event)) }
+        for await event in events {
+          await send(.hotkeyListenerEvent(event))
+        }
         await send(.hotkeyListenerFinished)
       } catch { await send(.hotkeyListenerFailed(String(describing: error))) }
     }.cancellable(id: CancelID.hotkeyEvents, cancelInFlight: true)
@@ -441,7 +523,8 @@ private func canProbePasteAccess(
       let hasPasteAccess =
         canProbePasteAccess(
           onboardingCompleted: onboardingCompleted,
-          hasInputMonitoringPermission: hasInputMonitoringPermission)
+          hasInputMonitoringPermission: hasInputMonitoringPermission,
+        )
         ? delivery.hasPasteAccess() : false
 
       var readinessIterator = asrEngine.prepareInstalled().makeAsyncIterator()
@@ -453,8 +536,12 @@ private func canProbePasteAccess(
             modelDownloadConsented: modelDownloadConsented,
             permissions: OnboardingPermissionStatuses(
               hasInputMonitoringPermission: hasInputMonitoringPermission,
-              microphoneStatus: await microphoneStatus, hasPasteAccess: hasPasteAccess),
-            engineReadiness: engineReadiness)))
+              microphoneStatus: microphoneStatus, hasPasteAccess: hasPasteAccess,
+            ),
+            engineReadiness: engineReadiness,
+          ),
+        ),
+      )
       while let readiness = await readinessIterator.next() {
         await send(.engineReadinessUpdated(readiness))
       }
@@ -465,35 +552,40 @@ private func canProbePasteAccess(
     OnboardingSnapshot(
       permissions: OnboardingPermissionStatuses(
         hasInputMonitoringPermission: hotkeyListener.hasInputMonitoringPermission(),
-        microphoneStatus: state.recording.micStatus, hasPasteAccess: state.pasteAccessGranted),
+        microphoneStatus: state.recording.micStatus, hasPasteAccess: state.pasteAccessGranted,
+      ),
       engineReadiness: state.engineReadiness,
       hasModelDownloadConsent: state.modelDownloadConsented || state.onboardingCompleted,
-      isCompleted: state.onboardingCompleted)
+      isCompleted: state.onboardingCompleted,
+    )
   }
 
   private func logEngineReadiness(_ readiness: EngineReadiness) {
     switch readiness {
-    case .modelMissing: engineLogger.error("Pinned speech models are missing")
-    case .downloading(let fraction):
+    case .modelMissing:
+      engineLogger.error("Pinned speech models are missing")
+    case let .downloading(fraction):
       engineLogger.notice("Pinned model download \(fraction * 100, format: .fixed(precision: 1))%")
-    case .compiling: engineLogger.notice("Compiling pinned Core ML models")
-    case .prewarming: engineLogger.notice("Prewarming resident speech engine")
-    case .ready: engineLogger.notice("Resident speech engine ready")
-    case .failed(let message):
+    case .compiling:
+      engineLogger.notice("Compiling pinned Core ML models")
+    case .prewarming:
+      engineLogger.notice("Prewarming resident speech engine")
+    case .ready:
+      engineLogger.notice("Resident speech engine ready")
+    case let .failed(message):
       engineLogger.error("Speech engine setup failed: \(message, privacy: .public)")
     }
   }
 
-  private enum OnboardingTryItResult {
-    case delivered(String)
-    case failed(String)
-  }
-
   private func onboardingTryIt(_ result: OnboardingTryItResult, _ state: State) -> Effect<Action> {
-    guard state.onboarding.isPresented, state.onboarding.step == .tryIt else { return .none }
+    guard state.onboarding.isPresented, state.onboarding.step == .tryIt else {
+      return .none
+    }
     switch result {
-    case .delivered(let transcript): return .send(.onboarding(.dictationDelivered(transcript)))
-    case .failed(let message): return .send(.onboarding(.tryItFailed(message)))
+    case let .delivered(transcript):
+      return .send(.onboarding(.dictationDelivered(transcript)))
+    case let .failed(message):
+      return .send(.onboarding(.tryItFailed(message)))
     }
   }
 
@@ -506,7 +598,9 @@ private func canProbePasteAccess(
   }
 
   private func playSound(_ cue: SoundCue, enabled: Bool) -> Effect<Action> {
-    guard enabled else { return .none }
+    guard enabled else {
+      return .none
+    }
     return .run { _ in await sounds.play(cue) }
   }
 }

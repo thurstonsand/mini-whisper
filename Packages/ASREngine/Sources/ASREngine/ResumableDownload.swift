@@ -1,88 +1,101 @@
 import Foundation
 
+// MARK: - ResumeDecision
+
 enum ResumeDecision: Equatable {
   case append
   case overwrite
   case restart
   case reject(String)
 
+  // MARK: Internal
+
   static func decide(
     resumeOffset: Int, expectedBytes: Int, statusCode: Int, contentRange: String?,
-    contentLength: Int64
+    contentLength: Int64,
   ) -> Self {
     if statusCode == 200 {
       guard
         contentLength == NSURLSessionTransferSizeUnknown || contentLength == Int64(expectedBytes)
-      else { return .reject("Content-Length does not match the pinned file size") }
+      else {
+        return .reject("Content-Length does not match the pinned file size")
+      }
       return .overwrite
     }
     if statusCode == 206 {
       guard let range = HTTPContentRange(contentRange), range.start == resumeOffset,
-        range.total == expectedBytes
-      else { return resumeOffset > 0 ? .restart : .reject("invalid Content-Range") }
+            range.total == expectedBytes
+      else {
+        return resumeOffset > 0 ? .restart : .reject("invalid Content-Range")
+      }
       return resumeOffset > 0 ? .append : .overwrite
     }
-    if statusCode == 416 || (statusCode == 403 && resumeOffset > 0) { return .restart }
+    if statusCode == 416 || (statusCode == 403 && resumeOffset > 0) {
+      return .restart
+    }
     return .reject("HTTP \(statusCode)")
   }
 }
 
+// MARK: - HTTPContentRange
+
 struct HTTPContentRange: Equatable {
-  let start: Int
-  let end: Int
-  let total: Int
+  // MARK: Lifecycle
 
   init?(_ value: String?) {
-    guard let value, value.hasPrefix("bytes ") else { return nil }
+    guard let value, value.hasPrefix("bytes ") else {
+      return nil
+    }
     let sections = value.dropFirst("bytes ".count).split(
-      separator: "/", omittingEmptySubsequences: false)
-    guard sections.count == 2, let total = Int(sections[1]) else { return nil }
+      separator: "/", omittingEmptySubsequences: false,
+    )
+    guard sections.count == 2, let total = Int(sections[1]) else {
+      return nil
+    }
     let bounds = sections[0].split(separator: "-", omittingEmptySubsequences: false)
     guard bounds.count == 2, let start = Int(bounds[0]), let end = Int(bounds[1]), start <= end,
-      end < total
-    else { return nil }
+          end < total
+    else {
+      return nil
+    }
     self.start = start
     self.end = end
     self.total = total
   }
+
+  // MARK: Internal
+
+  let start: Int
+  let end: Int
+  let total: Int
 }
+
+// MARK: - ProgressDownloadError
 
 enum ProgressDownloadError: Error, Equatable {
   case restartRequired
   case invalidResponse(String)
 }
 
+// MARK: - ProgressDownload
+
 final class ProgressDownload: NSObject, URLSessionDataDelegate, @unchecked Sendable {
-  private static let reportIntervalBytes = 1_048_576
-
-  private let configuration: URLSessionConfiguration
-  private let destination: URL
-  private let expectedBytes: Int
-  private let resumeOffset: Int
-  private let progress: @Sendable (Int) -> Void
-  private let lock = NSLock()
-
-  private var continuation: CheckedContinuation<Void, any Error>?
-  private var task: URLSessionDataTask?
-  private var session: URLSession?
-  private var fileHandle: FileHandle?
-  private var responseError: (any Error)?
-  private var isCancelled = false
-  private var transferredBytes: Int
-  private var lastReportedBytes: Int
+  // MARK: Lifecycle
 
   init(
     configuration: URLSessionConfiguration, destination: URL, expectedBytes: Int, resumeOffset: Int,
-    progress: @escaping @Sendable (Int) -> Void
+    progress: @escaping @Sendable (Int) -> Void,
   ) {
     self.configuration = configuration
     self.destination = destination
     self.expectedBytes = expectedBytes
     self.resumeOffset = resumeOffset
     self.progress = progress
-    self.transferredBytes = resumeOffset
-    self.lastReportedBytes = resumeOffset
+    transferredBytes = resumeOffset
+    lastReportedBytes = resumeOffset
   }
+
+  // MARK: Internal
 
   func download(from url: URL) async throws {
     try await withTaskCancellationHandler {
@@ -94,7 +107,9 @@ final class ProgressDownload: NSObject, URLSessionDataDelegate, @unchecked Senda
         }
         let task = session.dataTask(with: request)
         let cancelled = lock.withLock {
-          guard !isCancelled else { return true }
+          guard !isCancelled else {
+            return true
+          }
           self.continuation = continuation
           self.session = session
           self.task = task
@@ -117,9 +132,9 @@ final class ProgressDownload: NSObject, URLSessionDataDelegate, @unchecked Senda
   }
 
   func urlSession(
-    _ session: URLSession, task: URLSessionTask,
-    willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest,
-    completionHandler: @escaping @Sendable (URLRequest?) -> Void
+    _: URLSession, task _: URLSessionTask,
+    willPerformHTTPRedirection _: HTTPURLResponse, newRequest request: URLRequest,
+    completionHandler: @escaping @Sendable (URLRequest?) -> Void,
   ) {
     var redirectedRequest = request
     if resumeOffset > 0 {
@@ -130,8 +145,8 @@ final class ProgressDownload: NSObject, URLSessionDataDelegate, @unchecked Senda
   }
 
   func urlSession(
-    _ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse,
-    completionHandler: @escaping @Sendable (URLSession.ResponseDisposition) -> Void
+    _: URLSession, dataTask _: URLSessionDataTask, didReceive response: URLResponse,
+    completionHandler: @escaping @Sendable (URLSession.ResponseDisposition) -> Void,
   ) {
     guard let response = response as? HTTPURLResponse else {
       setResponseError(ProgressDownloadError.invalidResponse("non-HTTP response"))
@@ -141,7 +156,8 @@ final class ProgressDownload: NSObject, URLSessionDataDelegate, @unchecked Senda
     let decision = ResumeDecision.decide(
       resumeOffset: resumeOffset, expectedBytes: expectedBytes, statusCode: response.statusCode,
       contentRange: response.value(forHTTPHeaderField: "Content-Range"),
-      contentLength: response.expectedContentLength)
+      contentLength: response.expectedContentLength,
+    )
     do {
       let handle: FileHandle
       switch decision {
@@ -158,8 +174,10 @@ final class ProgressDownload: NSObject, URLSessionDataDelegate, @unchecked Senda
           transferredBytes = 0
           lastReportedBytes = 0
         }
-      case .restart: throw ProgressDownloadError.restartRequired
-      case .reject(let message): throw ProgressDownloadError.invalidResponse(message)
+      case .restart:
+        throw ProgressDownloadError.restartRequired
+      case let .reject(message):
+        throw ProgressDownloadError.invalidResponse(message)
       }
       lock.withLock { fileHandle = handle }
       progress(decision == .append ? resumeOffset : 0)
@@ -170,17 +188,23 @@ final class ProgressDownload: NSObject, URLSessionDataDelegate, @unchecked Senda
     }
   }
 
-  func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+  func urlSession(_: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
     do {
       let report = try lock.withLock { () -> Int? in
-        guard responseError == nil, let fileHandle else { return nil }
+        guard responseError == nil, let fileHandle else {
+          return nil
+        }
         try fileHandle.write(contentsOf: data)
         transferredBytes += data.count
-        guard transferredBytes - lastReportedBytes >= Self.reportIntervalBytes else { return nil }
+        guard transferredBytes - lastReportedBytes >= Self.reportIntervalBytes else {
+          return nil
+        }
         lastReportedBytes = transferredBytes
         return min(transferredBytes, expectedBytes)
       }
-      if let report { progress(report) }
+      if let report {
+        progress(report)
+      }
     } catch {
       setResponseError(error)
       dataTask.cancel()
@@ -188,7 +212,7 @@ final class ProgressDownload: NSObject, URLSessionDataDelegate, @unchecked Senda
   }
 
   func urlSession(
-    _ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?
+    _ session: URLSession, task _: URLSessionTask, didCompleteWithError error: (any Error)?,
   ) {
     let completion = lock.withLock {
       let continuation = self.continuation
@@ -202,7 +226,9 @@ final class ProgressDownload: NSObject, URLSessionDataDelegate, @unchecked Senda
     }
     try? completion.1?.close()
     session.finishTasksAndInvalidate()
-    guard let continuation = completion.0 else { return }
+    guard let continuation = completion.0 else {
+      return
+    }
     if let responseError = completion.2 {
       continuation.resume(throwing: responseError)
     } else if let error {
@@ -213,7 +239,31 @@ final class ProgressDownload: NSObject, URLSessionDataDelegate, @unchecked Senda
     }
   }
 
+  // MARK: Private
+
+  private static let reportIntervalBytes = 1_048_576
+
+  private let configuration: URLSessionConfiguration
+  private let destination: URL
+  private let expectedBytes: Int
+  private let resumeOffset: Int
+  private let progress: @Sendable (Int) -> Void
+  private let lock = NSLock()
+
+  private var continuation: CheckedContinuation<Void, any Error>?
+  private var task: URLSessionDataTask?
+  private var session: URLSession?
+  private var fileHandle: FileHandle?
+  private var responseError: (any Error)?
+  private var isCancelled = false
+  private var transferredBytes: Int
+  private var lastReportedBytes: Int
+
   private func setResponseError(_ error: any Error) {
-    lock.withLock { if responseError == nil { responseError = error } }
+    lock.withLock {
+      if responseError == nil {
+        responseError = error
+      }
+    }
   }
 }

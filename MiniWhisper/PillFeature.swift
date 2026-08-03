@@ -1,8 +1,16 @@
 import ComposableArchitecture
 
 @Reducer struct PillFeature {
+  // MARK: Internal
+
   @ObservableState struct State: Equatable {
     enum Presentation: Equatable {
+      case recording(Recording)
+      case transcribing
+      case notice(Notice)
+
+      // MARK: Internal
+
       struct Recording: Equatable {
         var inputDeviceName: String
         var level: Float
@@ -14,10 +22,6 @@ import ComposableArchitecture
         case copiedToClipboard
         case fieldContextUnavailable
       }
-
-      case recording(Recording)
-      case transcribing
-      case notice(Notice)
     }
 
     var presentation: Presentation?
@@ -43,22 +47,22 @@ import ComposableArchitecture
     case noticeFadeElapsed(Int)
   }
 
-  private enum CancelID { case notice }
-
   @Dependency(\.continuousClock) var clock
 
   var body: some ReducerOf<Self> {
     Reduce { state, action in
       switch action {
-      case .recordingStarting(let inputDeviceName):
+      case let .recordingStarting(inputDeviceName):
         state.presentation = .recording(
-          State.Presentation.Recording(inputDeviceName: inputDeviceName, level: 0, isLive: false))
+          State.Presentation.Recording(inputDeviceName: inputDeviceName, level: 0, isLive: false),
+        )
         state.isFadingOut = false
         state.accessibilityLevel = 0
         return .cancel(id: CancelID.notice)
-      case .recordingStarted(let inputDeviceName):
+      case let .recordingStarted(inputDeviceName):
         state.presentation = .recording(
-          State.Presentation.Recording(inputDeviceName: inputDeviceName, level: 0, isLive: true))
+          State.Presentation.Recording(inputDeviceName: inputDeviceName, level: 0, isLive: true),
+        )
         state.isFadingOut = false
         state.accessibilityLevel = 0
         if state.isLatchBouncePending {
@@ -66,8 +70,8 @@ import ComposableArchitecture
           state.isLatchBouncePending = false
         }
         return .cancel(id: CancelID.notice)
-      case .levelUpdated(let level):
-        guard case .recording(var recording) = state.presentation, recording.isLive else {
+      case let .levelUpdated(level):
+        guard case var .recording(recording) = state.presentation, recording.isLive else {
           return .none
         }
         recording.level = level
@@ -90,17 +94,18 @@ import ComposableArchitecture
         state.isLatchBouncePending = false
         return .cancel(id: CancelID.notice)
       case .noSpeechDetected:
-        return showNotice(.noSpeechDetected, for: .milliseconds(1_500), state: &state)
+        return showNotice(.noSpeechDetected, for: .milliseconds(1500), state: &state)
       case .copiedToClipboard:
         return showNotice(.copiedToClipboard, for: .seconds(3), state: &state)
       case .fieldContextUnavailable:
-        return showNotice(.fieldContextUnavailable, for: .milliseconds(1_500), state: &state)
-      case .dismiss, .cancel:
+        return showNotice(.fieldContextUnavailable, for: .milliseconds(1500), state: &state)
+      case .dismiss,
+           .cancel:
         state.presentation = nil
         state.isFadingOut = false
         state.isLatchBouncePending = false
         return .cancel(id: CancelID.notice)
-      case .noticeDisplayElapsed(let generation):
+      case let .noticeDisplayElapsed(generation):
         guard generation == state.noticeGeneration, case .notice = state.presentation else {
           return .none
         }
@@ -109,7 +114,7 @@ import ComposableArchitecture
           try await clock.sleep(for: .milliseconds(180))
           await send(.noticeFadeElapsed(generation))
         }.cancellable(id: CancelID.notice, cancelInFlight: true)
-      case .noticeFadeElapsed(let generation):
+      case let .noticeFadeElapsed(generation):
         guard generation == state.noticeGeneration, case .notice = state.presentation else {
           return .none
         }
@@ -120,12 +125,16 @@ import ComposableArchitecture
     }
   }
 
+  // MARK: Private
+
+  private enum CancelID { case notice }
+
   private static func accessibilityPercentageBucket(_ level: Float) -> Int {
     Int((min(max(level, 0), 1) * 10).rounded()) * 10
   }
 
   private func showNotice(
-    _ notice: State.Presentation.Notice, for duration: Duration, state: inout State
+    _ notice: State.Presentation.Notice, for duration: Duration, state: inout State,
   ) -> Effect<Action> {
     state.noticeGeneration += 1
     let generation = state.noticeGeneration

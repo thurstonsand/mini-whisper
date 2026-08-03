@@ -3,12 +3,43 @@ import ApplicationServices
 import Foundation
 import OSLog
 
+// MARK: - ChromiumAccessibility
+
 /// Chromium builds its accessibility tree lazily. Electron apps wake on the documented
 /// `AXManualAccessibility` write; Chrome 151 rejects both documented attributes, and only a tree
 /// traversal (~135 ms on first walk) wakes it. That walk happens here — at recording start, once
 /// per running instance — because delivery cannot afford it. A dictation that beats the walk
 /// simply reports its context unavailable.
 enum ChromiumAccessibility {
+  // MARK: Internal
+
+  static func prewarmFrontmostApp() async {
+    guard AXIsProcessTrusted() else {
+      return
+    }
+    guard let frontmost = NSWorkspace.shared.frontmostApplication,
+          let family = family(of: frontmost.bundleURL)
+    else {
+      return
+    }
+
+    // PIDs are recycled, so an instance is its PID and the moment it started.
+    let instance = WakeLedger.Instance(
+      pid: frontmost.processIdentifier, launchedAt: frontmost.launchDate,
+    )
+    let bundleID = frontmost.bundleIdentifier ?? "?"
+    guard await ledger.claim(instance) else {
+      return
+    }
+
+    let woken = await wake(pid: instance.pid, family: family, bundleID: bundleID)
+    // A wake that did not take is worth trying again at the next recording start; only a working
+    // tree earns the right to skip the walk.
+    await ledger.settle(instance, woken: woken)
+  }
+
+  // MARK: Private
+
   private enum Family {
     case electron
     case chromiumBrowser
@@ -16,26 +47,8 @@ enum ChromiumAccessibility {
 
   private static let wakeMessagingTimeout: Float = 1
   private static let settleBeforeTraversal = Duration.milliseconds(500)
-  private static let maximumVisitedNodes = 5_000
+  private static let maximumVisitedNodes = 5000
   private static let ledger = WakeLedger()
-
-  static func prewarmFrontmostApp() async {
-    guard AXIsProcessTrusted() else { return }
-    guard let frontmost = NSWorkspace.shared.frontmostApplication,
-      let family = family(of: frontmost.bundleURL)
-    else { return }
-
-    // PIDs are recycled, so an instance is its PID and the moment it started.
-    let instance = WakeLedger.Instance(
-      pid: frontmost.processIdentifier, launchedAt: frontmost.launchDate)
-    let bundleID = frontmost.bundleIdentifier ?? "?"
-    guard await ledger.claim(instance) else { return }
-
-    let woken = await wake(pid: instance.pid, family: family, bundleID: bundleID)
-    // A wake that did not take is worth trying again at the next recording start; only a working
-    // tree earns the right to skip the walk.
-    await ledger.settle(instance, woken: woken)
-  }
 
   private static func wake(pid: pid_t, family: Family, bundleID: String) async -> Bool {
     let application = AXUIElementCreateApplication(pid)
@@ -44,21 +57,27 @@ enum ChromiumAccessibility {
     }
 
     let result = AXUIElementSetAttributeValue(
-      application, "AXManualAccessibility" as CFString, kCFBooleanTrue)
+      application, "AXManualAccessibility" as CFString, kCFBooleanTrue,
+    )
     contextLogger.info(
-      "Chromium wake bundle=\(bundleID, privacy: .public) manualAccessibility=\(result.rawValue)")
-    guard family == .chromiumBrowser else { return result == .success }
+      "Chromium wake bundle=\(bundleID, privacy: .public) manualAccessibility=\(result.rawValue)",
+    )
+    guard family == .chromiumBrowser else {
+      return result == .success
+    }
 
     do { try await Task.sleep(for: settleBeforeTraversal) } catch { return false }
-    if case .success = AXRead.element(application, kAXFocusedUIElementAttribute) { return true }
+    if case .success = AXRead.element(application, kAXFocusedUIElementAttribute) {
+      return true
+    }
 
     let clock = ContinuousClock()
     let started = clock.now
     let visited = traverse(application)
     let duration = started.duration(to: clock.now).components
-    let elapsed = Double(duration.seconds) * 1_000 + Double(duration.attoseconds) / 1e15
+    let elapsed = Double(duration.seconds) * 1000 + Double(duration.attoseconds) / 1e15
     contextLogger.info(
-      "Chromium wake bundle=\(bundleID, privacy: .public) traversal nodes=\(visited) elapsed=\(elapsed, format: .fixed(precision: 1))ms"
+      "Chromium wake bundle=\(bundleID, privacy: .public) traversal nodes=\(visited) elapsed=\(elapsed, format: .fixed(precision: 1))ms",
     )
     return visited > 1
   }
@@ -75,7 +94,7 @@ enum ChromiumAccessibility {
       }
       visited += 1
       _ = AXRead.value(element, kAXRoleAttribute)
-      if case .success(let children) = AXRead.children(element) {
+      if case let .success(children) = AXRead.children(element) {
         pending.append(contentsOf: children)
       }
     }
@@ -85,31 +104,46 @@ enum ChromiumAccessibility {
   /// Chromium-family apps embed a single `<product> Framework.framework`; Electron's is named
   /// exactly that. Reading the bundle beats keeping a bundle-ID allowlist that ages badly.
   private static func family(of bundleURL: URL?) -> Family? {
-    guard let bundleURL else { return nil }
+    guard let bundleURL else {
+      return nil
+    }
     let frameworks =
       (try? FileManager.default.contentsOfDirectory(
-        atPath: bundleURL.appending(path: "Contents/Frameworks").path)) ?? []
-    guard frameworks.contains(where: { $0.hasSuffix(" Framework.framework") }) else { return nil }
+        atPath: bundleURL.appending(path: "Contents/Frameworks").path,
+      )) ?? []
+    guard frameworks.contains(where: { $0.hasSuffix(" Framework.framework") }) else {
+      return nil
+    }
     return frameworks.contains("Electron Framework.framework") ? .electron : .chromiumBrowser
   }
 }
 
+// MARK: - WakeLedger
+
 private actor WakeLedger {
+  // MARK: Internal
+
   struct Instance: Hashable {
     var pid: pid_t
     var launchedAt: Date?
   }
 
-  private var inProgress = Set<Instance>()
-  private var woken = Set<Instance>()
-
   func claim(_ instance: Instance) -> Bool {
-    guard !woken.contains(instance) else { return false }
+    guard !woken.contains(instance) else {
+      return false
+    }
     return inProgress.insert(instance).inserted
   }
 
   func settle(_ instance: Instance, woken didWake: Bool) {
     inProgress.remove(instance)
-    if didWake { woken.insert(instance) }
+    if didWake {
+      woken.insert(instance)
+    }
   }
+
+  // MARK: Private
+
+  private var inProgress = Set<Instance>()
+  private var woken = Set<Instance>()
 }

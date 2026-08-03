@@ -2,16 +2,20 @@ import ASREngine
 import AudioCapture
 import ComposableArchitecture
 import Foundation
+@testable import MiniWhisper
 import Testing
 
-@testable import MiniWhisper
+// MARK: - OnboardingStepDerivationTests
 
-@Suite struct OnboardingStepDerivationTests {
-  @Test func everyPermissionMustLandBeforeSetupLeavesThePermissionsStep() {
+struct OnboardingStepDerivationTests {
+  @Test func `every permission must land before setup leaves the permissions step`() {
     var snapshot = OnboardingSnapshot(
       permissions: OnboardingPermissionStatuses(
-        hasInputMonitoringPermission: false, microphoneStatus: .undetermined, hasPasteAccess: false),
-      engineReadiness: .modelMissing, hasModelDownloadConsent: false, isCompleted: false)
+        hasInputMonitoringPermission: false, microphoneStatus: .undetermined,
+        hasPasteAccess: false,
+      ),
+      engineReadiness: .modelMissing, hasModelDownloadConsent: false, isCompleted: false,
+    )
     #expect(OnboardingStep.derive(from: snapshot) == .permissions)
 
     snapshot.permissions.hasInputMonitoringPermission = true
@@ -30,7 +34,7 @@ import Testing
     #expect(OnboardingStep.derive(from: snapshot) == .ready)
   }
 
-  @Test func onlyTheFirstUngrantedPermissionOwnsTheAction() {
+  @Test func `only the first ungranted permission owns the action`() {
     var state = OnboardingFeature.State()
     #expect(state.activePermission == .inputMonitoring)
     #expect(state.canRequest(.inputMonitoring))
@@ -51,26 +55,35 @@ import Testing
   }
 
   @Test(arguments: [MicPermissionStatus.denied, .restricted, .undetermined, .unknown])
-  func everyNonGrantedMicrophoneStateStopsAtPermissions(_ status: MicPermissionStatus) {
+  func `every non granted microphone state stops at permissions`(_ status: MicPermissionStatus) {
     let snapshot = OnboardingSnapshot(
       permissions: OnboardingPermissionStatuses(
-        hasInputMonitoringPermission: true, microphoneStatus: status, hasPasteAccess: true),
-      engineReadiness: .ready, hasModelDownloadConsent: true, isCompleted: true)
+        hasInputMonitoringPermission: true, microphoneStatus: status, hasPasteAccess: true,
+      ),
+      engineReadiness: .ready, hasModelDownloadConsent: true, isCompleted: true,
+    )
 
     #expect(OnboardingStep.derive(from: snapshot) == .permissions)
     #expect(!snapshot.permissions.isGranted(.microphone))
   }
 }
 
-@MainActor @Suite struct OnboardingFeatureTests {
-  @Test func untouchedFirstRunWaitsForDownloadConsent() async {
+// MARK: - OnboardingFeatureTests
+
+@MainActor struct OnboardingFeatureTests {
+  // MARK: Internal
+
+  @Test func `untouched first run waits for download consent`() async {
     let (readiness, continuation) = AsyncStream.makeStream(of: EngineReadiness.self)
     let installs = SynchronousCounter()
     let consents = SynchronousCounter()
     let snapshot = OnboardingSnapshot(
       permissions: OnboardingPermissionStatuses(
-        hasInputMonitoringPermission: false, microphoneStatus: .undetermined, hasPasteAccess: false),
-      engineReadiness: .modelMissing, hasModelDownloadConsent: false, isCompleted: false)
+        hasInputMonitoringPermission: false, microphoneStatus: .undetermined,
+        hasPasteAccess: false,
+      ),
+      engineReadiness: .modelMissing, hasModelDownloadConsent: false, isCompleted: false,
+    )
     let store = TestStore(initialState: OnboardingFeature.State()) {
       OnboardingFeature()
     } withDependencies: {
@@ -109,12 +122,14 @@ import Testing
     await store.finish()
   }
 
-  @Test func consentedRelaunchSkipsWelcomeAndResumesModelSetup() async {
+  @Test func `consented relaunch skips welcome and resumes model setup`() async {
     let (readiness, continuation) = AsyncStream.makeStream(of: EngineReadiness.self)
     let snapshot = OnboardingSnapshot(
       permissions: OnboardingPermissionStatuses(
-        hasInputMonitoringPermission: true, microphoneStatus: .undetermined, hasPasteAccess: false),
-      engineReadiness: .modelMissing, hasModelDownloadConsent: true, isCompleted: false)
+        hasInputMonitoringPermission: true, microphoneStatus: .undetermined, hasPasteAccess: false,
+      ),
+      engineReadiness: .modelMissing, hasModelDownloadConsent: true, isCompleted: false,
+    )
     let store = TestStore(initialState: OnboardingFeature.State()) {
       OnboardingFeature()
     } withDependencies: {
@@ -138,7 +153,7 @@ import Testing
     await store.finish()
   }
 
-  @Test func pollingCarriesEveryVisibleGrantToTheModelStep() async {
+  @Test func `polling carries every visible grant to the model step`() async {
     let clock = TestClock()
     let statuses = SynchronousStatuses()
     let store = TestStore(initialState: OnboardingFeature.State()) {
@@ -155,8 +170,11 @@ import Testing
 
     let initialSnapshot = OnboardingSnapshot(
       permissions: OnboardingPermissionStatuses(
-        hasInputMonitoringPermission: false, microphoneStatus: .undetermined, hasPasteAccess: false),
-      engineReadiness: .modelMissing, hasModelDownloadConsent: true, isCompleted: false)
+        hasInputMonitoringPermission: false, microphoneStatus: .undetermined,
+        hasPasteAccess: false,
+      ),
+      engineReadiness: .modelMissing, hasModelDownloadConsent: true, isCompleted: false,
+    )
     await store.send(.present(initialSnapshot)) {
       $0.isPresented = true
       $0.snapshot = initialSnapshot
@@ -190,14 +208,17 @@ import Testing
     #expect(store.state.step == .model)
   }
 
-  @Test func pollingDefersPasteAccessUntilTheInputMonitoringPromptReturns() async {
+  @Test func `polling defers paste access until the input monitoring prompt returns`() async {
     let clock = TestClock()
     let pasteProbes = SynchronousCounter()
     let requests = SynchronousCounter()
     let snapshot = OnboardingSnapshot(
       permissions: OnboardingPermissionStatuses(
-        hasInputMonitoringPermission: false, microphoneStatus: .undetermined, hasPasteAccess: false),
-      engineReadiness: .modelMissing, hasModelDownloadConsent: false, isCompleted: false)
+        hasInputMonitoringPermission: false, microphoneStatus: .undetermined,
+        hasPasteAccess: false,
+      ),
+      engineReadiness: .modelMissing, hasModelDownloadConsent: false, isCompleted: false,
+    )
     let store = TestStore(initialState: OnboardingFeature.State()) {
       OnboardingFeature()
     } withDependencies: {
@@ -224,8 +245,11 @@ import Testing
     await store.receive(
       .permissionStatusesObserved(
         OnboardingPermissionObservation(
-          hasInputMonitoringPermission: false, microphoneStatus: .undetermined, hasPasteAccess: nil)
-      ))
+          hasInputMonitoringPermission: false, microphoneStatus: .undetermined,
+          hasPasteAccess: nil,
+        ),
+      ),
+    )
     #expect(pasteProbes.value == 0)
 
     await store.send(.requestPermission(.inputMonitoring)) {
@@ -248,7 +272,10 @@ import Testing
       .permissionStatusesObserved(
         OnboardingPermissionObservation(
           hasInputMonitoringPermission: false, microphoneStatus: .undetermined,
-          hasPasteAccess: false)))
+          hasPasteAccess: false,
+        ),
+      ),
+    )
     #expect(pasteProbes.value == 1)
 
     await store.send(.permissionStatusesObserved(observation(grantedPermissionStatuses))) {
@@ -257,7 +284,7 @@ import Testing
     await store.receive(.delegate(.permissionsUpdated(grantedPermissionStatuses)))
   }
 
-  @Test func pasteAccessPromptSuspendsChecksAndCannotBeRequestedTwice() async {
+  @Test func `paste access prompt suspends checks and cannot be requested twice`() async {
     let clock = TestClock()
     let probes = SynchronousCounter()
     let requests = SynchronousCounter()
@@ -295,7 +322,10 @@ import Testing
     await store.receive(
       .permissionStatusesObserved(
         OnboardingPermissionObservation(
-          hasInputMonitoringPermission: true, microphoneStatus: .granted, hasPasteAccess: false)))
+          hasInputMonitoringPermission: true, microphoneStatus: .granted, hasPasteAccess: false,
+        ),
+      ),
+    )
     #expect(probes.value == 1)
 
     await store.send(.permissionStatusesObserved(observation(grantedPermissionStatuses))) {
@@ -304,7 +334,7 @@ import Testing
     await store.receive(.delegate(.permissionsUpdated(grantedPermissionStatuses)))
   }
 
-  @Test func anUnfulfilledInputMonitoringRequestPivotsToSystemSettings() async {
+  @Test func `an unfulfilled input monitoring request pivots to system settings`() async {
     let opened = SynchronousValues()
     let store = TestStore(initialState: presentedPermissionsState()) {
       OnboardingFeature()
@@ -332,7 +362,7 @@ import Testing
     #expect(opened.values == [SystemSettingsPane.inputMonitoring])
   }
 
-  @Test func staleInputMonitoringOffersAnApplicationRestart() async {
+  @Test func `stale input monitoring offers an application restart`() async {
     let restarts = SynchronousCounter()
     var state = presentedPermissionsState()
     state.requestedPermissions = [.inputMonitoring]
@@ -349,7 +379,7 @@ import Testing
     #expect(restarts.value == 1)
   }
 
-  @Test func inputMonitoringGrantUsesTheRequestEndpoint() async {
+  @Test func `input monitoring grant uses the request endpoint`() async {
     let store = TestStore(initialState: presentedPermissionsState()) {
       OnboardingFeature()
     } withDependencies: {
@@ -373,22 +403,25 @@ import Testing
     await store.finish()
   }
 
-  @Test func anUnmeasuredPasteStatusPreservesTheLastObservation() async {
+  @Test func `an unmeasured paste status preserves the last observation`() async {
     var state = presentedPermissionsState()
     state.snapshot.permissions.hasPasteAccess = true
     let store = TestStore(initialState: state) { OnboardingFeature() }
     let updated = OnboardingPermissionStatuses(
-      hasInputMonitoringPermission: false, microphoneStatus: .denied, hasPasteAccess: true)
+      hasInputMonitoringPermission: false, microphoneStatus: .denied, hasPasteAccess: true,
+    )
 
     await store.send(
       .permissionStatusesObserved(
         OnboardingPermissionObservation(
-          hasInputMonitoringPermission: false, microphoneStatus: .denied, hasPasteAccess: nil))
+          hasInputMonitoringPermission: false, microphoneStatus: .denied, hasPasteAccess: nil,
+        ),
+      ),
     ) { $0.snapshot.permissions = updated }
     await store.receive(.delegate(.permissionsUpdated(updated)))
   }
 
-  @Test func anAlreadyQueuedObservationCannotMutateAWaitingPrompt() async {
+  @Test func `an already queued observation cannot mutate A waiting prompt`() async {
     var state = presentedPermissionsState()
     state.requestingPermission = .inputMonitoring
     state.pendingSystemPermissionPrompt = .inputMonitoring
@@ -398,12 +431,15 @@ import Testing
     await store.send(
       .permissionStatusesObserved(
         OnboardingPermissionObservation(
-          hasInputMonitoringPermission: false, microphoneStatus: .denied, hasPasteAccess: nil)))
+          hasInputMonitoringPermission: false, microphoneStatus: .denied, hasPasteAccess: nil,
+        ),
+      ),
+    )
     #expect(store.state.requestingPermission == .inputMonitoring)
     #expect(store.state.snapshot.permissions.microphoneStatus == .undetermined)
   }
 
-  @Test func sidebarNavigationOverridesTheViewWithoutChangingTruth() async {
+  @Test func `sidebar navigation overrides the view without changing truth`() async {
     let clock = TestClock()
     let snapshot = modelSnapshot(readiness: .modelMissing)
     var state = OnboardingFeature.State()
@@ -430,7 +466,7 @@ import Testing
     await store.finish()
   }
 
-  @Test func aGrantedRequestFlipsTheRowImmediately() async {
+  @Test func `a granted request flips the row immediately`() async {
     var state = presentedPermissionsState()
     state.snapshot.permissions.hasInputMonitoringPermission = true
     let store = TestStore(initialState: state) {
@@ -458,7 +494,7 @@ import Testing
     await store.receive(.delegate(.permissionsUpdated(grantedPermissionStatuses)))
   }
 
-  @Test func modelSetupReportsDownloadCompilePrewarmAndReady() async {
+  @Test func `model setup reports download compile prewarm and ready`() async {
     let readiness = [EngineReadiness.downloading(0.4), .compiling, .prewarming, .ready]
     var state = OnboardingFeature.State()
     state.isPresented = true
@@ -468,21 +504,25 @@ import Testing
     } withDependencies: {
       $0.asrEngine.installAndPrepare = {
         AsyncStream { continuation in
-          for value in readiness { continuation.yield(value) }
+          for value in readiness {
+            continuation.yield(value)
+          }
           continuation.finish()
         }
       }
     }
 
     await store.send(.setupModel)
-    for value in readiness { await store.receive(.delegate(.engineReadinessUpdated(value))) }
+    for value in readiness {
+      await store.receive(.delegate(.engineReadinessUpdated(value)))
+    }
     for value in readiness {
       await store.send(.engineReadinessUpdated(value)) { $0.snapshot.engineReadiness = value }
     }
     #expect(store.state.step == .tryIt)
   }
 
-  @Test func failedModelSetupCanRetryWithoutKeepingTheOldFailure() async {
+  @Test func `failed model setup can retry without keeping the old failure`() async {
     let readiness = [EngineReadiness.downloading(0), .compiling, .prewarming, .ready]
     var state = OnboardingFeature.State()
     state.isPresented = true
@@ -493,21 +533,25 @@ import Testing
     } withDependencies: {
       $0.asrEngine.installAndPrepare = {
         AsyncStream { continuation in
-          for value in readiness { continuation.yield(value) }
+          for value in readiness {
+            continuation.yield(value)
+          }
           continuation.finish()
         }
       }
     }
 
     await store.send(.setupModel) { $0.failureMessage = nil }
-    for value in readiness { await store.receive(.delegate(.engineReadinessUpdated(value))) }
+    for value in readiness {
+      await store.receive(.delegate(.engineReadinessUpdated(value)))
+    }
     for value in readiness {
       await store.send(.engineReadinessUpdated(value)) { $0.snapshot.engineReadiness = value }
     }
     #expect(store.state.step == .tryIt)
   }
 
-  @Test func aRealDeliveredDictationMarksOnboardingComplete() async {
+  @Test func `a real delivered dictation marks onboarding complete`() async {
     let completions = SynchronousCounter()
     var state = OnboardingFeature.State()
     state.isPresented = true
@@ -536,7 +580,7 @@ import Testing
     await store.receive(.delegate(.dismissed))
   }
 
-  @Test func skipMarksOnboardingCompleteBeforeDismissing() async {
+  @Test func `skip marks onboarding complete before dismissing`() async {
     let completions = SynchronousCounter()
     var state = OnboardingFeature.State()
     state.isPresented = true
@@ -559,7 +603,7 @@ import Testing
     #expect(completions.value == 1)
   }
 
-  @Test func skipIsUnavailableOutsideTheActiveTryItStep() async {
+  @Test func `skip is unavailable outside the active try it step`() async {
     let completions = SynchronousCounter()
     var permissions = OnboardingFeature.State()
     permissions.isPresented = true
@@ -584,6 +628,8 @@ import Testing
     #expect(completions.value == 0)
   }
 
+  // MARK: Private
+
   private func presentedPermissionsState() -> OnboardingFeature.State {
     var state = OnboardingFeature.State()
     state.isPresented = true
@@ -593,48 +639,81 @@ import Testing
   private func modelSnapshot(readiness: EngineReadiness) -> OnboardingSnapshot {
     OnboardingSnapshot(
       permissions: OnboardingPermissionStatuses(
-        hasInputMonitoringPermission: true, microphoneStatus: .granted, hasPasteAccess: true),
-      engineReadiness: readiness, hasModelDownloadConsent: true, isCompleted: false)
+        hasInputMonitoringPermission: true, microphoneStatus: .granted, hasPasteAccess: true,
+      ),
+      engineReadiness: readiness, hasModelDownloadConsent: true, isCompleted: false,
+    )
   }
 }
 
 private let grantedPermissionStatuses = OnboardingPermissionStatuses(
-  hasInputMonitoringPermission: true, microphoneStatus: .granted, hasPasteAccess: true)
+  hasInputMonitoringPermission: true, microphoneStatus: .granted, hasPasteAccess: true,
+)
 
 private func observation(
-  _ statuses: OnboardingPermissionStatuses
+  _ statuses: OnboardingPermissionStatuses,
 ) -> OnboardingPermissionObservation {
   OnboardingPermissionObservation(
     hasInputMonitoringPermission: statuses.hasInputMonitoringPermission,
-    microphoneStatus: statuses.microphoneStatus, hasPasteAccess: statuses.hasPasteAccess)
+    microphoneStatus: statuses.microphoneStatus, hasPasteAccess: statuses.hasPasteAccess,
+  )
 }
+
+// MARK: - SynchronousCounter
 
 private final class SynchronousCounter: @unchecked Sendable {
+  // MARK: Internal
+
+  var value: Int {
+    lock.withLock { count }
+  }
+
+  func increment() {
+    lock.withLock { count += 1 }
+  }
+
+  // MARK: Private
+
   private let lock = NSLock()
   private var count = 0
-
-  func increment() { lock.withLock { count += 1 } }
-
-  var value: Int { lock.withLock { count } }
 }
 
+// MARK: - SynchronousStatuses
+
 private final class SynchronousStatuses: @unchecked Sendable {
-  private let lock = NSLock()
-  private var statuses = OnboardingPermissionStatuses(
-    hasInputMonitoringPermission: false, microphoneStatus: .undetermined, hasPasteAccess: false)
+  // MARK: Internal
+
+  var value: OnboardingPermissionStatuses {
+    lock.withLock { statuses }
+  }
 
   func withValue(_ mutate: (inout OnboardingPermissionStatuses) -> Void) {
     lock.withLock { mutate(&statuses) }
   }
 
-  var value: OnboardingPermissionStatuses { lock.withLock { statuses } }
+  // MARK: Private
+
+  private let lock = NSLock()
+  private var statuses = OnboardingPermissionStatuses(
+    hasInputMonitoringPermission: false, microphoneStatus: .undetermined, hasPasteAccess: false,
+  )
 }
 
+// MARK: - SynchronousValues
+
 private final class SynchronousValues: @unchecked Sendable {
+  // MARK: Internal
+
+  var values: [URL] {
+    lock.withLock { storage }
+  }
+
+  func append(_ url: URL) {
+    lock.withLock { storage.append(url) }
+  }
+
+  // MARK: Private
+
   private let lock = NSLock()
   private var storage: [URL] = []
-
-  func append(_ url: URL) { lock.withLock { storage.append(url) } }
-
-  var values: [URL] { lock.withLock { storage } }
 }

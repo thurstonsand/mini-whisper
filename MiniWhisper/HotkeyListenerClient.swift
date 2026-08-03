@@ -1,11 +1,15 @@
 import ComposableArchitecture
 import HotkeyListener
 
-@DependencyClient struct HotkeyListenerClient: Sendable {
+// MARK: - HotkeyListenerClient
+
+@DependencyClient struct HotkeyListenerClient {
   var hasInputMonitoringPermission: @Sendable () -> Bool = { false }
   var requestInputMonitoringPermission: @Sendable () async -> Bool = { false }
   var events: @Sendable () async throws -> AsyncStream<HotkeyListenerEvent>
 }
+
+// MARK: DependencyKey
 
 extension HotkeyListenerClient: DependencyKey {
   static let liveValue = Self(
@@ -14,7 +18,8 @@ extension HotkeyListenerClient: DependencyKey {
     events: {
       let settings = try SettingsStore().load()
       return try await HotkeyListener.events(hotkey: settings.hotkey)
-    })
+    },
+  )
 }
 
 extension DependencyValues {

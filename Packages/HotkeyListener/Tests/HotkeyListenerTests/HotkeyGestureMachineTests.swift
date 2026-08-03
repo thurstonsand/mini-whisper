@@ -1,9 +1,10 @@
+@testable import HotkeyListener
 import Testing
 
-@testable import HotkeyListener
+struct HotkeyGestureMachineTests {
+  // MARK: Internal
 
-@Suite struct HotkeyGestureMachineTests {
-  @Test func holdStartsAndStopsRecording() {
+  @Test func `hold starts and stops recording`() {
     var machine = HotkeyGestureMachine()
 
     #expect(machine.receive(.activation(at: .zero)) == .startRecording)
@@ -12,7 +13,7 @@ import Testing
     #expect(machine.phase == .idle)
   }
 
-  @Test func loneTapIsAnImmediateStartAndStop() {
+  @Test func `lone tap is an immediate start and stop`() {
     var machine = HotkeyGestureMachine()
 
     #expect(machine.receive(.activation(at: .zero)) == .startRecording)
@@ -20,7 +21,7 @@ import Testing
     #expect(machine.phase == .idle)
   }
 
-  @Test func doubleTapEngagesLatchOnSecondRelease() {
+  @Test func `double tap engages latch on second release`() {
     var machine = HotkeyGestureMachine()
 
     #expect(machine.receive(.activation(at: .zero)) == .startRecording)
@@ -31,7 +32,7 @@ import Testing
     #expect(machine.phase == .latched)
   }
 
-  @Test func latchedTapStopsImmediatelyAndRearmsOnRelease() {
+  @Test func `latched tap stops immediately and rearms on release`() {
     var machine = latchedMachine()
 
     #expect(machine.receive(.activation(at: .seconds(1))) == .stopAndTranscribe)
@@ -40,7 +41,7 @@ import Testing
     #expect(machine.phase == .idle)
   }
 
-  @Test func releaseGapJustInsideThresholdLatches() {
+  @Test func `release gap just inside threshold latches`() {
     var machine = HotkeyGestureMachine()
 
     _ = machine.receive(.activation(at: .zero))
@@ -51,7 +52,7 @@ import Testing
     #expect(machine.phase == .latched)
   }
 
-  @Test func releaseGapAtThresholdDoesNotLatch() {
+  @Test func `release gap at threshold does not latch`() {
     var machine = HotkeyGestureMachine()
 
     _ = machine.receive(.activation(at: .zero))
@@ -62,7 +63,7 @@ import Testing
     #expect(machine.phase == .idle)
   }
 
-  @Test func releaseGapOutsideThresholdDoesNotLatch() {
+  @Test func `release gap outside threshold does not latch`() {
     var machine = HotkeyGestureMachine()
 
     _ = machine.receive(.activation(at: .zero))
@@ -73,7 +74,7 @@ import Testing
     #expect(machine.phase == .idle)
   }
 
-  @Test func longSecondTapBecomesAnOrdinaryHold() {
+  @Test func `long second tap becomes an ordinary hold`() {
     var machine = HotkeyGestureMachine()
 
     _ = machine.receive(.activation(at: .zero))
@@ -84,7 +85,7 @@ import Testing
     #expect(machine.phase == .idle)
   }
 
-  @Test func escapeWhileIdleBlocksWithoutInventingCancellation() {
+  @Test func `escape while idle blocks without inventing cancellation`() {
     var machine = HotkeyGestureMachine()
 
     #expect(machine.receive(.escape) == nil)
@@ -93,7 +94,7 @@ import Testing
     #expect(machine.phase == .idle)
   }
 
-  @Test func escapeCancelsHoldAndPreventsBackslide() {
+  @Test func `escape cancels hold and prevents backslide`() {
     var machine = HotkeyGestureMachine()
     _ = machine.receive(.activation(at: .zero))
 
@@ -104,21 +105,21 @@ import Testing
     #expect(machine.receive(.activation(at: .milliseconds(200))) == .startRecording)
   }
 
-  @Test func escapeCancelsLatch() {
+  @Test func `escape cancels latch`() {
     var machine = latchedMachine()
 
     #expect(machine.receive(.escape) == .cancel)
     #expect(machine.phase == .blockedUntilRelease)
   }
 
-  @Test func repeatedEscapeWhileBlockedDoesNotEmitCancellation() {
+  @Test func `repeated escape while blocked does not emit cancellation`() {
     var machine = HotkeyGestureMachine()
 
     #expect(machine.receive(.escape) == nil)
     #expect(machine.receive(.escape) == nil)
   }
 
-  @Test func interruptionCancelsHoldAndFailsClosed() {
+  @Test func `interruption cancels hold and fails closed`() {
     var machine = HotkeyGestureMachine()
     _ = machine.receive(.activation(at: .zero))
 
@@ -129,7 +130,7 @@ import Testing
     #expect(machine.phase == .idle)
   }
 
-  @Test func interruptionCancelsLatchAndFailsClosed() {
+  @Test func `interruption cancels latch and fails closed`() {
     var machine = latchedMachine()
 
     #expect(machine.receive(.monitoringInterrupted) == .cancel)
@@ -138,14 +139,14 @@ import Testing
     #expect(machine.phase == .idle)
   }
 
-  @Test func interruptionWhileIdleDoesNotInventCancellation() {
+  @Test func `interruption while idle does not invent cancellation`() {
     var machine = HotkeyGestureMachine()
 
     #expect(machine.receive(.monitoringInterrupted) == nil)
     #expect(machine.phase == .blockedUntilRelease)
   }
 
-  @Test func earlyConflictingInputCancelsAndBlocks() {
+  @Test func `early conflicting input cancels and blocks`() {
     var machine = HotkeyGestureMachine()
     _ = machine.receive(.activation(at: .zero))
 
@@ -153,7 +154,7 @@ import Testing
     #expect(machine.phase == .blockedUntilRelease)
   }
 
-  @Test func conflictingInputAtAccidentalWindowIsIgnored() {
+  @Test func `conflicting input at accidental window is ignored`() {
     var machine = HotkeyGestureMachine()
     _ = machine.receive(.activation(at: .zero))
 
@@ -161,7 +162,7 @@ import Testing
     #expect(machine.phase == .holding(startedAt: .zero))
   }
 
-  @Test func earlyMouseDownCancelsButMouseDownDuringLatchDoesNot() {
+  @Test func `early mouse down cancels but mouse down during latch does not`() {
     var holding = HotkeyGestureMachine()
     _ = holding.receive(.activation(at: .zero))
     #expect(holding.receive(.mouseDown(at: .milliseconds(100))) == .cancel)
@@ -171,7 +172,7 @@ import Testing
     #expect(latched.phase == .latched)
   }
 
-  @Test func idleMouseDownDoesNotBlockTheNextActivation() {
+  @Test func `idle mouse down does not block the next activation`() {
     var machine = HotkeyGestureMachine()
 
     #expect(machine.receive(.mouseDown(at: .zero)) == nil)
@@ -179,13 +180,15 @@ import Testing
     #expect(machine.receive(.activation(at: .milliseconds(100))) == .startRecording)
   }
 
-  @Test func initiallyBlockedMachineRequiresNeutralInput() {
+  @Test func `initially blocked machine requires neutral input`() {
     var machine = HotkeyGestureMachine(initiallyBlocked: true)
 
     #expect(machine.receive(.activation(at: .zero)) == nil)
     #expect(machine.receive(.neutral) == nil)
     #expect(machine.receive(.activation(at: .milliseconds(100))) == .startRecording)
   }
+
+  // MARK: Private
 
   private func latchedMachine() -> HotkeyGestureMachine {
     var machine = HotkeyGestureMachine()

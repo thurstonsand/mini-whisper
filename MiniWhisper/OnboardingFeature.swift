@@ -5,23 +5,33 @@ import Foundation
 import OSLog
 
 private let onboardingLogger = Logger(
-  subsystem: "com.thurstonsand.MiniWhisper", category: "onboarding")
+  subsystem: "com.thurstonsand.MiniWhisper", category: "onboarding",
+)
 
-enum OnboardingPermission: Int, CaseIterable, Equatable, Hashable, Sendable {
+// MARK: - OnboardingPermission
+
+enum OnboardingPermission: Int, CaseIterable, Equatable, Hashable {
   case inputMonitoring
   case microphone
   case pasteAccess
 
+  // MARK: Internal
+
   var settingsPane: URL {
     switch self {
-    case .inputMonitoring: SystemSettingsPane.inputMonitoring
-    case .microphone: SystemSettingsPane.microphone
-    case .pasteAccess: SystemSettingsPane.accessibility
+    case .inputMonitoring:
+      SystemSettingsPane.inputMonitoring
+    case .microphone:
+      SystemSettingsPane.microphone
+    case .pasteAccess:
+      SystemSettingsPane.accessibility
     }
   }
 }
 
-struct OnboardingPermissionStatuses: Equatable, Sendable {
+// MARK: - OnboardingPermissionStatuses
+
+struct OnboardingPermissionStatuses: Equatable {
   var hasInputMonitoringPermission: Bool
   var microphoneStatus: MicPermissionStatus
   var hasPasteAccess: Bool
@@ -32,41 +42,58 @@ struct OnboardingPermissionStatuses: Equatable, Sendable {
 
   func isGranted(_ permission: OnboardingPermission) -> Bool {
     switch permission {
-    case .inputMonitoring: hasInputMonitoringPermission
-    case .microphone: microphoneStatus == .granted
-    case .pasteAccess: hasPasteAccess
+    case .inputMonitoring:
+      hasInputMonitoringPermission
+    case .microphone:
+      microphoneStatus == .granted
+    case .pasteAccess:
+      hasPasteAccess
     }
   }
 }
 
-struct OnboardingPermissionObservation: Equatable, Sendable {
+// MARK: - OnboardingPermissionObservation
+
+struct OnboardingPermissionObservation: Equatable {
   var hasInputMonitoringPermission: Bool
   var microphoneStatus: MicPermissionStatus
   var hasPasteAccess: Bool?
 }
 
-struct OnboardingSnapshot: Equatable, Sendable {
+// MARK: - OnboardingSnapshot
+
+struct OnboardingSnapshot: Equatable {
   var permissions: OnboardingPermissionStatuses
   var engineReadiness: EngineReadiness
   var hasModelDownloadConsent: Bool
   var isCompleted: Bool
 }
 
-enum OnboardingStep: Int, Equatable, Sendable {
+// MARK: - OnboardingStep
+
+enum OnboardingStep: Int, Equatable {
   case permissions
   case model
   case tryIt
   case ready
 
+  // MARK: Internal
+
   static func derive(from snapshot: OnboardingSnapshot) -> Self {
-    guard snapshot.permissions.allGranted else { return .permissions }
-    guard snapshot.engineReadiness == .ready else { return .model }
+    guard snapshot.permissions.allGranted else {
+      return .permissions
+    }
+    guard snapshot.engineReadiness == .ready else {
+      return .model
+    }
     return snapshot.isCompleted ? .ready : .tryIt
   }
 }
 
+// MARK: - OnboardingFeature
+
 @Reducer struct OnboardingFeature {
-  static let permissionPollInterval = Duration.seconds(1)
+  // MARK: Internal
 
   @ObservableState struct State: Equatable {
     enum CompletionIntent: Equatable {
@@ -77,8 +104,11 @@ enum OnboardingStep: Int, Equatable, Sendable {
     var isPresented = false
     var snapshot = OnboardingSnapshot(
       permissions: OnboardingPermissionStatuses(
-        hasInputMonitoringPermission: false, microphoneStatus: .undetermined, hasPasteAccess: false),
-      engineReadiness: .modelMissing, hasModelDownloadConsent: false, isCompleted: false)
+        hasInputMonitoringPermission: false, microphoneStatus: .undetermined,
+        hasPasteAccess: false,
+      ),
+      engineReadiness: .modelMissing, hasModelDownloadConsent: false, isCompleted: false,
+    )
     var selectedStep: OnboardingStep?
     var isShowingWelcome = false
     var isRecordingModelDownloadConsent = false
@@ -89,22 +119,53 @@ enum OnboardingStep: Int, Equatable, Sendable {
     var completionIntent: CompletionIntent?
     var failureMessage: String?
 
-    var step: OnboardingStep { OnboardingStep.derive(from: snapshot) }
-    var visibleStep: OnboardingStep { selectedStep ?? step }
-    var isRevisitingPermissions: Bool { selectedStep == .permissions }
-    var canSkip: Bool { isPresented && step == .tryIt && visibleStep == .tryIt }
-    var isMarkingCompletion: Bool { completionIntent != nil }
+    var step: OnboardingStep {
+      OnboardingStep.derive(from: snapshot)
+    }
 
-    var shouldShowWelcome: Bool { !snapshot.isCompleted && !snapshot.hasModelDownloadConsent }
+    var visibleStep: OnboardingStep {
+      selectedStep ?? step
+    }
+
+    var isRevisitingPermissions: Bool {
+      selectedStep == .permissions
+    }
+
+    var canSkip: Bool {
+      isPresented && step == .tryIt && visibleStep == .tryIt
+    }
+
+    var isMarkingCompletion: Bool {
+      completionIntent != nil
+    }
+
+    var shouldShowWelcome: Bool {
+      !snapshot.isCompleted && !snapshot.hasModelDownloadConsent
+    }
 
     var activePermission: OnboardingPermission? {
       OnboardingPermission.allCases.first { !snapshot.permissions.isGranted($0) }
     }
 
+    var modelSetupIsInProgress: Bool {
+      switch snapshot.engineReadiness {
+      case .downloading,
+           .compiling,
+           .prewarming:
+        true
+      case .modelMissing,
+           .ready,
+           .failed:
+        false
+      }
+    }
+
     /// macOS prompts at most once per permission, so an unfulfilled request means the rest of the
     /// fix has to happen in System Settings.
     func needsSystemSettings(for permission: OnboardingPermission) -> Bool {
-      guard !snapshot.permissions.isGranted(permission) else { return false }
+      guard !snapshot.permissions.isGranted(permission) else {
+        return false
+      }
       return requestedPermissions.contains(permission)
         || (permission == .microphone
           && (snapshot.permissions.microphoneStatus == .denied
@@ -123,23 +184,9 @@ enum OnboardingStep: Int, Equatable, Sendable {
       permission == .inputMonitoring && !snapshot.permissions.hasInputMonitoringPermission
         && requestedPermissions.contains(.inputMonitoring)
     }
-
-    var modelSetupIsInProgress: Bool {
-      switch snapshot.engineReadiness {
-      case .downloading, .compiling, .prewarming: true
-      case .modelMissing, .ready, .failed: false
-      }
-    }
   }
 
   enum Action: Equatable {
-    enum Delegate: Equatable {
-      case dismissed
-      case engineReadinessUpdated(EngineReadiness)
-      case permissionsUpdated(OnboardingPermissionStatuses)
-      case completed
-    }
-
     case present(OnboardingSnapshot)
     case downloadModel
     case modelDownloadConsented
@@ -165,9 +212,18 @@ enum OnboardingStep: Int, Equatable, Sendable {
     case completionMarkFailed(String)
     case finish
     case delegate(Delegate)
+
+    // MARK: Internal
+
+    enum Delegate: Equatable {
+      case dismissed
+      case engineReadinessUpdated(EngineReadiness)
+      case permissionsUpdated(OnboardingPermissionStatuses)
+      case completed
+    }
   }
 
-  private enum CancelID { case permissionPolling }
+  static let permissionPollInterval = Duration.seconds(1)
 
   @Dependency(\.asrEngine) var asrEngine
   @Dependency(\.continuousClock) var clock
@@ -181,7 +237,7 @@ enum OnboardingStep: Int, Equatable, Sendable {
   var body: some ReducerOf<Self> {
     Reduce { state, action in
       switch action {
-      case .present(let snapshot):
+      case let .present(snapshot):
         state.isPresented = true
         state.snapshot = snapshot
         state.selectedStep = nil
@@ -197,7 +253,9 @@ enum OnboardingStep: Int, Equatable, Sendable {
         return snapshot.hasModelDownloadConsent
           ? .merge(polling, modelSetupEffect(for: &state)) : polling
       case .downloadModel:
-        guard !state.isRecordingModelDownloadConsent else { return .none }
+        guard !state.isRecordingModelDownloadConsent else {
+          return .none
+        }
         state.isRecordingModelDownloadConsent = true
         state.failureMessage = nil
         return .run { send in
@@ -211,69 +269,79 @@ enum OnboardingStep: Int, Equatable, Sendable {
         state.isShowingWelcome = false
         state.isRecordingModelDownloadConsent = false
         return modelSetupEffect(for: &state)
-      case .modelDownloadConsentFailed(let message):
+      case let .modelDownloadConsentFailed(message):
         state.isRecordingModelDownloadConsent = false
         state.failureMessage = message
         return .none
-      case .navigate(let step):
-        guard step != .ready else { return .none }
+      case let .navigate(step):
+        guard step != .ready else {
+          return .none
+        }
         state.selectedStep = step
         let polling = permissionPollingEffect(for: state)
         return step == .permissions
           ? .merge(refreshPermissionStatuses(for: state), polling) : polling
-      case .requestPermission(let permission):
-        guard state.requestingPermission == nil, state.canRequest(permission) else { return .none }
+      case let .requestPermission(permission):
+        guard state.requestingPermission == nil, state.canRequest(permission) else {
+          return .none
+        }
         state.requestingPermission = permission
         state.pendingSystemPermissionPrompt = permission
         state.requestedPermissions.insert(permission)
         state.failureMessage = nil
-        let request: Effect<Action>
-        switch permission {
-        case .inputMonitoring:
-          request = .run { send in
-            onboardingLogger.notice("Requesting Input Monitoring permission from onboarding")
-            let granted = await hotkeyListener.requestInputMonitoringPermission()
-            onboardingLogger.notice("Input Monitoring request returned granted=\(granted)")
-            await send(.inputMonitoringPermissionRequested(granted))
+        let request: Effect<Action> =
+          switch permission {
+          case .inputMonitoring:
+            .run { send in
+              onboardingLogger.notice("Requesting Input Monitoring permission from onboarding")
+              let granted = await hotkeyListener.requestInputMonitoringPermission()
+              onboardingLogger.notice("Input Monitoring request returned granted=\(granted)")
+              await send(.inputMonitoringPermissionRequested(granted))
+            }
+          case .microphone:
+            .run { send in
+              onboardingLogger.notice("Requesting Microphone permission from onboarding")
+              let status = await microphonePermission.requestIfNeeded()
+              onboardingLogger.notice("Microphone request returned")
+              await send(.microphonePermissionRequested(status))
+            }
+          case .pasteAccess:
+            .run { send in
+              onboardingLogger.notice("Requesting Paste Access permission from onboarding")
+              let granted = await delivery.requestPasteAccess()
+              onboardingLogger.notice("Paste Access request returned granted=\(granted)")
+              await send(.pasteAccessRequested(granted))
+            }
           }
-        case .microphone:
-          request = .run { send in
-            onboardingLogger.notice("Requesting Microphone permission from onboarding")
-            let status = await microphonePermission.requestIfNeeded()
-            onboardingLogger.notice("Microphone request returned")
-            await send(.microphonePermissionRequested(status))
-          }
-        case .pasteAccess:
-          request = .run { send in
-            onboardingLogger.notice("Requesting Paste Access permission from onboarding")
-            let granted = await delivery.requestPasteAccess()
-            onboardingLogger.notice("Paste Access request returned granted=\(granted)")
-            await send(.pasteAccessRequested(granted))
-          }
-        }
         return .concatenate(.cancel(id: CancelID.permissionPolling), request)
-      case .inputMonitoringPermissionRequested(let granted):
+      case let .inputMonitoringPermissionRequested(granted):
         state.requestingPermission = nil
-        if granted { state.pendingSystemPermissionPrompt = nil }
+        if granted {
+          state.pendingSystemPermissionPrompt = nil
+        }
         var statuses = state.snapshot.permissions
         statuses.hasInputMonitoringPermission = granted
         let update = apply(statuses, to: &state)
         return granted ? .merge(update, permissionPollingEffect(for: state)) : update
-      case .microphonePermissionRequested(let status):
+      case let .microphonePermissionRequested(status):
         state.requestingPermission = nil
         state.pendingSystemPermissionPrompt = nil
         var statuses = state.snapshot.permissions
         statuses.microphoneStatus = status
         return .merge(apply(statuses, to: &state), permissionPollingEffect(for: state))
-      case .pasteAccessRequested(let granted):
+      case let .pasteAccessRequested(granted):
         state.requestingPermission = nil
-        if granted { state.pendingSystemPermissionPrompt = nil }
+        if granted {
+          state.pendingSystemPermissionPrompt = nil
+        }
         var statuses = state.snapshot.permissions
         statuses.hasPasteAccess = granted
         let update = apply(statuses, to: &state)
         return granted ? .merge(update, permissionPollingEffect(for: state)) : update
-      case .permissionStatusesObserved(let observation):
-        guard state.pendingSystemPermissionPrompt == nil else { return .none }
+      case let .permissionStatusesObserved(observation):
+        guard state.pendingSystemPermissionPrompt == nil else {
+          return .none
+        }
         state.requestingPermission = nil
         var statuses = state.snapshot.permissions
         statuses.hasInputMonitoringPermission = observation.hasInputMonitoringPermission
@@ -282,12 +350,13 @@ enum OnboardingStep: Int, Equatable, Sendable {
           statuses.hasPasteAccess = hasPasteAccess
         }
         return apply(statuses, to: &state)
-      case .refreshPermissionStatuses: return refreshPermissionStatuses(for: state)
+      case .refreshPermissionStatuses:
+        return refreshPermissionStatuses(for: state)
       case .applicationBecameActive:
         onboardingLogger.notice("Onboarding became active; resuming permission observation")
         state.pendingSystemPermissionPrompt = nil
         return .merge(refreshPermissionStatuses(for: state), permissionPollingEffect(for: state))
-      case .openSystemSettings(let permission):
+      case let .openSystemSettings(permission):
         let destination = permission.settingsPane
         return .run { send in
           do { try await workspace.open(destination) } catch {
@@ -300,29 +369,38 @@ enum OnboardingStep: Int, Equatable, Sendable {
             await send(.workspaceOpenFailed(error.localizedDescription))
           }
         }
-      case .workspaceOpenFailed(let message):
+      case let .workspaceOpenFailed(message):
         state.failureMessage = message
         return .none
-      case .setupModel: return modelSetupEffect(for: &state)
-      case .engineReadinessUpdated(let readiness):
+      case .setupModel:
+        return modelSetupEffect(for: &state)
+      case let .engineReadinessUpdated(readiness):
         state.snapshot.engineReadiness = readiness
-        if case .failed(let message) = readiness { state.failureMessage = message }
+        if case let .failed(message) = readiness {
+          state.failureMessage = message
+        }
         return .none
-      case .tryItTextChanged(let text):
+      case let .tryItTextChanged(text):
         state.tryItText = text
         return .none
-      case .tryItFailed(let message):
-        guard state.step == .tryIt else { return .none }
+      case let .tryItFailed(message):
+        guard state.step == .tryIt else {
+          return .none
+        }
         state.failureMessage = message
         return .none
-      case .dictationDelivered(let transcript):
-        guard state.step == .tryIt, !state.isMarkingCompletion else { return .none }
+      case let .dictationDelivered(transcript):
+        guard state.step == .tryIt, !state.isMarkingCompletion else {
+          return .none
+        }
         state.tryItText = transcript
         state.completionIntent = .dictation
         state.failureMessage = nil
         return markCompletion()
       case .skip:
-        guard state.canSkip, !state.isMarkingCompletion else { return .none }
+        guard state.canSkip, !state.isMarkingCompletion else {
+          return .none
+        }
         state.completionIntent = .skip
         state.failureMessage = nil
         return markCompletion()
@@ -333,25 +411,34 @@ enum OnboardingStep: Int, Equatable, Sendable {
         state.completionIntent = nil
         let completed = Effect<Action>.send(.delegate(.completed))
         return dismissesAfterCompletion ? .concatenate(completed, .send(.finish)) : completed
-      case .completionMarkFailed(let message):
+      case let .completionMarkFailed(message):
         state.completionIntent = nil
         state.failureMessage = message
         return .none
       case .finish:
-        guard state.step == .ready else { return .none }
+        guard state.step == .ready else {
+          return .none
+        }
         state.isPresented = false
         return .merge(.cancel(id: CancelID.permissionPolling), .send(.delegate(.dismissed)))
-      case .delegate: return .none
+      case .delegate:
+        return .none
       }
     }
   }
 
+  // MARK: Private
+
+  private enum CancelID { case permissionPolling }
+
   private func apply(
-    _ statuses: OnboardingPermissionStatuses, to state: inout State
+    _ statuses: OnboardingPermissionStatuses, to state: inout State,
   ) -> Effect<Action> {
     let previous = state.snapshot.permissions
     state.snapshot.permissions = statuses
-    guard statuses != previous else { return .none }
+    guard statuses != previous else {
+      return .none
+    }
 
     let update = Effect<Action>.send(.delegate(.permissionsUpdated(statuses)))
     return statuses.allGranted && !previous.allGranted
@@ -359,7 +446,7 @@ enum OnboardingStep: Int, Equatable, Sendable {
   }
 
   private func observePermissionStatuses(
-    inputMonitoringWasRequested: Bool
+    inputMonitoringWasRequested: Bool,
   ) async -> OnboardingPermissionObservation {
     let hasInputMonitoringPermission = hotkeyListener.hasInputMonitoringPermission()
     let microphoneStatus = await microphonePermission.status()
@@ -369,24 +456,30 @@ enum OnboardingStep: Int, Equatable, Sendable {
       hasInputMonitoringPermission || inputMonitoringWasRequested ? delivery.hasPasteAccess() : nil
     return OnboardingPermissionObservation(
       hasInputMonitoringPermission: hasInputMonitoringPermission,
-      microphoneStatus: microphoneStatus, hasPasteAccess: hasPasteAccess)
+      microphoneStatus: microphoneStatus, hasPasteAccess: hasPasteAccess,
+    )
   }
 
   private func refreshPermissionStatuses(for state: State) -> Effect<Action> {
-    guard state.pendingSystemPermissionPrompt == nil else { return .none }
+    guard state.pendingSystemPermissionPrompt == nil else {
+      return .none
+    }
     let inputMonitoringWasRequested = state.requestedPermissions.contains(.inputMonitoring)
     return .run { send in
       await send(
         .permissionStatusesObserved(
-          await observePermissionStatuses(inputMonitoringWasRequested: inputMonitoringWasRequested))
+          observePermissionStatuses(inputMonitoringWasRequested: inputMonitoringWasRequested),
+        ),
       )
     }
   }
 
   private func permissionPollingEffect(for state: State) -> Effect<Action> {
     guard state.pendingSystemPermissionPrompt == nil, state.isPresented,
-      state.step == .permissions || state.isRevisitingPermissions
-    else { return .cancel(id: CancelID.permissionPolling) }
+          state.step == .permissions || state.isRevisitingPermissions
+    else {
+      return .cancel(id: CancelID.permissionPolling)
+    }
     return .run { send in
       while true {
         try await clock.sleep(for: Self.permissionPollInterval)
@@ -409,8 +502,14 @@ enum OnboardingStep: Int, Equatable, Sendable {
       return .none
     }
     switch state.snapshot.engineReadiness {
-    case .modelMissing, .failed: break
-    case .downloading, .compiling, .prewarming, .ready: return .none
+    case .modelMissing,
+         .failed:
+      break
+    case .downloading,
+         .compiling,
+         .prewarming,
+         .ready:
+      return .none
     }
     state.failureMessage = nil
     return .run { send in

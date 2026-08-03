@@ -14,7 +14,7 @@ mise run test           # Run app unit tests (headless)
 mise run test-ui        # Interactive XCUITest suite — takes over the screen, keyboard, and focus
 mise run test-packages  # Fast package-only tests (prefer this for quick feedback)
 mise run lint           # Run the pre-commit formatting, linting, build, and package-test gate
-mise run format         # Format code with swift-format
+mise run format         # Format code with SwiftFormat
 mise run mw             # Build and run MiniWhisper
 mise run mw-fresh                 # Reset TCC permissions and onboarding, then build and run
 FRESH_MODEL=1 mise run mw-fresh   # Also delete the speech model to exercise its full setup path

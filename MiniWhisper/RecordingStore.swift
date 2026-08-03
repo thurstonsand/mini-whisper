@@ -5,9 +5,14 @@ import OSLog
 
 private let captureLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "capture")
 private let performanceLogger = Logger(
-  subsystem: "com.thurstonsand.MiniWhisper", category: "performance")
+  subsystem: "com.thurstonsand.MiniWhisper", category: "performance",
+)
+
+// MARK: - RecordingFeature
 
 @Reducer struct RecordingFeature {
+  // MARK: Internal
+
   @ObservableState struct State: Equatable {
     enum Phase: Equatable {
       case idle
@@ -29,14 +34,6 @@ private let performanceLogger = Logger(
   }
 
   enum Action: Equatable {
-    enum Delegate: Equatable {
-      case recordingStarted(inputDeviceName: String)
-      case levelChanged(Float)
-      case completed(CanonicalRecording)
-      case discarded
-      case failed
-    }
-
     case task
     case micStatusUpdated(MicPermissionStatus)
     case capturePreparationFailed(AudioCaptureError)
@@ -53,9 +50,17 @@ private let performanceLogger = Logger(
     case debugWAVWritten(String)
     case debugWAVWriteFailed(AudioCaptureError)
     case delegate(Delegate)
-  }
 
-  private enum CancelID { case captureEvents, stop }
+    // MARK: Internal
+
+    enum Delegate: Equatable {
+      case recordingStarted(inputDeviceName: String)
+      case levelChanged(Float)
+      case completed(CanonicalRecording)
+      case discarded
+      case failed
+    }
+  }
 
   @Dependency(\.audioCapture) var audioCapture
 
@@ -68,13 +73,14 @@ private let performanceLogger = Logger(
             await send(.capturePreparationFailed(captureError(from: error)))
           }
         }
-      case .micStatusUpdated(let status):
+      case let .micStatusUpdated(status):
         state.micStatus = status
         return .none
-      case .capturePreparationFailed(let error):
+      case let .capturePreparationFailed(error):
         state.captureError = error
         captureLogger.error(
-          "Audio capture preparation failed: \(error.localizedDescription, privacy: .public)")
+          "Audio capture preparation failed: \(error.localizedDescription, privacy: .public)",
+        )
         return .none
       case .startRecording:
         switch state.phase {
@@ -92,11 +98,15 @@ private let performanceLogger = Logger(
         case .stopping:
           state.phase = .stopping(.restart)
           return .none
-        case .starting, .recording, .cancelling: return .none
+        case .starting,
+             .recording,
+             .cancelling:
+          return .none
         }
       case .stopAndRetain:
         switch state.phase {
-        case .starting(.cancel): return .none
+        case .starting(.cancel):
+          return .none
         case .starting:
           state.phase = .starting(.stop)
           return .none
@@ -106,7 +116,10 @@ private let performanceLogger = Logger(
           }
           state.phase = .stopping(nil)
           return stopCapture(generation: state.captureGeneration, sessionID: sessionID)
-        case .idle, .stopping, .cancelling: return .none
+        case .idle,
+             .stopping,
+             .cancelling:
+          return .none
         }
       case .cancelRecording:
         switch state.phase {
@@ -115,11 +128,13 @@ private let performanceLogger = Logger(
             state.phase = .cancelling
             return .concatenate(
               .send(.delegate(.discarded)),
-              cancelCapture(generation: state.captureGeneration, sessionID: sessionID))
+              cancelCapture(generation: state.captureGeneration, sessionID: sessionID),
+            )
           }
           state.phase = .starting(.cancel)
           return .send(.delegate(.discarded))
-        case .recording, .stopping:
+        case .recording,
+             .stopping:
           guard let sessionID = state.captureSessionID else {
             return missingSessionFailure(generation: state.captureGeneration)
           }
@@ -128,22 +143,32 @@ private let performanceLogger = Logger(
             .send(.delegate(.discarded)),
             .merge(
               .cancel(id: CancelID.stop),
-              cancelCapture(generation: state.captureGeneration, sessionID: sessionID)))
-        case .idle, .cancelling: return .none
+              cancelCapture(generation: state.captureGeneration, sessionID: sessionID),
+            ),
+          )
+        case .idle,
+             .cancelling:
+          return .none
         }
-      case .captureSessionStarted(let generation, let sessionID):
+      case let .captureSessionStarted(generation, sessionID):
         guard generation == state.captureGeneration,
-          case .starting(let pendingCompletion) = state.phase
-        else { return cancelCapture(generation: generation, sessionID: sessionID) }
+              case let .starting(pendingCompletion) = state.phase
+        else {
+          return cancelCapture(generation: generation, sessionID: sessionID)
+        }
 
         state.captureSessionID = sessionID
-        guard pendingCompletion == .cancel else { return .none }
+        guard pendingCompletion == .cancel else {
+          return .none
+        }
         state.phase = .cancelling
         return cancelCapture(generation: generation, sessionID: sessionID)
-      case .captureBecameLive(let generation, let sessionID, let inputDeviceName):
+      case let .captureBecameLive(generation, sessionID, inputDeviceName):
         guard generation == state.captureGeneration, state.captureSessionID == sessionID,
-          case .starting(let pendingCompletion) = state.phase
-        else { return .none }
+              case let .starting(pendingCompletion) = state.phase
+        else {
+          return .none
+        }
 
         state.phase = .recording
         captureLogger.notice("Audio capture became live")
@@ -151,49 +176,69 @@ private let performanceLogger = Logger(
         case .stop:
           return .concatenate(
             .send(.delegate(.recordingStarted(inputDeviceName: inputDeviceName))),
-            .send(.stopAndRetain))
+            .send(.stopAndRetain),
+          )
         case .cancel:
           state.phase = .cancelling
           return cancelCapture(generation: generation, sessionID: sessionID)
-        case nil: return .send(.delegate(.recordingStarted(inputDeviceName: inputDeviceName)))
+        case nil:
+          return .send(.delegate(.recordingStarted(inputDeviceName: inputDeviceName)))
         }
-      case .levelUpdated(let generation, let level):
-        guard generation == state.captureGeneration else { return .none }
+      case let .levelUpdated(generation, level):
+        guard generation == state.captureGeneration else {
+          return .none
+        }
         switch state.phase {
-        case .recording, .stopping:
+        case .recording,
+             .stopping:
           state.latestLevel = level.normalizedPower
           return .send(.delegate(.levelChanged(level.normalizedPower)))
-        case .idle, .starting, .cancelling: return .none
+        case .idle,
+             .starting,
+             .cancelling:
+          return .none
         }
-      case .captureFailed(let generation, let error):
+      case let .captureFailed(generation, error):
         guard generation == state.captureGeneration, state.phase != .idle,
-          state.phase != .cancelling
-        else { return .none }
+              state.phase != .cancelling
+        else {
+          return .none
+        }
 
         state.phase = .cancelling
         state.latestLevel = 0
         state.captureError = error
-        if case .microphonePermission(let status) = error { state.micStatus = status }
+        if case let .microphonePermission(status) = error {
+          state.micStatus = status
+        }
         captureLogger.error("Audio capture failed: \(error.localizedDescription, privacy: .public)")
 
-        let cleanup: Effect<Action>
-        if let sessionID = state.captureSessionID {
-          cleanup = cancelCapture(generation: generation, sessionID: sessionID)
-        } else {
-          cleanup = .send(.captureCancelled(generation))
-        }
+        let cleanup: Effect<Action> =
+          if let sessionID = state.captureSessionID {
+            cancelCapture(generation: generation, sessionID: sessionID)
+          } else {
+            .send(.captureCancelled(generation))
+          }
         return .concatenate(.send(.delegate(.failed)), cleanup)
-      case .captureEventsFinished(let generation):
-        guard generation == state.captureGeneration else { return .none }
-        switch state.phase {
-        case .starting, .recording:
-          return .send(.captureFailed(generation, .unexpected("Audio capture event stream ended")))
-        case .idle, .stopping, .cancelling: return .none
+      case let .captureEventsFinished(generation):
+        guard generation == state.captureGeneration else {
+          return .none
         }
-      case .captureStopped(let generation, let recording):
+        switch state.phase {
+        case .starting,
+             .recording:
+          return .send(.captureFailed(generation, .unexpected("Audio capture event stream ended")))
+        case .idle,
+             .stopping,
+             .cancelling:
+          return .none
+        }
+      case let .captureStopped(generation, recording):
         guard generation == state.captureGeneration,
-          case .stopping(let pendingRestart) = state.phase
-        else { return .none }
+              case let .stopping(pendingRestart) = state.phase
+        else {
+          return .none
+        }
         state.captureSessionID = nil
         state.latestLevel = 0
         if pendingRestart == .restart {
@@ -205,10 +250,10 @@ private let performanceLogger = Logger(
 
         state.phase = .idle
         captureLogger.notice(
-          "Audio capture stopped duration=\(recording.durationSeconds, format: .fixed(precision: 3))s samples=\(recording.samples.count)"
+          "Audio capture stopped duration=\(recording.durationSeconds, format: .fixed(precision: 3))s samples=\(recording.samples.count)",
         )
         return .concatenate(.send(.delegate(.completed(recording))), writeDebugWAV(recording))
-      case .captureCancelled(let generation):
+      case let .captureCancelled(generation):
         guard generation == state.captureGeneration, state.phase == .cancelling else {
           return .none
         }
@@ -217,17 +262,23 @@ private let performanceLogger = Logger(
         state.latestLevel = 0
         captureLogger.notice("Audio capture cancelled and discarded")
         return .none
-      case .debugWAVWritten(let path):
+      case let .debugWAVWritten(path):
         captureLogger.notice("Debug capture WAV: \(path, privacy: .public)")
         return .none
-      case .debugWAVWriteFailed(let error):
+      case let .debugWAVWriteFailed(error):
         captureLogger.error(
-          "Debug capture WAV write failed: \(error.localizedDescription, privacy: .public)")
+          "Debug capture WAV write failed: \(error.localizedDescription, privacy: .public)",
+        )
         return .none
-      case .delegate: return .none
+      case .delegate:
+        return .none
       }
     }
   }
+
+  // MARK: Private
+
+  private enum CancelID { case captureEvents, stop }
 
   private func startCapture(generation: Int) -> Effect<Action> {
     let cancellation = CaptureCancellation()
@@ -247,7 +298,7 @@ private let performanceLogger = Logger(
             switch event {
             case .captureBecameLive:
               await send(.captureBecameLive(generation, session.id, session.inputDeviceName))
-            case .level(let level):
+            case let .level(level):
               await send(.levelUpdated(generation, level))
               summary.add(level)
               let now = ContinuousClock.now
@@ -256,14 +307,17 @@ private let performanceLogger = Logger(
                 summary = LevelSummary()
                 summaryStartedAt = now
               }
-            case .failed(let error): await send(.captureFailed(generation, error))
+            case let .failed(error):
+              await send(.captureFailed(generation, error))
             }
           }
           summary.log()
           await send(.captureEventsFinished(generation))
         } catch { await send(.captureFailed(generation, captureError(from: error))) }
       } onCancel: {
-        guard let sessionID = cancellation.cancel() else { return }
+        guard let sessionID = cancellation.cancel() else {
+          return
+        }
         Task { await audioCapture.cancel(sessionID) }
       }
     }.cancellable(id: CancelID.captureEvents, cancelInFlight: true)
@@ -271,7 +325,7 @@ private let performanceLogger = Logger(
 
   private func stopCapture(generation: Int, sessionID: UUID) -> Effect<Action> {
     .run { send in
-      do { await send(.captureStopped(generation, try await audioCapture.stop(sessionID))) } catch {
+      do { try await send(.captureStopped(generation, audioCapture.stop(sessionID))) } catch {
         await send(.captureFailed(generation, captureError(from: error)))
       }
     }.cancellable(id: CancelID.stop, cancelInFlight: true)
@@ -298,10 +352,10 @@ private let performanceLogger = Logger(
   }
 }
 
+// MARK: - CaptureCancellation
+
 private final class CaptureCancellation: @unchecked Sendable {
-  private let lock = NSLock()
-  private var isCancelled = false
-  private var sessionID: UUID?
+  // MARK: Internal
 
   func setSessionID(_ sessionID: UUID) -> Bool {
     lock.withLock {
@@ -316,13 +370,18 @@ private final class CaptureCancellation: @unchecked Sendable {
       return sessionID
     }
   }
+
+  // MARK: Private
+
+  private let lock = NSLock()
+  private var isCancelled = false
+  private var sessionID: UUID?
 }
 
+// MARK: - LevelSummary
+
 private struct LevelSummary {
-  private var minimum = Float.greatestFiniteMagnitude
-  private var maximum = Float.zero
-  private var total = Float.zero
-  private var count = 0
+  // MARK: Internal
 
   mutating func add(_ level: AudioLevel) {
     minimum = min(minimum, level.normalizedPower)
@@ -332,14 +391,25 @@ private struct LevelSummary {
   }
 
   func log() {
-    guard count > 0 else { return }
+    guard count > 0 else {
+      return
+    }
     captureLogger.info(
-      "Audio level summary count=\(count) min=\(minimum, format: .fixed(precision: 2)) avg=\(total / Float(count), format: .fixed(precision: 2)) max=\(maximum, format: .fixed(precision: 2))"
+      "Audio level summary count=\(count) min=\(minimum, format: .fixed(precision: 2)) avg=\(total / Float(count), format: .fixed(precision: 2)) max=\(maximum, format: .fixed(precision: 2))",
     )
   }
+
+  // MARK: Private
+
+  private var minimum = Float.greatestFiniteMagnitude
+  private var maximum = Float.zero
+  private var total = Float.zero
+  private var count = 0
 }
 
 private func captureError(from error: any Error) -> AudioCaptureError {
-  if let error = error as? AudioCaptureError { return error }
+  if let error = error as? AudioCaptureError {
+    return error
+  }
   return .unexpected(error.localizedDescription)
 }

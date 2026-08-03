@@ -1,0 +1,26 @@
+--swiftversion 6.2
+--indent 2
+--maxwidth 100
+
+--enable isEmpty
+--enable preferContains
+--enable preferCountWhere
+--enable preferFirstWhere
+--enable preferFlatMap
+--enable preferMinOverSorted
+--enable preferSwiftStringAPI
+--enable redundantSendable
+--enable privateStateVariables
+--enable preferFinalClasses
+--enable blockComments
+
+--enable wrapEnumCases
+--enable wrapSwitchCases
+--enable wrapCaseBodies
+--enable wrapGuardStatementBodies
+--enable wrapMultilineConditionalAssignment
+--enable wrapMultilineFunctionChains
+--enable singlePropertyPerLine
+
+--enable organizeDeclarations
+--enable markTypes

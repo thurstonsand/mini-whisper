@@ -1,26 +1,41 @@
 import Foundation
 
+// MARK: - MiniWhisperSettings
+
 public struct MiniWhisperSettings: Equatable, Codable, Sendable {
-  public let hotkey: Hotkey
-  public let soundsEnabled: Bool
+  // MARK: Lifecycle
 
   public init(hotkey: Hotkey, soundsEnabled: Bool) {
     self.hotkey = hotkey
     self.soundsEnabled = soundsEnabled
   }
 
+  // MARK: Public
+
   public static let defaults = MiniWhisperSettings(hotkey: .rightOption, soundsEnabled: true)
+
+  public let hotkey: Hotkey
+  public let soundsEnabled: Bool
 }
 
-public struct SettingsStore: Sendable {
-  public let fileURL: URL
+// MARK: - SettingsStore
 
-  public init(fileURL: URL = SettingsStore.defaultFileURL) { self.fileURL = fileURL }
+public struct SettingsStore: Sendable {
+  // MARK: Lifecycle
+
+  public init(fileURL: URL = SettingsStore.defaultFileURL) {
+    self.fileURL = fileURL
+  }
+
+  // MARK: Public
 
   public static var defaultFileURL: URL {
     FileManager.default.homeDirectoryForCurrentUser.appending(
-      path: "Library/Application Support/MiniWhisper/settings.json")
+      path: "Library/Application Support/MiniWhisper/settings.json",
+    )
   }
+
+  public let fileURL: URL
 
   public func load() throws -> MiniWhisperSettings {
     guard FileManager.default.fileExists(atPath: fileURL.path) else {
@@ -43,6 +58,8 @@ public struct SettingsStore: Sendable {
     let settings = try load()
     try write(MiniWhisperSettings(hotkey: settings.hotkey, soundsEnabled: soundsEnabled))
   }
+
+  // MARK: Private
 
   private func write(_ settings: MiniWhisperSettings) throws {
     let directory = fileURL.deletingLastPathComponent()

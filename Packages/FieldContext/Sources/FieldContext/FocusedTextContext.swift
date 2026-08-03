@@ -1,3 +1,5 @@
+// MARK: - FocusedTextContext
+
 /// Text surrounding the insertion point of the focused field, read before delivery.
 ///
 /// Offsets are in the Accessibility API's UTF-16 coordinate system, never `Character` offsets.
@@ -5,18 +7,11 @@
 /// starts where the selection ends. Each slice comes from its own bounded range read; a payload
 /// exists only when every slice succeeded, so there is no partial capture.
 public struct FocusedTextContext: Equatable, Sendable {
-  public var role: String
-  public var before: String
-  public var selected: String
-  public var after: String
-  public var selectedRange: Range<Int>
-  public var beforeWasTruncated: Bool
-  public var selectionWasTruncated: Bool
-  public var afterWasTruncated: Bool
+  // MARK: Lifecycle
 
   public init(
     role: String, before: String, selected: String, after: String, selectedRange: Range<Int>,
-    beforeWasTruncated: Bool, selectionWasTruncated: Bool, afterWasTruncated: Bool
+    beforeWasTruncated: Bool, selectionWasTruncated: Bool, afterWasTruncated: Bool,
   ) {
     self.role = role
     self.before = before
@@ -27,20 +22,37 @@ public struct FocusedTextContext: Equatable, Sendable {
     self.selectionWasTruncated = selectionWasTruncated
     self.afterWasTruncated = afterWasTruncated
   }
+
+  // MARK: Public
+
+  public var role: String
+  public var before: String
+  public var selected: String
+  public var after: String
+  public var selectedRange: Range<Int>
+  public var beforeWasTruncated: Bool
+  public var selectionWasTruncated: Bool
+  public var afterWasTruncated: Bool
 }
+
+// MARK: - FocusedTextWindow
 
 /// How much of the field a capture reads, in UTF-16 code units.
 public enum FocusedTextWindow {
   /// Neighbouring text kept on each side of the selection.
   public static let neighbourhood = 256
   /// Ceiling on the replaced selection; longer selections report `selectionWasTruncated`.
-  public static let selection = 1_024
+  public static let selection = 1024
 }
+
+// MARK: - ContextCapture
 
 public enum ContextCapture: Equatable, Sendable {
   case available(FocusedTextContext)
   case unavailable(ContextUnavailable)
 }
+
+// MARK: - ContextUnavailable
 
 /// Why a delivery had to proceed blind. Raw `AXError` values survive only inside `axFailure`,
 /// for diagnostics.
@@ -56,6 +68,8 @@ public enum ContextUnavailable: Error, Equatable, Sendable {
   case timedOut(operation: ContextAXOperation)
 }
 
+// MARK: - ContextAXOperation
+
 public enum ContextAXOperation: String, Equatable, Sendable {
   case focusedElement
   case role
@@ -66,15 +80,17 @@ public enum ContextAXOperation: String, Equatable, Sendable {
   case stringForRange
 }
 
-extension ContextCapture {
+public extension ContextCapture {
   /// The transcript as it should be pasted: joined to the text before the insertion point when a
   /// capture succeeded, untouched when it did not.
-  public func adjusted(_ transcript: String) -> String {
+  func adjusted(_ transcript: String) -> String {
     switch self {
-    case .available(let context):
+    case let .available(context):
       TranscriptJoin(precedingText: context.before, wasTruncated: context.beforeWasTruncated).apply(
-        to: transcript)
-    case .unavailable: transcript
+        to: transcript,
+      )
+    case .unavailable:
+      transcript
     }
   }
 }

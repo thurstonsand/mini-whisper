@@ -9,11 +9,15 @@ public enum FieldTargetPolicy {
   public static let secureTextFieldRole = "AXSecureTextField"
   public static let textFieldRole = "AXTextField"
 
-  public static func isContainer(role: String) -> Bool { containerRoles.contains(role) }
+  public static func isContainer(role: String) -> Bool {
+    containerRoles.contains(role)
+  }
 
   /// Password fields are the one place subrole is worth a read: AppKit reports them as a plain
   /// `AXTextField` with a secure subrole, while some targets put it in the role itself.
-  public static func needsSubroleCheck(role: String) -> Bool { role == textFieldRole }
+  public static func needsSubroleCheck(role: String) -> Bool {
+    role == textFieldRole
+  }
 
   public static func isSecure(role: String, subrole: String?) -> Bool {
     role == secureTextFieldRole || subrole == secureTextFieldRole

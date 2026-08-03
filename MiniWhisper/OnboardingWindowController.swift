@@ -3,17 +3,14 @@ import ComposableArchitecture
 import SwiftUI
 
 @MainActor final class OnboardingWindowController {
-  private let store: StoreOf<OnboardingFeature>
-  private let window: NSWindow
-  private var activationObserver: (any NSObjectProtocol)?
-  private var renderedVisibility: Bool?
-  private var renderedPermissions: OnboardingPermissionStatuses?
+  // MARK: Lifecycle
 
   init(store: StoreOf<OnboardingFeature>, observesApplicationActivation: Bool = true) {
     self.store = store
-    self.window = NSWindow(
+    window = NSWindow(
       contentRect: .zero, styleMask: [.titled, .fullSizeContentView], backing: .buffered,
-      defer: false)
+      defer: false,
+    )
     window.title = "Set Up MiniWhisper"
     window.setAccessibilityIdentifier(AccessibilityID.onboardingWindow)
     window.setAccessibilityLabel("Set Up MiniWhisper")
@@ -28,7 +25,7 @@ import SwiftUI
 
     if observesApplicationActivation {
       activationObserver = NotificationCenter.default.addObserver(
-        forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main
+        forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main,
       ) { [weak self] _ in MainActor.assumeIsolated { self?.applicationBecameActive() } }
     }
 
@@ -37,8 +34,18 @@ import SwiftUI
   }
 
   isolated deinit {
-    if let activationObserver { NotificationCenter.default.removeObserver(activationObserver) }
+    if let activationObserver {
+      NotificationCenter.default.removeObserver(activationObserver)
+    }
   }
+
+  // MARK: Private
+
+  private let store: StoreOf<OnboardingFeature>
+  private let window: NSWindow
+  private var activationObserver: (any NSObjectProtocol)?
+  private var renderedVisibility: Bool?
+  private var renderedPermissions: OnboardingPermissionStatuses?
 
   private func observeStore() {
     withObservationTracking {
@@ -46,9 +53,11 @@ import SwiftUI
       _ = self.store.snapshot.permissions
     } onChange: { [weak self] in
       Task { @MainActor [weak self] in
-        guard let self else { return }
-        self.observeStore()
-        self.render()
+        guard let self else {
+          return
+        }
+        observeStore()
+        render()
       }
     }
   }
@@ -64,16 +73,24 @@ import SwiftUI
 
     guard isVisible else {
       window.orderOut(nil)
-      if wasVisible == true { NSApp.hide(nil) }
+      if wasVisible == true {
+        NSApp.hide(nil)
+      }
       return
     }
-    guard visibilityChanged || permissionsChanged else { return }
-    if visibilityChanged { window.center() }
+    guard visibilityChanged || permissionsChanged else {
+      return
+    }
+    if visibilityChanged {
+      window.center()
+    }
     activateWindow()
   }
 
   private func applicationBecameActive() {
-    guard store.isPresented else { return }
+    guard store.isPresented else {
+      return
+    }
     store.send(.applicationBecameActive)
     window.makeKeyAndOrderFront(nil)
   }

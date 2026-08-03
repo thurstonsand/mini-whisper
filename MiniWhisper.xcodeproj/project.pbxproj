@@ -55,7 +55,7 @@
 		604379B32EF6153C00B83635 /* ideas.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ideas.md; sourceTree = "<group>"; };
 		604379B42EF6153C00B83635 /* Suggested starting point.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "Suggested starting point.md"; sourceTree = "<group>"; };
 		604379B72EF6154500B83635 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
-		604379B82EF6154C00B83635 /* .swift-format */ = {isa = PBXFileReference; lastKnownFileType = text; path = ".swift-format"; sourceTree = "<group>"; };
+		604379B82EF6154C00B83635 /* .swiftformat */ = {isa = PBXFileReference; lastKnownFileType = text; path = ".swiftformat"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -140,7 +140,7 @@
 				604379AF2EF6153500B83635 /* justfile */,
 				604379B62EF6153C00B83635 /* docs */,
 				604379B72EF6154500B83635 /* .gitignore */,
-				604379B82EF6154C00B83635 /* .swift-format */,
+				604379B82EF6154C00B83635 /* .swiftformat */,
 			);
 			sourceTree = "<group>";
 		};

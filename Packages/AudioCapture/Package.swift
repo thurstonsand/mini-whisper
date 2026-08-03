@@ -9,4 +9,5 @@ let package = Package(
   targets: [
     .target(name: "AudioCapture"),
     .testTarget(name: "AudioCaptureTests", dependencies: ["AudioCapture"]),
-  ])
+  ],
+)
