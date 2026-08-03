@@ -35,8 +35,6 @@ enum DeliveryError: Error, Equatable { case pasteboardWriteFailed }
 // MARK: - DeliveryClient
 
 @DependencyClient struct DeliveryClient {
-  var hasPasteAccess: @Sendable () -> Bool = { false }
-  var requestPasteAccess: @MainActor @Sendable () -> Bool = { false }
   var deliver: @Sendable (String) async throws -> DeliveryOutcome
   var copy: @Sendable (String) async throws -> Void
 }
@@ -45,18 +43,7 @@ enum DeliveryError: Error, Equatable { case pasteboardWriteFailed }
 
 extension DeliveryClient: DependencyKey {
   static let liveValue = Self(
-    // CGPreflightPostEventAccess caches its first answer for the life of the process, so a grant
-    // made while MiniWhisper runs would need a relaunch to be seen; Accessibility trust is the
-    // same permission and reports live.
-    hasPasteAccess: { AXIsProcessTrusted() },
-    // CGRequestPostEventAccess prompts unreliably and leaves no MiniWhisper row in Accessibility;
-    // the Accessibility trust prompt both asks and seeds the row that grants post-event access.
-    requestPasteAccess: {
-      // kAXTrustedCheckOptionPrompt is imported as shared mutable state, so spell its value out.
-      AXIsProcessTrustedWithOptions(
-        ["AXTrustedCheckOptionPrompt" as CFString: true] as CFDictionary,
-      )
-    }, deliver: { transcript in try await TranscriptDelivery.deliver(transcript) },
+    deliver: { transcript in try await TranscriptDelivery.deliver(transcript) },
     copy: { transcript in try await TranscriptDelivery.copy(transcript) },
   )
 }

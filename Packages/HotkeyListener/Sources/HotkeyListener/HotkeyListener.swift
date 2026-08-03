@@ -1,6 +1,6 @@
+import ApplicationServices
 import CoreGraphics
 import Foundation
-import IOKit.hidsystem
 import OSLog
 
 private let performanceLogger = Logger(
@@ -18,7 +18,7 @@ public enum TapDisableReason: String, Equatable, Sendable {
 // MARK: - HotkeyListenerEvent
 
 public enum HotkeyListenerEvent: Equatable, Sendable {
-  case inputMonitoringPermissionMissing
+  case accessibilityPermissionMissing
   case monitoringStarted
   case gesture(GestureEvent)
   case monitoringInterrupted(TapDisableReason)
@@ -31,24 +31,15 @@ public enum HotkeyListenerError: Error, Equatable, Sendable { case eventTapCreat
 // MARK: - HotkeyListener
 
 public enum HotkeyListener {
-  /// `IOHIDCheckAccess` is correct at launch but stays denied after an in-process pane grant. A
-  /// keyboard-only tap still creates before the grant, and `monitoringStarted` only proves
-  /// creation,
-  /// so onboarding requires a quit and reopen rather than trusting either false positive.
-  public static func hasInputMonitoringPermission() -> Bool {
-    IOHIDCheckAccess(kIOHIDRequestTypeListenEvent) == kIOHIDAccessTypeGranted
-  }
-
-  @MainActor @discardableResult public static func requestInputMonitoringPermission() -> Bool {
-    IOHIDRequestAccess(kIOHIDRequestTypeListenEvent)
-  }
-
   /// Starts listening without raising a permission dialog. A missing grant is reported as
-  /// `.inputMonitoringPermissionMissing` so the caller can send the user to System Settings.
+  /// `.accessibilityPermissionMissing` so the caller can send the user to System Settings.
   public static func events(hotkey: Hotkey) async throws -> AsyncStream<HotkeyListenerEvent> {
     let (stream, continuation) = AsyncStream.makeStream(of: HotkeyListenerEvent.self)
-    guard hasInputMonitoringPermission() else {
-      continuation.yield(.inputMonitoringPermissionMissing)
+    // The last-mile guard: an Accessibility grant is what lets the session tap actually receive
+    // keyboard events, and `AXIsProcessTrusted` answers live rather than caching a launch-time
+    // value. Without it the tap creates and then hears nothing, which is worse than not starting.
+    guard AXIsProcessTrusted() else {
+      continuation.yield(.accessibilityPermissionMissing)
       continuation.finish()
       return stream
     }

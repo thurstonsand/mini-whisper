@@ -7,10 +7,8 @@ import Foundation
     case menuHealthy = "menu-healthy"
     case menuDegraded = "menu-degraded"
     case onboardingWelcome = "onboarding-welcome"
-    case onboardingPermissionsInputMonitoring = "onboarding-permissions-input-monitoring"
-    case onboardingPermissionsManualAdd = "onboarding-permissions-manual-add"
     case onboardingPermissionsMicrophone = "onboarding-permissions-microphone"
-    case onboardingPermissionsPasteAccess = "onboarding-permissions-paste-access"
+    case onboardingPermissionsAccessibility = "onboarding-permissions-accessibility"
     case onboardingModel = "onboarding-model"
     case onboardingTryIt = "onboarding-try-it"
     case onboardingReady = "onboarding-ready"
@@ -46,7 +44,7 @@ import Foundation
       state.modelDownloadConsented = true
       state.hotkeyTap = .active
       state.recording.micStatus = .granted
-      state.pasteAccessGranted = true
+      state.accessibilityGranted = true
       state.engineReadiness = .ready
       state.inputDeviceName = "Test Microphone"
 
@@ -56,7 +54,8 @@ import Foundation
         state.launchAtLoginRegistered = true
         state.lastTranscript = "A previous transcript"
       case .menuDegraded:
-        state.hotkeyTap = .inputMonitoringMissing
+        state.hotkeyTap = .accessibilityMissing
+        state.accessibilityGranted = false
       case .onboardingWelcome:
         state.onboardingCompleted = false
         state.modelDownloadConsented = false
@@ -64,44 +63,31 @@ import Foundation
           permissions: permissions(), readiness: .modelMissing, hasConsent: false,
           isShowingWelcome: true,
         )
-      case .onboardingPermissionsInputMonitoring:
-        state.onboardingCompleted = false
-        state.onboarding = onboardingState(
-          permissions: permissions(), readiness: .downloading(0.42),
-        )
-      case .onboardingPermissionsManualAdd:
-        state.onboardingCompleted = false
-        state.onboarding = onboardingState(
-          permissions: permissions(), readiness: .downloading(0.42),
-          requestedPermissions: [.inputMonitoring],
-          applicationPath: "/Applications/MiniWhisper.app",
-        )
       case .onboardingPermissionsMicrophone:
         state.onboardingCompleted = false
         state.onboarding = onboardingState(
-          permissions: permissions(inputMonitoring: true), readiness: .downloading(0.42),
+          permissions: permissions(), readiness: .downloading(0.42),
         )
-      case .onboardingPermissionsPasteAccess:
+      case .onboardingPermissionsAccessibility:
         state.onboardingCompleted = false
         state.onboarding = onboardingState(
-          permissions: permissions(inputMonitoring: true, microphone: .granted),
-          readiness: .downloading(0.42),
+          permissions: permissions(microphone: .granted), readiness: .downloading(0.42),
         )
       case .onboardingModel:
         state.onboardingCompleted = false
         state.onboarding = onboardingState(
-          permissions: permissions(inputMonitoring: true, microphone: .granted, pasteAccess: true),
+          permissions: permissions(microphone: .granted, accessibility: true),
           readiness: .downloading(0.42), selectedStep: .model,
         )
       case .onboardingTryIt:
         state.onboardingCompleted = false
         state.onboarding = onboardingState(
-          permissions: permissions(inputMonitoring: true, microphone: .granted, pasteAccess: true),
+          permissions: permissions(microphone: .granted, accessibility: true),
           readiness: .ready, selectedStep: .tryIt,
         )
       case .onboardingReady:
         state.onboarding = onboardingState(
-          permissions: permissions(inputMonitoring: true, microphone: .granted, pasteAccess: true),
+          permissions: permissions(microphone: .granted, accessibility: true),
           readiness: .ready, isCompleted: true, tryItText: "MiniWhisper is ready.",
         )
       case .about:
@@ -128,12 +114,9 @@ import Foundation
       permissions: OnboardingPermissionStatuses, readiness: EngineReadiness,
       hasConsent: Bool = true, isShowingWelcome: Bool = false, selectedStep: OnboardingStep? = nil,
       isCompleted: Bool = false, tryItText: String = "",
-      requestedPermissions: Set<OnboardingPermission> = [], applicationPath: String = "",
     ) -> OnboardingFeature.State {
       var state = OnboardingFeature.State()
       state.isPresented = true
-      state.requestedPermissions = requestedPermissions
-      state.applicationPath = applicationPath
       state.snapshot = OnboardingSnapshot(
         permissions: permissions, engineReadiness: readiness, hasModelDownloadConsent: hasConsent,
         isCompleted: isCompleted,
@@ -145,12 +128,10 @@ import Foundation
     }
 
     private func permissions(
-      inputMonitoring: Bool = false, microphone: MicPermissionStatus = .undetermined,
-      pasteAccess: Bool = false,
+      microphone: MicPermissionStatus = .undetermined, accessibility: Bool = false,
     ) -> OnboardingPermissionStatuses {
       OnboardingPermissionStatuses(
-        hasInputMonitoringPermission: inputMonitoring, microphoneStatus: microphone,
-        hasPasteAccess: pasteAccess,
+        microphoneStatus: microphone, hasAccessibilityPermission: accessibility,
       )
     }
   }

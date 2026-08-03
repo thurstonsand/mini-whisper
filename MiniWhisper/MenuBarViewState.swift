@@ -5,19 +5,20 @@ import Foundation
 // MARK: - HotkeyTapStatus
 
 enum HotkeyTapStatus: Equatable {
+  /// Nothing has been started yet: the launch join has not reported the Accessibility grant.
+  case idle
   case starting
   case active
-  case inputMonitoringMissing
+  case accessibilityMissing
   case dead
 }
 
 // MARK: - MenuBarDegradation
 
 enum MenuBarDegradation: Equatable {
-  case inputMonitoringMissing
   case hotkeyTapDead
   case microphoneAccessDenied
-  case pasteAccessDenied
+  case accessibilityDenied
   case modelMissing
   case modelSetupFailed
 }
@@ -25,7 +26,6 @@ enum MenuBarDegradation: Equatable {
 // MARK: - MenuBarRepair
 
 enum MenuBarRepair: Equatable {
-  case openInputMonitoringSettings
   case restartHotkeyListening
   case openMicrophoneSettings
   case openAccessibilitySettings
@@ -39,12 +39,12 @@ struct MenuBarViewState: Equatable {
   // MARK: Lifecycle
 
   init(
-    hotkeyTap: HotkeyTapStatus, micStatus: MicPermissionStatus, pasteAccessGranted: Bool?,
+    hotkeyTap: HotkeyTapStatus, micStatus: MicPermissionStatus, accessibilityGranted: Bool,
     engineReadiness: EngineReadiness, inputDeviceName: String?, hasLastTranscript: Bool,
     soundsEnabled: Bool, launchAtLoginRegistered: Bool,
   ) {
     let degradation = MenuBarViewState.degradation(
-      hotkeyTap: hotkeyTap, micStatus: micStatus, pasteAccessGranted: pasteAccessGranted,
+      hotkeyTap: hotkeyTap, micStatus: micStatus, accessibilityGranted: accessibilityGranted,
       engineReadiness: engineReadiness,
     )
     self.degradation = degradation
@@ -81,15 +81,22 @@ struct MenuBarViewState: Equatable {
   // MARK: Private
 
   private static func degradation(
-    hotkeyTap: HotkeyTapStatus, micStatus: MicPermissionStatus, pasteAccessGranted: Bool?,
+    hotkeyTap: HotkeyTapStatus, micStatus: MicPermissionStatus, accessibilityGranted: Bool,
     engineReadiness: EngineReadiness,
   ) -> MenuBarDegradation? {
+    // One Accessibility grant runs the hotkey tap and the paste, so both failures are the same
+    // repair — and a revoked grant outranks a dead tap, because restarting a listener macOS will
+    // not let hear anything is a repair that can only fail.
+    guard accessibilityGranted else {
+      return .accessibilityDenied
+    }
     switch hotkeyTap {
-    case .inputMonitoringMissing:
-      return .inputMonitoringMissing
+    case .accessibilityMissing:
+      return .accessibilityDenied
     case .dead:
       return .hotkeyTapDead
-    case .starting,
+    case .idle,
+         .starting,
          .active:
       break
     }
@@ -103,9 +110,6 @@ struct MenuBarViewState: Equatable {
     case .granted,
          .undetermined:
       break
-    }
-    if pasteAccessGranted == false {
-      return .pasteAccessDenied
     }
     switch engineReadiness {
     case .modelMissing:
@@ -122,14 +126,12 @@ struct MenuBarViewState: Equatable {
 
   private static func statusText(_ degradation: MenuBarDegradation) -> String {
     switch degradation {
-    case .inputMonitoringMissing:
-      "Input Monitoring is off, so MiniWhisper can't see your hotkey · switch it on or add it"
     case .hotkeyTapDead:
       "Hotkey listening stopped"
     case .microphoneAccessDenied:
       "Microphone access is off, so nothing can be recorded"
-    case .pasteAccessDenied:
-      "Paste access is off, so transcripts can only be copied"
+    case .accessibilityDenied:
+      "Accessibility is off, so the hotkey and pasting can't work · switch it on"
     case .modelMissing:
       "Parakeet v2 isn't installed yet"
     case .modelSetupFailed:
@@ -158,13 +160,11 @@ struct MenuBarViewState: Equatable {
 
   private static func repair(_ degradation: MenuBarDegradation) -> MenuBarRepair {
     switch degradation {
-    case .inputMonitoringMissing:
-      .openInputMonitoringSettings
     case .hotkeyTapDead:
       .restartHotkeyListening
     case .microphoneAccessDenied:
       .openMicrophoneSettings
-    case .pasteAccessDenied:
+    case .accessibilityDenied:
       .openAccessibilitySettings
     case .modelMissing:
       .installModel
@@ -175,8 +175,6 @@ struct MenuBarViewState: Equatable {
 
   private static func repairTitle(_ repair: MenuBarRepair) -> String {
     switch repair {
-    case .openInputMonitoringSettings:
-      "Open Input Monitoring Settings…"
     case .restartHotkeyListening:
       "Restart Hotkey Listening"
     case .openMicrophoneSettings:
@@ -194,9 +192,6 @@ struct MenuBarViewState: Equatable {
 // MARK: - SystemSettingsPane
 
 enum SystemSettingsPane {
-  static let inputMonitoring = URL(
-    string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent",
-  )!
   static let microphone = URL(
     string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone",
   )!

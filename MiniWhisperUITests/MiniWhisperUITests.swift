@@ -153,11 +153,11 @@ final class MiniWhisperUITests: XCTestCase {
       elements: [
         contract(
           .menuItem, "miniwhisper.menu.status", "Status",
-          "Input Monitoring is off, so MiniWhisper can't see your hotkey; switch it on or add it",
+          "Accessibility is off, so the hotkey and pasting can't work; switch it on",
           isEnabled: false,
         ),
         contract(
-          .menuItem, "miniwhisper.menu.repair", "Open Input Monitoring Settings…", isEnabled: true,
+          .menuItem, "miniwhisper.menu.repair", "Open Accessibility Settings…", isEnabled: true,
           isActionable: true,
         ),
         contract(
@@ -543,15 +543,7 @@ final class MiniWhisperUITests: XCTestCase {
       ),
       contract(
         .staticText, "miniwhisper.onboarding.permissions.summary", "Permissions information",
-        "macOS prompts for most of these. Input Monitoring may need to be added by hand.",
-      ),
-      contract(
-        .staticText, "miniwhisper.onboarding.permission.input-monitoring", "Input Monitoring",
-        "Trigger MiniWhisper from anywhere",
-      ),
-      contract(
-        .staticText, "miniwhisper.onboarding.permission.input-monitoring.status",
-        "Input Monitoring status", statuses[0],
+        "macOS prompts for both. Grant them in the order they appear.",
       ),
       contract(
         .staticText, "miniwhisper.onboarding.permission.microphone", "Microphone",
@@ -559,15 +551,15 @@ final class MiniWhisperUITests: XCTestCase {
       ),
       contract(
         .staticText, "miniwhisper.onboarding.permission.microphone.status", "Microphone status",
-        statuses[1],
+        statuses[0],
       ),
       contract(
-        .staticText, "miniwhisper.onboarding.permission.paste-access", "Paste Access",
-        "Types the transcript at your cursor.",
+        .staticText, "miniwhisper.onboarding.permission.accessibility", "Accessibility",
+        "Watch for the dictation hotkey, paste at your cursor, and read the text around it.",
       ),
       contract(
-        .staticText, "miniwhisper.onboarding.permission.paste-access.status", "Paste Access status",
-        statuses[2],
+        .staticText, "miniwhisper.onboarding.permission.accessibility.status",
+        "Accessibility status", statuses[1],
       ),
       contract(
         .staticText, "miniwhisper.onboarding.permissions.guidance", "Permissions guidance",
@@ -577,31 +569,6 @@ final class MiniWhisperUITests: XCTestCase {
     elements.append(
       contract(.button, action.identifier, action.label, isEnabled: true, isActionable: true),
     )
-    if manifest.showsManualAdd {
-      elements += [
-        contract(
-          .group, "miniwhisper.onboarding.permissions.manual-add",
-          "Add MiniWhisper to Input Monitoring",
-        ),
-        contract(
-          .staticText, "miniwhisper.onboarding.permissions.manual-add.steps",
-          "Input Monitoring manual steps",
-          "In Input Monitoring, switch MiniWhisper on, then restart. If it isn't listed, click +, press ⇧⌘G, and paste this path.",
-        ),
-        contract(
-          .staticText, "miniwhisper.onboarding.permissions.manual-add.path", "MiniWhisper location",
-          "/Applications/MiniWhisper.app",
-        ),
-        contract(
-          .button, "miniwhisper.onboarding.permissions.manual-add.copy-path",
-          "Copy MiniWhisper Path", isEnabled: true, isActionable: true,
-        ),
-        contract(
-          .button, "miniwhisper.onboarding.permissions.manual-add.open-settings",
-          "Open Input Monitoring Settings", isEnabled: true, isActionable: true,
-        ),
-      ]
-    }
     return elements
   }
 }
@@ -621,35 +588,26 @@ private struct AccessibilityContract {
 // MARK: - PermissionAction
 
 private enum PermissionAction {
-  case inputMonitoring
-  case restart
   case microphone
-  case pasteAccess
+  case accessibility
 
   // MARK: Internal
 
   var identifier: String {
     switch self {
-    case .inputMonitoring,
-         .restart:
-      "miniwhisper.onboarding.permission.input-monitoring.action"
     case .microphone:
       "miniwhisper.onboarding.permission.microphone.action"
-    case .pasteAccess:
-      "miniwhisper.onboarding.permission.paste-access.action"
+    case .accessibility:
+      "miniwhisper.onboarding.permission.accessibility.action"
     }
   }
 
   var label: String {
     switch self {
-    case .inputMonitoring:
-      "Grant Input Monitoring"
-    case .restart:
-      "Restart MiniWhisper"
     case .microphone:
       "Grant Microphone"
-    case .pasteAccess:
-      "Grant Paste Access"
+    case .accessibility:
+      "Grant Accessibility"
     }
   }
 }
@@ -657,59 +615,40 @@ private enum PermissionAction {
 // MARK: - PermissionManifest
 
 private enum PermissionManifest: CaseIterable {
-  case inputMonitoring
-  case manualAdd
   case microphone
-  case pasteAccess
+  case accessibility
 
   // MARK: Internal
 
   var scene: String {
     switch self {
-    case .inputMonitoring:
-      "onboarding-permissions-input-monitoring"
-    case .manualAdd:
-      "onboarding-permissions-manual-add"
     case .microphone:
       "onboarding-permissions-microphone"
-    case .pasteAccess:
-      "onboarding-permissions-paste-access"
+    case .accessibility:
+      "onboarding-permissions-accessibility"
     }
   }
 
   var action: PermissionAction {
     switch self {
-    case .inputMonitoring:
-      .inputMonitoring
-    case .manualAdd:
-      .restart
     case .microphone:
       .microphone
-    case .pasteAccess:
-      .pasteAccess
+    case .accessibility:
+      .accessibility
     }
   }
 
   var statuses: [String] {
     switch self {
-    case .inputMonitoring:
-      ["Required", "Required", "Required"]
-    case .manualAdd:
-      ["Restart required", "Required", "Required"]
     case .microphone:
-      ["Granted", "Required", "Required"]
-    case .pasteAccess:
-      ["Granted", "Granted", "Required"]
+      ["Required", "Required"]
+    case .accessibility:
+      ["Granted", "Required"]
     }
   }
 
   var guidance: String {
-    self == .manualAdd
-      ? "Enable Input Monitoring before restarting." : "Continue after granting all 3"
-  }
-
-  var showsManualAdd: Bool {
-    self == .manualAdd
+    "Continue after granting both"
   }
 
   var railValues: [String] {

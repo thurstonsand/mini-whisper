@@ -11,19 +11,16 @@ private let onboardingLogger = Logger(
 // MARK: - OnboardingPermission
 
 enum OnboardingPermission: Int, CaseIterable, Equatable, Hashable {
-  case inputMonitoring
   case microphone
-  case pasteAccess
+  case accessibility
 
   // MARK: Internal
 
   var settingsPane: URL {
     switch self {
-    case .inputMonitoring:
-      SystemSettingsPane.inputMonitoring
     case .microphone:
       SystemSettingsPane.microphone
-    case .pasteAccess:
+    case .accessibility:
       SystemSettingsPane.accessibility
     }
   }
@@ -32,32 +29,21 @@ enum OnboardingPermission: Int, CaseIterable, Equatable, Hashable {
 // MARK: - OnboardingPermissionStatuses
 
 struct OnboardingPermissionStatuses: Equatable {
-  var hasInputMonitoringPermission: Bool
   var microphoneStatus: MicPermissionStatus
-  var hasPasteAccess: Bool
+  var hasAccessibilityPermission: Bool
 
   var allGranted: Bool {
-    hasInputMonitoringPermission && microphoneStatus == .granted && hasPasteAccess
+    microphoneStatus == .granted && hasAccessibilityPermission
   }
 
   func isGranted(_ permission: OnboardingPermission) -> Bool {
     switch permission {
-    case .inputMonitoring:
-      hasInputMonitoringPermission
     case .microphone:
       microphoneStatus == .granted
-    case .pasteAccess:
-      hasPasteAccess
+    case .accessibility:
+      hasAccessibilityPermission
     }
   }
-}
-
-// MARK: - OnboardingPermissionObservation
-
-struct OnboardingPermissionObservation: Equatable {
-  var hasInputMonitoringPermission: Bool
-  var microphoneStatus: MicPermissionStatus
-  var hasPasteAccess: Bool?
 }
 
 // MARK: - OnboardingSnapshot
@@ -104,8 +90,7 @@ enum OnboardingStep: Int, Equatable {
     var isPresented = false
     var snapshot = OnboardingSnapshot(
       permissions: OnboardingPermissionStatuses(
-        hasInputMonitoringPermission: false, microphoneStatus: .undetermined,
-        hasPasteAccess: false,
+        microphoneStatus: .undetermined, hasAccessibilityPermission: false,
       ),
       engineReadiness: .modelMissing, hasModelDownloadConsent: false, isCompleted: false,
     )
@@ -115,7 +100,6 @@ enum OnboardingStep: Int, Equatable {
     var requestingPermission: OnboardingPermission?
     var pendingSystemPermissionPrompt: OnboardingPermission?
     var requestedPermissions: Set<OnboardingPermission> = []
-    var applicationPath = ""
     var tryItText = ""
     var completionIntent: CompletionIntent?
     var failureMessage: String?
@@ -161,12 +145,6 @@ enum OnboardingStep: Int, Equatable {
       }
     }
 
-    /// macOS 26's tccd refuses to prompt for Input Monitoring and seeds no row of its own, so a
-    /// finished request that left no grant behind means the user has to add MiniWhisper by hand.
-    var needsManualInputMonitoringAdd: Bool {
-      requestingPermission != .inputMonitoring && needsRestart(for: .inputMonitoring)
-    }
-
     /// macOS prompts at most once per permission, so an unfulfilled request means the rest of the
     /// fix has to happen in System Settings.
     func needsSystemSettings(for permission: OnboardingPermission) -> Bool {
@@ -180,16 +158,7 @@ enum OnboardingStep: Int, Equatable {
     }
 
     func canRequest(_ permission: OnboardingPermission) -> Bool {
-      guard activePermission == permission, !requestedPermissions.contains(permission) else {
-        return false
-      }
-      return permission != .pasteAccess || snapshot.permissions.hasInputMonitoringPermission
-        || requestedPermissions.contains(.inputMonitoring)
-    }
-
-    func needsRestart(for permission: OnboardingPermission) -> Bool {
-      permission == .inputMonitoring && !snapshot.permissions.hasInputMonitoringPermission
-        && requestedPermissions.contains(.inputMonitoring)
+      activePermission == permission && !requestedPermissions.contains(permission)
     }
   }
 
@@ -200,16 +169,12 @@ enum OnboardingStep: Int, Equatable {
     case modelDownloadConsentFailed(String)
     case navigate(OnboardingStep)
     case requestPermission(OnboardingPermission)
-    case inputMonitoringPermissionRequested(Bool)
     case microphonePermissionRequested(MicPermissionStatus)
-    case pasteAccessRequested(Bool)
-    case permissionStatusesObserved(OnboardingPermissionObservation)
+    case accessibilityPermissionRequested(Bool)
+    case permissionStatusesObserved(OnboardingPermissionStatuses)
     case refreshPermissionStatuses
     case applicationBecameActive
     case openSystemSettings(OnboardingPermission)
-    case copyApplicationPath
-    case copyApplicationPathFailed(String)
-    case restartApplication
     case workspaceOpenFailed(String)
     case setupModel
     case engineReadinessUpdated(EngineReadiness)
@@ -234,10 +199,9 @@ enum OnboardingStep: Int, Equatable {
 
   static let permissionPollInterval = Duration.seconds(1)
 
+  @Dependency(\.accessibilityPermission) var accessibilityPermission
   @Dependency(\.asrEngine) var asrEngine
   @Dependency(\.continuousClock) var clock
-  @Dependency(\.delivery) var delivery
-  @Dependency(\.hotkeyListener) var hotkeyListener
   @Dependency(\.microphonePermission) var microphonePermission
   @Dependency(\.modelDownloadConsent) var modelDownloadConsent
   @Dependency(\.onboardingCompletion) var onboardingCompletion
@@ -255,7 +219,6 @@ enum OnboardingStep: Int, Equatable {
         state.requestingPermission = nil
         state.pendingSystemPermissionPrompt = nil
         state.requestedPermissions = []
-        state.applicationPath = ""
         state.tryItText = ""
         state.completionIntent = nil
         state.failureMessage = nil
@@ -301,13 +264,6 @@ enum OnboardingStep: Int, Equatable {
         state.failureMessage = nil
         let request: Effect<Action> =
           switch permission {
-          case .inputMonitoring:
-            .run { send in
-              onboardingLogger.notice("Requesting Input Monitoring permission from onboarding")
-              let granted = await hotkeyListener.requestInputMonitoringPermission()
-              onboardingLogger.notice("Input Monitoring request returned granted=\(granted)")
-              await send(.inputMonitoringPermissionRequested(granted))
-            }
           case .microphone:
             .run { send in
               onboardingLogger.notice("Requesting Microphone permission from onboarding")
@@ -315,58 +271,35 @@ enum OnboardingStep: Int, Equatable {
               onboardingLogger.notice("Microphone request returned")
               await send(.microphonePermissionRequested(status))
             }
-          case .pasteAccess:
+          case .accessibility:
             .run { send in
-              onboardingLogger.notice("Requesting Paste Access permission from onboarding")
-              let granted = await delivery.requestPasteAccess()
-              onboardingLogger.notice("Paste Access request returned granted=\(granted)")
-              await send(.pasteAccessRequested(granted))
+              onboardingLogger.notice("Requesting Accessibility permission from onboarding")
+              let granted = await accessibilityPermission.requestPermission()
+              onboardingLogger.notice("Accessibility request returned granted=\(granted)")
+              await send(.accessibilityPermissionRequested(granted))
             }
           }
         return .concatenate(.cancel(id: CancelID.permissionPolling), request)
-      case let .inputMonitoringPermissionRequested(granted):
-        state.requestingPermission = nil
-        // A refusal only says the request went unanswered, never that a grant is absent: an
-        // observation may already have seen the row switched on while this result was in flight.
-        guard granted else {
-          if !state.snapshot.permissions.hasInputMonitoringPermission {
-            // The manual add needs the location of this exact build: a development copy lives in
-            // DerivedData, an installed one in /Applications, and the file picker takes neither
-            // on faith.
-            state.applicationPath = workspace.applicationLocation().path(percentEncoded: false)
-          }
-          return .none
-        }
-        state.pendingSystemPermissionPrompt = nil
-        var statuses = state.snapshot.permissions
-        statuses.hasInputMonitoringPermission = true
-        return .merge(apply(statuses, to: &state), permissionPollingEffect(for: state))
       case let .microphonePermissionRequested(status):
         state.requestingPermission = nil
         state.pendingSystemPermissionPrompt = nil
         var statuses = state.snapshot.permissions
         statuses.microphoneStatus = status
         return .merge(apply(statuses, to: &state), permissionPollingEffect(for: state))
-      case let .pasteAccessRequested(granted):
+      case let .accessibilityPermissionRequested(granted):
         state.requestingPermission = nil
         guard granted else {
           return .none
         }
         state.pendingSystemPermissionPrompt = nil
         var statuses = state.snapshot.permissions
-        statuses.hasPasteAccess = true
+        statuses.hasAccessibilityPermission = true
         return .merge(apply(statuses, to: &state), permissionPollingEffect(for: state))
-      case let .permissionStatusesObserved(observation):
+      case let .permissionStatusesObserved(statuses):
         guard state.pendingSystemPermissionPrompt == nil else {
           return .none
         }
         state.requestingPermission = nil
-        var statuses = state.snapshot.permissions
-        statuses.hasInputMonitoringPermission = observation.hasInputMonitoringPermission
-        statuses.microphoneStatus = observation.microphoneStatus
-        if let hasPasteAccess = observation.hasPasteAccess {
-          statuses.hasPasteAccess = hasPasteAccess
-        }
         return apply(statuses, to: &state)
       case .refreshPermissionStatuses:
         return refreshPermissionStatuses(for: state)
@@ -378,23 +311,6 @@ enum OnboardingStep: Int, Equatable {
         let destination = permission.settingsPane
         return .run { send in
           do { try await workspace.open(destination) } catch {
-            await send(.workspaceOpenFailed(error.localizedDescription))
-          }
-        }
-      case .copyApplicationPath:
-        let path = state.applicationPath
-        state.failureMessage = nil
-        return .run { send in
-          do { try await delivery.copy(path) } catch {
-            await send(.copyApplicationPathFailed(error.localizedDescription))
-          }
-        }
-      case let .copyApplicationPathFailed(message):
-        state.failureMessage = message
-        return .none
-      case .restartApplication:
-        return .run { send in
-          do { try await workspace.relaunch() } catch {
             await send(.workspaceOpenFailed(error.localizedDescription))
           }
         }
@@ -474,18 +390,10 @@ enum OnboardingStep: Int, Equatable {
       ? .merge(update, .cancel(id: CancelID.permissionPolling)) : update
   }
 
-  private func observePermissionStatuses(
-    inputMonitoringWasRequested: Bool,
-  ) async -> OnboardingPermissionObservation {
-    let hasInputMonitoringPermission = hotkeyListener.hasInputMonitoringPermission()
-    let microphoneStatus = await microphonePermission.status()
-    // Accessibility trust suppresses macOS's Keystroke Receiving dialog when queried before the
-    // IOHID request. Probe it only after IOHID is granted or that request has already fired.
-    let hasPasteAccess =
-      hasInputMonitoringPermission || inputMonitoringWasRequested ? delivery.hasPasteAccess() : nil
-    return OnboardingPermissionObservation(
-      hasInputMonitoringPermission: hasInputMonitoringPermission,
-      microphoneStatus: microphoneStatus, hasPasteAccess: hasPasteAccess,
+  private func observePermissionStatuses() async -> OnboardingPermissionStatuses {
+    await OnboardingPermissionStatuses(
+      microphoneStatus: microphonePermission.status(),
+      hasAccessibilityPermission: accessibilityPermission.hasPermission(),
     )
   }
 
@@ -493,13 +401,8 @@ enum OnboardingStep: Int, Equatable {
     guard state.pendingSystemPermissionPrompt == nil else {
       return .none
     }
-    let inputMonitoringWasRequested = state.requestedPermissions.contains(.inputMonitoring)
     return .run { send in
-      await send(
-        .permissionStatusesObserved(
-          observePermissionStatuses(inputMonitoringWasRequested: inputMonitoringWasRequested),
-        ),
-      )
+      await send(.permissionStatusesObserved(observePermissionStatuses()))
     }
   }
 

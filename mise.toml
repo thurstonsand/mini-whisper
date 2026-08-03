@@ -183,7 +183,6 @@ run = [
     true
     ''',
     "tccutil reset Microphone $DEV_BUNDLE_ID",
-    "tccutil reset ListenEvent $DEV_BUNDLE_ID",
     "tccutil reset Accessibility $DEV_BUNDLE_ID",
     "tccutil reset PostEvent $DEV_BUNDLE_ID",
     'rm -f "$HOME/Library/Application Support/MiniWhisper/onboarding-completed"',

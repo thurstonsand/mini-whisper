@@ -38,32 +38,17 @@ enum AccessibilityID {
   static let onboardingPermissions = "miniwhisper.onboarding.permissions"
   static let onboardingPermissionsTitle = "miniwhisper.onboarding.permissions.title"
   static let onboardingPermissionsSummary = "miniwhisper.onboarding.permissions.summary"
-  static let onboardingPermissionInputMonitoring =
-    "miniwhisper.onboarding.permission.input-monitoring"
-  static let onboardingPermissionInputMonitoringStatus =
-    "miniwhisper.onboarding.permission.input-monitoring.status"
-  static let onboardingPermissionInputMonitoringAction =
-    "miniwhisper.onboarding.permission.input-monitoring.action"
   static let onboardingPermissionMicrophone = "miniwhisper.onboarding.permission.microphone"
   static let onboardingPermissionMicrophoneStatus =
     "miniwhisper.onboarding.permission.microphone.status"
   static let onboardingPermissionMicrophoneAction =
     "miniwhisper.onboarding.permission.microphone.action"
-  static let onboardingPermissionPasteAccess = "miniwhisper.onboarding.permission.paste-access"
-  static let onboardingPermissionPasteAccessStatus =
-    "miniwhisper.onboarding.permission.paste-access.status"
-  static let onboardingPermissionPasteAccessAction =
-    "miniwhisper.onboarding.permission.paste-access.action"
+  static let onboardingPermissionAccessibility = "miniwhisper.onboarding.permission.accessibility"
+  static let onboardingPermissionAccessibilityStatus =
+    "miniwhisper.onboarding.permission.accessibility.status"
+  static let onboardingPermissionAccessibilityAction =
+    "miniwhisper.onboarding.permission.accessibility.action"
   static let onboardingPermissionsGuidance = "miniwhisper.onboarding.permissions.guidance"
-  static let onboardingPermissionsManualAdd = "miniwhisper.onboarding.permissions.manual-add"
-  static let onboardingPermissionsManualAddSteps =
-    "miniwhisper.onboarding.permissions.manual-add.steps"
-  static let onboardingPermissionsManualAddPath =
-    "miniwhisper.onboarding.permissions.manual-add.path"
-  static let onboardingPermissionsManualAddCopyPath =
-    "miniwhisper.onboarding.permissions.manual-add.copy-path"
-  static let onboardingPermissionsManualAddOpenSettings =
-    "miniwhisper.onboarding.permissions.manual-add.open-settings"
 
   static let onboardingModel = "miniwhisper.onboarding.model"
   static let onboardingModelTitle = "miniwhisper.onboarding.model.title"

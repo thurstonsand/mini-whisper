@@ -183,7 +183,7 @@ struct OnboardingView: View {
       .font(.system(size: 28, weight: .semibold))
       .padding(.top, 20)
       SemanticText(
-        "macOS prompts for most of these. Input Monitoring may need to be added by hand.",
+        "macOS prompts for both. Grant them in the order they appear.",
         identifier: AccessibilityID.onboardingPermissionsSummary,
         label: "Permissions information",
       )
@@ -191,24 +191,20 @@ struct OnboardingView: View {
       .foregroundStyle(.secondary)
       .lineLimit(2)
       .frame(
-        height: store.state.needsManualInputMonitoringAdd ? 44 : 58, alignment: .topLeading,
+        height: 58, alignment: .topLeading,
       )
       .padding(.top, 10)
 
       VStack(spacing: 0) {
-        permissionRow(
-          .inputMonitoring, title: "Input Monitoring", symbol: "keyboard",
-          explanation: "Trigger MiniWhisper from anywhere",
-        )
-        Divider()
         permissionRow(
           .microphone, title: "Microphone", symbol: "waveform",
           explanation: "Hear your beautiful voice",
         )
         Divider()
         permissionRow(
-          .pasteAccess, title: "Paste Access", symbol: "text.cursor",
-          explanation: "Types the transcript at your cursor.",
+          .accessibility, title: "Accessibility", symbol: "keyboard",
+          explanation:
+          "Watch for the dictation hotkey, paste at your cursor, and read the text around it.",
         )
       }
       .frame(maxWidth: .infinity, minHeight: 162, maxHeight: 162)
@@ -363,7 +359,7 @@ struct OnboardingView: View {
     switch store.step {
     case .permissions:
       unavailableContent(
-        "Grant all 3 permissions and wait for the speech model to try it.", symbol: "lock.shield",
+        "Grant both permissions and wait for the speech model to try it.", symbol: "lock.shield",
       )
     case .model:
       unavailableContent(
@@ -469,48 +465,8 @@ struct OnboardingView: View {
     .accessibilityLabel("MiniWhisper is ready")
   }
 
-  private var manualAddGuidance: some View {
-    VStack(alignment: .leading, spacing: 6) {
-      SemanticText(
-        "In Input Monitoring, switch MiniWhisper on, then restart. If it isn't listed, click +, press ⇧⌘G, and paste this path.",
-        identifier: AccessibilityID.onboardingPermissionsManualAddSteps,
-        label: "Input Monitoring manual steps",
-      )
-      .font(.system(size: 11))
-      .foregroundStyle(.secondary)
-      .fixedSize(horizontal: false, vertical: true)
-      HStack(spacing: 8) {
-        SemanticText(
-          store.applicationPath, identifier: AccessibilityID.onboardingPermissionsManualAddPath,
-          label: "MiniWhisper location",
-        )
-        .font(.system(size: 11, design: .monospaced))
-        .lineLimit(1)
-        .truncationMode(.head)
-        .textSelection(.enabled)
-        .padding(.horizontal, 6)
-        .padding(.vertical, 3)
-        .background(.quaternary, in: RoundedRectangle(cornerRadius: 5))
-        Button("Copy Path") { store.send(.copyApplicationPath) }
-          .controlSize(.small)
-          .accessibilityIdentifier(AccessibilityID.onboardingPermissionsManualAddCopyPath)
-          .accessibilityLabel("Copy MiniWhisper Path")
-        Button("Open Settings") { store.send(.openSystemSettings(.inputMonitoring)) }
-          .controlSize(.small)
-          .accessibilityIdentifier(AccessibilityID.onboardingPermissionsManualAddOpenSettings)
-          .accessibilityLabel("Open Input Monitoring Settings")
-      }
-    }
-    .accessibilityElement(children: .contain)
-    .accessibilityIdentifier(AccessibilityID.onboardingPermissionsManualAdd)
-    .accessibilityLabel("Add MiniWhisper to Input Monitoring")
-  }
-
   private var footer: some View {
     VStack(alignment: .leading, spacing: 12) {
-      if store.visibleStep == .permissions, store.state.needsManualInputMonitoringAdd {
-        manualAddGuidance
-      }
       if let failureMessage = store.failureMessage {
         Label(failureMessage, systemImage: "exclamationmark.triangle.fill")
           .font(.system(size: 12))
@@ -545,21 +501,12 @@ struct OnboardingView: View {
   @ViewBuilder private var footerButtons: some View {
     switch store.visibleStep {
     case .permissions:
-      if store.state.needsRestart(for: .inputMonitoring) {
-        SemanticText(
-          "Enable Input Monitoring before restarting.",
-          identifier: AccessibilityID.onboardingPermissionsGuidance, label: "Permissions guidance",
-        )
-        .font(.system(size: 11))
-        .foregroundStyle(.secondary)
-      } else {
-        SemanticText(
-          "Continue after granting all 3",
-          identifier: AccessibilityID.onboardingPermissionsGuidance, label: "Permissions guidance",
-        )
-        .font(.system(size: 12))
-        .foregroundStyle(.secondary)
-      }
+      SemanticText(
+        "Continue after granting both",
+        identifier: AccessibilityID.onboardingPermissionsGuidance, label: "Permissions guidance",
+      )
+      .font(.system(size: 12))
+      .foregroundStyle(.secondary)
     case .model:
       if !store.modelSetupIsInProgress, store.snapshot.engineReadiness != .ready {
         Button(
@@ -668,13 +615,7 @@ struct OnboardingView: View {
       .foregroundStyle(
         isGranted ? Color.green : Color.secondary,
       )
-      if ownsAction, !isGranted, store.state.needsRestart(for: permission) {
-        Button("Restart") { store.send(.restartApplication) }
-          .accessibilityIdentifier(
-            permissionActionAccessibilityID(permission),
-          )
-          .accessibilityLabel("Restart MiniWhisper")
-      } else if ownsAction, !isGranted, showsSettings {
+      if ownsAction, !isGranted, showsSettings {
         Button("Open Settings") { store.send(.openSystemSettings(permission)) }
           .accessibilityIdentifier(permissionActionAccessibilityID(permission))
           .accessibilityLabel(
@@ -781,34 +722,28 @@ struct OnboardingView: View {
 
   private func permissionAccessibilityID(_ permission: OnboardingPermission) -> String {
     switch permission {
-    case .inputMonitoring:
-      AccessibilityID.onboardingPermissionInputMonitoring
     case .microphone:
       AccessibilityID.onboardingPermissionMicrophone
-    case .pasteAccess:
-      AccessibilityID.onboardingPermissionPasteAccess
+    case .accessibility:
+      AccessibilityID.onboardingPermissionAccessibility
     }
   }
 
   private func permissionStatusAccessibilityID(_ permission: OnboardingPermission) -> String {
     switch permission {
-    case .inputMonitoring:
-      AccessibilityID.onboardingPermissionInputMonitoringStatus
     case .microphone:
       AccessibilityID.onboardingPermissionMicrophoneStatus
-    case .pasteAccess:
-      AccessibilityID.onboardingPermissionPasteAccessStatus
+    case .accessibility:
+      AccessibilityID.onboardingPermissionAccessibilityStatus
     }
   }
 
   private func permissionActionAccessibilityID(_ permission: OnboardingPermission) -> String {
     switch permission {
-    case .inputMonitoring:
-      AccessibilityID.onboardingPermissionInputMonitoringAction
     case .microphone:
       AccessibilityID.onboardingPermissionMicrophoneAction
-    case .pasteAccess:
-      AccessibilityID.onboardingPermissionPasteAccessAction
+    case .accessibility:
+      AccessibilityID.onboardingPermissionAccessibilityAction
     }
   }
 
@@ -820,9 +755,6 @@ struct OnboardingView: View {
     }
     if store.requestingPermission == permission {
       return "Waiting"
-    }
-    if store.state.needsRestart(for: permission) {
-      return "Restart required"
     }
     if showsSettings {
       return "Needs settings"

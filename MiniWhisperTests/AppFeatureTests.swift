@@ -94,7 +94,7 @@ import Testing
   @Test func `completed startup starts the listener without presenting onboarding`() async {
     let (events, continuation) = AsyncStream.makeStream(of: HotkeyListenerEvent.self)
     let permissions = OnboardingPermissionStatuses(
-      hasInputMonitoringPermission: true, microphoneStatus: .granted, hasPasteAccess: true,
+      microphoneStatus: .granted, hasAccessibilityPermission: true,
     )
     let facts = AppFeature.StartupFacts(
       onboardingCompleted: true, modelDownloadConsented: true, permissions: permissions,
@@ -103,15 +103,17 @@ import Testing
     let store = TestStore(initialState: AppFeature.State()) {
       AppFeature()
     } withDependencies: {
+      $0.accessibilityPermission.hasPermission = { true }
       $0.hotkeyListener.events = { events }
     }
 
     await store.send(.startupResolved(facts)) {
       $0.onboardingCompleted = true
       $0.modelDownloadConsented = true
-      $0.pasteAccessGranted = true
+      $0.accessibilityGranted = true
       $0.recording.micStatus = .granted
       $0.engineReadiness = .ready
+      $0.hotkeyTap = .starting
     }
     #expect(!store.state.onboarding.isPresented)
     continuation.yield(.monitoringStarted)
@@ -132,9 +134,8 @@ import Testing
           continuation.finish()
         }
       }
-      $0.hotkeyListener.hasInputMonitoringPermission = { false }
       $0.microphonePermission.status = { .granted }
-      $0.delivery.hasPasteAccess = { false }
+      $0.accessibilityPermission.hasPermission = { false }
       $0.onboardingCompletion.isCompleted = { true }
       $0.modelDownloadConsent.isConsented = { true }
       $0.sounds.loadIsEnabled = { false }
@@ -143,7 +144,7 @@ import Testing
     let facts = AppFeature.StartupFacts(
       onboardingCompleted: true, modelDownloadConsented: true,
       permissions: OnboardingPermissionStatuses(
-        hasInputMonitoringPermission: false, microphoneStatus: .granted, hasPasteAccess: false,
+        microphoneStatus: .granted, hasAccessibilityPermission: false,
       ),
       engineReadiness: .compiling,
     )
@@ -152,7 +153,7 @@ import Testing
     await store.receive(.startupResolved(facts)) {
       $0.onboardingCompleted = true
       $0.modelDownloadConsented = true
-      $0.hotkeyTap = .inputMonitoringMissing
+      $0.hotkeyTap = .accessibilityMissing
       $0.recording.micStatus = .granted
       $0.engineReadiness = .compiling
     }
@@ -173,13 +174,9 @@ import Testing
           continuation.finish()
         }
       }
-      $0.hotkeyListener.hasInputMonitoringPermission = { false }
       $0.hotkeyListener.events = { AsyncStream { $0.finish() } }
       $0.microphonePermission.status = { .undetermined }
-      $0.delivery.hasPasteAccess = {
-        Issue.record("Accessibility must remain untouched before the IOHID request")
-        return false
-      }
+      $0.accessibilityPermission.hasPermission = { false }
       $0.onboardingCompletion.isCompleted = { false }
       $0.modelDownloadConsent.isConsented = { false }
       $0.sounds.loadIsEnabled = { false }
@@ -187,7 +184,7 @@ import Testing
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
     let permissions = OnboardingPermissionStatuses(
-      hasInputMonitoringPermission: false, microphoneStatus: .undetermined, hasPasteAccess: false,
+      microphoneStatus: .undetermined, hasAccessibilityPermission: false,
     )
     let facts = AppFeature.StartupFacts(
       onboardingCompleted: false, modelDownloadConsented: false, permissions: permissions,
@@ -199,7 +196,7 @@ import Testing
     )
 
     await store.send(.task)
-    await store.receive(.startupResolved(facts)) { $0.hotkeyTap = .inputMonitoringMissing }
+    await store.receive(.startupResolved(facts)) { $0.hotkeyTap = .accessibilityMissing }
     await store.receive(.onboarding(.present(snapshot))) {
       $0.onboarding.isPresented = true
       $0.onboarding.snapshot = snapshot
@@ -212,13 +209,14 @@ import Testing
     #expect(store.state.onboarding.step == .permissions)
 
     let granted = OnboardingPermissionStatuses(
-      hasInputMonitoringPermission: true, microphoneStatus: .granted, hasPasteAccess: true,
+      microphoneStatus: .granted, hasAccessibilityPermission: true,
     )
     await store.send(
       .onboarding(
         .permissionStatusesObserved(
-          OnboardingPermissionObservation(
-            hasInputMonitoringPermission: true, microphoneStatus: .granted, hasPasteAccess: true,
+          OnboardingPermissionStatuses(
+            microphoneStatus: .granted,
+            hasAccessibilityPermission: true,
           ),
         ),
       ),
@@ -229,13 +227,14 @@ import Testing
   @Test func `first run presents onboarding from resolved system state`() async {
     let (hotkeyEvents, hotkeyContinuation) = AsyncStream.makeStream(of: HotkeyListenerEvent.self)
     var state = AppFeature.State()
-    state.hotkeyTap = .inputMonitoringMissing
+    state.hotkeyTap = .accessibilityMissing
     state.recording.micStatus = .undetermined
     state.onboardingCompleted = false
     state.modelDownloadConsented = false
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
+      $0.accessibilityPermission.hasPermission = { true }
       $0.continuousClock = TestClock()
       $0.hotkeyListener.events = { hotkeyEvents }
       $0.modelDownloadConsent.markConsented = {}
@@ -243,8 +242,7 @@ import Testing
     }
     let snapshot = OnboardingSnapshot(
       permissions: OnboardingPermissionStatuses(
-        hasInputMonitoringPermission: false, microphoneStatus: .undetermined,
-        hasPasteAccess: false,
+        microphoneStatus: .undetermined, hasAccessibilityPermission: false,
       ),
       engineReadiness: .modelMissing, hasModelDownloadConsent: false, isCompleted: false,
     )
@@ -274,20 +272,21 @@ import Testing
 
     // Observed grants advance the flow in place when macOS exposes them to the running process.
     let granted = OnboardingPermissionStatuses(
-      hasInputMonitoringPermission: true, microphoneStatus: .granted, hasPasteAccess: true,
+      microphoneStatus: .granted, hasAccessibilityPermission: true,
     )
     await store.send(
       .onboarding(
         .permissionStatusesObserved(
-          OnboardingPermissionObservation(
-            hasInputMonitoringPermission: true, microphoneStatus: .granted, hasPasteAccess: true,
+          OnboardingPermissionStatuses(
+            microphoneStatus: .granted,
+            hasAccessibilityPermission: true,
           ),
         ),
       ),
     ) { $0.onboarding.snapshot.permissions = granted }
     await store.receive(.onboarding(.delegate(.permissionsUpdated(granted)))) {
       $0.hotkeyTap = .starting
-      $0.pasteAccessGranted = true
+      $0.accessibilityGranted = true
     }
     await store.receive(.recording(.micStatusUpdated(.granted))) {
       $0.recording.micStatus = .granted
@@ -306,7 +305,7 @@ import Testing
     state.onboarding.isPresented = true
     state.onboarding.snapshot = OnboardingSnapshot(
       permissions: OnboardingPermissionStatuses(
-        hasInputMonitoringPermission: true, microphoneStatus: .undetermined, hasPasteAccess: false,
+        microphoneStatus: .undetermined, hasAccessibilityPermission: false,
       ),
       engineReadiness: .modelMissing, hasModelDownloadConsent: true, isCompleted: false,
     )
@@ -430,90 +429,6 @@ import Testing
     await store.send(
       .transcriptionCompleted(2, suppressNoSpeechNotice: false, .transcript("stale")),
     )
-  }
-
-  @Test func `startup join does not probe paste access before input monitoring`() async {
-    let (micGate, micContinuation) = AsyncStream.makeStream(of: Void.self)
-    let (hotkeyEvents, hotkeyContinuation) = AsyncStream.makeStream(of: HotkeyListenerEvent.self)
-    let store = TestStore(initialState: AppFeature.State()) {
-      AppFeature()
-    } withDependencies: {
-      $0.hotkeyListener.hasInputMonitoringPermission = { false }
-      $0.hotkeyListener.events = { hotkeyEvents }
-      $0.microphonePermission.status = {
-        for await _ in micGate {
-          return .granted
-        }
-        return .granted
-      }
-      $0.audioCapture.prepare = {}
-      $0.asrEngine.prepareInstalled = {
-        AsyncStream { continuation in
-          continuation.yield(.modelMissing)
-          continuation.finish()
-        }
-      }
-      $0.asrEngine.installAndPrepare = { AsyncStream { $0.finish() } }
-      $0.delivery.hasPasteAccess = {
-        Issue.record("Accessibility must not be preflighted before Input Monitoring is requested")
-        return true
-      }
-      $0.onboardingCompletion.isCompleted = { false }
-      $0.modelDownloadConsent.isConsented = { false }
-      $0.sounds.loadIsEnabled = { false }
-      $0.continuousClock = TestClock()
-    }
-    store.exhaustivity = .off(showSkippedAssertions: false)
-
-    await store.send(.task)
-    await store.receive(.recording(.task))
-    micContinuation.yield(())
-    let facts = AppFeature.StartupFacts(
-      onboardingCompleted: false, modelDownloadConsented: false,
-      permissions: OnboardingPermissionStatuses(
-        hasInputMonitoringPermission: false, microphoneStatus: .granted, hasPasteAccess: false,
-      ),
-      engineReadiness: .modelMissing,
-    )
-    await store.receive(.startupResolved(facts)) {
-      $0.hotkeyTap = .inputMonitoringMissing
-      $0.recording.micStatus = .granted
-    }
-    await store.receive(
-      .onboarding(
-        .present(
-          OnboardingSnapshot(
-            permissions: facts.permissions, engineReadiness: .modelMissing,
-            hasModelDownloadConsent: false, isCompleted: false,
-          ),
-        ),
-      ),
-    ) {
-      $0.onboarding.isPresented = true
-      $0.onboarding.snapshot.permissions = facts.permissions
-      $0.onboarding.snapshot.engineReadiness = .modelMissing
-      $0.onboarding.isShowingWelcome = true
-    }
-    micContinuation.finish()
-
-    let granted = OnboardingPermissionStatuses(
-      hasInputMonitoringPermission: true, microphoneStatus: .granted, hasPasteAccess: true,
-    )
-    await store.send(
-      .onboarding(
-        .permissionStatusesObserved(
-          OnboardingPermissionObservation(
-            hasInputMonitoringPermission: true, microphoneStatus: .granted, hasPasteAccess: true,
-          ),
-        ),
-      ),
-    ) { $0.onboarding.snapshot.permissions = granted }
-    await store.receive(.onboarding(.delegate(.permissionsUpdated(granted)))) {
-      $0.hotkeyTap = .starting
-      $0.pasteAccessGranted = true
-    }
-    hotkeyContinuation.finish()
-    await store.finish()
   }
 
   @Test func `transcript delivery restores clipboard and commits`() async {

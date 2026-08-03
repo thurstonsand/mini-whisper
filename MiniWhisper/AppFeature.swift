@@ -16,14 +16,6 @@ private let performanceLogger = Logger(
 )
 private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
 
-private func canProbePasteAccess(
-  onboardingCompleted: Bool, hasInputMonitoringPermission: Bool,
-) -> Bool {
-  // AXIsProcessTrusted suppresses macOS's Keystroke Receiving dialog when queried before the IOHID
-  // request. Completed users and an existing IOHID grant have already crossed that boundary.
-  onboardingCompleted || hasInputMonitoringPermission
-}
-
 // MARK: - AppFeature
 
 @Reducer struct AppFeature {
@@ -43,12 +35,12 @@ private func canProbePasteAccess(
     var engineReadiness: EngineReadiness = .modelMissing
     var transcriptionGeneration = 0
     var soundsEnabled = false
-    var hotkeyTap = HotkeyTapStatus.starting
+    var hotkeyTap = HotkeyTapStatus.idle
     var inputDeviceName: String?
     var launchAtLoginRegistered = false
     var lastTranscript: String?
     var currentFocusedContext: ContextCapture?
-    var pasteAccessGranted = false
+    var accessibilityGranted = false
     var onboardingCompleted = false
     var modelDownloadConsented = false
 
@@ -62,7 +54,7 @@ private func canProbePasteAccess(
     var menuBar: MenuBarViewState {
       MenuBarViewState(
         hotkeyTap: hotkeyTap, micStatus: recording.micStatus,
-        pasteAccessGranted: pasteAccessGranted, engineReadiness: engineReadiness,
+        accessibilityGranted: accessibilityGranted, engineReadiness: engineReadiness,
         inputDeviceName: inputDeviceName, hasLastTranscript: lastTranscript != nil,
         soundsEnabled: soundsEnabled, launchAtLoginRegistered: launchAtLoginRegistered,
       )
@@ -72,6 +64,8 @@ private func canProbePasteAccess(
   enum Action: Equatable {
     case task
     case startupResolved(StartupFacts)
+    case applicationBecameActive
+    case accessibilityObserved(Bool)
     case recording(RecordingFeature.Action)
     case pill(PillFeature.Action)
     case onboarding(OnboardingFeature.Action)
@@ -100,6 +94,7 @@ private func canProbePasteAccess(
     case deliveryFailed(Int, String)
   }
 
+  @Dependency(\.accessibilityPermission) var accessibilityPermission
   @Dependency(\.asrEngine) var asrEngine
   @Dependency(\.audioCapture) var audioCapture
   @Dependency(\.contextCapture) var contextCapture
@@ -131,17 +126,13 @@ private func canProbePasteAccess(
       case let .startupResolved(facts):
         state.onboardingCompleted = facts.onboardingCompleted
         state.modelDownloadConsented = facts.modelDownloadConsented
-        state.pasteAccessGranted = facts.permissions.hasPasteAccess
         state.recording.micStatus = facts.permissions.microphoneStatus
         state.engineReadiness = facts.engineReadiness
-        state.hotkeyTap =
-          facts.permissions.hasInputMonitoringPermission ? .starting : .inputMonitoringMissing
         logEngineReadiness(facts.engineReadiness)
 
-        var effects: [Effect<Action>] = []
-        if facts.permissions.hasInputMonitoringPermission {
-          effects.append(listenForHotkeyEvents())
-        }
+        var effects = [
+          reconcileAccessibility(facts.permissions.hasAccessibilityPermission, &state),
+        ]
         if !facts.onboardingCompleted {
           effects.append(
             .send(
@@ -157,21 +148,23 @@ private func canProbePasteAccess(
           )
         }
         return .merge(effects)
-      case .hotkeyListenerEvent(.inputMonitoringPermissionMissing):
-        state.hotkeyTap = .inputMonitoringMissing
-        gestureLogger.error("Input Monitoring permission missing — grant in System Settings")
-        return .none
+      case .applicationBecameActive:
+        // Returning from System Settings is the moment a new grant becomes visible, and macOS
+        // never tells the app about it.
+        return .send(.accessibilityObserved(accessibilityPermission.hasPermission()))
+      case let .accessibilityObserved(granted):
+        return reconcileAccessibility(granted, &state)
+      case .hotkeyListenerEvent(.accessibilityPermissionMissing):
+        gestureLogger.error("Accessibility permission missing — grant in System Settings")
+        return reconcileAccessibility(false, &state)
       case .hotkeyListenerEvent(.monitoringStarted):
         state.hotkeyTap = .active
         gestureLogger.notice("Hotkey event tap installed")
         return .none
       case let .hotkeyListenerEvent(.monitoringInterrupted(reason)):
-        // Timeout and user-input disables are re-enabled in place; only invalidation kills the tap.
-        if reason == .invalidated {
-          state.hotkeyTap = .dead
-        }
         gestureLogger.error("Hotkey event tap interrupted: \(reason.rawValue, privacy: .public)")
-        return .none
+        // Timeout and user-input disables are re-enabled in place; only invalidation kills the tap.
+        return reason == .invalidated ? diagnoseTapLoss(&state) : .none
       case let .hotkeyListenerEvent(.gesture(event)):
         gestureLogger.notice("\(event.rawValue, privacy: .public)")
         guard state.canBeginDictation else {
@@ -223,30 +216,17 @@ private func canProbePasteAccess(
           )
         }
       case let .hotkeyListenerFailed(error):
-        state.hotkeyTap = .dead
         gestureLogger.error("Hotkey listener failed: \(error, privacy: .public)")
-        return .none
+        return diagnoseTapLoss(&state)
       case .hotkeyListenerFinished:
-        if state.hotkeyTap != .inputMonitoringMissing {
-          state.hotkeyTap = .dead
-          gestureLogger.error("Hotkey event stream ended; the tap is no longer listening")
-        }
-        return .none
+        gestureLogger.error("Hotkey event stream ended; the tap is no longer listening")
+        return diagnoseTapLoss(&state)
       case .menuWillOpen:
         state.inputDeviceName = audioCapture.currentInputDeviceName()
         state.launchAtLoginRegistered = launchAtLogin.isRegistered()
-        let hasInputMonitoringPermission = hotkeyListener.hasInputMonitoringPermission()
-        if canProbePasteAccess(
-          onboardingCompleted: state.onboardingCompleted,
-          hasInputMonitoringPermission: hasInputMonitoringPermission,
-        ) {
-          state.pasteAccessGranted = delivery.hasPasteAccess()
-        }
-        return .none
+        return reconcileAccessibility(accessibilityPermission.hasPermission(), &state)
       case .repairDegradedState:
         switch state.menuBar.repair {
-        case .openInputMonitoringSettings:
-          return open(SystemSettingsPane.inputMonitoring)
         case .openMicrophoneSettings:
           return open(SystemSettingsPane.microphone)
         case .restartHotkeyListening:
@@ -475,17 +455,10 @@ private func canProbePasteAccess(
       case let .onboarding(.delegate(.engineReadinessUpdated(readiness))):
         return .send(.engineReadinessUpdated(readiness))
       case let .onboarding(.delegate(.permissionsUpdated(permissions))):
-        state.pasteAccessGranted = permissions.hasPasteAccess
-        var effects = [
-          Effect<Action>.send(.recording(.micStatusUpdated(permissions.microphoneStatus))),
-        ]
-        if permissions.hasInputMonitoringPermission, state.hotkeyTap != .active,
-           state.hotkeyTap != .starting
-        {
-          state.hotkeyTap = .starting
-          effects.append(listenForHotkeyEvents())
-        }
-        return .merge(effects)
+        return .merge(
+          .send(.recording(.micStatusUpdated(permissions.microphoneStatus))),
+          reconcileAccessibility(permissions.hasAccessibilityPermission, &state),
+        )
       case .onboarding(.delegate(.completed)):
         state.onboardingCompleted = true
         return .none
@@ -536,6 +509,35 @@ private func canProbePasteAccess(
     }.cancellable(id: CancelID.delivery, cancelInFlight: true)
   }
 
+  /// The single place the Accessibility grant is turned into hotkey-listening state: every
+  /// observation of it — startup, onboarding, activation, the menu — lands here so a grant made
+  /// after setup starts the listener and a revocation stops it, without a relaunch either way.
+  private func reconcileAccessibility(_ granted: Bool, _ state: inout State) -> Effect<Action> {
+    state.accessibilityGranted = granted
+    guard granted else {
+      state.hotkeyTap = .accessibilityMissing
+      return .cancel(id: CancelID.hotkeyEvents)
+    }
+    guard state.hotkeyTap != .active, state.hotkeyTap != .starting else {
+      return .none
+    }
+    state.hotkeyTap = .starting
+    return listenForHotkeyEvents()
+  }
+
+  /// A revoked grant kills the tap exactly the way a genuine failure does. Only a live read tells
+  /// them apart, and only one of the two has a repair that can work.
+  private func diagnoseTapLoss(_ state: inout State) -> Effect<Action> {
+    let granted = accessibilityPermission.hasPermission()
+    state.accessibilityGranted = granted
+    guard granted else {
+      state.hotkeyTap = .accessibilityMissing
+      return .cancel(id: CancelID.hotkeyEvents)
+    }
+    state.hotkeyTap = .dead
+    return .none
+  }
+
   private func listenForHotkeyEvents() -> Effect<Action> {
     .run { send in
       do {
@@ -552,14 +554,8 @@ private func canProbePasteAccess(
     .run { send in
       let onboardingCompleted = onboardingCompletion.isCompleted()
       let modelDownloadConsented = modelDownloadConsent.isConsented()
-      let hasInputMonitoringPermission = hotkeyListener.hasInputMonitoringPermission()
+      let hasAccessibilityPermission = accessibilityPermission.hasPermission()
       async let microphoneStatus = microphonePermission.status()
-      let hasPasteAccess =
-        canProbePasteAccess(
-          onboardingCompleted: onboardingCompleted,
-          hasInputMonitoringPermission: hasInputMonitoringPermission,
-        )
-        ? delivery.hasPasteAccess() : false
 
       var readinessIterator = asrEngine.prepareInstalled().makeAsyncIterator()
       let engineReadiness = await readinessIterator.next() ?? .modelMissing
@@ -569,8 +565,8 @@ private func canProbePasteAccess(
             onboardingCompleted: onboardingCompleted,
             modelDownloadConsented: modelDownloadConsented,
             permissions: OnboardingPermissionStatuses(
-              hasInputMonitoringPermission: hasInputMonitoringPermission,
-              microphoneStatus: microphoneStatus, hasPasteAccess: hasPasteAccess,
+              microphoneStatus: microphoneStatus,
+              hasAccessibilityPermission: hasAccessibilityPermission,
             ),
             engineReadiness: engineReadiness,
           ),
@@ -585,8 +581,8 @@ private func canProbePasteAccess(
   private func onboardingSnapshot(_ state: State) -> OnboardingSnapshot {
     OnboardingSnapshot(
       permissions: OnboardingPermissionStatuses(
-        hasInputMonitoringPermission: hotkeyListener.hasInputMonitoringPermission(),
-        microphoneStatus: state.recording.micStatus, hasPasteAccess: state.pasteAccessGranted,
+        microphoneStatus: state.recording.micStatus,
+        hasAccessibilityPermission: state.accessibilityGranted,
       ),
       engineReadiness: state.engineReadiness,
       hasModelDownloadConsent: state.modelDownloadConsented || state.onboardingCompleted,

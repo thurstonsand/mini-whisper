@@ -16,11 +16,10 @@ The speech model is downloaded on first run and is not included in the app bundl
 
 ## Permissions
 
-Onboarding asks for three macOS permissions:
+Onboarding asks for two macOS permissions:
 
-- **Input Monitoring** lets MiniWhisper observe the right Option hotkey while another app is active.
 - **Microphone** lets it record speech for local transcription.
-- **Paste access** lets it send Command-V to the frontmost app. macOS manages this grant under Accessibility.
+- **Accessibility** covers the rest: watching for the right Option hotkey while another app is active, sending Command-V to the frontmost app, and reading the text around the insertion point.
 
 If automatic paste is unavailable, MiniWhisper leaves the transcript on the clipboard instead.
 

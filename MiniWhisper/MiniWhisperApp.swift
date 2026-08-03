@@ -29,9 +29,7 @@ import SwiftUI
   // MARK: Internal
 
   func applicationDidFinishLaunching(_: Notification) {
-    guard
-      agentScene != nil || ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil
-    else {
+    guard isDrivingTheRealApp else {
       return
     }
 
@@ -75,6 +73,15 @@ import SwiftUI
     }
   }
 
+  /// A grant made in System Settings is invisible to a running app, so returning to MiniWhisper is
+  /// the moment to look again.
+  func applicationDidBecomeActive(_: Notification) {
+    guard isDrivingTheRealApp, agentScene == nil else {
+      return
+    }
+    store.send(.applicationBecameActive)
+  }
+
   // MARK: Private
 
   private let logger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "lifecycle")
@@ -88,4 +95,8 @@ import SwiftUI
   private var pillPanelController: PillPanelController!
   private var onboardingWindowController: OnboardingWindowController!
   private var agentSceneDriver: AgentDriveabilitySceneDriver?
+
+  private var isDrivingTheRealApp: Bool {
+    agentScene != nil || ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil
+  }
 }
