@@ -4,9 +4,9 @@ import Foundation
 public actor LocalASREngine {
   // MARK: Lifecycle
 
-  public init(gateConfiguration: GateConfiguration = .calibrated) {
+  public init(modelRoot: URL, gateConfiguration: GateConfiguration = .calibrated) {
     self.gateConfiguration = gateConfiguration
-    modelStore = PinnedModelStore()
+    modelStore = PinnedModelStore(root: modelRoot)
   }
 
   init(gateConfiguration: GateConfiguration, modelStore: PinnedModelStore) {
@@ -15,8 +15,6 @@ public actor LocalASREngine {
   }
 
   // MARK: Public
-
-  public static let shared = LocalASREngine()
 
   public nonisolated func prepareInstalled() -> AsyncStream<EngineReadiness> {
     AsyncStream { continuation in

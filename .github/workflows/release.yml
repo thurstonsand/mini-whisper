@@ -46,7 +46,7 @@ jobs:
             base_version="${major#v}.${minor}.$((patch + 1))"
 
             short_sha="${GITHUB_SHA::7}"
-            archive_version="${base_version}-dev-${GITHUB_RUN_ID}-${short_sha}"
+            archive_version="${base_version}-nightly-${GITHUB_RUN_ID}-${short_sha}"
             release_tag="nightly-${archive_version}"
           fi
 
@@ -131,6 +131,7 @@ jobs:
       - name: Build release archive
         env:
           RELEASE_VERSION: ${{ needs.resolve.outputs.archive_version }}
+          RELEASE_CHANNEL: ${{ github.ref_type == 'tag' && 'release' || 'nightly' }}
           CODESIGN_IDENTITY: ${{ secrets.APPLE_CODESIGN_IDENTITY }}
         run: scripts/build-release-archive.sh
 
@@ -242,13 +243,13 @@ jobs:
             cask="homebrew-tap/Casks/mini-whisper.rb"
             token="mini-whisper"
             cask_version="${RELEASE_REF_NAME#v}"
-            conflict_cask="mini-whisper-nightly"
+            app_name="MiniWhisper"
             livecheck=""
           else
             cask="homebrew-tap/Casks/mini-whisper-nightly.rb"
             token="mini-whisper-nightly"
             cask_version="${ASSET_VERSION}"
-            conflict_cask="mini-whisper"
+            app_name="MiniWhisper Nightly"
             livecheck=$'\n  livecheck do\n    skip "Nightly builds are published from main."\n  end\n'
           fi
 
@@ -261,18 +262,17 @@ jobs:
             sha256 "${arm64_sha}"
 
             url "https://github.com/thurstonsand/mini-whisper/releases/download/${RELEASE_TAG}/MiniWhisper_${ASSET_VERSION}_darwin_arm64.zip"
-            name "MiniWhisper"
+            name "${app_name}"
             desc "Local speech-to-text dictation"
             homepage "https://github.com/thurstonsand/mini-whisper"
           ${livecheck}
-            conflicts_with cask: "${conflict_cask}"
             depends_on arch: :arm64
             depends_on macos: :sonoma
 
-            app "MiniWhisper.app"
+            app "${app_name}.app"
 
             # This also removes the downloaded speech model.
-            zap trash: "~/Library/Application Support/MiniWhisper"
+            zap trash: "~/Library/Application Support/${app_name}"
           end
           EOF
 

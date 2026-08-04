@@ -113,7 +113,12 @@ private final class EventTapSession: @unchecked Sendable {
     let mask = [
       CGEventType.flagsChanged, .keyDown, .keyUp, .leftMouseDown, .rightMouseDown, .otherMouseDown,
     ].reduce(CGEventMask(0)) { mask, type in mask | (CGEventMask(1) << type.rawValue) }
-    let options: CGEventTapOptions = hotkey.keyCode == nil ? .listenOnly : .defaultTap
+    // The tap option decides which permission macOS checks: `.listenOnly` is gated on Input
+    // Monitoring, `.defaultTap` on Accessibility. macOS 26 refuses to prompt for Input Monitoring
+    // at all, and MiniWhisper already requires Accessibility for the paste and the field read, so
+    // every binding takes the modifying tap. Modification stays permitted, not obligatory: the
+    // matcher suppresses a keyed hotkey's trigger and passes modifier-only bindings through.
+    let options: CGEventTapOptions = .defaultTap
 
     guard
       let eventTap = CGEvent.tapCreate(

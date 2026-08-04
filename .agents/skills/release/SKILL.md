@@ -14,7 +14,7 @@ Use this skill when preparing or publishing a MiniWhisper release.
 - Assume the release starts from a stable committed state. Do not repeat verification the user already performed.
 - Do not push the stable tag until the user explicitly approves stable publishing.
 - Stable releases are `vX.Y.Z` tags; release notes come from the matching `RELEASE.md` section.
-- Binary nightly releases are unique prereleases named `nightly-<version>-dev-<run>-<sha>`, using the latest stable version as their base.
+- Binary nightly releases are unique prereleases named `nightly-<version>-nightly-<run>-<sha>`, using the latest stable version as their base.
 - Stable tags are immutable. Never force-push a stable release tag.
 
 ## Release channels
@@ -26,7 +26,7 @@ One workflow (`.github/workflows/release.yml`) fans out into two surfaces:
 | GitHub release archives | `vX.Y.Z` tag or `main` push | Signed/notarized/stapled arm64 `MiniWhisper_<version>_darwin_arm64.zip`                         |
 | Homebrew tap casks      | Same run                    | `thurstonsand/homebrew-tap` `Casks/mini-whisper.rb` (stable) or `Casks/mini-whisper-nightly.rb` |
 
-The stable and nightly casks conflict with each other; installing one uninstalls the other.
+A tag builds the Release configuration into `MiniWhisper.app`; a `main` push builds the Nightly configuration into `MiniWhisper Nightly.app`. They are separate apps with separate bundle identifiers, TCC grants, and application support directories, so both casks can be installed at once.
 
 ## 1. Inspect release state
 
@@ -121,4 +121,4 @@ brew update
 brew install thurstonsand/tap/mini-whisper
 ```
 
-Confirm the installed app launches, passes Gatekeeper (`spctl -a -vv /Applications/MiniWhisper.app`), and reports the released version in the About panel.
+Confirm the installed app launches, passes Gatekeeper (`spctl -a -vv /Applications/MiniWhisper.app`), and reports the released version in the About panel. The nightly cask installs `/Applications/MiniWhisper Nightly.app` and is verified the same way.

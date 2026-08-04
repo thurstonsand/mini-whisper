@@ -11,8 +11,8 @@ import ComposableArchitecture
     super.init()
 
     statusItem.button?.setAccessibilityIdentifier(AccessibilityID.menuStatusItem)
-    statusItem.button?.setAccessibilityLabel("MiniWhisper")
-    statusItem.button?.setAccessibilityHelp("Open the MiniWhisper menu")
+    statusItem.button?.setAccessibilityLabel(Channel.name)
+    statusItem.button?.setAccessibilityHelp("Open the \(Channel.name) menu")
     menu.autoenablesItems = false
     menu.delegate = self
     statusItem.menu = menu
@@ -65,7 +65,7 @@ import ComposableArchitecture
       return
     }
     renderedIconSymbolName = symbolName
-    let image = NSImage(systemSymbolName: symbolName, accessibilityDescription: "MiniWhisper")
+    let image = NSImage(systemSymbolName: symbolName, accessibilityDescription: Channel.name)
     image?.isTemplate = true
     statusItem.button?.image = image
   }
@@ -125,13 +125,13 @@ import ComposableArchitecture
     menu.addItem(.separator())
     menu.addItem(
       item(
-        title: "About MiniWhisper", identifier: AccessibilityID.menuAbout,
-        label: "About MiniWhisper", action: #selector(showAbout),
+        title: "About \(Channel.name)", identifier: AccessibilityID.menuAbout,
+        label: "About \(Channel.name)", action: #selector(showAbout),
       ),
     )
 
     let quitItem = item(
-      title: "Quit", identifier: AccessibilityID.menuQuit, label: "Quit MiniWhisper",
+      title: "Quit", identifier: AccessibilityID.menuQuit, label: "Quit \(Channel.name)",
       action: #selector(NSApplication.terminate(_:)),
     )
     quitItem.target = nil

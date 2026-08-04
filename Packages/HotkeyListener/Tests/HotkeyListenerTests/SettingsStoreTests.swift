@@ -119,12 +119,6 @@ struct SettingsStoreTests {
     }
   }
 
-  @Test func `default location matches documented application support path`() {
-    let suffix = "Library/Application Support/MiniWhisper/settings.json"
-
-    #expect(SettingsStore.defaultFileURL.path.hasSuffix(suffix))
-  }
-
   // MARK: Private
 
   private func temporarySettingsURL() -> URL {

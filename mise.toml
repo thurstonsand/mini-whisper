@@ -8,10 +8,10 @@ HK_MISE = "1"
 SCHEME = "MiniWhisper"
 DEST = "platform=macOS,arch=arm64"
 DERIVED_DATA = ".build/DerivedData"
-APP_PATH = "{{ env.DERIVED_DATA }}/Build/Products/Debug/{{ env.SCHEME }}.app"
-# Debug builds carry their own bundle identifier so their TCC grants are independent of an
-# installed release build; the OSLog subsystem stays shared so `mise run logs` covers both.
-DEV_BUNDLE_ID = "com.thurstonsand.MiniWhisper.dev"
+APP_PATH = "{{ env.DERIVED_DATA }}/Build/Products/Debug/MiniWhisper Dev.app"
+# Each channel is its own app: its own bundle identifier, so TCC grants never overlap, and its
+# own application support directory, so settings, onboarding markers, and the engine model never
+# overlap either. The OSLog subsystem stays shared so `mise run logs` covers all three.
 
 [settings]
 experimental = true
@@ -68,11 +68,11 @@ run = "mkdir -p .build && log stream --style compact --level info --predicate 's
 [tasks.mw]
 description = "Build and run the app"
 depends = ["build"]
-run = "open $APP_PATH"
+run = 'open "$APP_PATH"'
 
 [tasks.mw-fresh]
 description = "Build and run fresh; set FRESH_MODEL=1 to delete the speech model too"
-depends = ["reset-permissions", "mw"]
+depends = ["reset dev", "mw"]
 
 
 [tasks.test]
@@ -170,25 +170,41 @@ run = [
 
 # === Maintenance ===
 
-[tasks.reset-permissions]
-description = "Reset the Debug build's TCC permissions and onboarding; an installed release build is left alone"
+[tasks.reset]
+description = "Reset one channel's TCC grants and setup state"
 dir = "{{ config_root }}"
-run = [
-    # Both builds run an executable named MiniWhisper, so this compares full executable paths
-    # rather than matching a pattern: an installed release build must survive.
-    '''
-    for pid in $(pgrep -x "$SCHEME" || true); do
-        [ "$(ps -ww -o comm= -p "$pid")" = "$PWD/$APP_PATH/Contents/MacOS/$SCHEME" ] && kill "$pid"
-    done
-    true
-    ''',
-    "tccutil reset Microphone $DEV_BUNDLE_ID",
-    "tccutil reset Accessibility $DEV_BUNDLE_ID",
-    "tccutil reset PostEvent $DEV_BUNDLE_ID",
-    'rm -f "$HOME/Library/Application Support/MiniWhisper/onboarding-completed"',
-    'rm -f "$HOME/Library/Application Support/MiniWhisper/model-download-consented"',
-    'if [ "${FRESH_MODEL:-0}" = "1" ]; then rm -rf "$HOME/Library/Application Support/MiniWhisper/Engine/pinned-v1" "$HOME/Library/Application Support/MiniWhisper/Engine/pinned-v1.partial"; fi',
-]
+usage = '''
+arg "[channel]" help="Channel to reset" default="dev" {
+    choices "dev" "nightly" "release"
+}
+'''
+run = '''
+channel="${usage_channel?}"
+case "$channel" in
+    dev)     app="MiniWhisper Dev";     bundle="com.thurstonsand.MiniWhisper.dev" ;;
+    nightly) app="MiniWhisper Nightly"; bundle="com.thurstonsand.MiniWhisper.nightly" ;;
+    release) app="MiniWhisper";         bundle="com.thurstonsand.MiniWhisper" ;;
+    *) echo "unknown channel '$channel'; expected dev, nightly, or release" >&2; exit 1 ;;
+esac
+
+# Each channel's executable is named for its channel, so this can never reach a sibling.
+pkill -x "$app" || true
+
+tccutil reset Microphone "$bundle"
+tccutil reset Accessibility "$bundle"
+tccutil reset PostEvent "$bundle"
+# The app has not asked for Input Monitoring since the tap became a modifying tap. Clearing it
+# anyway keeps a grant from the listen-only era from ever masking a missing Accessibility grant.
+tccutil reset ListenEvent "$bundle"
+
+support="$HOME/Library/Application Support/$app"
+rm -f "$support/onboarding-completed" "$support/model-download-consented"
+if [ "${FRESH_MODEL:-0}" = "1" ]; then
+    rm -rf "$support/Engine/pinned-v1" "$support/Engine/pinned-v1.partial"
+fi
+
+echo "reset $channel ($bundle)"
+'''
 
 [tasks.clean]
 description = "Remove build artifacts"

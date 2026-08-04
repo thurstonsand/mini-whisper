@@ -23,12 +23,15 @@ import ComposableArchitecture
 // MARK: DependencyKey
 
 extension ASREngineClient: DependencyKey {
-  static let liveValue = Self(
-    prepareInstalled: { LocalASREngine.shared.prepareInstalled() },
-    installAndPrepare: { LocalASREngine.shared.installAndPrepare() },
-    prepareForActivation: { LocalASREngine.shared.prepareInstalled() },
-    submit: { recording in try await LocalASREngine.shared.submit(recording.samples) },
-  )
+  static let liveValue: Self = {
+    let engine = LocalASREngine(modelRoot: Channel.engineRoot)
+    return Self(
+      prepareInstalled: { engine.prepareInstalled() },
+      installAndPrepare: { engine.installAndPrepare() },
+      prepareForActivation: { engine.prepareInstalled() },
+      submit: { recording in try await engine.submit(recording.samples) },
+    )
+  }()
 }
 
 extension DependencyValues {

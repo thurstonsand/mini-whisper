@@ -46,13 +46,8 @@ extension DependencyValues {
   }
 }
 
-private let applicationSupportURL = FileManager.default.urls(
-  for: .applicationSupportDirectory, in: .userDomainMask,
-)[0].appending(
-  path: "MiniWhisper", directoryHint: .isDirectory,
-)
-private let markerURL = applicationSupportURL.appending(path: "onboarding-completed")
-private let consentMarkerURL = applicationSupportURL.appending(path: "model-download-consented")
+private let markerURL = Channel.onboardingMarker
+private let consentMarkerURL = Channel.modelDownloadConsentMarker
 
 private func writeMarker(at url: URL) throws {
   try FileManager.default.createDirectory(

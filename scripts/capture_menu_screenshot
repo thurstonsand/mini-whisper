@@ -2,17 +2,19 @@
 set -euo pipefail
 
 output="${1:-menu_screenshot.png}"
+# Each channel runs an executable named for itself; the dev build is the one worth screenshotting.
+app="${MW_APP:-MiniWhisper Dev}"
 # Ensure absolute path for output so AppleScript handles it correctly
 output_abs="$(cd "$(dirname "$output")" && pwd)/$(basename "$output")"
 
 osascript -e '
 tell application "System Events"
-    tell process "MiniWhisper"
+    tell process "'"$app"'"
         -- Find strictly by identifier
         try
-            set targetItem to (first menu bar item of menu bar 2 whose value of attribute "AXIdentifier" is "MiniWhisperStatusItem")
+            set targetItem to (first menu bar item of menu bar 2 whose value of attribute "AXIdentifier" is "miniwhisper.menu.status-item")
         on error
-            error "Could not find MiniWhisper status item. Ensure the app is running."
+            error "Could not find the '"$app"' status item. Ensure the app is running."
         end try
 
         click targetItem

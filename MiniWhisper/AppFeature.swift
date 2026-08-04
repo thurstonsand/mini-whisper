@@ -281,7 +281,7 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
         menuLogger.error("Launch at login change failed: \(message, privacy: .public)")
         return .none
       case .openSettingsFile:
-        return open(SettingsStore.defaultFileURL)
+        return open(Channel.settingsFile)
       case let .workspaceOpenFailed(message):
         menuLogger.error("Opening a menu destination failed: \(message, privacy: .public)")
         return .none
@@ -426,7 +426,7 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
         switch fallback {
         case .accessibilityPermissionMissing:
           deliveryLogger.error(
-            "Accessibility permission missing — grant MiniWhisper in System Settings > Privacy & Security > Accessibility",
+            "Accessibility permission missing — grant \(Channel.name) in System Settings > Privacy & Security > Accessibility",
           )
         case .secureInput:
           deliveryLogger.notice("Secure input is active; transcript kept on clipboard")

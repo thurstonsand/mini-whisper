@@ -3,11 +3,23 @@ set -euo pipefail
 
 version="${RELEASE_VERSION:-$(git describe --tags --always --dirty)}"
 version="${version#v}"
+
+# The channel decides which app this is: its configuration, its name, and therefore its bundle
+# identifier and its application support directory. The archive keeps one name for both because
+# a nightly version string already says so.
+channel="${RELEASE_CHANNEL:-release}"
+case "${channel}" in
+  release) configuration="Release"; app_name="MiniWhisper" ;;
+  nightly) configuration="Nightly"; app_name="MiniWhisper Nightly" ;;
+  *) echo "unknown RELEASE_CHANNEL '${channel}'; expected release or nightly" >&2; exit 1 ;;
+esac
+
 name="MiniWhisper_${version}_darwin_arm64"
 work_dir=".build/release"
 derived_data="${work_dir}/DerivedData"
-built_app="${derived_data}/Build/Products/Release/MiniWhisper.app"
-app_path="${work_dir}/MiniWhisper.app"
+built_app="${derived_data}/Build/Products/${configuration}/${app_name}.app"
+app_path="${work_dir}/${app_name}.app"
+notary_archive="${work_dir}/MiniWhisper-notarization.zip"
 archive="dist/${name}.zip"
 plist="${app_path}/Contents/Info.plist"
 
@@ -24,7 +36,7 @@ mkdir -p dist "${work_dir}"
 # produce a byte-for-byte size match with the archived product.
 xcodebuild \
   -scheme MiniWhisper \
-  -configuration Release \
+  -configuration "${configuration}" \
   -destination "generic/platform=macOS" \
   -derivedDataPath "${derived_data}" \
   -skipMacroValidation \
@@ -40,7 +52,7 @@ xcodebuild \
   build
 
 /usr/bin/ditto "${built_app}" "${app_path}"
-/usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName MiniWhisper" "${plist}"
+/usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName ${app_name}" "${plist}"
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${version}" "${plist}"
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${version}" "${plist}"
 
@@ -62,7 +74,6 @@ if [[ -n "${APPLE_NOTARY_KEY_PATH:-}${APPLE_NOTARY_KEY_ID:-}${APPLE_NOTARY_ISSUE
   : "${APPLE_NOTARY_KEY_ID:?APPLE_NOTARY_KEY_ID is required for notarization}"
   : "${APPLE_NOTARY_ISSUER_ID:?APPLE_NOTARY_ISSUER_ID is required for notarization}"
 
-  notary_archive="${work_dir}/MiniWhisper-notarization.zip"
   /usr/bin/ditto -c -k --sequesterRsrc --keepParent "${app_path}" "${notary_archive}"
   xcrun notarytool submit "${notary_archive}" \
     --key "${APPLE_NOTARY_KEY_PATH}" \
@@ -75,4 +86,4 @@ fi
 
 /usr/bin/ditto -c -k --sequesterRsrc --keepParent "${app_path}" "${archive}"
 (cd dist && shasum -a 256 "${name}.zip" > "${name}.zip.sha256")
-rm -rf "${app_path}" "${work_dir}/MiniWhisper-notarization.zip"
+rm -rf "${app_path}" "${notary_archive}"

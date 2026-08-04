@@ -18,14 +18,14 @@ import SwiftUI
       contentRect: .zero, styleMask: [.titled, .closable, .fullSizeContentView], backing: .buffered,
       defer: false,
     )
-    window.title = "About MiniWhisper"
+    window.title = "About \(Channel.name)"
     window.titlebarAppearsTransparent = true
     window.titleVisibility = .hidden
     window.isReleasedWhenClosed = false
     window.collectionBehavior = [.moveToActiveSpace]
     window.setAccessibilityIdentifier(AccessibilityID.aboutWindow)
-    window.setAccessibilityLabel("About MiniWhisper")
-    window.setAccessibilityTitle("About MiniWhisper")
+    window.setAccessibilityLabel("About \(Channel.name)")
+    window.setAccessibilityTitle("About \(Channel.name)")
     window.contentView = NSHostingView(rootView: AboutView { [weak self] in self?.window?.close() })
     window.setContentSize(NSSize(width: 480, height: 440))
     window.center()
@@ -57,13 +57,13 @@ private struct AboutView: View {
         .resizable()
         .frame(width: 80, height: 80)
         .accessibilityIdentifier(AccessibilityID.aboutIcon)
-        .accessibilityLabel("MiniWhisper icon")
-      Text("MiniWhisper")
+        .accessibilityLabel("\(Channel.name) icon")
+      Text(Channel.name)
         .font(.system(size: 26, weight: .semibold))
         .padding(.top, 12)
         .accessibilityIdentifier(AccessibilityID.aboutAppName)
         .accessibilityLabel("Application")
-        .accessibilityValue("MiniWhisper")
+        .accessibilityValue(Channel.name)
       Text(version)
         .font(.system(size: 12))
         .foregroundStyle(.secondary)
@@ -93,7 +93,7 @@ private struct AboutView: View {
 
         Divider().padding(.vertical, 5).accessibilityHidden(true)
 
-        Text("MiniWhisper uses FluidAudio, licensed under the Apache License 2.0.")
+        Text("\(Channel.name) uses FluidAudio, licensed under the Apache License 2.0.")
           .fixedSize(
             horizontal: false, vertical: true,
           )
@@ -121,11 +121,11 @@ private struct AboutView: View {
         .accessibilityIdentifier(
           AccessibilityID.aboutClose,
         )
-        .accessibilityLabel("Close About MiniWhisper")
+        .accessibilityLabel("Close About \(Channel.name)")
     }
     .accessibilityElement(children: .contain)
     .accessibilityIdentifier(AccessibilityID.aboutContent)
-    .accessibilityLabel("About MiniWhisper")
+    .accessibilityLabel("About \(Channel.name)")
     .padding(.horizontal, 42)
     .padding(.vertical, 32)
     .frame(width: 480, height: 440)

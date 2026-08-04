@@ -26,8 +26,10 @@ enum SoundCue: Equatable {
 
 extension SoundsClient: DependencyKey {
   static let liveValue = Self(
-    loadIsEnabled: { try SettingsStore().load().soundsEnabled },
-    setIsEnabled: { enabled in try SettingsStore().saveSoundsEnabled(enabled) },
+    loadIsEnabled: { try SettingsStore(fileURL: Channel.settingsFile).load().soundsEnabled },
+    setIsEnabled: { enabled in
+      try SettingsStore(fileURL: Channel.settingsFile).saveSoundsEnabled(enabled)
+    },
     play: { cue in await SystemSounds.play(cue) },
   )
 }

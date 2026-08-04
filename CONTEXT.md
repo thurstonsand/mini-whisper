@@ -14,7 +14,8 @@
 - The pill: the bottom-center HUD panel that owns all dictation-time state (recording, latch, transcribing, transient notices). Success is its disappearance.
 - Degraded: a failure state represented in the menu bar — missing Accessibility, blocked microphone, a dead event tap, or an uninstalled/failed model.
 - Onboarding: the app's only modal flow — welcome, sequential permissions, model download/compile/prewarm, and one real try-it dictation; the welcome button records bandwidth consent and starts a durable background download that resumes across relaunches.
-- Settings file: `~/Library/Application Support/MiniWhisper/settings.json`, the human-editable settings surface until the settings UI stake lands.
+- Channel: one of the three apps this project builds — dev, nightly, release. Each is its own bundle identifier, its own name in System Settings, and its own application support directory, so grants and state never cross.
+- Settings file: `settings.json` in the running channel's application support directory (`~/Library/Application Support/MiniWhisper/` for release), the human-editable settings surface until the settings UI stake lands.
 - Field context: the text around the insertion point of the focused field.
 - Cleanup pass: the optional post-transcription LLM pass, talking to a configurable OpenAI-compatible endpoint.
 - The allowlist: A list of permitted software/libraries.

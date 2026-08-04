@@ -11,9 +11,9 @@ import SwiftUI
       contentRect: .zero, styleMask: [.titled, .fullSizeContentView], backing: .buffered,
       defer: false,
     )
-    window.title = "Set Up MiniWhisper"
+    window.title = "Set Up \(Channel.name)"
     window.setAccessibilityIdentifier(AccessibilityID.onboardingWindow)
-    window.setAccessibilityLabel("Set Up MiniWhisper")
+    window.setAccessibilityLabel("Set Up \(Channel.name)")
     window.setAccessibilityTitle("Set Up MiniWhisper")
     window.titlebarAppearsTransparent = true
     window.titleVisibility = .hidden

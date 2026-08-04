@@ -5,6 +5,8 @@ import XCTest
 /// UI tests only ever drive the Debug product, which keeps its own bundle identifier so that its
 /// permission grants never collide with an installed release build.
 private let debugBundleIdentifier = "com.thurstonsand.MiniWhisper.dev"
+/// UI tests drive the dev channel, and user-facing chrome names the running channel.
+private let appName = "MiniWhisper Dev"
 
 // MARK: - MiniWhisperUITests
 
@@ -19,10 +21,10 @@ final class MiniWhisperUITests: XCTestCase {
     try assertManifest(
       scene: "onboarding-welcome",
       elements: [
-        contract(.window, "miniwhisper.onboarding.window", "Set Up MiniWhisper"),
-        contract(.group, "miniwhisper.onboarding.welcome", "Welcome to MiniWhisper"),
+        contract(.window, "miniwhisper.onboarding.window", "Set Up \(appName)"),
+        contract(.group, "miniwhisper.onboarding.welcome", "Welcome to \(appName)"),
         contract(
-          .staticText, "miniwhisper.onboarding.welcome.title", "Application name", "MiniWhisper",
+          .staticText, "miniwhisper.onboarding.welcome.title", "Application name", appName,
         ),
         contract(
           .staticText, "miniwhisper.onboarding.welcome.summary", "Welcome summary",
@@ -70,7 +72,7 @@ final class MiniWhisperUITests: XCTestCase {
     try assertManifest(
       scene: "onboarding-try-it",
       elements: onboardingRail(["Complete", "Complete", "Current"]) + [
-        contract(.group, "miniwhisper.onboarding.try-it", "Try MiniWhisper"),
+        contract(.group, "miniwhisper.onboarding.try-it", "Try \(appName)"),
         contract(
           .staticText, "miniwhisper.onboarding.try-it.title", "Try it heading", "Give it a try",
         ),
@@ -95,7 +97,7 @@ final class MiniWhisperUITests: XCTestCase {
     try assertManifest(
       scene: "onboarding-ready",
       elements: onboardingRail(["Complete", "Complete", "Complete"]) + [
-        contract(.group, "miniwhisper.onboarding.ready", "MiniWhisper is ready"),
+        contract(.group, "miniwhisper.onboarding.ready", "\(appName) is ready"),
         contract(.staticText, "miniwhisper.onboarding.ready.title", "Setup status", "Ready"),
         contract(
           .staticText, "miniwhisper.onboarding.ready.summary", "Ready instructions",
@@ -138,11 +140,11 @@ final class MiniWhisperUITests: XCTestCase {
           isActionable: true,
         ),
         contract(
-          .menuItem, "miniwhisper.menu.about", "About MiniWhisper", isEnabled: true,
+          .menuItem, "miniwhisper.menu.about", "About \(appName)", isEnabled: true,
           isActionable: true,
         ),
         contract(
-          .menuItem, "miniwhisper.menu.quit", "Quit MiniWhisper", isEnabled: true,
+          .menuItem, "miniwhisper.menu.quit", "Quit \(appName)", isEnabled: true,
           isActionable: true,
         ),
       ],
@@ -177,11 +179,11 @@ final class MiniWhisperUITests: XCTestCase {
           isActionable: true,
         ),
         contract(
-          .menuItem, "miniwhisper.menu.about", "About MiniWhisper", isEnabled: true,
+          .menuItem, "miniwhisper.menu.about", "About \(appName)", isEnabled: true,
           isActionable: true,
         ),
         contract(
-          .menuItem, "miniwhisper.menu.quit", "Quit MiniWhisper", isEnabled: true,
+          .menuItem, "miniwhisper.menu.quit", "Quit \(appName)", isEnabled: true,
           isActionable: true,
         ),
       ],
@@ -192,10 +194,10 @@ final class MiniWhisperUITests: XCTestCase {
     try assertManifest(
       scene: "about",
       elements: [
-        contract(.window, "miniwhisper.about.window", "About MiniWhisper"),
-        contract(.group, "miniwhisper.about.content", "About MiniWhisper"),
-        contract(.image, "miniwhisper.about.icon", "MiniWhisper icon"),
-        contract(.staticText, "miniwhisper.about.app-name", "Application", "MiniWhisper"),
+        contract(.window, "miniwhisper.about.window", "About \(appName)"),
+        contract(.group, "miniwhisper.about.content", "About \(appName)"),
+        contract(.image, "miniwhisper.about.icon", "\(appName) icon"),
+        contract(.staticText, "miniwhisper.about.app-name", "Application", appName),
         contract(
           .staticText, "miniwhisper.about.version", "Version",
           valuePattern: #"^Version [0-9]+\.[0-9]+(?:\.[0-9]+)? \([0-9]+\)$"#,
@@ -217,7 +219,7 @@ final class MiniWhisperUITests: XCTestCase {
           isEnabled: true, isActionable: true,
         ),
         contract(
-          .button, "miniwhisper.about.close", "Close About MiniWhisper", isEnabled: true,
+          .button, "miniwhisper.about.close", "Close About \(appName)", isEnabled: true,
           isActionable: true,
         ),
       ],
@@ -228,7 +230,7 @@ final class MiniWhisperUITests: XCTestCase {
     try assertManifest(
       scene: "pill-recording",
       elements: [
-        contract(.dialog, "miniwhisper.pill", "MiniWhisper dictation", "Visible"),
+        contract(.dialog, "miniwhisper.pill", "\(appName) dictation", "Visible"),
         contract(.staticText, "miniwhisper.pill.phase", "Dictation phase", "Recording"),
         contract(.staticText, "miniwhisper.pill.capture-status", "Capture status", "Live"),
         contract(.staticText, "miniwhisper.pill.input-device", "Input device", "Test Microphone"),
@@ -243,14 +245,14 @@ final class MiniWhisperUITests: XCTestCase {
     try assertManifest(
       scene: "pill-transcribing",
       elements: [
-        contract(.dialog, "miniwhisper.pill", "MiniWhisper dictation", "Visible"),
+        contract(.dialog, "miniwhisper.pill", "\(appName) dictation", "Visible"),
         contract(.staticText, "miniwhisper.pill.phase", "Dictation phase", "Transcribing"),
       ],
     )
     try assertManifest(
       scene: "pill-no-speech",
       elements: [
-        contract(.dialog, "miniwhisper.pill", "MiniWhisper dictation", "Visible"),
+        contract(.dialog, "miniwhisper.pill", "\(appName) dictation", "Visible"),
         contract(.staticText, "miniwhisper.pill.phase", "Dictation phase", "No speech detected"),
         contract(.staticText, "miniwhisper.pill.notice", "Dictation notice", "No speech detected"),
       ],
@@ -258,7 +260,7 @@ final class MiniWhisperUITests: XCTestCase {
     try assertManifest(
       scene: "pill-copied",
       elements: [
-        contract(.dialog, "miniwhisper.pill", "MiniWhisper dictation", "Visible"),
+        contract(.dialog, "miniwhisper.pill", "\(appName) dictation", "Visible"),
         contract(.staticText, "miniwhisper.pill.phase", "Dictation phase", "Copied"),
         contract(
           .staticText, "miniwhisper.pill.notice", "Dictation notice", "Copied — ⌘V to paste",
@@ -346,7 +348,7 @@ final class MiniWhisperUITests: XCTestCase {
     defer { terminate(app) }
     let statusItem = app.statusItems["miniwhisper.menu.status-item"]
     XCTAssertTrue(statusItem.waitForExistence(timeout: 5), file: file, line: line)
-    XCTAssertEqual(statusItem.label, "MiniWhisper", file: file, line: line)
+    XCTAssertEqual(statusItem.label, appName, file: file, line: line)
     XCTAssertTrue(statusItem.isEnabled, file: file, line: line)
     XCTAssertTrue(
       statusItem.isHittable, "Status item is hidden by menu bar overflow.", file: file, line: line,
@@ -510,9 +512,9 @@ final class MiniWhisperUITests: XCTestCase {
 
   private func onboardingRail(_ values: [String]) -> [AccessibilityContract] {
     [
-      contract(.window, "miniwhisper.onboarding.window", "Set Up MiniWhisper"),
+      contract(.window, "miniwhisper.onboarding.window", "Set Up \(appName)"),
       contract(.group, "miniwhisper.onboarding.rail", "Setup steps"),
-      contract(.staticText, "miniwhisper.onboarding.rail.brand", "Application name", "MiniWhisper"),
+      contract(.staticText, "miniwhisper.onboarding.rail.brand", "Application name", appName),
       contract(
         .staticText, "miniwhisper.onboarding.rail.tagline", "Application description",
         "fast and accurate dictation",

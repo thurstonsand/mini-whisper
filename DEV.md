@@ -16,15 +16,24 @@ mise run test-packages  # Fast package-only tests (prefer this for quick feedbac
 mise run lint           # Run the pre-commit formatting, linting, build, and package-test gate
 mise run format         # Format code with SwiftFormat
 mise run mw             # Build and run MiniWhisper
-mise run mw-fresh                 # Reset TCC permissions and onboarding, then build and run
+mise run mw-fresh                 # Reset the dev channel, then build and run
 FRESH_MODEL=1 mise run mw-fresh   # Also delete the speech model to exercise its full setup path
+mise run reset [dev|nightly|release]  # Reset one channel's TCC grants and setup state
 mise run logs                     # run in background; streams and tees to .build/miniwhisper.log
 mise run benchmark      # Run deterministic interaction performance budgets
 mise run benchmark-live # Build, launch, measure three real capture cycles, and enforce UX budgets
 ./scripts/capture_menu_screenshot [output.png]  # Screenshot menu dropdown (app must be running)
 ```
 
-Debug builds are `com.thurstonsand.MiniWhisper.dev` and show up as "MiniWhisper Dev"; Release builds keep `com.thurstonsand.MiniWhisper`. macOS keys permissions by bundle identifier and signing identity, so this is what lets a locally built app hold its own Microphone and Accessibility grants alongside an installed release build — `mise run reset-permissions` only ever touches the dev identity. Settings, onboarding markers, and the downloaded model still live in the shared `~/Library/Application Support/MiniWhisper`, so `mw-fresh` also clears the installed build's onboarding markers. The OSLog subsystem stays `com.thurstonsand.MiniWhisper` in both configurations, so `mise run logs` covers either build.
+## Channels
+
+Three build configurations produce three separate apps, so all three can be installed at once and none of them can borrow another's permissions or state.
+
+| configuration | app                     | bundle identifier                      | built by              |
+| ------------- | ----------------------- | -------------------------------------- | --------------------- |
+| Debug         | MiniWhisper Dev.app     | `com.thurstonsand.MiniWhisper.dev`     | `mise run build`      |
+| Nightly       | MiniWhisper Nightly.app | `com.thurstonsand.MiniWhisper.nightly` | CI, on push to `main` |
+| Release       | MiniWhisper.app         | `com.thurstonsand.MiniWhisper`         | CI, on a `v*` tag     |
 
 `benchmark-live` requires microphone permission and a downloaded engine model. Quit MiniWhisper before running it. Logs at `.build/{miniwhisper-performance.log,miniwhisper-performance-app.log}`.
 

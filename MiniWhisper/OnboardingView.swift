@@ -49,7 +49,7 @@ struct OnboardingView: View {
         )
       }.accessibilityHidden(true)
       SemanticText(
-        "MiniWhisper", identifier: AccessibilityID.onboardingWelcomeTitle,
+        Channel.name, identifier: AccessibilityID.onboardingWelcomeTitle,
         label: "Application name",
       )
       .font(.system(size: 34, weight: .semibold))
@@ -95,7 +95,7 @@ struct OnboardingView: View {
     .accessibilityIdentifier(
       AccessibilityID.onboardingWelcome,
     )
-    .accessibilityLabel("Welcome to MiniWhisper")
+    .accessibilityLabel("Welcome to \(Channel.name)")
     .frame(maxWidth: .infinity, maxHeight: .infinity)
   }
 
@@ -108,7 +108,7 @@ struct OnboardingView: View {
         )
         .accessibilityHidden(true)
       SemanticText(
-        "MiniWhisper", identifier: AccessibilityID.onboardingRailBrand, label: "Application name",
+        Channel.name, identifier: AccessibilityID.onboardingRailBrand, label: "Application name",
       )
       .font(.system(size: 19, weight: .semibold))
       .padding(.top, 10)
@@ -288,7 +288,7 @@ struct OnboardingView: View {
       VStack(alignment: .leading, spacing: 8) {
         progressRow("Optimizing for this Mac…", value: "Prewarming")
         SemanticText(
-          "The first specialization can take about 3–4 minutes. Keep MiniWhisper open.",
+          "The first specialization can take about 3–4 minutes. Keep \(Channel.name) open.",
           identifier: AccessibilityID.onboardingModelStatus, label: "Model preparation information",
         )
         .font(.system(size: 12))
@@ -352,7 +352,7 @@ struct OnboardingView: View {
     .accessibilityIdentifier(
       AccessibilityID.onboardingTryIt,
     )
-    .accessibilityLabel("Try MiniWhisper")
+    .accessibilityLabel("Try \(Channel.name)")
   }
 
   @ViewBuilder private var tryItCardContent: some View {
@@ -413,7 +413,7 @@ struct OnboardingView: View {
             identifier: AccessibilityID.onboardingTryItCompletion, label: "Test dictation status",
           ).font(.system(size: 13, weight: .semibold))
           SemanticText(
-            "MiniWhisper is ready to use in any text field.",
+            "\(Channel.name) is ready to use in any text field.",
             identifier: AccessibilityID.onboardingTryItCompletionSummary, label: "Availability",
           )
           .font(.system(size: 12))
@@ -462,7 +462,7 @@ struct OnboardingView: View {
     .accessibilityIdentifier(
       AccessibilityID.onboardingReady,
     )
-    .accessibilityLabel("MiniWhisper is ready")
+    .accessibilityLabel("\(Channel.name) is ready")
   }
 
   private var footer: some View {

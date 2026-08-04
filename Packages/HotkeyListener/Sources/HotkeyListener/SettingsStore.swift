@@ -23,17 +23,11 @@ public struct MiniWhisperSettings: Equatable, Codable, Sendable {
 public struct SettingsStore: Sendable {
   // MARK: Lifecycle
 
-  public init(fileURL: URL = SettingsStore.defaultFileURL) {
+  public init(fileURL: URL) {
     self.fileURL = fileURL
   }
 
   // MARK: Public
-
-  public static var defaultFileURL: URL {
-    FileManager.default.homeDirectoryForCurrentUser.appending(
-      path: "Library/Application Support/MiniWhisper/settings.json",
-    )
-  }
 
   public let fileURL: URL
 

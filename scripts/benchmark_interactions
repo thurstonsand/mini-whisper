@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if pgrep -x MiniWhisper >/dev/null; then
-  echo "MiniWhisper is already running. Quit it before the live benchmark." >&2
+: "${APP_PATH:?APP_PATH must name the built MiniWhisper app}"
+
+# Each channel's executable is named for its channel, so the benchmark measures whichever one
+# APP_PATH points at and never mistakes a sibling for it.
+app_name="$(basename "$APP_PATH" .app)"
+
+if pgrep -x "$app_name" >/dev/null; then
+  echo "$app_name is already running. Quit it before the live benchmark." >&2
   exit 1
 fi
-
-: "${APP_PATH:?APP_PATH must name the built MiniWhisper app}"
 
 mkdir -p .build
 performance_log=.build/miniwhisper-performance.log
@@ -22,7 +26,7 @@ cleanup() {
 trap cleanup EXIT
 
 MINIWHISPER_BENCHMARK_ACTIVATION=1 \
-  "$APP_PATH/Contents/MacOS/MiniWhisper" >"$app_log" 2>&1
+  "$APP_PATH/Contents/MacOS/$app_name" >"$app_log" 2>&1
 sleep 1
 cleanup
 trap - EXIT

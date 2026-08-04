@@ -525,7 +525,7 @@ private struct MenuActionFailure: LocalizedError {
     await store.send(.openSettingsFile)
     await store.receive(
       .workspaceOpenFailed(
-        WorkspaceError.openFailed(SettingsStore.defaultFileURL).localizedDescription,
+        WorkspaceError.openFailed(Channel.settingsFile).localizedDescription,
       ),
     )
   }
@@ -546,6 +546,6 @@ private struct MenuActionFailure: LocalizedError {
     }
 
     await store.send(.openSettingsFile)
-    #expect(opened.values == [SettingsStore.defaultFileURL])
+    #expect(opened.values == [Channel.settingsFile])
   }
 }

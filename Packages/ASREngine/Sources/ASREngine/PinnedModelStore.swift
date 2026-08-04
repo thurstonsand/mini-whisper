@@ -14,7 +14,7 @@ private enum PinnedModelDownloadError: Error { case restartFromZero }
 struct PinnedModelStore {
   // MARK: Lifecycle
 
-  init(root: URL = Self.defaultRoot(), session: URLSession = .shared) {
+  init(root: URL, session: URLSession = .shared) {
     self.root = root
     self.session = session
   }
@@ -197,12 +197,6 @@ struct PinnedModelStore {
     "Preprocessor.mlmodelc/", "Encoder.mlmodelc/", "Decoder.mlmodelc/", "JointDecision.mlmodelc/",
   ]
   private static let expectedVADRoots = ["silero-vad-unified-256ms-v6.2.1.mlmodelc/"]
-
-  private static func defaultRoot() -> URL {
-    FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appending(
-      path: "MiniWhisper/Engine/pinned-v1", directoryHint: .isDirectory,
-    )
-  }
 
   private func listFiles(_ specification: RepositorySpecification) async throws -> [RemoteFile] {
     var components = URLComponents(

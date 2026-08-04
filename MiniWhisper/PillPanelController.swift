@@ -19,10 +19,10 @@ private let performanceLogger = Logger(
     self.store = store
     panel = NonactivatingPillPanel()
 
-    panel.title = "MiniWhisper dictation"
+    panel.title = "\(Channel.name) dictation"
     panel.setAccessibilityIdentifier(AccessibilityID.pill)
-    panel.setAccessibilityLabel("MiniWhisper dictation")
-    panel.setAccessibilityTitle("MiniWhisper dictation")
+    panel.setAccessibilityLabel("\(Channel.name) dictation")
+    panel.setAccessibilityTitle("\(Channel.name) dictation")
 
     let hostingView = NSHostingView(rootView: PillView(store: store))
     hostingView.frame = NSRect(origin: .zero, size: Self.panelSize)

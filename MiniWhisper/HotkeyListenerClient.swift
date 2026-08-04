@@ -12,7 +12,7 @@ import HotkeyListener
 extension HotkeyListenerClient: DependencyKey {
   static let liveValue = Self(
     events: {
-      let settings = try SettingsStore().load()
+      let settings = try SettingsStore(fileURL: Channel.settingsFile).load()
       return try await HotkeyListener.events(hotkey: settings.hotkey)
     },
   )
