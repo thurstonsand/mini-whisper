@@ -37,6 +37,10 @@ import ComposableArchitecture
     aboutWindowController.present()
   }
 
+  func presentSettings() {
+    settingsWindowController.present()
+  }
+
   // MARK: Private
 
   private let store: StoreOf<AppFeature>
@@ -44,6 +48,7 @@ import ComposableArchitecture
   private let refreshesStateOnOpen: Bool
   private let menu = NSMenu()
   private let aboutWindowController = AboutWindowController()
+  private let settingsWindowController = SettingsWindowController()
   private var renderedIconSymbolName: String?
 
   private func observeIcon() {
@@ -123,6 +128,13 @@ import ComposableArchitecture
     )
 
     menu.addItem(.separator())
+    let settingsItem = item(
+      title: "Settings…", identifier: AccessibilityID.menuSettings,
+      label: "Settings", action: #selector(showSettings),
+    )
+    settingsItem.keyEquivalent = ","
+    settingsItem.keyEquivalentModifierMask = .command
+    menu.addItem(settingsItem)
     menu.addItem(
       item(
         title: "About \(Channel.name)", identifier: AccessibilityID.menuAbout,
@@ -170,6 +182,10 @@ import ComposableArchitecture
 
   @objc private func openSettingsFile() {
     store.send(.openSettingsFile)
+  }
+
+  @objc private func showSettings() {
+    presentSettings()
   }
 
   @objc private func showAbout() {

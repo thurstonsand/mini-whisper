@@ -2,6 +2,13 @@ import ASREngine
 import AudioCapture
 import Foundation
 
+// MARK: - PresentedWindow
+
+enum PresentedWindow {
+  case settings
+  case about
+}
+
 #if DEBUG
   enum AgentDriveabilityScene: String {
     case menuHealthy = "menu-healthy"
@@ -12,6 +19,7 @@ import Foundation
     case onboardingModel = "onboarding-model"
     case onboardingTryIt = "onboarding-try-it"
     case onboardingReady = "onboarding-ready"
+    case settings
     case about
     case pillRecording = "pill-recording"
     case pillTranscribing = "pill-transcribing"
@@ -30,8 +38,15 @@ import Foundation
       return scene
     }
 
-    var presentsAbout: Bool {
-      self == .about
+    var presentedWindow: PresentedWindow? {
+      switch self {
+      case .settings:
+        .settings
+      case .about:
+        .about
+      default:
+        nil
+      }
     }
 
     var initialAction: AppFeature.Action? {
@@ -90,7 +105,8 @@ import Foundation
           permissions: permissions(microphone: .granted, accessibility: true),
           readiness: .ready, isCompleted: true, tryItText: "MiniWhisper is ready.",
         )
-      case .about:
+      case .settings,
+           .about:
         break
       case .pillRecording:
         state.pill.presentation = .recording(
@@ -145,7 +161,7 @@ import Foundation
       return nil
     }
 
-    var presentsAbout: Bool {
+    var presentedWindow: PresentedWindow? {
       preconditionFailure()
     }
 

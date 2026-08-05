@@ -6,8 +6,18 @@ enum AccessibilityID {
   static let menuSounds = "miniwhisper.menu.sounds"
   static let menuLaunchAtLogin = "miniwhisper.menu.launch-at-login"
   static let menuSettingsFile = "miniwhisper.menu.settings-file"
+  static let menuSettings = "miniwhisper.menu.settings"
   static let menuAbout = "miniwhisper.menu.about"
   static let menuQuit = "miniwhisper.menu.quit"
+
+  static let settingsWindow = "miniwhisper.settings.window"
+  static let settingsSidebar = "miniwhisper.settings.sidebar"
+  static let settingsSidebarSettings = "miniwhisper.settings.sidebar.settings"
+  static let settingsSidebarHistory = "miniwhisper.settings.sidebar.history"
+  static let settingsSidebarModel = "miniwhisper.settings.sidebar.model"
+  static let settingsSidebarDictionary = "miniwhisper.settings.sidebar.dictionary"
+  static let settingsSidebarCleanup = "miniwhisper.settings.sidebar.cleanup"
+  static let settingsPlaceholder = "miniwhisper.settings.placeholder"
 
   static let aboutWindow = "miniwhisper.about.window"
   static let aboutContent = "miniwhisper.about.content"

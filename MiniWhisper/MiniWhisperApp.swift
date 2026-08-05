@@ -49,8 +49,13 @@ import SwiftUI
       if let initialAction = agentScene.initialAction {
         store.send(initialAction)
       }
-      if agentScene.presentsAbout {
+      switch agentScene.presentedWindow {
+      case .settings:
+        menuBarController.presentSettings()
+      case .about:
         menuBarController.presentAbout()
+      case nil:
+        break
       }
       return
     }

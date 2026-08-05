@@ -55,7 +55,7 @@ The corrections to Hex, both born from the log-scrape postmortem: filenames in t
 - **The two TTLs live in `settings.json`.** The retention popover is still settings even though it renders inside History; the file stays the one authoritative settings surface.
 - **No recent-transcripts submenu in the menu bar.** Paste-last already covers the immediate-recovery case there; the full page is one click away, and a submenu would be a second history surface to keep honest.
 - **Re-transcription ships in the first pane**, not as a later enablement. Audio is stored in canonical engine-input format so any engine — current or a bakeoff candidate — can re-run it. A re-transcription must not overwrite the record of what the engine said at dictation time: the entry keeps the original output alongside any later one, or the corpus can only measure agreement with whichever engine ran last.
-- **Build order:** store package first, then pipeline wiring (which deletes `writeDebugWAV` in the same commit), then the settings window shell with stub panes and a menu item, then the History pane ported from the mock-up. The Settings pane is a deliberate fast-follow, not part of this ticket.
+- **Build order:** store package first, then pipeline wiring (which deletes `writeDebugWAV` in the same commit), then the settings window shell with stub panes and a menu item, then the History pane ported from the mock-up. The Settings pane is a deliberate fast-follow, not part of this ticket. That fast-follow also removes the menu bar's "Open Settings File" item — it survives only because the file is still the sole way to change the hotkey, and the pane ends that.
 
 ### Built so far
 

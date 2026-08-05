@@ -3,6 +3,12 @@ import AudioCapture
 import Testing
 
 struct AgentDriveabilitySceneTests {
+  @Test func `window scenes select one window`() {
+    #expect(AgentDriveabilityScene.settings.presentedWindow == .settings)
+    #expect(AgentDriveabilityScene.about.presentedWindow == .about)
+    #expect(AgentDriveabilityScene.menuHealthy.presentedWindow == nil)
+  }
+
   @Test func `permission scenes advance one permission at A time`() {
     let microphone = AgentDriveabilityScene.onboardingPermissionsMicrophone.initialState.onboarding
     let accessibility = AgentDriveabilityScene.onboardingPermissionsAccessibility.initialState

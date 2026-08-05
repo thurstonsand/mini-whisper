@@ -140,6 +140,10 @@ final class MiniWhisperUITests: XCTestCase {
           isActionable: true,
         ),
         contract(
+          .menuItem, "miniwhisper.menu.settings", "Settings", isEnabled: true,
+          isActionable: true,
+        ),
+        contract(
           .menuItem, "miniwhisper.menu.about", "About \(appName)", isEnabled: true,
           isActionable: true,
         ),
@@ -179,12 +183,44 @@ final class MiniWhisperUITests: XCTestCase {
           isActionable: true,
         ),
         contract(
+          .menuItem, "miniwhisper.menu.settings", "Settings", isEnabled: true,
+          isActionable: true,
+        ),
+        contract(
           .menuItem, "miniwhisper.menu.about", "About \(appName)", isEnabled: true,
           isActionable: true,
         ),
         contract(
           .menuItem, "miniwhisper.menu.quit", "Quit \(appName)", isEnabled: true,
           isActionable: true,
+        ),
+      ],
+    )
+  }
+
+  @MainActor func testSettingsAccessibilityManifest() throws {
+    try assertManifest(
+      scene: "settings",
+      elements: [
+        contract(.window, "miniwhisper.settings.window", "\(appName) Settings"),
+        contract(.outline, "miniwhisper.settings.sidebar", "Settings sections"),
+        contract(
+          .staticText, "miniwhisper.settings.sidebar.settings", "Settings section", "Settings",
+        ),
+        contract(
+          .staticText, "miniwhisper.settings.sidebar.history", "History section", "History",
+        ),
+        contract(.staticText, "miniwhisper.settings.sidebar.model", "Model section", "Model"),
+        contract(
+          .staticText, "miniwhisper.settings.sidebar.dictionary", "Dictionary section",
+          "Dictionary",
+        ),
+        contract(
+          .staticText, "miniwhisper.settings.sidebar.cleanup", "Cleanup section", "Cleanup",
+        ),
+        contract(
+          .other, "miniwhisper.settings.placeholder",
+          "Settings. Dictation controls will appear here.",
         ),
       ],
     )
@@ -661,5 +697,5 @@ private enum PermissionManifest: CaseIterable {
 private let menuKnownIdentifiers: Set<String> = [
   "miniwhisper.menu.status", "miniwhisper.menu.repair", "miniwhisper.menu.copy-last-transcript",
   "miniwhisper.menu.sounds", "miniwhisper.menu.launch-at-login", "miniwhisper.menu.settings-file",
-  "miniwhisper.menu.about", "miniwhisper.menu.quit",
+  "miniwhisper.menu.settings", "miniwhisper.menu.about", "miniwhisper.menu.quit",
 ]
