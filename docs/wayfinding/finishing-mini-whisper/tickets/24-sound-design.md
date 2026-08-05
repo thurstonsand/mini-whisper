@@ -12,6 +12,8 @@ blocked-by: [8]
 
 ## Notes
 
+- The settings inventory raised the ambition: sounds become **per-cue selectable**, not one global on/off. So this ticket owns more than replacing four borrowed alert sounds — it owns whether a cue is a choice, whether there are sets or individual picks, and whether silencing one cue is possible without silencing all four.
+- That has a shape consequence worth deciding here rather than in the window: `soundsEnabled: Bool` in `settings.json` becomes a per-cue structure, which is a settings-file migration, however small.
 - Requested alongside [Iconography](23-iconography.md); same problem, different sense — borrowed system assets standing in for the app's own identity. Kept separate because the crafts and the assets don't overlap.
 - Hex is the architectural north star and ships its own cue set; worth listening to before authoring anything.
 - Record-start latency is user-visible: the cue is the acknowledgement that the hotkey registered. Measure, don't assume `NSSound` is fast enough.

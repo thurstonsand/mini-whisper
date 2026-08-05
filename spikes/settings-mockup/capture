@@ -1,0 +1,23 @@
+#!/bin/bash
+# Screenshot every pane by launching the mock-up once per destination. The launch argument picks
+# the starting pane and the process prints its CGWindowID, so capture never depends on which
+# window happens to be frontmost.
+set -euo pipefail
+
+cd "$(dirname "$0")/../.."
+out="${1:-.build}"
+mkdir -p "$out"
+
+swiftc -O -framework AppKit -framework SwiftUI \
+  spikes/settings-mockup/SettingsMockup.swift -o .build/settings-mockup
+
+for pane in settings history model dictionary cleanup componentstates; do
+  pkill -x settings-mockup 2>/dev/null || true
+  sleep 0.3
+  .build/settings-mockup "$pane" >/tmp/mockup-wid 2>/dev/null &
+  sleep 2.5
+  screencapture -o -l "$(cat /tmp/mockup-wid)" "$out/pane-$pane.png"
+  echo "$out/pane-$pane.png"
+done
+
+pkill -x settings-mockup 2>/dev/null || true

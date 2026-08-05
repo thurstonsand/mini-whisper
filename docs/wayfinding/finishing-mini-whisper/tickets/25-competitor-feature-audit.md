@@ -1,5 +1,6 @@
 ---
-status: open
+status: closed
+claimed: subagent:gpt-5.6-terra
 type: research
 blocked-by: [8]
 ---
@@ -17,3 +18,7 @@ The original feature survey ([ticket 01](01-dictation-app-feature-survey.md)) sh
 - Areas the earlier survey under-weighted that deserve attention now: context-capture behavior in hostile targets (how does Wispr Flow handle Google Docs' canvas sink?), tone/formality adjustment, per-app behavior, command/edit modes, correction flows after a wrong transcription, and onboarding polish.
 - The out-of-scope list on the map still stands (no cloud STT, no teams/sharing, one-person app); findings that collide with it should be noted as deliberate exclusions rather than silently dropped.
 - Write findings as an asset (`assets/25-competitor-feature-audit.md`) per research-ticket convention and link it from the resolution.
+
+## Resolution
+
+Current primary-source research is in [Competitor feature audit: Wispr Flow, Aqua Voice, Monologue](../assets/25-competitor-feature-audit.md). The audit finds two proposed grilling stakes — selection voice editing and onboarding capability recovery — and routes all other findings to existing stakes or explicit scope exclusions. It confirms that the vendors' “works everywhere” claims do not establish a semantic Google Docs canvas or terminal/nvim context contract; MiniWhisper's focused-field-only, blind-fallback boundary remains the evidence-based line.
