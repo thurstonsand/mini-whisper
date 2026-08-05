@@ -16,6 +16,13 @@ enum Channel {
   )[0].appending(path: name, directoryHint: .isDirectory)
 
   static let settingsFile = supportDirectory.appending(path: "settings.json")
+  static let historyDirectory = supportDirectory.appending(
+    path: "History", directoryHint: .isDirectory,
+  )
+  static let historyFile = historyDirectory.appending(path: "history.json")
+  static let historyAudioDirectory = historyDirectory.appending(
+    path: "audio", directoryHint: .isDirectory,
+  )
   static let engineRoot = supportDirectory.appending(
     path: "Engine/pinned-v1", directoryHint: .isDirectory,
   )

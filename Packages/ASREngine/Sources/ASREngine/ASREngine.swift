@@ -16,6 +16,9 @@ public actor LocalASREngine {
 
   // MARK: Public
 
+  public nonisolated static let identity =
+    "\(PinnedModelStore.asrRepository)@\(PinnedModelStore.asrRevision)"
+
   public nonisolated func prepareInstalled() -> AsyncStream<EngineReadiness> {
     AsyncStream { continuation in
       let task = Task { await self.prepareInstalled(continuation: continuation) }

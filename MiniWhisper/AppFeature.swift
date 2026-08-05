@@ -3,6 +3,7 @@ import AudioCapture
 import ComposableArchitecture
 import FieldContext
 import Foundation
+import History
 import HotkeyListener
 import OSLog
 
@@ -11,6 +12,7 @@ private let engineLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", cat
 private let deliveryLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "delivery")
 private let soundsLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "sounds")
 private let menuLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "menu")
+let historyLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "history")
 private let performanceLogger = Logger(
   subsystem: "com.thurstonsand.MiniWhisper", category: "performance",
 )
@@ -26,9 +28,34 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
     var modelDownloadConsented: Bool
     var permissions: OnboardingPermissionStatuses
     var engineReadiness: EngineReadiness
+    var retentionPolicy: RetentionPolicy
+  }
+
+  struct DeliveryResult: Equatable {
+    var text: String
+    var targetApp: TargetApp?
+    var outcome: DeliveryOutcome
+  }
+
+  struct DeliveryFailure: Equatable {
+    var text: String
+    var targetApp: TargetApp?
+    var message: String
   }
 
   @ObservableState struct State: Equatable {
+    // MARK: Lifecycle
+
+    init(
+      history: Shared<HistoryLog> = Shared(
+        wrappedValue: HistoryLog(), .fileStorage(Channel.historyFile),
+      ),
+    ) {
+      _history = history
+    }
+
+    // MARK: Internal
+
     var recording = RecordingFeature.State()
     var pill = PillFeature.State()
     var onboarding = OnboardingFeature.State()
@@ -40,9 +67,18 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
     var launchAtLoginRegistered = false
     var lastTranscript: String?
     var currentFocusedContext: ContextCapture?
+    var pendingDictation: PendingDictation?
+    var dictationInFlight = false
+    var retentionPolicy = RetentionPolicy.defaults
+    var historyMaintenance = HistoryMaintenanceState.idle
+    @Shared var history: HistoryLog
     var accessibilityGranted = false
     var onboardingCompleted = false
     var modelDownloadConsented = false
+
+    var storesAudio: Bool {
+      retentionPolicy.audio != .never
+    }
 
     var canBeginDictation: Bool {
       guard onboarding.isPresented else {
@@ -64,6 +100,12 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
   enum Action: Equatable {
     case task
     case startupResolved(StartupFacts)
+    case historyMaintenanceRequested(HistoryMaintenanceRequest)
+    case historyMaintenanceCompleted(HistoryLog, RetentionPolicy)
+    case historyMaintenanceFailed(String)
+    case historyEntryPrepared(Int, HistoryEntry)
+    case historyEntryAbandoned(Int)
+    case historyPersistenceFailed(String)
     case applicationBecameActive
     case accessibilityObserved(Bool)
     case recording(RecordingFeature.Action)
@@ -90,21 +132,32 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
     case transcriptionCompleted(Int, suppressNoSpeechNotice: Bool, TranscriptionOutcome)
     case transcriptionFailed(Int, String)
     case contextCaptured(Int, ContextCapture)
-    case deliveryCompleted(Int, DeliveryOutcome)
-    case deliveryFailed(Int, String)
+    case deliveryCompleted(Int, DeliveryResult)
+    case deliveryFailed(Int, DeliveryFailure)
+  }
+
+  enum CancelID {
+    case transcription
+    case capture
+    case delivery
+    case historyMaintenance
+    case hotkeyEvents
   }
 
   @Dependency(\.accessibilityPermission) var accessibilityPermission
   @Dependency(\.asrEngine) var asrEngine
   @Dependency(\.audioCapture) var audioCapture
   @Dependency(\.contextCapture) var contextCapture
+  @Dependency(\.date.now) var now
   @Dependency(\.delivery) var delivery
+  @Dependency(\.historyClient) var historyClient
   @Dependency(\.hotkeyListener) var hotkeyListener
   @Dependency(\.launchAtLogin) var launchAtLogin
   @Dependency(\.microphonePermission) var microphonePermission
   @Dependency(\.modelDownloadConsent) var modelDownloadConsent
   @Dependency(\.onboardingCompletion) var onboardingCompletion
   @Dependency(\.sounds) var sounds
+  @Dependency(\.uuid) var uuid
   @Dependency(\.workspace) var workspace
 
   var body: some ReducerOf<Self> {
@@ -117,17 +170,76 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
       case .task:
         return .merge(
           .send(.recording(.task)), startupEffect(),
+          .send(.historyMaintenanceRequested(.currentPolicy)),
           .run { send in
             do { try await send(.soundsEnabledLoaded(sounds.loadIsEnabled())) } catch {
               await send(.soundsSettingsFailed(error.localizedDescription))
             }
           },
         )
+      case let .historyMaintenanceRequested(request):
+        if let error = state.$history.loadError {
+          return .send(
+            .historyMaintenanceFailed("History failed to load: \(error.localizedDescription)"),
+          )
+        }
+        guard !state.dictationInFlight else {
+          state.historyMaintenance = .waiting(request)
+          return .none
+        }
+        state.historyMaintenance = .running(request)
+        return historyMaintenanceEffect(
+          log: state.history, policy: request.policy, now: now,
+        )
+      case let .historyMaintenanceCompleted(log, policy):
+        state.historyMaintenance = .idle
+        state.retentionPolicy = policy
+        state.$history.withLock { $0 = log }
+        return saveHistory(state.$history)
+      case let .historyMaintenanceFailed(message):
+        state.historyMaintenance = .idle
+        historyLogger.error("History maintenance failed: \(message, privacy: .public)")
+        return .none
+      case let .historyEntryPrepared(generation, entry):
+        guard generation == state.transcriptionGeneration,
+              state.pendingDictation?.generation == generation,
+              state.pendingDictation?.isFinishing == true
+        else {
+          return entry.audio == nil ? .none : deleteHistoryAudio([entry.id])
+        }
+        state.pendingDictation = nil
+        state.dictationInFlight = false
+        if let error = state.$history.loadError {
+          return .merge(
+            entry.audio == nil ? .none : deleteHistoryAudio([entry.id]),
+            .send(
+              .historyPersistenceFailed(
+                "History failed to load; refusing to overwrite it: \(error.localizedDescription)",
+              ),
+            ),
+          )
+        }
+        state.$history.withLock { $0.entries.insert(entry, at: 0) }
+        return saveHistory(state.$history)
+      case let .historyEntryAbandoned(generation):
+        guard generation == state.transcriptionGeneration,
+              state.pendingDictation?.generation == generation,
+              state.pendingDictation?.isFinishing == true
+        else {
+          return .none
+        }
+        state.pendingDictation = nil
+        state.dictationInFlight = false
+        return .none
+      case let .historyPersistenceFailed(message):
+        historyLogger.error("History failed to persist: \(message, privacy: .public)")
+        return .none
       case let .startupResolved(facts):
         state.onboardingCompleted = facts.onboardingCompleted
         state.modelDownloadConsented = facts.modelDownloadConsented
         state.recording.micStatus = facts.permissions.microphoneStatus
         state.engineReadiness = facts.engineReadiness
+        state.retentionPolicy = facts.retentionPolicy
         logEngineReadiness(facts.engineReadiness)
 
         var effects = [
@@ -176,6 +288,11 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
           performanceLogger.notice("benchmark app-activation-received")
           state.transcriptionGeneration += 1
           state.currentFocusedContext = nil
+          state.pendingDictation = nil
+          state.dictationInFlight = true
+          if case let .running(request) = state.historyMaintenance {
+            state.historyMaintenance = .waiting(request)
+          }
           return .concatenate(
             .send(
               .pill(
@@ -186,7 +303,8 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
             ),
             .merge(
               .cancel(id: CancelID.transcription), .cancel(id: CancelID.capture),
-              .cancel(id: CancelID.delivery), .send(.recording(.startRecording)),
+              .cancel(id: CancelID.delivery), .cancel(id: CancelID.historyMaintenance),
+              .send(.recording(.startRecording)),
               playSound(.recordStart, enabled: state.soundsEnabled),
               // Waking a Chromium tree costs far more than delivery can spend, so it happens here.
               .run { _ in await contextCapture.prewarmFrontmostApp() },
@@ -210,6 +328,8 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
         case .cancel:
           // Nothing from this dictation may reach a field after the user has waved it off.
           state.currentFocusedContext = nil
+          state.pendingDictation = nil
+          state.dictationInFlight = false
           return .merge(
             .cancel(id: CancelID.transcription), .cancel(id: CancelID.capture),
             .cancel(id: CancelID.delivery), .send(.recording(.cancelRecording)),
@@ -320,6 +440,10 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
         return .send(.pill(.levelUpdated(level)))
       case let .recording(.delegate(.completed(recording))):
         let generation = state.transcriptionGeneration
+        state.pendingDictation = PendingDictation(
+          generation: generation, recording: recording, createdAt: now,
+          engine: asrEngine.identity(), original: nil,
+        )
         let suppressNoSpeechNotice = recording.durationSeconds <= maximumAccidentalLoneTapDuration
         return .concatenate(
           .send(.pill(.transcribingStarted)),
@@ -336,11 +460,15 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
           }.cancellable(id: CancelID.transcription, cancelInFlight: true),
         )
       case .recording(.delegate(.discarded)):
+        state.pendingDictation = nil
+        state.dictationInFlight = false
         return .merge(
           .cancel(id: CancelID.capture), .send(.pill(.cancel)),
           playSound(.cancel, enabled: state.soundsEnabled),
         )
       case .recording(.delegate(.failed)):
+        state.pendingDictation = nil
+        state.dictationInFlight = false
         return .merge(
           .cancel(id: CancelID.capture), .send(.pill(.cancel)),
           playSound(.error, enabled: state.soundsEnabled),
@@ -352,6 +480,12 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
           return .none
         }
         state.lastTranscript = transcript
+        if var pending = state.pendingDictation, pending.generation == generation {
+          pending.original = History.Transcription(
+            text: transcript, engine: pending.engine, transcribedAt: now,
+          )
+          state.pendingDictation = pending
+        }
         engineLogger.notice("Transcript: \(transcript, privacy: .public)")
         return deliveryEffect(generation: generation, transcript: transcript)
       case let .transcriptionCompleted(generation, suppressNotice, .noSpeech):
@@ -359,6 +493,8 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
           return .none
         }
         engineLogger.notice("Gate rejected recording: no speech")
+        state.pendingDictation = nil
+        state.dictationInFlight = false
         return .merge(
           .cancel(id: CancelID.capture),
           .send(.pill(suppressNotice ? .dismiss : .noSpeechDetected)),
@@ -372,6 +508,8 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
           return .none
         }
         engineLogger.notice("Engine accepted speech but returned an empty transcript")
+        state.pendingDictation = nil
+        state.dictationInFlight = false
         return .merge(
           .cancel(id: CancelID.capture), .send(.pill(.noSpeechDetected)),
           onboardingTryIt(
@@ -385,9 +523,11 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
         }
         state.engineReadiness = .failed(message)
         engineLogger.error("Transcription failed: \(message, privacy: .public)")
+        let history = finishDictation(&state, delivery: nil)
         return .merge(
           .cancel(id: CancelID.capture), .send(.pill(.dismiss)),
           onboardingTryIt(.failed(message), state), playSound(.error, enabled: state.soundsEnabled),
+          history,
         )
       case let .contextCaptured(generation, capture):
         guard generation == state.transcriptionGeneration else {
@@ -395,62 +535,72 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
         }
         state.currentFocusedContext = capture
         return .none
-      case let .deliveryCompleted(generation, .pasted(restoration)):
+      case let .deliveryCompleted(generation, result):
         guard generation == state.transcriptionGeneration else {
           return .none
         }
-        switch restoration {
-        case .restored:
-          deliveryLogger.notice("Transcript pasted; prior clipboard restored")
-        case .skipped:
-          deliveryLogger.notice("Transcript pasted; clipboard changed, so restore was skipped")
-        case .failed:
-          deliveryLogger.error("Transcript pasted; prior clipboard restore failed")
-        }
-        let onboardingSuccess =
-          state.lastTranscript.map { onboardingTryIt(.delivered($0), state) } ?? .none
-        let pill: PillFeature.Action =
-          if case .unavailable = state.currentFocusedContext {
-            .fieldContextUnavailable
-          } else {
-            .dismiss
+        switch result.outcome {
+        case let .pasted(restoration):
+          switch restoration {
+          case .restored:
+            deliveryLogger.notice("Transcript pasted; prior clipboard restored")
+          case .skipped:
+            deliveryLogger.notice("Transcript pasted; clipboard changed, so restore was skipped")
+          case .failed:
+            deliveryLogger.error("Transcript pasted; prior clipboard restore failed")
           }
-        state.currentFocusedContext = nil
-        return .merge(
-          .send(.pill(pill)), onboardingSuccess, playSound(.commit, enabled: state.soundsEnabled),
-        )
-      case let .deliveryCompleted(generation, .copied(fallback)):
-        guard generation == state.transcriptionGeneration else {
-          return .none
-        }
-        switch fallback {
-        case .accessibilityPermissionMissing:
-          deliveryLogger.error(
-            "Accessibility permission missing — grant \(Channel.name) in System Settings > Privacy & Security > Accessibility",
+          let onboardingSuccess =
+            state.lastTranscript.map { onboardingTryIt(.delivered($0), state) } ?? .none
+          let pill: PillFeature.Action =
+            if case .unavailable = state.currentFocusedContext {
+              .fieldContextUnavailable
+            } else {
+              .dismiss
+            }
+          state.currentFocusedContext = nil
+          let history = finishDeliveredDictation(
+            &state, result: result, method: .pasted, detail: restoration.historyDetail,
           )
-        case .secureInput:
-          deliveryLogger.notice("Secure input is active; transcript kept on clipboard")
-        case .eventCreationFailed:
-          deliveryLogger.error("Paste command creation failed; transcript kept on clipboard")
+          return .merge(
+            .send(.pill(pill)), onboardingSuccess, playSound(.commit, enabled: state.soundsEnabled),
+            history,
+          )
+        case let .copied(fallback):
+          switch fallback {
+          case .accessibilityPermissionMissing:
+            deliveryLogger.error(
+              "Accessibility permission missing — grant \(Channel.name) in System Settings > Privacy & Security > Accessibility",
+            )
+          case .secureInput:
+            deliveryLogger.notice("Secure input is active; transcript kept on clipboard")
+          case .eventCreationFailed:
+            deliveryLogger.error("Paste command creation failed; transcript kept on clipboard")
+          }
+          state.currentFocusedContext = nil
+          let history = finishDeliveredDictation(
+            &state, result: result, method: .copied, detail: fallback.historyDetail,
+          )
+          return .merge(
+            .send(.pill(.copiedToClipboard)), history,
+            onboardingTryIt(
+              .failed(
+                "The transcript was copied, but macOS did not allow it to be pasted. Check Accessibility and try again.",
+              ), state,
+            ), playSound(.error, enabled: state.soundsEnabled),
+          )
         }
-        state.currentFocusedContext = nil
-        return .merge(
-          .send(.pill(.copiedToClipboard)),
-          onboardingTryIt(
-            .failed(
-              "The transcript was copied, but macOS did not allow it to be pasted. Check Accessibility and try again.",
-            ), state,
-          ), playSound(.error, enabled: state.soundsEnabled),
-        )
-      case let .deliveryFailed(generation, message):
+      case let .deliveryFailed(generation, failure):
         guard generation == state.transcriptionGeneration else {
           return .none
         }
         state.currentFocusedContext = nil
-        deliveryLogger.error("Transcript delivery failed: \(message, privacy: .public)")
+        deliveryLogger.error("Transcript delivery failed: \(failure.message, privacy: .public)")
+        let history = finishDictation(
+          &state, targetApp: failure.targetApp, delivery: nil,
+        )
         return .merge(
-          .send(.pill(.dismiss)), onboardingTryIt(.failed(message), state),
-          playSound(.error, enabled: state.soundsEnabled),
+          .send(.pill(.dismiss)), onboardingTryIt(.failed(failure.message), state),
+          playSound(.error, enabled: state.soundsEnabled), history,
         )
       case let .onboarding(.delegate(.engineReadinessUpdated(readiness))):
         return .send(.engineReadinessUpdated(readiness))
@@ -467,14 +617,23 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
         return .none
       }
     }
+    .onChange(of: \.dictationInFlight) { wasInFlight, state in
+      guard wasInFlight, !state.dictationInFlight else {
+        return .none
+      }
+      return startDeferredHistoryMaintenance(&state)
+    }
   }
 
   // MARK: Private
 
-  private enum CancelID { case transcription, capture, delivery, hotkeyEvents }
-
   private enum OnboardingTryItResult {
     case delivered(String)
+    case failed(String)
+  }
+
+  private enum DeliveryAttempt {
+    case delivered(DeliveryOutcome)
     case failed(String)
   }
 
@@ -492,6 +651,7 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
   /// as long as a transcription.
   private func deliveryEffect(generation: Int, transcript: String) -> Effect<Action> {
     .run { send in
+      async let targetApplication = workspace.frontmostApplication()
       let capture = await contextCapture.capture(.delivery)
       // A newer dictation has already claimed the field; this paste would land in it.
       guard !Task.isCancelled else {
@@ -502,10 +662,29 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
       guard !Task.isCancelled else {
         return
       }
+      let attempt: DeliveryAttempt
       do {
-        let outcome = try await delivery.deliver(adjusted)
-        await send(.deliveryCompleted(generation, outcome))
-      } catch { await send(.deliveryFailed(generation, error.localizedDescription)) }
+        attempt = try await .delivered(delivery.deliver(adjusted))
+      } catch {
+        attempt = .failed(error.localizedDescription)
+      }
+      let targetApp = await targetApplication.map {
+        TargetApp(bundleID: $0.bundleID, name: $0.name)
+      }
+      switch attempt {
+      case let .delivered(outcome):
+        await send(
+          .deliveryCompleted(
+            generation, DeliveryResult(text: adjusted, targetApp: targetApp, outcome: outcome),
+          ),
+        )
+      case let .failed(message):
+        await send(
+          .deliveryFailed(
+            generation, DeliveryFailure(text: adjusted, targetApp: targetApp, message: message),
+          ),
+        )
+      }
     }.cancellable(id: CancelID.delivery, cancelInFlight: true)
   }
 
@@ -556,6 +735,17 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
       let modelDownloadConsented = modelDownloadConsent.isConsented()
       let hasAccessibilityPermission = accessibilityPermission.hasPermission()
       async let microphoneStatus = microphonePermission.status()
+      let retentionPolicy: RetentionPolicy
+      do {
+        retentionPolicy = try await historyClient.loadRetentionPolicy()
+      } catch {
+        retentionPolicy = .defaults
+        await send(
+          .historyMaintenanceFailed(
+            "Retention policy failed to load: \(error.localizedDescription)",
+          ),
+        )
+      }
 
       var readinessIterator = asrEngine.prepareInstalled().makeAsyncIterator()
       let engineReadiness = await readinessIterator.next() ?? .modelMissing
@@ -569,6 +759,7 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
               hasAccessibilityPermission: hasAccessibilityPermission,
             ),
             engineReadiness: engineReadiness,
+            retentionPolicy: retentionPolicy,
           ),
         ),
       )

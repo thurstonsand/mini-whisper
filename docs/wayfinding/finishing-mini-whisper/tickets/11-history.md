@@ -56,3 +56,10 @@ The corrections to Hex, both born from the log-scrape postmortem: filenames in t
 - **No recent-transcripts submenu in the menu bar.** Paste-last already covers the immediate-recovery case there; the full page is one click away, and a submenu would be a second history surface to keep honest.
 - **Re-transcription ships in the first pane**, not as a later enablement. Audio is stored in canonical engine-input format so any engine — current or a bakeoff candidate — can re-run it. A re-transcription must not overwrite the record of what the engine said at dictation time: the entry keeps the original output alongside any later one, or the corpus can only measure agreement with whichever engine ran last.
 - **Build order:** store package first, then pipeline wiring (which deletes `writeDebugWAV` in the same commit), then the settings window shell with stub panes and a menu item, then the History pane ported from the mock-up. The Settings pane is a deliberate fast-follow, not part of this ticket.
+
+### Built so far
+
+1. **Store package** — `Packages/History` plus the `AppSettings` extraction it forced.
+2. **Pipeline wiring** — every dictation now writes a `HistoryEntry` at its terminal moment: original transcription with pinned engine identity, delivery outcome and detail, target-app identity captured at delivery, and a paired WAV when the audio TTL allows. `writeDebugWAV` is deleted; the vault is audio's only owner. No-speech and engine-empty outcomes write nothing; a transcription failure with retained audio writes an entry with `original` nil — recoverable audio with no transcript is the case history exists for. Retention runs at launch (reconcile, prune, delete audio) and defers while a dictation is in flight, because orphan reconciliation would race an in-flight WAV write. The retention policy loads with startup facts so a dictation begun before the first maintenance pass still keeps its audio. Proven end-to-end by `benchmark-live` driving three real mic captures into three complete entries.
+
+Remaining: the settings window shell, then the History pane.

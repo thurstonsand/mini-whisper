@@ -73,7 +73,6 @@ import Testing
         #expect(id == sessionID)
         return recording
       }
-      $0.audioCapture.writeDebugWAV = { _ in URL(fileURLWithPath: "/tmp/test.wav") }
     }
 
     await store.send(.startRecording) {
@@ -95,7 +94,6 @@ import Testing
       $0.phase = .idle
     }
     await store.receive(.delegate(.completed(recording)))
-    await store.receive(.debugWAVWritten("/tmp/test.wav"))
     eventsContinuation.finish()
     await store.receive(.captureEventsFinished(1))
   }

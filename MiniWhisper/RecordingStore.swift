@@ -47,8 +47,6 @@ private let performanceLogger = Logger(
     case captureEventsFinished(Int)
     case captureStopped(Int, CanonicalRecording)
     case captureCancelled(Int)
-    case debugWAVWritten(String)
-    case debugWAVWriteFailed(AudioCaptureError)
     case delegate(Delegate)
 
     // MARK: Internal
@@ -252,7 +250,7 @@ private let performanceLogger = Logger(
         captureLogger.notice(
           "Audio capture stopped duration=\(recording.durationSeconds, format: .fixed(precision: 3))s samples=\(recording.samples.count)",
         )
-        return .concatenate(.send(.delegate(.completed(recording))), writeDebugWAV(recording))
+        return .send(.delegate(.completed(recording)))
       case let .captureCancelled(generation):
         guard generation == state.captureGeneration, state.phase == .cancelling else {
           return .none
@@ -261,14 +259,6 @@ private let performanceLogger = Logger(
         state.phase = .idle
         state.latestLevel = 0
         captureLogger.notice("Audio capture cancelled and discarded")
-        return .none
-      case let .debugWAVWritten(path):
-        captureLogger.notice("Debug capture WAV: \(path, privacy: .public)")
-        return .none
-      case let .debugWAVWriteFailed(error):
-        captureLogger.error(
-          "Debug capture WAV write failed: \(error.localizedDescription, privacy: .public)",
-        )
         return .none
       case .delegate:
         return .none
@@ -335,15 +325,6 @@ private let performanceLogger = Logger(
     .run { send in
       await audioCapture.cancel(sessionID)
       await send(.captureCancelled(generation))
-    }
-  }
-
-  private func writeDebugWAV(_ recording: CanonicalRecording) -> Effect<Action> {
-    .run { send in
-      do {
-        let url = try await audioCapture.writeDebugWAV(recording)
-        await send(.debugWAVWritten(url.path))
-      } catch { await send(.debugWAVWriteFailed(captureError(from: error))) }
     }
   }
 

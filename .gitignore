@@ -27,6 +27,7 @@ dist/
 *.ipa
 *.dSYM.zip
 *.dSYM
+*.profraw
 
 # AI
 /docs/scratch

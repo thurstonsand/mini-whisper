@@ -17,6 +17,7 @@ import ComposableArchitecture
     AsyncStream { $0.finish() }
   }
 
+  var identity: @Sendable () -> String = { LocalASREngine.identity }
   var submit: @Sendable (CanonicalRecording) async throws -> TranscriptionOutcome
 }
 
@@ -29,6 +30,7 @@ extension ASREngineClient: DependencyKey {
       prepareInstalled: { engine.prepareInstalled() },
       installAndPrepare: { engine.installAndPrepare() },
       prepareForActivation: { engine.prepareInstalled() },
+      identity: { LocalASREngine.identity },
       submit: { recording in try await engine.submit(recording.samples) },
     )
   }()

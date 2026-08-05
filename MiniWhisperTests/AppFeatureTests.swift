@@ -3,6 +3,7 @@ import AudioCapture
 import ComposableArchitecture
 import FieldContext
 import Foundation
+import History
 import HotkeyListener
 @testable import MiniWhisper
 import Testing
@@ -14,7 +15,6 @@ import Testing
     let (captureEvents, captureContinuation) = AsyncStream.makeStream(of: AudioCaptureEvent.self)
     let recording = CanonicalRecording(samples: Array(repeating: 0.1, count: 16000))
     let sessionID = UUID()
-    let debugURL = URL(fileURLWithPath: "/tmp/MiniWhisper-test.wav")
     let clock = TestClock()
     var state = AppFeature.State()
     state.hotkeyTap = .active
@@ -33,9 +33,9 @@ import Testing
         return recording
       }
       $0.audioCapture.currentInputDeviceName = { "Test Microphone" }
-      $0.audioCapture.writeDebugWAV = { _ in debugURL }
       $0.asrEngine.submit = { _ in .noSpeech }
       $0.contextCapture.prewarmFrontmostApp = {}
+      $0.date.now = Date(timeIntervalSince1970: 1000)
       $0.continuousClock = clock
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
@@ -99,6 +99,7 @@ import Testing
     let facts = AppFeature.StartupFacts(
       onboardingCompleted: true, modelDownloadConsented: true, permissions: permissions,
       engineReadiness: .ready,
+      retentionPolicy: RetentionPolicy(transcripts: .forever, audio: .never),
     )
     let store = TestStore(initialState: AppFeature.State()) {
       AppFeature()
@@ -113,6 +114,7 @@ import Testing
       $0.accessibilityGranted = true
       $0.recording.micStatus = .granted
       $0.engineReadiness = .ready
+      $0.retentionPolicy = RetentionPolicy(transcripts: .forever, audio: .never)
       $0.hotkeyTap = .starting
     }
     #expect(!store.state.onboarding.isPresented)
@@ -139,6 +141,7 @@ import Testing
       $0.onboardingCompletion.isCompleted = { true }
       $0.modelDownloadConsent.isConsented = { true }
       $0.sounds.loadIsEnabled = { false }
+      $0.date.now = Date(timeIntervalSince1970: 1000)
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
     let facts = AppFeature.StartupFacts(
@@ -146,7 +149,7 @@ import Testing
       permissions: OnboardingPermissionStatuses(
         microphoneStatus: .granted, hasAccessibilityPermission: false,
       ),
-      engineReadiness: .compiling,
+      engineReadiness: .compiling, retentionPolicy: .defaults,
     )
 
     await store.send(.task)
@@ -181,6 +184,7 @@ import Testing
       $0.modelDownloadConsent.isConsented = { false }
       $0.sounds.loadIsEnabled = { false }
       $0.continuousClock = TestClock()
+      $0.date.now = Date(timeIntervalSince1970: 1000)
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
     let permissions = OnboardingPermissionStatuses(
@@ -188,7 +192,7 @@ import Testing
     )
     let facts = AppFeature.StartupFacts(
       onboardingCompleted: false, modelDownloadConsented: false, permissions: permissions,
-      engineReadiness: .compiling,
+      engineReadiness: .compiling, retentionPolicy: .defaults,
     )
     let snapshot = OnboardingSnapshot(
       permissions: permissions, engineReadiness: .compiling, hasModelDownloadConsent: false,
@@ -252,6 +256,7 @@ import Testing
         AppFeature.StartupFacts(
           onboardingCompleted: false, modelDownloadConsented: false,
           permissions: snapshot.permissions, engineReadiness: .modelMissing,
+          retentionPolicy: .defaults,
         ),
       ),
     )
@@ -454,7 +459,11 @@ import Testing
       .transcriptionCompleted(1, suppressNoSpeechNotice: false, .transcript("delivered text")),
     ) { $0.lastTranscript = "delivered text" }
     await store.receive(.contextCaptured(1, captured)) { $0.currentFocusedContext = captured }
-    await store.receive(.deliveryCompleted(1, .pasted(.restored))) {
+    await store.receive(
+      .deliveryCompleted(
+        1, deliveryResult(" Delivered text", .pasted(.restored)),
+      ),
+    ) {
       $0.currentFocusedContext = nil
     }
     await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
@@ -490,7 +499,11 @@ import Testing
     await store.receive(.contextCaptured(1, .available(context(before: "We were still typing.")))) {
       $0.currentFocusedContext = .available(context(before: "We were still typing."))
     }
-    await store.receive(.deliveryCompleted(1, .pasted(.restored)))
+    await store.receive(
+      .deliveryCompleted(
+        1, deliveryResult(" Delivered text", .pasted(.restored)),
+      ),
+    )
     await store.finish()
     // One warm-up read at release, one authoritative read at delivery.
     #expect(await captures.taken == 2)
@@ -523,7 +536,11 @@ import Testing
       .transcriptionCompleted(1, suppressNoSpeechNotice: false, .transcript("delivered text")),
     )
     await store.receive(.contextCaptured(1, .available(context(before: "Field text."))))
-    await store.receive(.deliveryCompleted(1, .pasted(.restored)))
+    await store.receive(
+      .deliveryCompleted(
+        1, deliveryResult(" Delivered text", .pasted(.restored)),
+      ),
+    )
     await store.finish()
     #expect(await deliveries.count == 1)
   }
@@ -721,7 +738,11 @@ import Testing
       .transcriptionCompleted(1, suppressNoSpeechNotice: false, .transcript("delivered text")),
     ) { $0.lastTranscript = "delivered text" }
     await store.receive(.contextCaptured(1, unavailable)) { $0.currentFocusedContext = unavailable }
-    await store.receive(.deliveryCompleted(1, .pasted(.restored))) {
+    await store.receive(
+      .deliveryCompleted(
+        1, deliveryResult("delivered text", .pasted(.restored)),
+      ),
+    ) {
       $0.currentFocusedContext = nil
     }
     await store.receive(.pill(.fieldContextUnavailable)) {
@@ -745,7 +766,11 @@ import Testing
       $0.sounds.play = { cue in await sounds.record(cue) }
     }
 
-    await store.send(.deliveryCompleted(2, .pasted(.skipped)))
+    await store.send(
+      .deliveryCompleted(
+        2, deliveryResult("", .pasted(.skipped)),
+      ),
+    )
     await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
     #expect(await sounds.recorded == [.commit])
@@ -773,7 +798,12 @@ import Testing
     await store.receive(.contextCaptured(3, .unavailable(.accessibilityPermissionMissing))) {
       $0.currentFocusedContext = .unavailable(.accessibilityPermissionMissing)
     }
-    await store.receive(.deliveryCompleted(3, .copied(.accessibilityPermissionMissing))) {
+    await store.receive(
+      .deliveryCompleted(
+        3,
+        deliveryResult("copy me", .copied(.accessibilityPermissionMissing)),
+      ),
+    ) {
       $0.currentFocusedContext = nil
     }
     await store.receive(.pill(.copiedToClipboard)) {
@@ -803,6 +833,7 @@ import Testing
 
     await store.send(.hotkeyListenerEvent(.gesture(.startRecording))) {
       $0.transcriptionGeneration = 1
+      $0.dictationInFlight = true
     }
     await store.receive(.pill(.recordingStarting(inputDeviceName: "Microphone"))) {
       $0.pill.presentation = .recording(
@@ -812,7 +843,7 @@ import Testing
       )
     }
     await store.receive(.recording(.startRecording))
-    await store.send(.recording(.delegate(.discarded)))
+    await store.send(.recording(.delegate(.discarded))) { $0.dictationInFlight = false }
     await store.receive(.pill(.cancel)) { $0.pill.presentation = nil }
     await store.finish()
     let recorded = await sounds.recorded
@@ -837,7 +868,11 @@ import Testing
       $0.continuousClock = clock
     }
 
-    await store.send(.deliveryCompleted(4, .copied(.secureInput)))
+    await store.send(
+      .deliveryCompleted(
+        4, deliveryResult("", .copied(.secureInput)),
+      ),
+    )
     await store.receive(.pill(.copiedToClipboard)) {
       $0.pill.noticeGeneration = 1
       $0.pill.presentation = .notice(.copiedToClipboard)
@@ -868,7 +903,11 @@ import Testing
     await store.receive(.contextCaptured(5, .unavailable(.noFocusedElement))) {
       $0.currentFocusedContext = .unavailable(.noFocusedElement)
     }
-    await store.receive(.deliveryFailed(5, message)) { $0.currentFocusedContext = nil }
+    await store.receive(
+      .deliveryFailed(
+        5, deliveryFailure("undeliverable", message: message),
+      ),
+    ) { $0.currentFocusedContext = nil }
     await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
     #expect(await sounds.recorded == [.error])
@@ -885,60 +924,25 @@ import Testing
       $0.sounds.play = { cue in await sounds.record(cue) }
     }
 
-    await store.send(.deliveryCompleted(4, .pasted(.restored)))
+    await store.send(
+      .deliveryCompleted(
+        4, deliveryResult("", .pasted(.restored)),
+      ),
+    )
     await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
     #expect(await sounds.recorded.isEmpty)
   }
 }
 
-// MARK: - SoundRecorder
-
-private actor SoundRecorder {
-  private(set) var recorded: [SoundCue] = []
-
-  func record(_ cue: SoundCue) {
-    recorded.append(cue)
-  }
+private func deliveryResult(
+  _ text: String, _ outcome: DeliveryOutcome,
+) -> AppFeature.DeliveryResult {
+  AppFeature.DeliveryResult(text: text, targetApp: nil, outcome: outcome)
 }
 
-// MARK: - CaptureSequence
-
-/// Hands back a scripted sequence of captures so a test can tell the release-time warm-up read
-/// apart from the authoritative read taken at delivery.
-private actor CaptureSequence {
-  // MARK: Lifecycle
-
-  init(captures: [ContextCapture]) {
-    remaining = captures
-  }
-
-  // MARK: Internal
-
-  private(set) var taken = 0
-
-  func next() -> ContextCapture {
-    taken += 1
-    return remaining.isEmpty ? .unavailable(.noFocusedElement) : remaining.removeFirst()
-  }
-
-  // MARK: Private
-
-  private var remaining: [ContextCapture]
-}
-
-// MARK: - PrewarmCounter
-
-private actor PrewarmCounter {
-  private(set) var count = 0
-
-  var isEmpty: Bool {
-    count == 0
-  }
-
-  func record() {
-    count += 1
-  }
+private func deliveryFailure(_ text: String, message: String) -> AppFeature.DeliveryFailure {
+  AppFeature.DeliveryFailure(text: text, targetApp: nil, message: message)
 }
 
 private func context(before: String) -> FocusedTextContext {
