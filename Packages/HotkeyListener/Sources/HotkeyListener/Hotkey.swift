@@ -92,6 +92,16 @@ public struct Hotkey: Equatable, Codable, Sendable {
     self.modifiers = modifiers
   }
 
+  /// Routes decoding through the validating initializer, so an invalid `Hotkey` cannot enter
+  /// the program through persisted data any more than through code.
+  public init(from decoder: any Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    try self.init(
+      keyCode: container.decodeIfPresent(UInt16.self, forKey: .keyCode),
+      modifiers: container.decode(Set<ModifierKey>.self, forKey: .modifiers),
+    )
+  }
+
   // MARK: Public
 
   public static let rightOption = Hotkey(validatedKeyCode: nil, modifiers: [.rightOption])
@@ -103,12 +113,6 @@ public struct Hotkey: Equatable, Codable, Sendable {
     var container = encoder.container(keyedBy: CodingKeys.self)
     try container.encodeIfPresent(keyCode, forKey: .keyCode)
     try container.encode(modifiers.sorted { $0.rawValue < $1.rawValue }, forKey: .modifiers)
-  }
-
-  // MARK: Internal
-
-  func validate() throws {
-    try Self.validate(keyCode: keyCode, modifiers: modifiers)
   }
 
   // MARK: Private

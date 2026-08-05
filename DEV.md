@@ -45,6 +45,8 @@ Three build configurations produce three separate apps, so all three can be inst
 - `Packages/FieldContext` — focused-field capture payload, fallback taxonomy, and the transcript join rules
 - `Packages/TranscriptCleanup` — optional LLM cleanup client
 - `Packages/HotkeyListener` — pinned-modifier event pipeline and hold/latch state machine
+- `Packages/History` — history log model, retention policy, and the audio vault
+- `Packages/AppSettings` — `settings.json` model and store, aggregating settings from the feature packages
 
 Design principle: the app target is a thin shell; business logic lives in packages. Features (`@Reducer`) orchestrate, clients (`@DependencyClient`) wrap system boundaries, pure decision logic gets plain unit tests in its package.
 

@@ -1,6 +1,7 @@
 ---
 status: open
 type: grilling
+claimed: history-build
 blocked-by: [8, 16]
 ---
 
@@ -29,4 +30,29 @@ A one-off rescue paired 20 of the 129 leaked WAVs to their transcripts by scrapi
 
 That is the feature this ticket is meant to replace, and its failure modes are the requirements: pairing must be durable rather than incidental, and an entry has to distinguish what the engine said from what was actually said, or the corpus it accumulates can only ever measure agreement with the incumbent.
 
-Still open, and now inheriting the settings window's answers: the on-disk store's shape, whether a menu submenu of recent transcripts exists alongside the window, replay and re-transcription, search, and per-entry deletion.
+Still open: search and per-entry deletion, both pane details.
+
+### The store (settled by prior-art survey)
+
+A subagent read the actual persistence code of Hex, VoiceInk, Whispering/Epicenter, and FluidVoice (GPL — described, never copied). Hex keeps one Codable JSON plus a `Recordings/` directory with count-based trimming; VoiceInk uses SwiftData with independent transcript/audio expiry — the only direct prior art for our two-TTL split — but does not prune when the setting changes, which is exactly the failure this ticket forbids; Whispering creates the row *before* transcribing so a failed transcription is still durable history; FluidVoice budgets audio by bytes inside UserDefaults.
+
+Decision: **Hex's shape — `@Shared(.fileStorage)` on one versioned JSON log, WAVs in an audio directory beside it — with Hex's two defects corrected.** A directory-per-entry store was designed and fully built first, then reverted the same day: laid against the field — JSONL, SQLite3, GRDB, SwiftData, UserDefaults — the deciding question became what TCA users actually do, and the answer is Point-Free's Sharing library, already a transitive dependency of TCA, holding small collections in a `.fileStorage` file. It is the pattern our north star's history already ships, it costs no allowlist addition and no new idiom, and search stays an in-memory filter either way — single-digit milliseconds at a heavy year's ~10k entries. SQLite/GRDB's only real lure was FTS5 full-text ranking, which earns nothing at this scale; SwiftData's managed reference types fight TCA's value types badly enough that Point-Free built SharingGRDB to answer it.
+
+```text
+…/Application Support/<channel>/History/
+  history.json      # versioned HistoryLog: [HistoryEntry], newest first
+  audio/<UUID>.wav  # referenced by relative filename; absent once pruned
+```
+
+The corrections to Hex, both born from the log-scrape postmortem: filenames in the log are **relative**, never absolute paths, so the store survives being moved; and pairing-by-reference is backstopped by a **launch-time reconcile** that forces log and disk back into agreement in whichever direction they disagree — missing WAV clears the entry's audio metadata, unreferenced WAV is deleted.
+
+- Transcript TTL removes the entry (and releases its audio file); audio TTL deletes bytes and nulls the entry's audio metadata. A pinned entry is exempt from both automated passes — a transcript TTL that removed a pinned entry would take its audio with it, defeating the pin — but never from manual deletion. Retention is a pure function over the log returning the kept log plus filenames to delete, so it tests without a filesystem.
+- `transcriptions` is an append-only list — text, engine, timestamp — so a re-transcription never overwrites what the engine said at dictation time. The entry also carries the delivery outcome and target-app identity, so a bad result can be told apart: recognition error, cleanup change, or delivery failure.
+- `Packages/History` holds the value types, the retention function, and the `AudioVault` (WAV write/delete/reconcile); the `@Shared(.fileStorage)` wiring lives in the app layer where TCA already is.
+
+### Settled at build kickoff
+
+- **The two TTLs live in `settings.json`.** The retention popover is still settings even though it renders inside History; the file stays the one authoritative settings surface.
+- **No recent-transcripts submenu in the menu bar.** Paste-last already covers the immediate-recovery case there; the full page is one click away, and a submenu would be a second history surface to keep honest.
+- **Re-transcription ships in the first pane**, not as a later enablement. Audio is stored in canonical engine-input format so any engine — current or a bakeoff candidate — can re-run it. A re-transcription must not overwrite the record of what the engine said at dictation time: the entry keeps the original output alongside any later one, or the corpus can only measure agreement with whichever engine ran last.
+- **Build order:** store package first, then pipeline wiring (which deletes `writeDebugWAV` in the same commit), then the settings window shell with stub panes and a menu item, then the History pane ported from the mock-up. The Settings pane is a deliberate fast-follow, not part of this ticket.

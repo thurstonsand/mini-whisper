@@ -1,4 +1,5 @@
 import AppKit
+import AppSettings
 import ComposableArchitecture
 import HotkeyListener
 import OSLog

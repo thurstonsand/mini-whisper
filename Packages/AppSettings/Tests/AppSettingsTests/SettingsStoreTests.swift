@@ -1,5 +1,7 @@
+@testable import AppSettings
 import Foundation
-@testable import HotkeyListener
+import History
+import HotkeyListener
 import Testing
 
 struct SettingsStoreTests {
@@ -16,10 +18,11 @@ struct SettingsStoreTests {
     let object = try #require(
       JSONSerialization.jsonObject(with: Data(contentsOf: location)) as? [String: Any],
     )
-    #expect(Set(object.keys) == ["hotkey", "soundsEnabled"])
+    #expect(Set(object.keys) == ["hotkey", "retention", "soundsEnabled"])
   }
 
-  @Test func `valid settings are loaded without being rewritten`() throws {
+  @Test func `a file from before retention existed keeps its hotkey and gains the defaults`(
+  ) throws {
     let location = temporarySettingsURL()
     defer { try? FileManager.default.removeItem(at: location.deletingLastPathComponent()) }
     try FileManager.default.createDirectory(
@@ -33,7 +36,39 @@ struct SettingsStoreTests {
     let settings = try SettingsStore(fileURL: location).load()
 
     #expect(try settings.hotkey == Hotkey(keyCode: 0, modifiers: [.leftCommand]))
+    #expect(settings.retention == .defaults)
+    #expect(try String(contentsOf: location, encoding: .utf8) == original)
+  }
+
+  @Test func `saving retention preserves everything else and prunes on the next load`() throws {
+    let location = temporarySettingsURL()
+    defer { try? FileManager.default.removeItem(at: location.deletingLastPathComponent()) }
+    let store = SettingsStore(fileURL: location)
+
+    try store.saveRetention(RetentionPolicy(transcripts: .ninetyDays, audio: .never))
+
+    let settings = try store.load()
+    #expect(settings.retention == RetentionPolicy(transcripts: .ninetyDays, audio: .never))
+    #expect(settings.hotkey == MiniWhisperSettings.defaults.hotkey)
+    #expect(settings.soundsEnabled == MiniWhisperSettings.defaults.soundsEnabled)
+  }
+
+  @Test func `valid settings are loaded without being rewritten`() throws {
+    let location = temporarySettingsURL()
+    defer { try? FileManager.default.removeItem(at: location.deletingLastPathComponent()) }
+    try FileManager.default.createDirectory(
+      at: location.deletingLastPathComponent(), withIntermediateDirectories: true,
+    )
+    let original = """
+    {"hotkey":{"keyCode":0,"modifiers":["leftCommand"]},"retention":{"audio":"30d","transcripts":"forever"},"soundsEnabled":false}
+    """
+    try Data(original.utf8).write(to: location)
+
+    let settings = try SettingsStore(fileURL: location).load()
+
+    #expect(try settings.hotkey == Hotkey(keyCode: 0, modifiers: [.leftCommand]))
     #expect(settings.soundsEnabled == false)
+    #expect(settings.retention == RetentionPolicy(transcripts: .forever, audio: .thirtyDays))
     #expect(try String(contentsOf: location, encoding: .utf8) == original)
   }
 
@@ -91,7 +126,7 @@ struct SettingsStoreTests {
     let object = try #require(
       JSONSerialization.jsonObject(with: Data(contentsOf: location)) as? [String: Any],
     )
-    #expect(Set(object.keys) == ["hotkey", "soundsEnabled"])
+    #expect(Set(object.keys) == ["hotkey", "retention", "soundsEnabled"])
   }
 
   @Test func `saving sounds onto A missing file starts from defaults`() throws {
