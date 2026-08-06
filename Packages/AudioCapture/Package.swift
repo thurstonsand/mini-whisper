@@ -4,7 +4,7 @@
 import PackageDescription
 
 let package = Package(
-  name: "AudioCapture", platforms: [.macOS(.v14)],
+  name: "AudioCapture", platforms: [.macOS(.v26)],
   products: [.library(name: "AudioCapture", targets: ["AudioCapture"])],
   targets: [
     .target(name: "AudioCapture"),

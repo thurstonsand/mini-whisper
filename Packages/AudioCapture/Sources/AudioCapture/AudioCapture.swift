@@ -19,6 +19,7 @@ public enum AudioCaptureError: Error, Equatable, Sendable {
   case conversionFailed(String)
   case captureOverrun
   case wavWriteFailed(String)
+  case wavReadFailed(String)
   case engineStartFailed(String)
   case engineConfigurationChanged
   case engineStoppedUnexpectedly
@@ -58,6 +59,8 @@ extension AudioCaptureError: LocalizedError {
       "Audio capture could not keep up with the input stream"
     case let .wavWriteFailed(reason):
       "WAV writing failed: \(reason)"
+    case let .wavReadFailed(reason):
+      "WAV reading failed: \(reason)"
     case let .engineStartFailed(reason):
       "The audio engine failed to start: \(reason)"
     case .engineConfigurationChanged:

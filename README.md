@@ -6,7 +6,7 @@ Hold right Option to dictate and release it to transcribe. Double-tap right Opti
 
 ## Install
 
-MiniWhisper requires an Apple silicon Mac running macOS 14 or later.
+MiniWhisper requires an Apple silicon Mac running macOS 26 or later.
 
 ```sh
 brew install thurstonsand/tap/mini-whisper

@@ -1,3 +1,4 @@
+import AppSettings
 import ASREngine
 import AudioCapture
 import ComposableArchitecture
@@ -133,7 +134,7 @@ import Testing
     let id = try #require(UUID(uuidString: "00000000-0000-0000-0000-000000000007"))
     let targetApp = TargetApp(bundleID: "com.example.Editor", name: "Editor")
     var state = historyState()
-    state.retentionPolicy.audio = .never
+    state.$settings.withLock { $0.retention.audio = .never }
     state.transcriptionGeneration = 2
     state.pendingDictation = pendingDictation(generation: 2)
     state.pendingDictation?.original = History.Transcription(
@@ -193,10 +194,10 @@ import Testing
   ) async throws {
     let id = try #require(UUID(uuidString: "00000000-0000-0000-0000-000000000008"))
     let metadata = AudioMetadata(durationSeconds: 0.5, byteCount: 32044)
-    var state = AppFeature.State(history: Shared(value: HistoryLog()))
+    var state = historyState()
     state.transcriptionGeneration = 4
     state.dictationInFlight = true
-    state.historyMaintenance = .waiting(.currentPolicy)
+    state.historyMaintenance = .waiting
     state.pendingDictation = pendingDictation(generation: 4)
     let store = TestStore(initialState: state) {
       AppFeature()
@@ -229,7 +230,7 @@ import Testing
     let writes = AudioWriteCounter()
     let id = try #require(UUID(uuidString: "00000000-0000-0000-0000-000000000003"))
     var state = historyState()
-    state.retentionPolicy.audio = .never
+    state.$settings.withLock { $0.retention.audio = .never }
     state.transcriptionGeneration = 4
     state.pill.presentation = .transcribing
     state.pendingDictation = pendingDictation(generation: 4)
@@ -365,15 +366,17 @@ import Testing
     expectedEntry.audio = nil
     let expected = HistoryLog(entries: [expectedEntry])
     let maintenance = HistoryMaintenanceRecorder()
-    var state = AppFeature.State(history: Shared(value: original))
-    state.retentionPolicy = .defaults
+    let state = AppFeature.State(
+      history: Shared(value: original),
+      settings: Shared(value: MiniWhisperSettings(
+        hotkey: .rightOption, soundsEnabled: true,
+        retention: RetentionPolicy(transcripts: .forever, audio: .oneDay),
+      )),
+    )
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
       $0.date.now = now
-      $0.historyClient.loadRetentionPolicy = {
-        RetentionPolicy(transcripts: .forever, audio: .oneDay)
-      }
       $0.historyClient.reconcile = { log in
         await maintenance.recordReconcile()
         return log
@@ -382,12 +385,8 @@ import Testing
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
 
-    await store.send(.historyMaintenanceRequested(.currentPolicy))
-    await store.receive(
-      .historyMaintenanceCompleted(
-        expected, RetentionPolicy(transcripts: .forever, audio: .oneDay),
-      ),
-    )
+    await store.send(.historyMaintenanceRequested)
+    await store.receive(.historyMaintenanceCompleted(expected))
     await store.finish()
     #expect(store.state.history == expected)
     #expect(await maintenance.reconcileCount == 1)
@@ -397,6 +396,7 @@ import Testing
   @Test func `maintenance requested mid recording waits for the terminal transition`() async {
     let policy = RetentionPolicy(transcripts: .forever, audio: .never)
     var state = historyState()
+    state.$settings.withLock { $0.retention = policy }
     state.dictationInFlight = true
     let store = TestStore(initialState: state) {
       AppFeature()
@@ -407,16 +407,16 @@ import Testing
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
 
-    await store.send(.historyMaintenanceRequested(.policy(policy))) {
-      $0.historyMaintenance = .waiting(.policy(policy))
+    await store.send(.historyMaintenanceRequested) {
+      $0.historyMaintenance = .waiting
     }
     await store.send(.recording(.delegate(.failed))) {
       $0.dictationInFlight = false
-      $0.historyMaintenance = .running(.policy(policy))
+      $0.historyMaintenance = .running
     }
-    await store.receive(.historyMaintenanceCompleted(HistoryLog(), policy))
+    await store.receive(.historyMaintenanceCompleted(HistoryLog()))
     await store.finish()
-    #expect(store.state.retentionPolicy == policy)
+    #expect(store.state.settings.retention == policy)
   }
 
   @Test func `unreadable history is not overwritten by a completed dictation`() async throws {
@@ -446,6 +446,7 @@ import Testing
     } operation: {
       AppFeature.State(
         history: Shared(wrappedValue: HistoryLog(), .fileStorage(historyURL)),
+        settings: Shared(value: .defaults),
       )
     }
     state.transcriptionGeneration = 1
@@ -485,9 +486,9 @@ import Testing
     } operation: {
       AppFeature.State(
         history: Shared(wrappedValue: HistoryLog(), .fileStorage(historyURL)),
+        settings: Shared(value: .defaults),
       )
     }
-    state.retentionPolicy = .defaults
     state.transcriptionGeneration = 1
     state.pendingDictation = pendingDictation(generation: 1, recording: recording)
     state.pendingDictation?.original = History.Transcription(
@@ -523,9 +524,7 @@ import Testing
 }
 
 private func historyState() -> AppFeature.State {
-  var state = AppFeature.State(history: Shared(value: HistoryLog()))
-  state.retentionPolicy = .defaults
-  return state
+  AppFeature.State(history: Shared(value: HistoryLog()), settings: Shared(value: .defaults))
 }
 
 private func pendingDictation(

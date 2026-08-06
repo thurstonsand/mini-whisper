@@ -1,3 +1,4 @@
+import AppSettings
 import AudioCapture
 import ComposableArchitecture
 import Foundation
@@ -16,26 +17,10 @@ extension AppFeature {
     var isFinishing = false
   }
 
-  enum HistoryMaintenanceRequest: Equatable {
-    case currentPolicy
-    case policy(RetentionPolicy)
-
-    // MARK: Internal
-
-    var policy: RetentionPolicy? {
-      switch self {
-      case .currentPolicy:
-        nil
-      case let .policy(policy):
-        policy
-      }
-    }
-  }
-
   enum HistoryMaintenanceState: Equatable {
     case idle
-    case running(HistoryMaintenanceRequest)
-    case waiting(HistoryMaintenanceRequest)
+    case running
+    case waiting
   }
 
   func finishDeliveredDictation(
@@ -91,30 +76,24 @@ extension AppFeature {
   }
 
   func startDeferredHistoryMaintenance(_ state: inout State) -> Effect<Action> {
-    guard case let .waiting(request) = state.historyMaintenance else {
+    guard state.historyMaintenance == .waiting else {
       return .none
     }
-    state.historyMaintenance = .running(request)
-    return historyMaintenanceEffect(log: state.history, policy: request.policy, now: now)
+    state.historyMaintenance = .running
+    return historyMaintenanceEffect(log: state.history, policy: state.settings.retention, now: now)
   }
 
   func historyMaintenanceEffect(
-    log: HistoryLog, policy requestedPolicy: RetentionPolicy?, now: Date,
+    log: HistoryLog, policy: RetentionPolicy, now: Date,
   ) -> Effect<Action> {
     .run { send in
       do {
-        let policy: RetentionPolicy =
-          if let requestedPolicy {
-            requestedPolicy
-          } else {
-            try await historyClient.loadRetentionPolicy()
-          }
         let reconciled = try await historyClient.reconcile(log)
         try Task.checkCancellation()
         let outcome = Retention.apply(policy, to: reconciled, now: now)
         try await historyClient.deleteAudio(outcome.audioToDelete)
         try Task.checkCancellation()
-        await send(.historyMaintenanceCompleted(outcome.log, policy))
+        await send(.historyMaintenanceCompleted(outcome.log))
       } catch is CancellationError {
         return
       } catch {

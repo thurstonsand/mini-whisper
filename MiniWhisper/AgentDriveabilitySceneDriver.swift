@@ -1,3 +1,4 @@
+import AppSettings
 import ASREngine
 import ComposableArchitecture
 import Foundation
@@ -57,7 +58,10 @@ import Foundation
         }
         store.send(.onboarding(.engineReadinessUpdated(.downloading(fraction))))
       case "sounds":
-        store.send(.soundsEnabledSaved(fields[2] == "true"))
+        guard store.settings.soundsEnabled != (fields[2] == "true") else {
+          return
+        }
+        store.send(.toggleSounds)
         refreshMenu()
       case "launch-at-login":
         store.send(.launchAtLoginUpdated(fields[2] == "true"))

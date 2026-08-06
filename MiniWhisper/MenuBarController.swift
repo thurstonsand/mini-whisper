@@ -7,6 +7,9 @@ import ComposableArchitecture
   init(store: StoreOf<AppFeature>, refreshesStateOnOpen: Bool = true) {
     self.store = store
     self.refreshesStateOnOpen = refreshesStateOnOpen
+    settingsWindowController = SettingsWindowController(
+      store: store.scope(state: \.settingsWindow, action: \.settingsWindow),
+    )
     statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     super.init()
 
@@ -37,8 +40,8 @@ import ComposableArchitecture
     aboutWindowController.present()
   }
 
-  func presentSettings() {
-    settingsWindowController.present()
+  func presentSettings(destination: SettingsDestination = .settings) {
+    settingsWindowController.present(destination: destination)
   }
 
   // MARK: Private
@@ -48,7 +51,7 @@ import ComposableArchitecture
   private let refreshesStateOnOpen: Bool
   private let menu = NSMenu()
   private let aboutWindowController = AboutWindowController()
-  private let settingsWindowController = SettingsWindowController()
+  private let settingsWindowController: SettingsWindowController
   private var renderedIconSymbolName: String?
 
   private func observeIcon() {

@@ -3,7 +3,7 @@
 import PackageDescription
 
 let package = Package(
-  name: "AppSettings", platforms: [.macOS(.v14)],
+  name: "AppSettings", platforms: [.macOS(.v26)],
   products: [.library(name: "AppSettings", targets: ["AppSettings"])],
   dependencies: [
     .package(path: "../HotkeyListener"),

@@ -4,7 +4,7 @@
 import PackageDescription
 
 let package = Package(
-  name: "HotkeyListener", platforms: [.macOS(.v14)],
+  name: "HotkeyListener", platforms: [.macOS(.v26)],
   products: [.library(name: "HotkeyListener", targets: ["HotkeyListener"])],
   targets: [
     .target(name: "HotkeyListener"),

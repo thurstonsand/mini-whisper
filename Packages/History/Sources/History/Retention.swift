@@ -30,10 +30,6 @@ public enum Retention {
     var audioToDelete = [UUID]()
 
     for entry in log.entries {
-      guard !entry.pinned else {
-        kept.append(entry)
-        continue
-      }
       let age = now.timeIntervalSince(entry.createdAt)
       if let maxAge = policy.transcripts.maxAge, age >= maxAge {
         if entry.audio != nil {

@@ -1,3 +1,4 @@
+import AppSettings
 import ASREngine
 import AudioCapture
 import ComposableArchitecture
@@ -236,7 +237,7 @@ private struct MenuActionFailure: LocalizedError {
     } withDependencies: {
       $0.accessibilityPermission.hasPermission = { true }
       $0.audioCapture.currentInputDeviceName = { "Shure MV7" }
-      $0.hotkeyListener.events = { events }
+      $0.hotkeyListener.events = { _ in events }
       $0.launchAtLogin.isRegistered = { false }
     }
 
@@ -335,7 +336,7 @@ private struct MenuActionFailure: LocalizedError {
       AppFeature()
     } withDependencies: {
       $0.accessibilityPermission.hasPermission = { true }
-      $0.hotkeyListener.events = { events }
+      $0.hotkeyListener.events = { _ in events }
     }
 
     await store.send(.repairDegradedState) {
@@ -395,7 +396,7 @@ private struct MenuActionFailure: LocalizedError {
       AppFeature()
     } withDependencies: {
       $0.accessibilityPermission.hasPermission = { true }
-      $0.hotkeyListener.events = { events }
+      $0.hotkeyListener.events = { _ in events }
     }
     #expect(store.state.menuBar.degradation == .accessibilityDenied)
 
@@ -446,33 +447,15 @@ private struct MenuActionFailure: LocalizedError {
     await store.send(.copyLastTranscript)
   }
 
-  @Test func `toggling sounds persists the setting`() async {
-    let saved = Collector<Bool>()
-    var state = AppFeature.State()
-    state.soundsEnabled = true
-    let store = TestStore(initialState: state) {
-      AppFeature()
-    } withDependencies: {
-      $0.sounds.setIsEnabled = { enabled in saved.append(enabled) }
+  @Test func `toggling sounds writes the setting straight through`() async {
+    let state = AppFeature.State()
+    state.$settings.withLock { $0.soundsEnabled = true }
+    let store = TestStore(initialState: state) { AppFeature() }
+
+    await store.send(.toggleSounds) {
+      $0.$settings.withLock { $0.soundsEnabled = false }
     }
-
-    await store.send(.toggleSounds)
-    await store.receive(.soundsEnabledSaved(false)) { $0.soundsEnabled = false }
-    #expect(saved.values == [false])
-  }
-
-  @Test func `a failed sounds save leaves the toggle untouched`() async {
-    var state = AppFeature.State()
-    state.soundsEnabled = true
-    let store = TestStore(initialState: state) {
-      AppFeature()
-    } withDependencies: {
-      $0.sounds.setIsEnabled = { _ in throw MenuActionFailure() }
-    }
-
-    await store.send(.toggleSounds)
-    await store.receive(.soundsPersistenceFailed("menu action failed"))
-    #expect(store.state.soundsEnabled)
+    #expect(!store.state.menuBar.soundsEnabled)
   }
 
   @Test func `toggling launch at login reads the service back`() async {

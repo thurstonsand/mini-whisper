@@ -1,11 +1,14 @@
+import AppSettings
 import ASREngine
 import AudioCapture
+import ComposableArchitecture
 import Foundation
+import History
 
 // MARK: - PresentedWindow
 
-enum PresentedWindow {
-  case settings
+enum PresentedWindow: Equatable {
+  case settings(SettingsDestination)
   case about
 }
 
@@ -20,6 +23,7 @@ enum PresentedWindow {
     case onboardingTryIt = "onboarding-try-it"
     case onboardingReady = "onboarding-ready"
     case settings
+    case settingsHistory = "settings-history"
     case about
     case pillRecording = "pill-recording"
     case pillTranscribing = "pill-transcribing"
@@ -41,7 +45,9 @@ enum PresentedWindow {
     var presentedWindow: PresentedWindow? {
       switch self {
       case .settings:
-        .settings
+        .settings(.settings)
+      case .settingsHistory:
+        .settings(.history)
       case .about:
         .about
       default:
@@ -54,7 +60,9 @@ enum PresentedWindow {
     }
 
     var initialState: AppFeature.State {
-      var state = AppFeature.State()
+      var state = AppFeature.State(
+        history: Shared(value: seededHistory), settings: Shared(value: .defaults),
+      )
       state.onboardingCompleted = true
       state.modelDownloadConsented = true
       state.hotkeyTap = .active
@@ -65,10 +73,11 @@ enum PresentedWindow {
 
       switch self {
       case .menuHealthy:
-        state.soundsEnabled = true
+        state.$settings.withLock { $0.soundsEnabled = true }
         state.launchAtLoginRegistered = true
         state.lastTranscript = "A previous transcript"
       case .menuDegraded:
+        state.$settings.withLock { $0.soundsEnabled = false }
         state.hotkeyTap = .accessibilityMissing
         state.accessibilityGranted = false
       case .onboardingWelcome:
@@ -106,6 +115,7 @@ enum PresentedWindow {
           readiness: .ready, isCompleted: true, tryItText: "MiniWhisper is ready.",
         )
       case .settings,
+           .settingsHistory,
            .about:
         break
       case .pillRecording:
@@ -125,6 +135,61 @@ enum PresentedWindow {
     }
 
     // MARK: Private
+
+    /// Only the History scene needs entries; every other scene starts from an empty log so the
+    /// pane it does show is not quietly seeded behind it.
+    private var seededHistory: HistoryLog {
+      guard self == .settingsHistory else {
+        return HistoryLog()
+      }
+      let calendar = Calendar(identifier: .gregorian)
+      let today = Date(timeIntervalSince1970: 1_754_352_000)
+      var entries = [
+        HistoryEntry(
+          id: UUID(uuidString: "11111111-1111-1111-1111-111111111111")!,
+          createdAt: today.addingTimeInterval(9 * 3600 + 42 * 60),
+          targetApp: TargetApp(bundleID: "com.apple.dt.Xcode", name: "Xcode"),
+          original: Transcription(
+            text: "The history pane keeps every transcript close at hand.",
+            engine: "test-engine", transcribedAt: today,
+          ),
+          delivery: Delivery(
+            text: "The history pane keeps every transcript close at hand.",
+            method: .pasted,
+            detail: nil,
+          ),
+          audio: AudioMetadata(durationSeconds: 8.4, byteCount: 537_600),
+        ),
+        HistoryEntry(
+          id: UUID(uuidString: "22222222-2222-2222-2222-222222222222")!,
+          createdAt: calendar.date(byAdding: .day, value: -1, to: today)!,
+          targetApp: TargetApp(bundleID: "com.mitchellh.ghostty", name: "Ghostty"),
+          original: Transcription(
+            text: "A second deterministic transcript for search and deletion.",
+            engine: "test-engine", transcribedAt: today,
+          ),
+          delivery: Delivery(
+            text: "A second deterministic transcript for search and deletion.",
+            method: .copied,
+            detail: nil,
+          ),
+          audio: nil,
+        ),
+      ]
+      entries.append(contentsOf: (3 ... 32).map { index in
+        let text = "Deterministic transcript \(index) for keyboard scrolling."
+        return HistoryEntry(
+          id: UUID(uuidString: String(format: "00000000-0000-0000-0000-%012d", index))!,
+          createdAt: calendar.date(byAdding: .day, value: -2, to: today)!
+            .addingTimeInterval(-Double(index) * 60),
+          targetApp: TargetApp(bundleID: "com.apple.Terminal", name: "Terminal"),
+          original: Transcription(text: text, engine: "test-engine", transcribedAt: today),
+          delivery: Delivery(text: text, method: .copied, detail: nil),
+          audio: nil,
+        )
+      })
+      return HistoryLog(entries: entries)
+    }
 
     private func onboardingState(
       permissions: OnboardingPermissionStatuses, readiness: EngineReadiness,

@@ -50,8 +50,8 @@ import SwiftUI
         store.send(initialAction)
       }
       switch agentScene.presentedWindow {
-      case .settings:
-        menuBarController.presentSettings()
+      case let .settings(destination):
+        menuBarController.presentSettings(destination: destination)
       case .about:
         menuBarController.presentAbout()
       case nil:

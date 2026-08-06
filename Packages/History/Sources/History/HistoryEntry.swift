@@ -65,7 +65,6 @@ public struct HistoryEntry: Equatable, Codable, Sendable, Identifiable {
     reference: String? = nil,
     delivery: Delivery?,
     audio: AudioMetadata?,
-    pinned: Bool = false,
   ) {
     self.id = id
     self.createdAt = createdAt
@@ -75,7 +74,6 @@ public struct HistoryEntry: Equatable, Codable, Sendable, Identifiable {
     self.reference = reference
     self.delivery = delivery
     self.audio = audio
-    self.pinned = pinned
   }
 
   // MARK: Public
@@ -92,8 +90,6 @@ public struct HistoryEntry: Equatable, Codable, Sendable, Identifiable {
   public var reference: String?
   public var delivery: Delivery?
   public var audio: AudioMetadata?
-  /// Exempts the entry from both automated retention passes, never from manual deletion.
-  public var pinned: Bool
 
   /// The text the pane shows: the newest transcription of the audio, original included.
   public var currentText: String? {
@@ -119,7 +115,7 @@ public struct Transcription: Equatable, Codable, Sendable {
   // MARK: Public
 
   public let text: String
-  /// Pinned model identity, e.g. the Hugging Face repository the engine loaded.
+  /// Fixed model identity, e.g. the Hugging Face repository the engine loaded.
   public let engine: String
   public let transcribedAt: Date
 }

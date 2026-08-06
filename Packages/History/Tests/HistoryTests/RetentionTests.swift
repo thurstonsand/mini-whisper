@@ -28,6 +28,12 @@ struct RetentionTests {
     #expect(outcome.audioToDelete == [aged.id])
   }
 
+  @Test func `TTL presets compare from shortest to longest`() {
+    #expect(RetentionTTL.allCases.sorted() == RetentionTTL.allCases)
+    #expect(RetentionTTL.never < .oneDay)
+    #expect(RetentionTTL.oneYear < .forever)
+  }
+
   @Test func `never is the shortest TTL, not a special case`() {
     let fresh = entry(audio: true)
     let outcome = Retention.apply(
@@ -35,17 +41,6 @@ struct RetentionTests {
     )
     #expect(outcome.log.entries[0].audio == nil)
     #expect(outcome.audioToDelete == [fresh.id])
-  }
-
-  @Test func `a pinned entry survives both automated passes`() {
-    var pinned = entry(age: 400 * 86400, audio: true)
-    pinned.pinned = true
-    let outcome = Retention.apply(
-      RetentionPolicy(transcripts: .never, audio: .never), to: HistoryLog(entries: [pinned]),
-    )
-
-    #expect(outcome.log.entries == [pinned])
-    #expect(outcome.audioToDelete.isEmpty)
   }
 
   @Test func `forever prunes nothing`() {

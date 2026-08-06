@@ -1,7 +1,5 @@
 import AppKit
-import AppSettings
 import ComposableArchitecture
-import HotkeyListener
 import OSLog
 
 private let soundsLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "sounds")
@@ -18,21 +16,16 @@ enum SoundCue: Equatable {
 // MARK: - SoundsClient
 
 @DependencyClient struct SoundsClient {
-  var loadIsEnabled: @Sendable () async throws -> Bool = { true }
-  var setIsEnabled: @Sendable (Bool) async throws -> Void
   var play: @Sendable (SoundCue) async -> Void
 }
 
 // MARK: DependencyKey
 
 extension SoundsClient: DependencyKey {
-  static let liveValue = Self(
-    loadIsEnabled: { try SettingsStore(fileURL: Channel.settingsFile).load().soundsEnabled },
-    setIsEnabled: { enabled in
-      try SettingsStore(fileURL: Channel.settingsFile).saveSoundsEnabled(enabled)
-    },
-    play: { cue in await SystemSounds.play(cue) },
-  )
+  static let liveValue = Self(play: { cue in await SystemSounds.play(cue) })
+  /// Sounds are on by default, so silence is the right behaviour for tests that are not about
+  /// them; the ones that are inject a recorder.
+  static let testValue = Self(play: { _ in })
 }
 
 extension DependencyValues {

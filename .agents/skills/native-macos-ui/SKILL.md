@@ -29,7 +29,11 @@ macOS containers carry the platform's metrics. Fighting them is what makes a win
 
 ## Animating rows
 
-A `List` on macOS only honours an exit animation that is already in the update transaction when it reaches its hosted rows. A value-scoped `.animation(_:value:)` on the row itself is silently ignored for a change that arrives from an async task, so transient state — a copied flash, a fading confirmation — must be cleared inside `withAnimation` at the mutation site. Outside a `List` both spellings work, which is what makes this easy to get wrong.
+A `List` on macOS only honours an exit animation that is already in the update transaction when it reaches its hosted rows. A value-scoped `.animation(_:value:)` on the **row** is silently ignored for a change that arrives from an async task, so transient state reaching the row itself — a copied flash, a fading confirmation — must be cleared inside `withAnimation` at the mutation site. Outside a `List` both spellings work, which is what makes this easy to get wrong.
+
+Attached to a **leaf view inside** the row, a value-scoped `.animation(_:value:)` does animate an async change: History's copy confirmation fades its badge and its duration on plain opacity modifiers, cleared by an ordinary state mutation from a clock effect, and both transitions were captured mid-fade. Animating a child's opacity resolves inside the row's own body rather than through the transaction `List` hands its rows, which is the line between the two cases. Prefer the leaf spelling — it keeps presentation timing in the view — and keep `withAnimation` at the mutation site as the fallback for anything the row must animate as a whole.
+
+A value-dependent animation is how one piece of state gets two timings: `.animation(isCopied ? nil : .easeOut(duration: 0.5), value: isCopied)` arrives instantly and leaves slowly, because SwiftUI picks the animation from the value being moved to.
 
 Where two things swap in one slot, stagger them rather than crossfading: two texts at half opacity in the same place is unreadable for the length of the transition. Fade the outgoing one fully out, then bring the incoming one in.
 

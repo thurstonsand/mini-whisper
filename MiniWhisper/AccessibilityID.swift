@@ -1,3 +1,5 @@
+import Foundation
+
 enum AccessibilityID {
   static let menuStatusItem = "miniwhisper.menu.status-item"
   static let menuStatus = "miniwhisper.menu.status"
@@ -18,6 +20,9 @@ enum AccessibilityID {
   static let settingsSidebarDictionary = "miniwhisper.settings.sidebar.dictionary"
   static let settingsSidebarCleanup = "miniwhisper.settings.sidebar.cleanup"
   static let settingsPlaceholder = "miniwhisper.settings.placeholder"
+  static let historyCaption = "miniwhisper.history.caption"
+  static let historyStorage = "miniwhisper.history.storage"
+  static let historyStoragePopover = "miniwhisper.history.storage.popover"
 
   static let aboutWindow = "miniwhisper.about.window"
   static let aboutContent = "miniwhisper.about.content"
@@ -91,4 +96,12 @@ enum AccessibilityID {
   static let pillInputDevice = "miniwhisper.pill.input-device"
   static let pillAudioLevel = "miniwhisper.pill.audio-level"
   static let pillNotice = "miniwhisper.pill.notice"
+
+  static func historyRow(_ id: UUID) -> String {
+    "miniwhisper.history.row.\(id.uuidString)"
+  }
+
+  static func historyCopied(_ id: UUID) -> String {
+    "miniwhisper.history.copied.\(id.uuidString)"
+  }
 }

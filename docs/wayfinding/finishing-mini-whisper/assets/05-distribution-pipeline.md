@@ -15,7 +15,7 @@ Aim for one universal `arm64` + `x86_64` app and ZIP if the delivered whisper XC
 The app target currently has these release properties:
 
 - bundle identifier `com.thurstonsand.MiniWhisper` and team `6JMB7W6NB4`;
-- macOS 14 minimum and `LSUIElement=YES`;
+- macOS 26 minimum and `LSUIElement=YES`;
 - automatic signing, App Sandbox enabled, and hardened runtime enabled only for Release;
 - sandbox entitlements for microphone input, outgoing network, user-selected read/write files, and Apple Events automation;
 - generated `NSMicrophoneUsageDescription` and `NSAppleEventsUsageDescription` values in Xcode build settings;
@@ -179,7 +179,7 @@ Generate `Casks/mini-whisper.rb` only after the final GitHub asset exists. The c
 - stable version `X.Y.Z` and the SHA-256 of the final stapled ZIP;
 - immutable GitHub release URL;
 - `name "MiniWhisper"`, an accurate one-line description, and the repository homepage;
-- `depends_on macos: :sonoma` for the app's macOS 14 deployment target;
+- `depends_on macos: ">= :tahoe"` for the app's macOS 26 deployment target;
 - an architecture restriction only if the release is not universal;
 - `app "MiniWhisper.app"`;
 - no `auto_updates` stanza, because Homebrew is the updater;

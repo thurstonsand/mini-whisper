@@ -1,4 +1,8 @@
+import AppSettings
+import ComposableArchitecture
 import Foundation
+
+// MARK: - Channel
 
 /// The running channel — MiniWhisper, MiniWhisper Nightly, or MiniWhisper Dev. The bundle is the
 /// single source of truth for which one this is, exactly as it is for the TCC grants, so the name
@@ -30,4 +34,15 @@ enum Channel {
   static let modelDownloadConsentMarker = supportDirectory.appending(
     path: "model-download-consented",
   )
+}
+
+// MARK: - Settings storage
+
+extension SharedKey where Self == FileStorageKey<MiniWhisperSettings> {
+  /// The running channel's `settings.json`, read and written as one whole value.
+  static var settingsFile: Self {
+    fileStorage(
+      Channel.settingsFile, decode: SettingsCoding.decode, encode: SettingsCoding.encode,
+    )
+  }
 }

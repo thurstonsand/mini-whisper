@@ -1,3 +1,4 @@
+import AppSettings
 import ASREngine
 import AudioCapture
 import ComposableArchitecture
@@ -10,7 +11,9 @@ import OSLog
 private let gestureLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "gesture")
 private let engineLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "engine")
 private let deliveryLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "delivery")
-private let soundsLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "sounds")
+private let settingsLogger = Logger(
+  subsystem: "com.thurstonsand.MiniWhisper", category: "settings",
+)
 private let menuLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "menu")
 let historyLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "history")
 private let performanceLogger = Logger(
@@ -28,7 +31,6 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
     var modelDownloadConsented: Bool
     var permissions: OnboardingPermissionStatuses
     var engineReadiness: EngineReadiness
-    var retentionPolicy: RetentionPolicy
   }
 
   struct DeliveryResult: Equatable {
@@ -50,8 +52,15 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
       history: Shared<HistoryLog> = Shared(
         wrappedValue: HistoryLog(), .fileStorage(Channel.historyFile),
       ),
+      settings: Shared<MiniWhisperSettings> = Shared(
+        wrappedValue: .defaults, .settingsFile,
+      ),
     ) {
       _history = history
+      _settings = settings
+      settingsWindow = SettingsWindowFeature.State(
+        history: history, retention: settings.retention,
+      )
     }
 
     // MARK: Internal
@@ -59,9 +68,9 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
     var recording = RecordingFeature.State()
     var pill = PillFeature.State()
     var onboarding = OnboardingFeature.State()
+    var settingsWindow: SettingsWindowFeature.State
     var engineReadiness: EngineReadiness = .modelMissing
     var transcriptionGeneration = 0
-    var soundsEnabled = false
     var hotkeyTap = HotkeyTapStatus.idle
     var inputDeviceName: String?
     var launchAtLoginRegistered = false
@@ -69,15 +78,15 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
     var currentFocusedContext: ContextCapture?
     var pendingDictation: PendingDictation?
     var dictationInFlight = false
-    var retentionPolicy = RetentionPolicy.defaults
     var historyMaintenance = HistoryMaintenanceState.idle
     @Shared var history: HistoryLog
+    @Shared var settings: MiniWhisperSettings
     var accessibilityGranted = false
     var onboardingCompleted = false
     var modelDownloadConsented = false
 
     var storesAudio: Bool {
-      retentionPolicy.audio != .never
+      settings.retention.audio != .never
     }
 
     var canBeginDictation: Bool {
@@ -92,7 +101,8 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
         hotkeyTap: hotkeyTap, micStatus: recording.micStatus,
         accessibilityGranted: accessibilityGranted, engineReadiness: engineReadiness,
         inputDeviceName: inputDeviceName, hasLastTranscript: lastTranscript != nil,
-        soundsEnabled: soundsEnabled, launchAtLoginRegistered: launchAtLoginRegistered,
+        soundsEnabled: settings.soundsEnabled,
+        launchAtLoginRegistered: launchAtLoginRegistered,
       )
     }
   }
@@ -100,8 +110,8 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
   enum Action: Equatable {
     case task
     case startupResolved(StartupFacts)
-    case historyMaintenanceRequested(HistoryMaintenanceRequest)
-    case historyMaintenanceCompleted(HistoryLog, RetentionPolicy)
+    case historyMaintenanceRequested
+    case historyMaintenanceCompleted(HistoryLog)
     case historyMaintenanceFailed(String)
     case historyEntryPrepared(Int, HistoryEntry)
     case historyEntryAbandoned(Int)
@@ -111,6 +121,7 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
     case recording(RecordingFeature.Action)
     case pill(PillFeature.Action)
     case onboarding(OnboardingFeature.Action)
+    case settingsWindow(SettingsWindowFeature.Action)
     case hotkeyListenerEvent(HotkeyListenerEvent)
     case hotkeyListenerFailed(String)
     case hotkeyListenerFinished
@@ -119,16 +130,12 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
     case copyLastTranscript
     case copyLastTranscriptFailed(String)
     case toggleSounds
-    case soundsEnabledSaved(Bool)
-    case soundsPersistenceFailed(String)
     case toggleLaunchAtLogin
     case launchAtLoginUpdated(Bool)
     case launchAtLoginFailed(String)
     case openSettingsFile
     case workspaceOpenFailed(String)
     case engineReadinessUpdated(EngineReadiness)
-    case soundsEnabledLoaded(Bool)
-    case soundsSettingsFailed(String)
     case transcriptionCompleted(Int, suppressNoSpeechNotice: Bool, TranscriptionOutcome)
     case transcriptionFailed(Int, String)
     case contextCaptured(Int, ContextCapture)
@@ -164,36 +171,44 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
     Scope(state: \.recording, action: \.recording) { RecordingFeature() }
     Scope(state: \.pill, action: \.pill) { PillFeature() }
     Scope(state: \.onboarding, action: \.onboarding) { OnboardingFeature() }
+    Scope(state: \.settingsWindow, action: \.settingsWindow) { SettingsWindowFeature() }
 
     Reduce { state, action in
       switch action {
+      case .settingsWindow(.history(.delegate(.retentionChanged))):
+        return .send(.historyMaintenanceRequested)
+      case .settingsWindow:
+        return .none
       case .task:
+        if let error = state.$settings.loadError {
+          settingsLogger.error(
+            """
+            Settings failed to load, so the defaults are in effect and \
+            \(Channel.settingsFile.path, privacy: .public) has been left as it is: \
+            \(error.localizedDescription, privacy: .public)
+            """,
+          )
+        }
         return .merge(
-          .send(.recording(.task)), startupEffect(),
-          .send(.historyMaintenanceRequested(.currentPolicy)),
-          .run { send in
-            do { try await send(.soundsEnabledLoaded(sounds.loadIsEnabled())) } catch {
-              await send(.soundsSettingsFailed(error.localizedDescription))
-            }
-          },
+          .send(.recording(.task)), startupEffect(), .send(.historyMaintenanceRequested),
+          seedSettingsFile(state.$settings),
         )
-      case let .historyMaintenanceRequested(request):
+      case .historyMaintenanceRequested:
         if let error = state.$history.loadError {
           return .send(
             .historyMaintenanceFailed("History failed to load: \(error.localizedDescription)"),
           )
         }
         guard !state.dictationInFlight else {
-          state.historyMaintenance = .waiting(request)
+          state.historyMaintenance = .waiting
           return .none
         }
-        state.historyMaintenance = .running(request)
+        state.historyMaintenance = .running
         return historyMaintenanceEffect(
-          log: state.history, policy: request.policy, now: now,
+          log: state.history, policy: state.settings.retention, now: now,
         )
-      case let .historyMaintenanceCompleted(log, policy):
+      case let .historyMaintenanceCompleted(log):
         state.historyMaintenance = .idle
-        state.retentionPolicy = policy
         state.$history.withLock { $0 = log }
         return saveHistory(state.$history)
       case let .historyMaintenanceFailed(message):
@@ -239,7 +254,6 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
         state.modelDownloadConsented = facts.modelDownloadConsented
         state.recording.micStatus = facts.permissions.microphoneStatus
         state.engineReadiness = facts.engineReadiness
-        state.retentionPolicy = facts.retentionPolicy
         logEngineReadiness(facts.engineReadiness)
 
         var effects = [
@@ -290,8 +304,8 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
           state.currentFocusedContext = nil
           state.pendingDictation = nil
           state.dictationInFlight = true
-          if case let .running(request) = state.historyMaintenance {
-            state.historyMaintenance = .waiting(request)
+          if state.historyMaintenance == .running {
+            state.historyMaintenance = .waiting
           }
           return .concatenate(
             .send(
@@ -305,7 +319,7 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
               .cancel(id: CancelID.transcription), .cancel(id: CancelID.capture),
               .cancel(id: CancelID.delivery), .cancel(id: CancelID.historyMaintenance),
               .send(.recording(.startRecording)),
-              playSound(.recordStart, enabled: state.soundsEnabled),
+              playSound(.recordStart, enabled: state.settings.soundsEnabled),
               // Waking a Chromium tree costs far more than delivery can spend, so it happens here.
               .run { _ in await contextCapture.prewarmFrontmostApp() },
               .run { send in
@@ -351,7 +365,7 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
           return open(SystemSettingsPane.microphone)
         case .restartHotkeyListening:
           state.hotkeyTap = .starting
-          return listenForHotkeyEvents()
+          return listenForHotkeyEvents(hotkey: state.settings.hotkey)
         case .openAccessibilitySettings:
           return open(SystemSettingsPane.accessibility)
         case .installModel,
@@ -373,18 +387,7 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
         deliveryLogger.error("Copying the last transcript failed: \(message, privacy: .public)")
         return .none
       case .toggleSounds:
-        let enabled = !state.soundsEnabled
-        return .run { send in
-          do {
-            try await sounds.setIsEnabled(enabled)
-            await send(.soundsEnabledSaved(enabled))
-          } catch { await send(.soundsPersistenceFailed(error.localizedDescription)) }
-        }
-      case let .soundsEnabledSaved(enabled):
-        state.soundsEnabled = enabled
-        return .none
-      case let .soundsPersistenceFailed(message):
-        soundsLogger.error("Sounds setting failed to save: \(message, privacy: .public)")
+        state.$settings.withLock { $0.soundsEnabled.toggle() }
         return .none
       case .toggleLaunchAtLogin:
         let registered = !state.launchAtLoginRegistered
@@ -420,18 +423,11 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
             ? Effect<Action>.send(.onboarding(.engineReadinessUpdated(readiness))) : .none
         let failureSound: Effect<Action> =
           if case .failed = readiness, !wasFailed {
-            playSound(.error, enabled: state.soundsEnabled)
+            playSound(.error, enabled: state.settings.soundsEnabled)
           } else {
             .none
           }
         return .merge(onboardingUpdate, failureSound)
-      case let .soundsEnabledLoaded(enabled):
-        state.soundsEnabled = enabled
-        return .none
-      case let .soundsSettingsFailed(message):
-        state.soundsEnabled = false
-        soundsLogger.error("Sounds setting failed to load: \(message, privacy: .public)")
-        return .none
       case .recording(.micStatusUpdated):
         return .none
       case let .recording(.delegate(.recordingStarted(inputDeviceName))):
@@ -464,14 +460,14 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
         state.dictationInFlight = false
         return .merge(
           .cancel(id: CancelID.capture), .send(.pill(.cancel)),
-          playSound(.cancel, enabled: state.soundsEnabled),
+          playSound(.cancel, enabled: state.settings.soundsEnabled),
         )
       case .recording(.delegate(.failed)):
         state.pendingDictation = nil
         state.dictationInFlight = false
         return .merge(
           .cancel(id: CancelID.capture), .send(.pill(.cancel)),
-          playSound(.error, enabled: state.soundsEnabled),
+          playSound(.error, enabled: state.settings.soundsEnabled),
         )
       case .recording:
         return .none
@@ -501,7 +497,7 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
           onboardingTryIt(
             .failed("No speech was detected. Hold Right Option and try again."), state,
           ),
-          playSound(.cancel, enabled: state.soundsEnabled),
+          playSound(.cancel, enabled: state.settings.soundsEnabled),
         )
       case let .transcriptionCompleted(generation, _, .engineEmpty):
         guard generation == state.transcriptionGeneration else {
@@ -515,7 +511,7 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
           onboardingTryIt(
             .failed("The speech model returned no text. Try a longer phrase."), state,
           ),
-          playSound(.cancel, enabled: state.soundsEnabled),
+          playSound(.cancel, enabled: state.settings.soundsEnabled),
         )
       case let .transcriptionFailed(generation, message):
         guard generation == state.transcriptionGeneration else {
@@ -526,7 +522,10 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
         let history = finishDictation(&state, delivery: nil)
         return .merge(
           .cancel(id: CancelID.capture), .send(.pill(.dismiss)),
-          onboardingTryIt(.failed(message), state), playSound(.error, enabled: state.soundsEnabled),
+          onboardingTryIt(.failed(message), state), playSound(
+            .error,
+            enabled: state.settings.soundsEnabled,
+          ),
           history,
         )
       case let .contextCaptured(generation, capture):
@@ -562,7 +561,10 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
             &state, result: result, method: .pasted, detail: restoration.historyDetail,
           )
           return .merge(
-            .send(.pill(pill)), onboardingSuccess, playSound(.commit, enabled: state.soundsEnabled),
+            .send(.pill(pill)), onboardingSuccess, playSound(
+              .commit,
+              enabled: state.settings.soundsEnabled,
+            ),
             history,
           )
         case let .copied(fallback):
@@ -586,7 +588,7 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
               .failed(
                 "The transcript was copied, but macOS did not allow it to be pasted. Check Accessibility and try again.",
               ), state,
-            ), playSound(.error, enabled: state.soundsEnabled),
+            ), playSound(.error, enabled: state.settings.soundsEnabled),
           )
         }
       case let .deliveryFailed(generation, failure):
@@ -600,7 +602,7 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
         )
         return .merge(
           .send(.pill(.dismiss)), onboardingTryIt(.failed(failure.message), state),
-          playSound(.error, enabled: state.soundsEnabled), history,
+          playSound(.error, enabled: state.settings.soundsEnabled), history,
         )
       case let .onboarding(.delegate(.engineReadinessUpdated(readiness))):
         return .send(.engineReadinessUpdated(readiness))
@@ -701,7 +703,7 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
       return .none
     }
     state.hotkeyTap = .starting
-    return listenForHotkeyEvents()
+    return listenForHotkeyEvents(hotkey: state.settings.hotkey)
   }
 
   /// A revoked grant kills the tap exactly the way a genuine failure does. Only a live read tells
@@ -717,10 +719,10 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
     return .none
   }
 
-  private func listenForHotkeyEvents() -> Effect<Action> {
+  private func listenForHotkeyEvents(hotkey: Hotkey) -> Effect<Action> {
     .run { send in
       do {
-        let events = try await hotkeyListener.events()
+        let events = try await hotkeyListener.events(hotkey)
         for await event in events {
           await send(.hotkeyListenerEvent(event))
         }
@@ -729,23 +731,30 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
     }.cancellable(id: CancelID.hotkeyEvents, cancelInFlight: true)
   }
 
+  /// The menu offers to open `settings.json`, so it has to hold something before the user has
+  /// changed anything. Emptiness rather than absence is the test: file storage creates an empty
+  /// placeholder to watch, and reads it back as nothing stored. A file that failed to load is
+  /// left exactly as it is rather than replaced with defaults.
+  private func seedSettingsFile(_ settings: Shared<MiniWhisperSettings>) -> Effect<Action> {
+    let stored = (try? Data(contentsOf: Channel.settingsFile)) ?? Data()
+    guard settings.loadError == nil, stored.isEmpty else {
+      return .none
+    }
+    return .run { _ in
+      do { try await settings.save() } catch {
+        settingsLogger.error(
+          "Settings failed to persist: \(error.localizedDescription, privacy: .public)",
+        )
+      }
+    }
+  }
+
   private func startupEffect() -> Effect<Action> {
     .run { send in
       let onboardingCompleted = onboardingCompletion.isCompleted()
       let modelDownloadConsented = modelDownloadConsent.isConsented()
       let hasAccessibilityPermission = accessibilityPermission.hasPermission()
       async let microphoneStatus = microphonePermission.status()
-      let retentionPolicy: RetentionPolicy
-      do {
-        retentionPolicy = try await historyClient.loadRetentionPolicy()
-      } catch {
-        retentionPolicy = .defaults
-        await send(
-          .historyMaintenanceFailed(
-            "Retention policy failed to load: \(error.localizedDescription)",
-          ),
-        )
-      }
 
       var readinessIterator = asrEngine.prepareInstalled().makeAsyncIterator()
       let engineReadiness = await readinessIterator.next() ?? .modelMissing
@@ -759,7 +768,6 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
               hasAccessibilityPermission: hasAccessibilityPermission,
             ),
             engineReadiness: engineReadiness,
-            retentionPolicy: retentionPolicy,
           ),
         ),
       )

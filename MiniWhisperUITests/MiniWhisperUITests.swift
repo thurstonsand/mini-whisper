@@ -226,6 +226,127 @@ final class MiniWhisperUITests: XCTestCase {
     )
   }
 
+  @MainActor func testHistorySettingsInteractions() throws {
+    let app = launch("settings-history")
+    defer { terminate(app) }
+
+    let firstID = "11111111-1111-1111-1111-111111111111"
+    let secondID = "22222222-2222-2222-2222-222222222222"
+    let firstRow = app.descendants(matching: .any)["miniwhisper.history.row.\(firstID)"]
+    let secondRow = app.descendants(matching: .any)["miniwhisper.history.row.\(secondID)"]
+    XCTAssertTrue(firstRow.waitForExistence(timeout: 5))
+    XCTAssertTrue(secondRow.exists)
+
+    firstRow.click()
+    XCTAssertTrue(
+      app.descendants(matching: .any)["miniwhisper.history.copied.\(firstID)"]
+        .waitForExistence(timeout: 2),
+    )
+
+    let storage = app.buttons["miniwhisper.history.storage"]
+    XCTAssertTrue(storage.isHittable)
+    storage.click()
+    XCTAssertTrue(
+      app.descendants(matching: .any)["miniwhisper.history.storage.popover"]
+        .waitForExistence(timeout: 2),
+    )
+    app.typeKey(.escape, modifierFlags: [])
+
+    secondRow.rightClick()
+    XCTAssertTrue(app.menuItems
+      .matching(identifier: "Delete")
+      .firstMatch
+      .waitForExistence(timeout: 2))
+    let delete = try XCTUnwrap(
+      app.menuItems
+        .matching(identifier: "Delete")
+        .allElementsBoundByIndex
+        .first(where: \.isHittable),
+    )
+    delete.click()
+    XCTAssertEqual(waitForDisappearance(of: secondRow), .completed)
+  }
+
+  @MainActor func testHistoryVimLoop() {
+    let app = launch("settings-history")
+    defer { terminate(app) }
+
+    let secondID = "22222222-2222-2222-2222-222222222222"
+    XCTAssertTrue(
+      app.descendants(matching: .any)["miniwhisper.history.row.\(secondID)"]
+        .waitForExistence(timeout: 5),
+    )
+
+    // The cursor starts on the first row, so one j reaches the second; l copies where it landed.
+    app.typeText("jl")
+    XCTAssertTrue(
+      app.descendants(matching: .any)["miniwhisper.history.copied.\(secondID)"]
+        .waitForExistence(timeout: 2),
+    )
+
+    // h leaves for the sidebar, where j walks destinations and l dives back in.
+    app.typeText("hj")
+    let placeholder = app.descendants(matching: .any)["miniwhisper.settings.placeholder"]
+    XCTAssertTrue(placeholder.waitForExistence(timeout: 2))
+    XCTAssertTrue(placeholder.label.hasPrefix("Model"))
+
+    app.typeText("k")
+    let firstID = "11111111-1111-1111-1111-111111111111"
+    let firstRow = app.descendants(matching: .any)["miniwhisper.history.row.\(firstID)"]
+    XCTAssertTrue(firstRow.waitForExistence(timeout: 2))
+
+    // The cursor survived the round trip, so l copies the row it was left on.
+    app.typeText("ll")
+    XCTAssertTrue(
+      app.descendants(matching: .any)["miniwhisper.history.copied.\(secondID)"]
+        .waitForExistence(timeout: 2),
+    )
+
+    // The search field keeps the keys it is given: vim navigation must not claim focus back.
+    let search = app.searchFields.firstMatch
+    XCTAssertTrue(search.waitForExistence(timeout: 2))
+    search.click()
+    search.typeText("keyboard")
+    let filteredOut = XCTNSPredicateExpectation(
+      predicate: NSPredicate(format: "exists == false"), object: firstRow,
+    )
+    XCTAssertEqual(XCTWaiter.wait(for: [filteredOut], timeout: 3), .completed)
+  }
+
+  @MainActor func testHistorySearchKeys() {
+    let app = launch("settings-history")
+    defer { terminate(app) }
+
+    let firstID = "11111111-1111-1111-1111-111111111111"
+    let filteredID = "00000000-0000-0000-0000-000000000003"
+    let firstRow = app.descendants(matching: .any)["miniwhisper.history.row.\(firstID)"]
+    XCTAssertTrue(firstRow.waitForExistence(timeout: 5))
+
+    // "/" hands the keys to the search field, and Return hands them back with the filter intact.
+    app.typeText("/")
+    app.typeText("keyboard")
+    XCTAssertEqual(waitForDisappearance(of: firstRow), .completed)
+    app.typeKey(.return, modifierFlags: [])
+    app.typeText("l")
+    XCTAssertTrue(
+      app.descendants(matching: .any)["miniwhisper.history.copied.\(filteredID)"]
+        .waitForExistence(timeout: 2),
+    )
+
+    // Escape abandons the query instead, and still hands the keys back — to a cursor that stayed
+    // where the filtered list left it, so k reaches the row above the one Return copied.
+    let secondID = "22222222-2222-2222-2222-222222222222"
+    app.typeText("/")
+    app.typeText("xyzzy")
+    app.typeKey(.escape, modifierFlags: [])
+    XCTAssertTrue(firstRow.waitForExistence(timeout: 2))
+    app.typeText("kl")
+    XCTAssertTrue(
+      app.descendants(matching: .any)["miniwhisper.history.copied.\(secondID)"]
+        .waitForExistence(timeout: 2),
+    )
+  }
+
   @MainActor func testAboutAccessibilityManifest() throws {
     try assertManifest(
       scene: "about",
@@ -359,6 +480,19 @@ final class MiniWhisperUITests: XCTestCase {
   private var agentCommandFileURL: URL {
     FileManager.default.temporaryDirectory.appending(
       path: "miniwhisper-agent-driveability-\(ProcessInfo.processInfo.processIdentifier)",
+    )
+  }
+
+  @MainActor private func waitForDisappearance(
+    of element: XCUIElement, timeout: TimeInterval = 3,
+  ) -> XCTWaiter.Result {
+    XCTWaiter.wait(
+      for: [
+        XCTNSPredicateExpectation(
+          predicate: NSPredicate(format: "exists == false"), object: element,
+        ),
+      ],
+      timeout: timeout,
     )
   }
 

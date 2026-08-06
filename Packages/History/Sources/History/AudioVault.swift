@@ -39,6 +39,11 @@ public struct AudioVault: Sendable {
     return AudioMetadata(durationSeconds: recording.durationSeconds, byteCount: byteCount)
   }
 
+  /// Reads back an entry's canonical WAV, for re-transcription and playback.
+  public func read(id: UUID) throws -> CanonicalRecording {
+    try CanonicalWAVReader.read(contentsOf: url(id: id))
+  }
+
   /// Deletes the entries' audio files. A file already gone is accepted — deletion is satisfied
   /// by absence — but any other failure propagates: reporting success after failing to delete
   /// data is how a retention promise turns into a lie.

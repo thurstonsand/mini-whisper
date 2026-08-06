@@ -216,6 +216,41 @@ struct CanonicalWAVWriterTests {
     #expect(file.fileFormat.commonFormat == .pcmFormatFloat32)
     #expect(file.length == 1600)
   }
+
+  @Test func `a written recording reads back sample for sample`() throws {
+    let url = FileManager.default.temporaryDirectory.appendingPathComponent(
+      "MiniWhisper-test-\(UUID().uuidString).wav",
+    )
+    defer { try? FileManager.default.removeItem(at: url) }
+    let recording = CanonicalRecording(
+      samples: (0 ..< 1600).map { Float($0 % 100) / 100 - 0.5 },
+    )
+
+    try CanonicalWAVWriter.write(recording, to: url)
+
+    #expect(try CanonicalWAVReader.read(contentsOf: url) == recording)
+  }
+
+  @Test func `audio that is not canonical is rejected rather than converted`() throws {
+    let url = FileManager.default.temporaryDirectory.appendingPathComponent(
+      "MiniWhisper-test-\(UUID().uuidString).wav",
+    )
+    defer { try? FileManager.default.removeItem(at: url) }
+    let format = try #require(
+      AVAudioFormat(
+        commonFormat: .pcmFormatFloat32, sampleRate: 44100, channels: 2, interleaved: false,
+      ),
+    )
+    let file = try AVAudioFile(
+      forWriting: url, settings: format.settings, commonFormat: .pcmFormatFloat32,
+      interleaved: false,
+    )
+    let buffer = try #require(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 64))
+    buffer.frameLength = 64
+    try file.write(from: buffer)
+
+    #expect(throws: AudioCaptureError.self) { try CanonicalWAVReader.read(contentsOf: url) }
+  }
 }
 
 // MARK: - AudioLevelTests

@@ -1,3 +1,4 @@
+import AppSettings
 import ASREngine
 import AudioCapture
 import ComposableArchitecture
@@ -99,13 +100,12 @@ import Testing
     let facts = AppFeature.StartupFacts(
       onboardingCompleted: true, modelDownloadConsented: true, permissions: permissions,
       engineReadiness: .ready,
-      retentionPolicy: RetentionPolicy(transcripts: .forever, audio: .never),
     )
     let store = TestStore(initialState: AppFeature.State()) {
       AppFeature()
     } withDependencies: {
       $0.accessibilityPermission.hasPermission = { true }
-      $0.hotkeyListener.events = { events }
+      $0.hotkeyListener.events = { _ in events }
     }
 
     await store.send(.startupResolved(facts)) {
@@ -114,7 +114,6 @@ import Testing
       $0.accessibilityGranted = true
       $0.recording.micStatus = .granted
       $0.engineReadiness = .ready
-      $0.retentionPolicy = RetentionPolicy(transcripts: .forever, audio: .never)
       $0.hotkeyTap = .starting
     }
     #expect(!store.state.onboarding.isPresented)
@@ -140,7 +139,6 @@ import Testing
       $0.accessibilityPermission.hasPermission = { false }
       $0.onboardingCompletion.isCompleted = { true }
       $0.modelDownloadConsent.isConsented = { true }
-      $0.sounds.loadIsEnabled = { false }
       $0.date.now = Date(timeIntervalSince1970: 1000)
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
@@ -149,7 +147,7 @@ import Testing
       permissions: OnboardingPermissionStatuses(
         microphoneStatus: .granted, hasAccessibilityPermission: false,
       ),
-      engineReadiness: .compiling, retentionPolicy: .defaults,
+      engineReadiness: .compiling,
     )
 
     await store.send(.task)
@@ -177,12 +175,11 @@ import Testing
           continuation.finish()
         }
       }
-      $0.hotkeyListener.events = { AsyncStream { $0.finish() } }
+      $0.hotkeyListener.events = { _ in AsyncStream { $0.finish() } }
       $0.microphonePermission.status = { .undetermined }
       $0.accessibilityPermission.hasPermission = { false }
       $0.onboardingCompletion.isCompleted = { false }
       $0.modelDownloadConsent.isConsented = { false }
-      $0.sounds.loadIsEnabled = { false }
       $0.continuousClock = TestClock()
       $0.date.now = Date(timeIntervalSince1970: 1000)
     }
@@ -192,7 +189,7 @@ import Testing
     )
     let facts = AppFeature.StartupFacts(
       onboardingCompleted: false, modelDownloadConsented: false, permissions: permissions,
-      engineReadiness: .compiling, retentionPolicy: .defaults,
+      engineReadiness: .compiling,
     )
     let snapshot = OnboardingSnapshot(
       permissions: permissions, engineReadiness: .compiling, hasModelDownloadConsent: false,
@@ -240,7 +237,7 @@ import Testing
     } withDependencies: {
       $0.accessibilityPermission.hasPermission = { true }
       $0.continuousClock = TestClock()
-      $0.hotkeyListener.events = { hotkeyEvents }
+      $0.hotkeyListener.events = { _ in hotkeyEvents }
       $0.modelDownloadConsent.markConsented = {}
       $0.asrEngine.installAndPrepare = { AsyncStream { $0.finish() } }
     }
@@ -256,7 +253,6 @@ import Testing
         AppFeature.StartupFacts(
           onboardingCompleted: false, modelDownloadConsented: false,
           permissions: snapshot.permissions, engineReadiness: .modelMissing,
-          retentionPolicy: .defaults,
         ),
       ),
     )
@@ -404,7 +400,7 @@ import Testing
     let sounds = SoundRecorder()
     var state = AppFeature.State()
     state.engineReadiness = .ready
-    state.soundsEnabled = true
+    state.$settings.withLock { $0.soundsEnabled = true }
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
@@ -442,7 +438,7 @@ import Testing
     let captured = ContextCapture.available(context(before: "We arrived at noon."))
     var state = AppFeature.State()
     state.transcriptionGeneration = 1
-    state.soundsEnabled = true
+    state.$settings.withLock { $0.soundsEnabled = true }
     state.pill.presentation = .transcribing
     let store = TestStore(initialState: state) {
       AppFeature()
@@ -719,7 +715,7 @@ import Testing
     let clock = TestClock()
     var state = AppFeature.State()
     state.transcriptionGeneration = 1
-    state.soundsEnabled = true
+    state.$settings.withLock { $0.soundsEnabled = true }
     state.pill.presentation = .transcribing
     let unavailable = ContextCapture.unavailable(.gridSemantics(bundleID: "com.mitchellh.ghostty"))
     let store = TestStore(initialState: state) {
@@ -758,7 +754,7 @@ import Testing
     let sounds = SoundRecorder()
     var state = AppFeature.State()
     state.transcriptionGeneration = 2
-    state.soundsEnabled = true
+    state.$settings.withLock { $0.soundsEnabled = true }
     state.pill.presentation = .transcribing
     let store = TestStore(initialState: state) {
       AppFeature()
@@ -781,7 +777,7 @@ import Testing
     let clock = TestClock()
     var state = AppFeature.State()
     state.transcriptionGeneration = 3
-    state.soundsEnabled = true
+    state.$settings.withLock { $0.soundsEnabled = true }
     state.pill.presentation = .transcribing
     let store = TestStore(initialState: state) {
       AppFeature()
@@ -819,7 +815,7 @@ import Testing
     let sounds = SoundRecorder()
     let prewarms = PrewarmCounter()
     var state = AppFeature.State()
-    state.soundsEnabled = true
+    state.$settings.withLock { $0.soundsEnabled = true }
     state.recording.phase = .recording
     state.onboardingCompleted = true
     let store = TestStore(initialState: state) {
@@ -859,7 +855,7 @@ import Testing
     let clock = TestClock()
     var state = AppFeature.State()
     state.transcriptionGeneration = 4
-    state.soundsEnabled = true
+    state.$settings.withLock { $0.soundsEnabled = true }
     state.pill.presentation = .transcribing
     let store = TestStore(initialState: state) {
       AppFeature()
@@ -886,7 +882,7 @@ import Testing
     let sounds = SoundRecorder()
     var state = AppFeature.State()
     state.transcriptionGeneration = 5
-    state.soundsEnabled = true
+    state.$settings.withLock { $0.soundsEnabled = true }
     state.pill.presentation = .transcribing
     let store = TestStore(initialState: state) {
       AppFeature()
@@ -916,6 +912,7 @@ import Testing
   @Test func `disabled sounds suppress every delivery cue`() async {
     let sounds = SoundRecorder()
     var state = AppFeature.State()
+    state.$settings.withLock { $0.soundsEnabled = false }
     state.transcriptionGeneration = 4
     state.pill.presentation = .transcribing
     let store = TestStore(initialState: state) {

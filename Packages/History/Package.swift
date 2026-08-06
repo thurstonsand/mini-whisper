@@ -3,7 +3,7 @@
 import PackageDescription
 
 let package = Package(
-  name: "History", platforms: [.macOS(.v14)],
+  name: "History", platforms: [.macOS(.v26)],
   products: [.library(name: "History", targets: ["History"])],
   dependencies: [.package(path: "../AudioCapture")],
   targets: [
