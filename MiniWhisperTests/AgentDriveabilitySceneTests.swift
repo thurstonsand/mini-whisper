@@ -4,7 +4,18 @@ import Testing
 
 struct AgentDriveabilitySceneTests {
   @Test func `window scenes select one window`() {
-    #expect(AgentDriveabilityScene.settings.presentedWindow == .settings(.settings))
+    #expect(
+      AgentDriveabilityScene.settings.presentedWindow
+        == .settings(.settings, initialFocus: nil),
+    )
+    #expect(
+      AgentDriveabilityScene.settingsShortcutsKeyboard.presentedWindow
+        == .settings(.settings, initialFocus: .detail),
+    )
+    #expect(
+      AgentDriveabilityScene.settingsShortcutsKeyboard.initialState.settingsWindow.interaction.mode
+        == .keyboard,
+    )
     #expect(AgentDriveabilityScene.about.presentedWindow == .about)
     #expect(AgentDriveabilityScene.menuHealthy.presentedWindow == nil)
   }

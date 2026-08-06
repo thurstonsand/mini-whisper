@@ -4,11 +4,12 @@ import AudioCapture
 import ComposableArchitecture
 import Foundation
 import History
+import HotkeyListener
 
 // MARK: - PresentedWindow
 
 enum PresentedWindow: Equatable {
-  case settings(SettingsDestination)
+  case settings(SettingsDestination, initialFocus: SettingsWindowFocus?)
   case about
 }
 
@@ -23,6 +24,7 @@ enum PresentedWindow: Equatable {
     case onboardingTryIt = "onboarding-try-it"
     case onboardingReady = "onboarding-ready"
     case settings
+    case settingsShortcutsKeyboard = "settings-shortcuts-keyboard"
     case settingsHistory = "settings-history"
     case about
     case pillRecording = "pill-recording"
@@ -45,9 +47,11 @@ enum PresentedWindow: Equatable {
     var presentedWindow: PresentedWindow? {
       switch self {
       case .settings:
-        .settings(.settings)
+        .settings(.settings, initialFocus: nil)
+      case .settingsShortcutsKeyboard:
+        .settings(.settings, initialFocus: .detail)
       case .settingsHistory:
-        .settings(.history)
+        .settings(.history, initialFocus: nil)
       case .about:
         .about
       default:
@@ -61,7 +65,7 @@ enum PresentedWindow: Equatable {
 
     var initialState: AppFeature.State {
       var state = AppFeature.State(
-        history: Shared(value: seededHistory), settings: Shared(value: .defaults),
+        history: Shared(value: seededHistory), settings: Shared(value: seededSettings),
       )
       state.onboardingCompleted = true
       state.modelDownloadConsented = true
@@ -118,6 +122,8 @@ enum PresentedWindow: Equatable {
            .settingsHistory,
            .about:
         break
+      case .settingsShortcutsKeyboard:
+        state.settingsWindow.interaction.mode = .keyboard
       case .pillRecording:
         state.pill.presentation = .recording(
           PillFeature.State.Presentation.Recording(
@@ -135,6 +141,19 @@ enum PresentedWindow: Equatable {
     }
 
     // MARK: Private
+
+    private var seededSettings: MiniWhisperSettings {
+      var settings = MiniWhisperSettings.defaults
+      guard self == .settings || self == .settingsShortcutsKeyboard else {
+        return settings
+      }
+      do {
+        try settings.hotkeys.append(Hotkey(keyCode: 15, modifiers: [.rightControl]))
+      } catch {
+        preconditionFailure("The seeded settings hotkey is invalid: \(error)")
+      }
+      return settings
+    }
 
     /// Only the History scene needs entries; every other scene starts from an empty log so the
     /// pane it does show is not quietly seeded behind it.

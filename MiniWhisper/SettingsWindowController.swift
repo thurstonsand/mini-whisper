@@ -11,12 +11,13 @@ import SwiftUI
 
   // MARK: Internal
 
-  func present(destination: SettingsDestination = .settings) {
+  func present(
+    destination: SettingsDestination = .settings, initialFocus: SettingsWindowFocus? = nil,
+  ) {
     store.send(.selectionChanged(destination))
     if let window {
       NSApp.activate(ignoringOtherApps: true)
       window.makeKeyAndOrderFront(nil)
-      window.makeFirstResponder(nil)
       return
     }
 
@@ -29,13 +30,16 @@ import SwiftUI
     window.title = Channel.name
     window.titlebarAppearsTransparent = true
     window.toolbarStyle = .unified
+    window.toolbar = NSToolbar(identifier: "MiniWhisper Settings Window")
     window.isReleasedWhenClosed = false
     window.collectionBehavior = [.moveToActiveSpace]
     window.minSize = NSSize(width: 680, height: 480)
     window.setAccessibilityIdentifier(AccessibilityID.settingsWindow)
     window.setAccessibilityLabel("\(Channel.name) Settings")
     window.setAccessibilityTitle("\(Channel.name) Settings")
-    window.contentView = NSHostingView(rootView: SettingsWindowView(store: store))
+    window.contentView = NSHostingView(
+      rootView: SettingsWindowView(store: store, initialFocus: initialFocus),
+    )
     window.setContentSize(NSSize(width: 860, height: 620))
     window.center()
     window.delegate = self
@@ -43,7 +47,6 @@ import SwiftUI
 
     NSApp.activate(ignoringOtherApps: true)
     window.makeKeyAndOrderFront(nil)
-    window.makeFirstResponder(nil)
   }
 
   func windowWillClose(_ notification: Notification) {

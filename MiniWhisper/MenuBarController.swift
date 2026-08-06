@@ -40,8 +40,10 @@ import ComposableArchitecture
     aboutWindowController.present()
   }
 
-  func presentSettings(destination: SettingsDestination = .settings) {
-    settingsWindowController.present(destination: destination)
+  func presentSettings(
+    destination: SettingsDestination = .settings, initialFocus: SettingsWindowFocus? = nil,
+  ) {
+    settingsWindowController.present(destination: destination, initialFocus: initialFocus)
   }
 
   // MARK: Private

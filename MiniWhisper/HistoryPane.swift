@@ -9,7 +9,7 @@ struct HistoryPane: View {
 
   @Bindable var store: StoreOf<SettingsWindowFeature>
 
-  var focusedColumn: FocusState<SettingsWindowFocus?>.Binding
+  var searchFocus: FocusState<Bool>.Binding
 
   var body: some View {
     ScrollViewReader { proxy in
@@ -22,13 +22,10 @@ struct HistoryPane: View {
           }
         }
       }
-      .focusable()
-      .focused(focusedColumn, equals: .detail)
-      .onContinuousHover(coordinateSpace: .global) { phase in
-        pointerHovered(phase)
-      }
+      .focusEffectDisabled()
+      .windowPointerMovement(store: store)
       .onChange(of: store.history.cursor) { _, cursor in
-        guard store.inputMode == .keyboard, let cursor else {
+        guard store.interaction.mode == .keyboard, let cursor else {
           return
         }
         proxy.scrollTo(cursor, anchor: .center)
@@ -49,7 +46,7 @@ struct HistoryPane: View {
     .searchable(
       text: $store.history.search.sending(\.history.searchChanged), prompt: "Search transcripts",
     )
-    .searchFocused($isSearchFocused)
+    .searchFocused(searchFocus)
     .toolbar {
       Button("Storage", systemImage: "internaldrive") {
         store.send(.history(.storagePresentationChanged(true)))
@@ -64,24 +61,9 @@ struct HistoryPane: View {
         HistoryStorageForm(store: store)
       }
     }
-    .vimKeys(
-      store: store,
-      onPrevious: { store.send(.history(.cursorMoved(.previous))) },
-      onNext: { store.send(.history(.cursorMoved(.next))) },
-      onAscend: { focusedColumn.wrappedValue = .sidebar },
-      onDescend: { store.send(.history(.copyRequested)) },
-    )
-    .modifier(
-      HistorySearchKeys(isSearchFocused: $isSearchFocused, focusedColumn: focusedColumn),
-    )
   }
 
   // MARK: Private
-
-  /// The pointer's last observed screen position. Rows moving under a parked pointer report hover
-  /// too, so only a change in where the pointer actually is counts as mouse input.
-  @State private var pointerLocation: CGPoint?
-  @FocusState private var isSearchFocused: Bool
 
   private var sections: [HistoryDaySection] {
     let calendar = Calendar.autoupdatingCurrent
@@ -95,17 +77,6 @@ struct HistoryPane: View {
         entries: grouped[day, default: []].sorted { $0.createdAt > $1.createdAt },
       )
     }
-  }
-
-  private func pointerHovered(_ phase: HoverPhase) {
-    guard case let .active(location) = phase else {
-      return
-    }
-    defer { pointerLocation = location }
-    guard let pointerLocation, pointerLocation != location else {
-      return
-    }
-    store.send(.pointerMoved)
   }
 
   private func dayTitle(_ date: Date, calendar: Calendar) -> String {
@@ -128,34 +99,33 @@ struct HistoryPane: View {
   }
 }
 
-// MARK: - HistorySearchKeys
+// MARK: - HistorySearchFocus
 
-/// Search is the one place in the pane where typing means letters rather than commands, so it
-/// gets its own way in and two ways out: Return keeps the filter, Escape abandons it, and either
-/// hands the rows back their keys. The field lives in the toolbar rather than the pane, so its
-/// focus binding is the only handle on it — key presses never reach here.
-private struct HistorySearchKeys: ViewModifier {
+/// Search is the one place in the window where typing means letters rather than commands, so it
+/// gets two ways out: Return keeps the filter, Escape abandons it, and either hands the rows back
+/// their keys. The field lives in the toolbar rather than the pane, so its focus binding is the
+/// only handle on it — key presses never reach here. The way in is `/`, routed with every other
+/// key by the window.
+struct HistorySearchFocus: ViewModifier {
+  let store: StoreOf<SettingsWindowFeature>
   var isSearchFocused: FocusState<Bool>.Binding
   var focusedColumn: FocusState<SettingsWindowFocus?>.Binding
 
   func body(content: Content) -> some View {
     content
-      .onKeyPress("/") {
-        guard !isSearchFocused.wrappedValue else {
-          return .ignored
-        }
-        isSearchFocused.wrappedValue = true
-        return .handled
-      }
       // Focus moves to the rows rather than dismissing the search, because dismissing it is
       // what clears the field, and Return is the exit that keeps the filter.
-      .onSubmit(of: .search) { focusedColumn.wrappedValue = .detail }
+      .onSubmit(of: .search) {
+        store.send(.keyboardModeEntered)
+        focusedColumn.wrappedValue = .detail
+      }
       .onChange(of: isSearchFocused.wrappedValue) { _, isFocused in
         // Escape dismisses the search itself, clearing the query and leaving no column focused.
         // Anywhere the user aimed focus deliberately has already claimed a column by now.
         guard !isFocused, focusedColumn.wrappedValue == nil else {
           return
         }
+        store.send(.keyboardModeEntered)
         focusedColumn.wrappedValue = .detail
       }
   }
@@ -262,6 +232,11 @@ private struct HistoryRow: View {
     .accessibilityElement(children: .contain)
     .accessibilityIdentifier(AccessibilityID.historyRow(entry.id))
     .accessibilityLabel(entry.currentText ?? "Transcription unavailable")
+    .accessibilityPaintState(
+      AccessibilityID.historyRowState(entry.id), label: "History row highlight",
+      value:
+      "Grey \(showsGrey ? "on" : "off"); Cursor \(showsKeyboardCursor ? "on" : "off"); Copied \(isCopied ? "on" : "off")",
+    )
   }
 
   // MARK: Private
@@ -270,11 +245,15 @@ private struct HistoryRow: View {
 
   /// Hover only counts while the mouse is the thing driving, so exactly one grey is ever visible.
   private var isPointed: Bool {
-    isHovered && store.inputMode == .mouse
+    isHovered && store.interaction.mode == .mouse && store.interaction.focus == .detail
   }
 
   private var showsGrey: Bool {
-    !isCopied && (isPointed || store.state.showsKeyboardCursor(entry.id))
+    !isCopied && (isPointed || showsKeyboardCursor)
+  }
+
+  private var showsKeyboardCursor: Bool {
+    store.state.showsHistoryKeyboardCursor(entry.id)
   }
 
   private var isCopied: Bool {

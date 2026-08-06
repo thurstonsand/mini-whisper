@@ -61,16 +61,16 @@ import Testing
     let secondID = try #require(UUID(uuidString: "BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB"))
     let second = makeEntry(id: secondID)
     var state = makeWindowState([first, second])
-    state.focus = .detail
-    state.inputMode = .keyboard
+    state.interaction.focus = .detail
+    state.interaction.mode = .keyboard
     let clock = TestClock()
     let store = TestStore(initialState: state) { SettingsWindowFeature() } withDependencies: {
       $0.continuousClock = clock
       $0.delivery.copy = { _ in }
     }
 
-    #expect(store.state.showsKeyboardCursor(first.id))
-    #expect(!store.state.showsKeyboardCursor(secondID))
+    #expect(store.state.showsHistoryKeyboardCursor(first.id))
+    #expect(!store.state.showsHistoryKeyboardCursor(secondID))
 
     // Copying settles the cursor where it already was, so j afterwards advances rather than
     // starting over.
@@ -105,25 +105,25 @@ import Testing
     let entry = makeEntry()
     var state = makeWindowState([entry])
     state.history.cursor = entry.id
-    state.focus = .detail
+    state.interaction.focus = .detail
     let store = TestStore(initialState: state) { SettingsWindowFeature() }
 
-    #expect(!store.state.showsKeyboardCursor(entry.id))
+    #expect(!store.state.showsHistoryKeyboardCursor(entry.id))
     await store.send(.keyboardModeEntered) {
-      $0.inputMode = .keyboard
+      $0.interaction.mode = .keyboard
     }
-    #expect(store.state.showsKeyboardCursor(entry.id))
+    #expect(store.state.showsHistoryKeyboardCursor(entry.id))
     await store.send(.focusChanged(.sidebar)) {
-      $0.focus = .sidebar
+      $0.interaction.focus = .sidebar
     }
-    #expect(!store.state.showsKeyboardCursor(entry.id))
+    #expect(!store.state.showsHistoryKeyboardCursor(entry.id))
     await store.send(.focusChanged(.detail)) {
-      $0.focus = .detail
+      $0.interaction.focus = .detail
     }
     await store.send(.pointerMoved) {
-      $0.inputMode = .mouse
+      $0.interaction.mode = .mouse
     }
-    #expect(!store.state.showsKeyboardCursor(entry.id))
+    #expect(!store.state.showsHistoryKeyboardCursor(entry.id))
   }
 
   @Test func `deleting the cursor moves it to the next entry`() async throws {
@@ -247,7 +247,7 @@ import Testing
     try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
     let settingsURL = root.appending(path: "settings.json")
     let stored = try MiniWhisperSettings(
-      hotkey: Hotkey(keyCode: 0, modifiers: [.leftCommand]), soundsEnabled: false,
+      hotkeys: [Hotkey(keyCode: 0, modifiers: [.leftCommand])], soundsEnabled: false,
       retention: .defaults,
     )
     try SettingsCoding.encode(stored).write(to: settingsURL)
@@ -274,7 +274,7 @@ import Testing
 
     let persisted = try SettingsCoding.decode(Data(contentsOf: settingsURL))
     #expect(persisted.retention.audio == .ninetyDays)
-    #expect(persisted.hotkey == stored.hotkey)
+    #expect(persisted.hotkeys == stored.hotkeys)
     #expect(persisted.soundsEnabled == false)
   }
 
@@ -315,7 +315,7 @@ private func makeState(_ entries: [HistoryEntry]) -> HistoryFeature.State {
 private func makeWindowState(_ entries: [HistoryEntry]) -> SettingsWindowFeature.State {
   SettingsWindowFeature.State(
     selection: .history, history: Shared(value: HistoryLog(entries: entries)),
-    retention: Shared(value: .defaults),
+    settings: Shared(value: .defaults),
   )
 }
 

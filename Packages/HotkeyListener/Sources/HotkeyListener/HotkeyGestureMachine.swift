@@ -12,9 +12,8 @@ public enum GestureEvent: String, Equatable, Sendable {
 public struct HotkeyGestureMachine: Equatable, Sendable {
   // MARK: Lifecycle
 
-  public init(timing: Timing = Timing(), initiallyBlocked: Bool = false) {
+  public init(timing: Timing = Timing()) {
     self.timing = timing
-    phase = initiallyBlocked ? .blockedUntilRelease : .idle
   }
 
   // MARK: Public
@@ -43,7 +42,7 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
     case blockedUntilRelease
   }
 
-  public private(set) var phase: Phase
+  public private(set) var phase = Phase.idle
   public let timing: Timing
 
   public mutating func receive(_ input: GestureInput) -> GestureEvent? {

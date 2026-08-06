@@ -20,6 +20,12 @@ enum AccessibilityID {
   static let settingsSidebarDictionary = "miniwhisper.settings.sidebar.dictionary"
   static let settingsSidebarCleanup = "miniwhisper.settings.sidebar.cleanup"
   static let settingsPlaceholder = "miniwhisper.settings.placeholder"
+  static let settingsShortcutRow = "miniwhisper.settings.shortcut.activate"
+  static let settingsShortcutRowState = "miniwhisper.settings.shortcut.activate.state"
+  static let settingsShortcutSet = "miniwhisper.settings.shortcut.set"
+  static let settingsShortcutMenu = "miniwhisper.settings.shortcut.menu"
+  static let settingsShortcutRecording = "miniwhisper.settings.shortcut.recording"
+  static let settingsShortcutRecordingError = "miniwhisper.settings.shortcut.recording.error"
   static let historyCaption = "miniwhisper.history.caption"
   static let historyStorage = "miniwhisper.history.storage"
   static let historyStoragePopover = "miniwhisper.history.storage.popover"
@@ -97,8 +103,16 @@ enum AccessibilityID {
   static let pillAudioLevel = "miniwhisper.pill.audio-level"
   static let pillNotice = "miniwhisper.pill.notice"
 
+  static func settingsShortcutBinding(_ index: Int) -> String {
+    "miniwhisper.settings.shortcut.binding.\(index)"
+  }
+
   static func historyRow(_ id: UUID) -> String {
     "miniwhisper.history.row.\(id.uuidString)"
+  }
+
+  static func historyRowState(_ id: UUID) -> String {
+    "miniwhisper.history.row.\(id.uuidString).state"
   }
 
   static func historyCopied(_ id: UUID) -> String {

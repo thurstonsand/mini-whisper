@@ -47,6 +47,22 @@ struct PhysicalChordMatcherTests {
     #expect(rightOption.disposition == .passThrough)
   }
 
+  @Test func `an unseen held key does not prevent later activation`() {
+    var matcher = PhysicalChordMatcher(hotkey: .rightOption)
+
+    let staleRelease = matcher.receive(transition(.keyCode(127), .up, pressedAfter: []))
+    #expect(staleRelease.input == .neutral)
+
+    let activation = matcher.receive(
+      transition(.modifier(.rightOption), .down, pressedAfter: [.modifier(.rightOption)]),
+    )
+    #expect(activation.input == .activation(at: .zero))
+    let release = matcher.receive(
+      transition(.modifier(.rightOption), .up, pressedAfter: []),
+    )
+    #expect(release.input == .release(at: .zero))
+  }
+
   @Test func `modifier only release is matched and passed through`() {
     var matcher = PhysicalChordMatcher(hotkey: .rightOption)
     _ = matcher.receive(

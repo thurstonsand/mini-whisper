@@ -1,0 +1,42 @@
+---
+status: open
+type: build
+claimed: settings-pane-build
+blocked-by: []
+---
+
+# Settings pane
+
+## Mission
+
+Fill the settings window's default destination with the real pane, executing the contract settled in [Settings UI](16-settings-ui.md): ordered by how often a thing changes — Shortcuts, Microphone, Sounds, then Open at login with Version at the bottom. This is the fast-follow [History](11-history.md) deliberately scoped out, and it carries that ticket's debt: the pane is what finally ends hand-editing `settings.json`, so the menu bar's "Open Settings File" item dies here.
+
+## Scope, settled at kickoff
+
+1. **Shortcuts ship the full recorder.** Click a binding to rerecord it; multiple bindings or none; the `⋯` menu holds only Add Another and Remove. Key names follow Wispr's shorthand — glyph, short word, and a direction arrow for sided modifiers: right Option renders as `⌥ Opt →`, its left twin `⌥ Opt ←`. `HotkeyListener` already models `Hotkey`; the recorder UI and multi-binding storage are the new work.
+2. **Microphone picker: system default or an explicit device**, ranked fallback lists stay dropped. An explicitly chosen device that is absent falls back to system default, and the pane says so — some visible "chosen device not found, using default" state rather than silence. How macOS exposes device arrival/departure (and how reliably) is an open investigation: learn from open-source dictation apps' device handling first, and a small spike is authorized if the AVFoundation/CoreAudio surface is murkier than prior art suggests.
+3. **Sounds become per-cue pickers now, over the built-in system sounds.** This performs the `soundsEnabled: Bool` → per-cue settings migration that [Sound design](24-sound-design.md) flagged, so that ticket later swaps assets, not structure. Choosing a sound plays it; a play button replays it; `No audio` is dimmed so silence reads as the absence of a choice. Custom/authored cues remain ticket 24's.
+4. **Mute-while-active is excluded.** That row is [Audio ducking](21-audio-ducking.md)'s feature wearing a toggle; the row appears when the mechanism exists.
+5. **Permissions stay invisible until broken.** A granted capability shows nothing; an ungranted one pins an orange row to the top of the pane, reusing the menu bar's degraded-state detection. If onboarding's System Settings deep-links (prepopulating the right pane) can be reused from here, do it — same repair, same door.
+6. **The menu bar slims.** Sounds and Open-at-login toggles migrate into the pane and leave the menu; "Open Settings File" is removed. The menu keeps status, Copy Last Transcript, Settings…, About, Quit. A full re-evaluation of what the menu *could* be — CodexBar-style rich content is the known ceiling; patterns already noted in [`CODEXBAR_PATTERNS.md`](../../../CODEXBAR_PATTERNS.md) — is deferred to its own future ticket rather than smuggled in here.
+
+## Built: element 1 — Shortcuts
+
+The pane exists with its first real section, and the two hardest problems it surfaced are settled window-wide.
+
+- **The model**: `hotkeys: [Hotkey]`, ordered, possibly empty; a file with the old singular key decodes into a one-element array. Bindings are alternatives — `MultipleChordMatcher` activates exactly one per press, even for duplicates hand-edited into the file.
+- **The recorder** lives in `HotkeyListener` and owns the keyboard outright while capturing: live chord as keys go down, full release commits, Escape always cancels. AppFeature stands the activation listener down before the recorder tap installs, so recording right Option cannot start a dictation. Duplicate commits are no-ops; validation failures show why and keep recording.
+- **Witnessed keys only.** Both the recorder and the listener once prescanned `CGEventSource.keyState` over 0–127 to seed "currently held" state. A stuck ledger entry (keycode 127 — past the end of the virtual-keycode table, so no key-up can ever clear it) wedged the recorder into swallowing the entire system keyboard and starved activation dead. Both now track only transitions their own tap witnessed; no external ledger can wedge them again.
+- **Display**: `HotkeyDisplayName` is the one vocabulary — `⌥ Opt →` — rendered as Wispr-style per-component keycap boxes (`HotkeyKeycaps`, shared with onboarding). Every runtime surface derives from the live first binding; empty bindings produce honest "set a shortcut in Settings" copy, never a ghost key.
+- **The input grammar**, settled in the spike's cursor labs and playground: a 3pt accent bar is the row cursor, a focus ring marks the target within the row (keyboard-only). `j`/`k` move rows, `h`/`l` walk targets, `h` past the leftmost ascends to the sidebar, Return is the only press. Mouse hover moves the same bar — moves only, never clears — and the ring never appears in mouse mode. The `⋯` menu is deliberately mouse-only: a popover Return could open but keys couldn't drive was built and rejected.
+- **Window laws** (fixed here, owned window-wide): chrome is pinned by a persistent toolbar with a keeper item in the `.navigation` group — pane selection can no longer change titlebar or sidebar geometry, and the keeper cannot stretch a pane's button capsule. Detail focus is carried by a persistent host outside every pane's Form/List, assigned on the window's `didBecomeKey`, so switching destinations cannot kill it and a focused pane can never paint nothing.
+- **Regression insurance**: XCUITest contract batches for the settings focus/paint laws and the History cursor laws (one-grey counted across all rows, copy-keeps-cursor, round-trip, parked pointer, search), asserting AX state derived from the same expressions that drive paint.
+
+Remaining: Microphone (scope item 2), Sounds (3), permissions row (5), Open at login/Version, and the menu slimming (6).
+
+## Inherited constraints
+
+- The window's input model is already law: the pane participates in the h/j/k/l loop (`h` ascends to the sidebar), and keyboard focus behavior follows the contract recorded in [History](11-history.md).
+- "Activate", not Dictate: hold to dictate, double-tap for hands-free, stated once as the Shortcuts section footer.
+- Settings writes go through the single `@Shared` settings value; no per-key clients return.
+- Design rules in [`.agents/skills/native-macos-ui`](../../../.agents/skills/native-macos-ui/SKILL.md) bind; the mock-up at [`spikes/settings-mockup`](../../../spikes/settings-mockup/SettingsMockup.swift) is the visual reference for this pane's rows.

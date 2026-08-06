@@ -19,6 +19,10 @@ enum Destination: String, CaseIterable, Identifiable {
   case dictionary = "Dictionary"
   case cleanup = "Cleanup"
   case states = "Component states"
+  case cursorLab1 = "Cursor lab 1"
+  case cursorLab2 = "Cursor lab 2"
+  case cursorLab3 = "Cursor lab 3"
+  case playground = "Playground"
 
   var id: String { rawValue }
 
@@ -30,6 +34,10 @@ enum Destination: String, CaseIterable, Identifiable {
     case .dictionary: "character.book.closed"
     case .cleanup: "wand.and.sparkles"
     case .states: "square.stack.3d.up"
+    case .cursorLab1,
+         .cursorLab2,
+         .cursorLab3,
+         .playground: "keyboard"
     }
   }
 }
@@ -853,6 +861,414 @@ struct ModelRow: View {
   }
 }
 
+// MARK: - Cursor lab
+
+/// Six treatments for the settings pane's keyboard cursor, judged against the grouped form's own
+/// row background rather than History's plain list. In every section the Activate row wears the
+/// cursor and the Microphone row does not, so each option is seen against its resting neighbour.
+struct CursorLabPane: View {
+  let page: Int
+
+  var body: some View {
+    Form {
+      if page == 1 { pageOne } else { pageTwo }
+    }
+    .formStyle(.grouped)
+  }
+
+  // MARK: Private
+
+  @ViewBuilder private var pageOne: some View {
+    section(
+        "A \u{00b7} Row fill \u{00b7} quaternary",
+        "History's exact treatment: 8pt rounded quaternary fill behind the whole row.",
+      ) { treated { RoundedRectangle(cornerRadius: 8).fill(Color(nsColor: .quaternarySystemFill)) } }
+      section(
+        "B \u{00b7} Row fill \u{00b7} quinary, inset",
+        "A quieter fill floated 4pt inside the row so it never touches the section's own edges.",
+      ) { treated { RoundedRectangle(cornerRadius: 6).fill(Color(nsColor: .quinarySystemFill)).padding(3) } }
+      section(
+        "C \u{00b7} Accent wash",
+        "The row keeps its shape; the cursor is an 8% accent tint across it.",
+      ) { treated { RoundedRectangle(cornerRadius: 8).fill(Color.accentColor.opacity(0.1)) } }
+  }
+
+  @ViewBuilder private var pageTwo: some View {
+    section(
+        "D \u{00b7} Focus ring",
+        "No fill at all: the system keyboard-focus colour strokes the row, the way macOS marks focus.",
+      ) {
+        treated {
+          RoundedRectangle(cornerRadius: 8)
+            .strokeBorder(Color(nsColor: .keyboardFocusIndicatorColor), lineWidth: 2)
+            .padding(2)
+        }
+      }
+      section(
+        "E \u{00b7} Accent bar",
+        "A 3pt accent capsule at the leading edge names the row without repainting it.",
+      ) {
+        treated {
+          HStack {
+            Capsule().fill(Color.accentColor).frame(width: 3).padding(.vertical, 4)
+            Spacer()
+          }.padding(.leading, 4)
+        }
+      }
+      section(
+        "F \u{00b7} Control focus",
+        "The row stays untouched; the cursor rings the control the key would press.",
+      ) { controlFocusRow }
+  }
+
+  private var controlFocusRow: some View { shortcutRow(ringFirstChord: true) }
+
+  private func section(
+    _ title: String, _ note: String, @ViewBuilder cursorTreatment: () -> some View,
+  ) -> some View {
+    Section {
+      cursorTreatment()
+      Picker("Microphone", selection: .constant("System default")) {
+        Text("System default").tag("System default")
+      }
+    } header: {
+      Text(title)
+    } footer: {
+      Text(note)
+    }
+  }
+
+  /// The grouped form paints its own opaque row above `listRowBackground`, so a cursor treatment
+  /// has to live inside the row: insets zeroed, the row's spacing recreated inside the shape.
+  private func treated(@ViewBuilder _ background: () -> some View) -> some View {
+    shortcutRow(ringFirstChord: false)
+      .padding(.horizontal, 10)
+      .padding(.vertical, 8)
+      .background { background() }
+      .listRowInsets(EdgeInsets())
+  }
+
+  private func shortcutRow(ringFirstChord: Bool) -> some View {
+    LabeledContent("Activate") {
+      HStack(spacing: 8) {
+        KeycapChord(caps: ["\u{2325} Opt \u{2192}"], ringed: ringFirstChord)
+        KeycapChord(caps: ["\u{2303} Ctrl \u{2192}", "R"], ringed: false)
+        Image(systemName: "ellipsis").foregroundStyle(.secondary)
+      }
+    }
+  }
+}
+
+// MARK: - Playground: the composed cursor, live
+
+/// The E+F design as something to feel, not look at. Mouse hover moves the accent bar exactly as
+/// the keyboard cursor does, so the two inputs share one visual language; the focus ring exists
+/// only while the keyboard is driving. j/k rows \u{00b7} h/l targets \u{00b7} Return presses \u{00b7}
+/// h past the left edge "ascends".
+@Observable final class PlaygroundState {
+  enum Mode { case mouse, keyboard }
+
+  static let targets: [[String]] = [
+    ["rerecord \u{2325} Opt \u{2192}", "rerecord \u{2303} Ctrl \u{2192} R", "open the \u{22ef} menu"],
+    ["open the Microphone picker"],
+    ["toggle Open at login"],
+  ]
+
+  var mode = Mode.mouse
+  var hovered: Int?
+  var row = 0
+  var target = 0
+  var inSidebar = false
+  var flash = "Move the mouse over rows, or press j / k / h / l / Return."
+
+  var barRow: Int? {
+    if inSidebar { return nil }
+    return mode == .mouse ? hovered : row
+  }
+
+  func ringTarget(row index: Int) -> Int? {
+    guard mode == .keyboard, !inSidebar, index == row else { return nil }
+    return target
+  }
+
+  func key(_ character: String) -> Bool {
+    switch character {
+    case "j", "k":
+      enterKeyboard()
+      if inSidebar {
+        flash = "(sidebar) j/k would walk destinations \u{2014} l returns to the pane"
+        return true
+      }
+      row = min(max(row + (character == "j" ? 1 : -1), 0), Self.targets.count - 1)
+      target = 0
+      flash = "row \(row + 1)"
+    case "l":
+      enterKeyboard()
+      if inSidebar {
+        inSidebar = false
+        flash = "back in the pane"
+        return true
+      }
+      guard target < Self.targets[row].count - 1 else {
+        flash = "(right edge \u{2014} nothing further)"
+        return true
+      }
+      target += 1
+      flash = "target: \(Self.targets[row][target])"
+    case "h":
+      enterKeyboard()
+      guard !inSidebar else { return true }
+      if target > 0 {
+        target -= 1
+        flash = "target: \(Self.targets[row][target])"
+      } else {
+        inSidebar = true
+        flash = "ascended to the sidebar \u{2014} l comes back"
+      }
+    case "\r":
+      enterKeyboard()
+      guard !inSidebar else { return true }
+      flash = "Return \u{2192} \(Self.targets[row][target])"
+    default:
+      return false
+    }
+    return true
+  }
+
+  private func enterKeyboard() {
+    mode = .keyboard
+    hovered = nil
+  }
+}
+
+struct PlaygroundPane: View {
+  @State private var state = PlaygroundState()
+  @State private var monitor: Any?
+
+  var body: some View {
+    Form {
+      Section {
+        playRow(0) {
+          LabeledContent("Activate") {
+            HStack(spacing: 8) {
+              KeycapChord(caps: ["\u{2325} Opt \u{2192}"], ringed: state.ringTarget(row: 0) == 0)
+              KeycapChord(
+                caps: ["\u{2303} Ctrl \u{2192}", "R"], ringed: state.ringTarget(row: 0) == 1,
+              )
+              Image(systemName: "ellipsis")
+                .foregroundStyle(.secondary)
+                .padding(4)
+                .overlay {
+                  if state.ringTarget(row: 0) == 2 {
+                    RoundedRectangle(cornerRadius: 6)
+                      .strokeBorder(
+                        Color(nsColor: .keyboardFocusIndicatorColor), lineWidth: 2,
+                      )
+                  }
+                }
+            }
+          }
+        }
+        playRow(1) {
+          LabeledContent("Microphone") {
+            Picker("", selection: .constant("System default")) {
+              Text("System default").tag("System default")
+            }
+            .labelsHidden()
+            .fixedSize()
+            .overlay {
+              if state.ringTarget(row: 1) == 0 {
+                RoundedRectangle(cornerRadius: 6)
+                  .strokeBorder(Color(nsColor: .keyboardFocusIndicatorColor), lineWidth: 2)
+                  .padding(-1)
+              }
+            }
+          }
+        }
+        playRow(2) {
+          LabeledContent("Open at login") {
+            Toggle("", isOn: .constant(true))
+              .labelsHidden()
+              .toggleStyle(.switch)
+              .overlay {
+                if state.ringTarget(row: 2) == 0 {
+                  RoundedRectangle(cornerRadius: 8)
+                    .strokeBorder(Color(nsColor: .keyboardFocusIndicatorColor), lineWidth: 2)
+                    .padding(-3)
+                }
+              }
+          }
+        }
+      } header: {
+        Text("Playground \u{00b7} j/k rows \u{00b7} h/l targets \u{00b7} Return presses")
+      } footer: {
+        Label(state.flash, systemImage: state.inSidebar ? "sidebar.left" : "keyboard")
+          .font(.callout)
+          .foregroundStyle(.secondary)
+          .animation(.easeOut(duration: 0.15), value: state.flash)
+      }
+    }
+    .formStyle(.grouped)
+    .onAppear {
+      monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+        guard let characters = event.charactersIgnoringModifiers,
+              state.key(characters) else { return event }
+        return nil
+      }
+    }
+    .onDisappear {
+      if let monitor { NSEvent.removeMonitor(monitor) }
+      monitor = nil
+    }
+  }
+
+  // MARK: Private
+
+  private func playRow(_ index: Int, @ViewBuilder content: () -> some View) -> some View {
+    content()
+      .padding(.horizontal, 10)
+      .padding(.vertical, 8)
+      .background {
+        if state.barRow == index {
+          HStack {
+            Capsule().fill(Color.accentColor).frame(width: 3).padding(.vertical, 4)
+            Spacer()
+          }
+          .padding(.leading, 4)
+        }
+      }
+      .animation(.easeOut(duration: 0.12), value: state.barRow)
+      .listRowInsets(EdgeInsets())
+      .contentShape(Rectangle())
+      // The bar only ever moves to a row; it never clears between them. Leaving a row without
+      // entering another (the separator, the form margin) keeps the last row lit, so a sweep
+      // across the section reads as one continuous motion instead of a blink per gap.
+      .onHover { inside in
+        guard inside else { return }
+        state.mode = .mouse
+        state.inSidebar = false
+        state.hovered = index
+      }
+  }
+}
+
+// MARK: - Composed lab: accent bar + control focus
+
+/// E and F together: the accent bar is the row cursor, and within the row a focus ring marks the
+/// one target a key press would hit. Each section freezes one moment of the walk.
+struct ComposedLabPane: View {
+  var body: some View {
+    Form {
+      moment(
+        "1 \u{00b7} Cursor enters the row",
+        "The bar marks the row; the ring starts on the first binding.",
+        ring: 0,
+      )
+      moment(
+        "2 \u{00b7} One step right",
+        "The bar holds the row; the ring moves to the second binding.",
+        ring: 1,
+      )
+      moment(
+        "3 \u{00b7} The menu is a target too",
+        "Add and Remove stay reachable without a pointer: the ring lands on the \u{22ef} last.",
+        ring: 2,
+      )
+      Section {
+        barRow {
+          LabeledContent("Microphone") {
+            Picker("", selection: .constant("System default")) {
+              Text("System default").tag("System default")
+            }
+            .labelsHidden()
+            .fixedSize()
+            .overlay {
+              RoundedRectangle(cornerRadius: 6)
+                .strokeBorder(Color(nsColor: .keyboardFocusIndicatorColor), lineWidth: 2)
+                .padding(-1)
+            }
+          }
+        }
+      } header: {
+        Text("4 \u{00b7} The same grammar on any row")
+      } footer: {
+        Text("A one-control row is just a one-stop walk: the ring sits on the picker.")
+      }
+    }
+    .formStyle(.grouped)
+  }
+
+  // MARK: Private
+
+  private func moment(_ title: String, _ note: String, ring: Int) -> some View {
+    Section {
+      barRow {
+        LabeledContent("Activate") {
+          HStack(spacing: 8) {
+            KeycapChord(caps: ["\u{2325} Opt \u{2192}"], ringed: ring == 0)
+            KeycapChord(caps: ["\u{2303} Ctrl \u{2192}", "R"], ringed: ring == 1)
+            Image(systemName: "ellipsis")
+              .foregroundStyle(.secondary)
+              .padding(4)
+              .overlay {
+                if ring == 2 {
+                  RoundedRectangle(cornerRadius: 6)
+                    .strokeBorder(Color(nsColor: .keyboardFocusIndicatorColor), lineWidth: 2)
+                }
+              }
+          }
+        }
+      }
+    } header: {
+      Text(title)
+    } footer: {
+      Text(note)
+    }
+  }
+
+  private func barRow(@ViewBuilder content: () -> some View) -> some View {
+    content()
+      .padding(.horizontal, 10)
+      .padding(.vertical, 8)
+      .background {
+        HStack {
+          Capsule().fill(Color.accentColor).frame(width: 3).padding(.vertical, 4)
+          Spacer()
+        }
+        .padding(.leading, 4)
+      }
+      .listRowInsets(EdgeInsets())
+  }
+}
+
+/// The shipped binding anatomy: each chord component is its own keycap box, the boxes grouped
+/// into one click target.
+struct KeycapChord: View {
+  let caps: [String]
+  let ringed: Bool
+
+  var body: some View {
+    HStack(spacing: 3) {
+      ForEach(caps, id: \.self) { cap in
+        Text(cap)
+          .padding(.horizontal, 7)
+          .padding(.vertical, 3)
+          .background(
+            RoundedRectangle(cornerRadius: 5).fill(Color(nsColor: .quaternarySystemFill)),
+          )
+      }
+    }
+    .padding(3)
+    .background(RoundedRectangle(cornerRadius: 7).fill(Color(nsColor: .quinarySystemFill)))
+    .overlay {
+      if ringed {
+        RoundedRectangle(cornerRadius: 7)
+          .strokeBorder(Color(nsColor: .keyboardFocusIndicatorColor), lineWidth: 2)
+      }
+    }
+  }
+}
+
 // MARK: - Settings
 
 struct SettingsPane: View {
@@ -1048,6 +1464,10 @@ struct Root: View {
     case .dictionary: DictionaryPane(mock: mock)
     case .cleanup: CleanupPane(mock: mock)
     case .states: ComponentStatesPane()
+    case .cursorLab1: CursorLabPane(page: 1)
+    case .cursorLab2: CursorLabPane(page: 2)
+    case .cursorLab3: ComposedLabPane()
+    case .playground: PlaygroundPane()
     }
   }
 }
@@ -1059,6 +1479,11 @@ final class Delegate: NSObject, NSApplicationDelegate {
   var window: NSWindow!
 
   func applicationDidFinishLaunching(_: Notification) {
+    if CommandLine.arguments.contains("light") {
+      NSApp.appearance = NSAppearance(named: .aqua)
+    } else if CommandLine.arguments.contains("dark") {
+      NSApp.appearance = NSAppearance(named: .darkAqua)
+    }
     window = NSWindow(
       contentRect: NSRect(x: 0, y: 0, width: 860, height: 620),
       styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],

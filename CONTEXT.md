@@ -1,7 +1,7 @@
 # Context
 
 - MiniWhisper: this project — a macOS menu bar dictation app that transcribes speech locally and delivers the text into the frontmost app.
-- Activate: start the actual process that leads to dictation; triggered by the press of a configured keybind
+- Activate: start the actual process that leads to dictation; triggered by pressing any configured binding
 - Record: the act of recording audio
 - Transcribe: STT
 - Delivery: placing the transcript where the user was typing.

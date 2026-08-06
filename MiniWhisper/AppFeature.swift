@@ -58,9 +58,7 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
     ) {
       _history = history
       _settings = settings
-      settingsWindow = SettingsWindowFeature.State(
-        history: history, retention: settings.retention,
-      )
+      settingsWindow = SettingsWindowFeature.State(history: history, settings: settings)
     }
 
     // MARK: Internal
@@ -177,6 +175,17 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
       switch action {
       case .settingsWindow(.history(.delegate(.retentionChanged))):
         return .send(.historyMaintenanceRequested)
+      case .settingsWindow(.settingsPane(.delegate(.recordingStarted))):
+        // Stop the activation tap before the recorder installs its owning tap. This ordering makes
+        // recording the activation shortcut race-free: no physical event can reach both consumers.
+        state.hotkeyTap = .idle
+        return .concatenate(
+          .cancel(id: CancelID.hotkeyEvents),
+          .send(.settingsWindow(.settingsPane(.recorderReady))),
+        )
+      case .settingsWindow(.settingsPane(.delegate(.recordingStopped))),
+           .settingsWindow(.settingsPane(.delegate(.bindingsChanged))):
+        return restartHotkeyListener(&state)
       case .settingsWindow:
         return .none
       case .task:
@@ -349,10 +358,18 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
             .cancel(id: CancelID.delivery), .send(.recording(.cancelRecording)),
           )
         }
+      // A tap the app deliberately stood down — to record a shortcut, or because none is bound —
+      // reports its own ending. Only a tap that was wanted can be said to have been lost.
       case let .hotkeyListenerFailed(error):
+        guard state.hotkeyTap != .idle else {
+          return .none
+        }
         gestureLogger.error("Hotkey listener failed: \(error, privacy: .public)")
         return diagnoseTapLoss(&state)
       case .hotkeyListenerFinished:
+        guard state.hotkeyTap != .idle else {
+          return .none
+        }
         gestureLogger.error("Hotkey event stream ended; the tap is no longer listening")
         return diagnoseTapLoss(&state)
       case .menuWillOpen:
@@ -364,8 +381,7 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
         case .openMicrophoneSettings:
           return open(SystemSettingsPane.microphone)
         case .restartHotkeyListening:
-          state.hotkeyTap = .starting
-          return listenForHotkeyEvents(hotkey: state.settings.hotkey)
+          return restartHotkeyListener(&state)
         case .openAccessibilitySettings:
           return open(SystemSettingsPane.accessibility)
         case .installModel,
@@ -495,7 +511,7 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
           .cancel(id: CancelID.capture),
           .send(.pill(suppressNotice ? .dismiss : .noSpeechDetected)),
           onboardingTryIt(
-            .failed("No speech was detected. Hold Right Option and try again."), state,
+            .failed(Self.noSpeechRetryMessage(hotkeys: state.settings.hotkeys)), state,
           ),
           playSound(.cancel, enabled: state.settings.soundsEnabled),
         )
@@ -627,6 +643,13 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
     }
   }
 
+  static func noSpeechRetryMessage(hotkeys: [Hotkey]) -> String {
+    guard let hotkey = hotkeys.first else {
+      return "No speech was detected. Set an activation shortcut in Settings before trying again."
+    }
+    return "No speech was detected. Hold \(hotkey.displayName) and try again."
+  }
+
   // MARK: Private
 
   private enum OnboardingTryItResult {
@@ -702,8 +725,22 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
     guard state.hotkeyTap != .active, state.hotkeyTap != .starting else {
       return .none
     }
+    return restartHotkeyListener(&state)
+  }
+
+  /// Every reason for not listening names itself, so the menu bar can tell a missing grant from a
+  /// user who has simply unbound every shortcut.
+  private func restartHotkeyListener(_ state: inout State) -> Effect<Action> {
+    guard state.accessibilityGranted else {
+      state.hotkeyTap = .accessibilityMissing
+      return .cancel(id: CancelID.hotkeyEvents)
+    }
+    guard !state.settings.hotkeys.isEmpty else {
+      state.hotkeyTap = .idle
+      return .cancel(id: CancelID.hotkeyEvents)
+    }
     state.hotkeyTap = .starting
-    return listenForHotkeyEvents(hotkey: state.settings.hotkey)
+    return listenForHotkeyEvents(hotkeys: state.settings.hotkeys)
   }
 
   /// A revoked grant kills the tap exactly the way a genuine failure does. Only a live read tells
@@ -719,15 +756,17 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
     return .none
   }
 
-  private func listenForHotkeyEvents(hotkey: Hotkey) -> Effect<Action> {
+  private func listenForHotkeyEvents(hotkeys: [Hotkey]) -> Effect<Action> {
     .run { send in
       do {
-        let events = try await hotkeyListener.events(hotkey)
+        let events = try await hotkeyListener.events(hotkeys)
         for await event in events {
           await send(.hotkeyListenerEvent(event))
         }
         await send(.hotkeyListenerFinished)
-      } catch { await send(.hotkeyListenerFailed(String(describing: error))) }
+      } catch {
+        await send(.hotkeyListenerFailed(String(describing: error)))
+      }
     }.cancellable(id: CancelID.hotkeyEvents, cancelInFlight: true)
   }
 

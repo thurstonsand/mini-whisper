@@ -1,3 +1,4 @@
+import AppSettings
 import ComposableArchitecture
 import Foundation
 import History
@@ -70,13 +71,26 @@ enum SettingsWindowFocus: Hashable {
   case detail
 }
 
-// MARK: - SettingsWindowInputMode
+// MARK: - SettingsWindowInteraction
 
-/// Which device the user is driving the window with. Last input wins, and only genuine mouse
-/// events count, so scrolling rows under a parked pointer cannot end keyboard mode.
-enum SettingsWindowInputMode: Equatable {
-  case keyboard
-  case mouse
+/// Focus and last-input ownership are one window-level contract. Panes supply only whether a row
+/// is their cursor; this decides whether keyboard paint is allowed to exist at all.
+struct SettingsWindowInteraction: Equatable {
+  enum Mode: Equatable {
+    case keyboard
+    case mouse
+  }
+
+  var focus: SettingsWindowFocus?
+  var mode = Mode.mouse
+
+  var keyboardDrivesDetail: Bool {
+    mode == .keyboard && focus == .detail
+  }
+
+  func showsKeyboardCursor(_ matchesCursor: Bool) -> Bool {
+    keyboardDrivesDetail && matchesCursor
+  }
 }
 
 // MARK: - SettingsWindowFeature
@@ -88,25 +102,47 @@ enum SettingsWindowInputMode: Equatable {
     init(
       selection: SettingsDestination = .settings,
       history: Shared<HistoryLog>,
-      retention: Shared<RetentionPolicy>,
+      settings: Shared<MiniWhisperSettings>,
     ) {
       self.selection = selection
-      self.history = HistoryFeature.State(log: history, retention: retention)
+      settingsPane = SettingsPaneFeature.State(settings: settings)
+      self.history = HistoryFeature.State(log: history, retention: settings.retention)
     }
 
     // MARK: Internal
 
     var selection: SettingsDestination
-    /// Reported by the window's focus state, never driven from here. `nil` means focus is
-    /// somewhere that is neither column — the search field.
-    var focus: SettingsWindowFocus?
-    var inputMode = SettingsWindowInputMode.mouse
+    /// Focus is reported by the view's `@FocusState`, never driven from here. `nil` means focus
+    /// is somewhere that is neither column — the search field.
+    var interaction = SettingsWindowInteraction()
+    var settingsPane: SettingsPaneFeature.State
     var history: HistoryFeature.State
 
-    /// The single grey the window may show: keyboard driving, the detail column focused, and the
-    /// row under the cursor. Hover supplies the other one, and never at the same time.
-    func showsKeyboardCursor(_ id: UUID) -> Bool {
-      inputMode == .keyboard && focus == .detail && history.cursorEntry?.id == id
+    func showsHistoryKeyboardCursor(_ id: UUID) -> Bool {
+      interaction.showsKeyboardCursor(history.cursorEntry?.id == id)
+    }
+
+    /// A focused detail column always shows where it is; only keyboard mode says which control
+    /// within the row is the target. The pointer, while it is the thing driving, outranks both.
+    func showsSettingsBar(_ row: SettingsPaneFeature.Row) -> Bool {
+      switch interaction.mode {
+      case .keyboard:
+        interaction.showsKeyboardCursor(settingsPane.cursor.row == row)
+      case .mouse:
+        if let hoveredRow = settingsPane.hoveredRow {
+          hoveredRow == row
+        } else {
+          interaction.focus == .detail && settingsPane.cursor.row == row
+        }
+      }
+    }
+
+    func showsSettingsRing(
+      _ row: SettingsPaneFeature.Row, target: SettingsPaneFeature.Target,
+    ) -> Bool {
+      interaction.showsKeyboardCursor(
+        settingsPane.cursor.row == row && settingsPane.cursorTarget == target,
+      )
     }
   }
 
@@ -115,10 +151,12 @@ enum SettingsWindowInputMode: Equatable {
     case focusChanged(SettingsWindowFocus?)
     case keyboardModeEntered
     case pointerMoved
+    case settingsPane(SettingsPaneFeature.Action)
     case history(HistoryFeature.Action)
   }
 
   var body: some ReducerOf<Self> {
+    Scope(state: \.settingsPane, action: \.settingsPane) { SettingsPaneFeature() }
     Scope(state: \.history, action: \.history) { HistoryFeature() }
 
     Reduce { state, action in
@@ -127,15 +165,16 @@ enum SettingsWindowInputMode: Equatable {
         state.selection = selection
         return .none
       case let .focusChanged(focus):
-        state.focus = focus
+        state.interaction.focus = focus
         return .none
       case .keyboardModeEntered:
-        state.inputMode = .keyboard
+        state.interaction.mode = .keyboard
         return .none
       case .pointerMoved:
-        state.inputMode = .mouse
+        state.interaction.mode = .mouse
         return .none
-      case .history:
+      case .settingsPane,
+           .history:
         return .none
       }
     }

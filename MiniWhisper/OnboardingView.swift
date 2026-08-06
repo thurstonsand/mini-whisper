@@ -1,7 +1,29 @@
+import AppSettings
 import ASREngine
 import AudioCapture
 import ComposableArchitecture
+import HotkeyListener
 import SwiftUI
+
+// MARK: - OnboardingCopy
+
+/// Onboarding teaches the shortcut the user actually has, so every sentence naming it is written
+/// against the live first binding and has an honest answer for having none.
+enum OnboardingCopy {
+  static func tryItInstructions(hotkeys: [Hotkey]) -> String {
+    guard let name = hotkeys.first?.displayName else {
+      return "Set an activation shortcut in Settings before trying dictation here."
+    }
+    return "Focus the text box below, hold \(name) while you speak, then release. Or double-tap \(name) to keep recording until you tap it again."
+  }
+
+  static func readySummary(hotkeys: [Hotkey]) -> String {
+    guard let name = hotkeys.first?.displayName else {
+      return "Your first dictation made the full trip. Set an activation shortcut in Settings before using dictation in another text field."
+    }
+    return "Your first dictation made the full trip. Hold \(name) in any text field and speak."
+  }
+}
 
 // MARK: - OnboardingView
 
@@ -37,6 +59,11 @@ struct OnboardingView: View {
   // MARK: Private
 
   @FocusState private var tryItFieldIsFocused: Bool
+  @State.Shared(.settingsFile) private var settings = MiniWhisperSettings.defaults
+
+  private var activationHotkey: Hotkey? {
+    settings.hotkeys.first
+  }
 
   private var welcomeContent: some View {
     VStack(spacing: 0) {
@@ -326,7 +353,7 @@ struct OnboardingView: View {
       .font(.system(size: 28, weight: .semibold))
       .padding(.top, 20)
       SemanticText(
-        "Focus the text box below, hold Right Option while you speak, then release. Or double-tap Right Option to keep recording until you tap it again.",
+        OnboardingCopy.tryItInstructions(hotkeys: settings.hotkeys),
         identifier: AccessibilityID.onboardingTryItInstructions, label: "Try it instructions",
       )
       .font(.system(size: 14))
@@ -386,18 +413,23 @@ struct OnboardingView: View {
         "Try dictation",
       )
       .accessibilityValue(store.tryItText)
-      Text("Right ⌥")
-        .font(.system(size: 12, weight: .medium))
-        .padding(.horizontal, 8)
-        .padding(
-          .vertical, 4,
-        )
-        .background(.quaternary, in: RoundedRectangle(cornerRadius: 5))
-        .accessibilityIdentifier(
-          AccessibilityID.onboardingTryItHotkey,
-        )
-        .accessibilityLabel("Dictation hotkey")
-        .accessibilityValue("Right Option")
+      if let activationHotkey {
+        HotkeyKeycaps(components: activationHotkey.displayComponents)
+          .accessibilityHidden(true)
+          .accessibilityPaintState(
+            AccessibilityID.onboardingTryItHotkey, label: "Dictation hotkey",
+            value: activationHotkey.displayName,
+          )
+      } else {
+        Text("Activation shortcut not set")
+          .font(.callout)
+          .foregroundStyle(.secondary)
+          .accessibilityIdentifier(
+            AccessibilityID.onboardingTryItHotkey,
+          )
+          .accessibilityLabel("Dictation hotkey")
+          .accessibilityValue("Not set")
+      }
     case .ready:
       HStack(alignment: .top, spacing: 12) {
         Image(systemName: "checkmark.circle.fill")
@@ -435,7 +467,7 @@ struct OnboardingView: View {
         .font(.system(size: 32, weight: .semibold))
         .padding(.top, 20)
       SemanticText(
-        "Your first dictation made the full trip. Hold Right Option in any text field and speak.",
+        OnboardingCopy.readySummary(hotkeys: settings.hotkeys),
         identifier: AccessibilityID.onboardingReadySummary, label: "Ready instructions",
       )
       .font(.system(size: 14))

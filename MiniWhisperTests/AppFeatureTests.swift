@@ -123,6 +123,80 @@ import Testing
     await store.receive(.hotkeyListenerFinished) { $0.hotkeyTap = .dead }
   }
 
+  @Test func `recording A binding stops activation before capture and restarts with the commit`(
+  ) async throws {
+    let (recorderEvents, recorderContinuation) = AsyncStream.makeStream(
+      of: HotkeyRecorderEvent.self,
+    )
+    let (listenerEvents, listenerContinuation) = AsyncStream.makeStream(
+      of: HotkeyListenerEvent.self,
+    )
+    let replacement = try Hotkey(keyCode: 15, modifiers: [.rightControl])
+    var state = AppFeature.State()
+    state.accessibilityGranted = true
+    state.hotkeyTap = .active
+    let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
+      $0.accessibilityPermission.hasPermission = { true }
+      $0.hotkeyListener.record = { recorderEvents }
+      $0.hotkeyListener.events = { hotkeys in
+        #expect(hotkeys == [replacement])
+        return listenerEvents
+      }
+    }
+
+    await store.send(.settingsWindow(.settingsPane(.bindingTapped(0)))) {
+      $0.settingsWindow.settingsPane.recordingTarget = .existing(0)
+    }
+    await store.receive(.settingsWindow(.settingsPane(.delegate(.recordingStarted)))) {
+      $0.hotkeyTap = .idle
+    }
+    await store.receive(.settingsWindow(.settingsPane(.recorderReady)))
+    recorderContinuation.yield(.committed(replacement))
+    await store.receive(.settingsWindow(.settingsPane(.recorderEvent(.committed(replacement))))) {
+      $0.$settings.withLock { $0.hotkeys = [replacement] }
+      $0.settingsWindow.settingsPane.recordingTarget = nil
+    }
+    await store.receive(.settingsWindow(.settingsPane(.delegate(.recordingStopped)))) {
+      $0.hotkeyTap = .starting
+    }
+    listenerContinuation.yield(.monitoringStarted)
+    await store.receive(.hotkeyListenerEvent(.monitoringStarted)) { $0.hotkeyTap = .active }
+    recorderContinuation.finish()
+    await store.receive(.settingsWindow(.settingsPane(.recorderFinished)))
+    listenerContinuation.finish()
+    await store.receive(.hotkeyListenerFinished) { $0.hotkeyTap = .dead }
+  }
+
+  @Test func `repairing the tap with no bindings settles idle rather than starting forever`(
+  ) async {
+    var settings = MiniWhisperSettings.defaults
+    settings.hotkeys = []
+    var state = AppFeature.State(
+      history: Shared(value: HistoryLog()), settings: Shared(value: settings),
+    )
+    state.accessibilityGranted = true
+    state.hotkeyTap = .dead
+    let store = TestStore(initialState: state) { AppFeature() }
+    #expect(store.state.menuBar.repair == .restartHotkeyListening)
+
+    await store.send(.repairDegradedState) { $0.hotkeyTap = .idle }
+  }
+
+  @Test func `A tap the app stood down does not report itself as lost`() async {
+    var state = AppFeature.State()
+    state.accessibilityGranted = true
+    state.hotkeyTap = .idle
+    let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
+      $0.accessibilityPermission.hasPermission = {
+        Issue.record("An intentionally idle tap must not be diagnosed")
+        return true
+      }
+    }
+
+    await store.send(.hotkeyListenerFinished)
+    await store.send(.hotkeyListenerFailed("cancelled"))
+  }
+
   @Test func `startup join forwards engine readiness after its initial snapshot`() async {
     let store = TestStore(initialState: AppFeature.State()) {
       AppFeature()

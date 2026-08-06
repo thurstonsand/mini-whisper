@@ -8,6 +8,8 @@ struct SettingsWindowView: View {
 
   @Bindable var store: StoreOf<SettingsWindowFeature>
 
+  var initialFocus: SettingsWindowFocus?
+
   var body: some View {
     NavigationSplitView {
       List(selection: selection) {
@@ -21,25 +23,48 @@ struct SettingsWindowView: View {
       .navigationSplitViewColumnWidth(min: 160, ideal: 176, max: 220)
       .scrollBounceBehavior(.basedOnSize)
       .focused($focusedColumn, equals: .sidebar)
-      .vimKeys(
-        store: store,
-        onPrevious: { moveDestination(by: -1) },
-        onNext: { moveDestination(by: 1) },
-        onDescend: { focusedColumn = .detail },
-      )
+      .windowKeys(store: store, sidebarKeys)
       .toolbar(removing: .sidebarToggle)
       .accessibilityIdentifier(AccessibilityID.settingsSidebar)
       .accessibilityLabel("Settings sections")
+      .accessibilityValue(focusedColumn == .sidebar ? "Focused" : "Not focused")
     } detail: {
-      detail.navigationTitle(store.selection.rawValue)
+      ZStack {
+        detail.navigationTitle(store.selection.rawValue)
+      }
+      .focusable()
+      .focusEffectDisabled()
+      .focused($focusedColumn, equals: .detail)
+      .windowKeys(store: store, detailKeys)
+      .modifier(
+        HistorySearchFocus(
+          store: store, isSearchFocused: $isHistorySearchFocused,
+          focusedColumn: $focusedColumn,
+        ),
+      )
     }
-    .onAppear { focusedColumn = store.selection == .history ? .detail : .sidebar }
+    .ignoresSafeArea(.container, edges: .top)
+    .toolbarVisibility(.visible, for: .windowToolbar)
+    // The keeper item that holds the toolbar alive must not share the trailing glass capsule
+    // with a pane's real buttons — a zero-size sibling still widens the capsule and pushes the
+    // neighbouring glyph off-centre. `.navigation` keeps it in the leading group, alone.
+    .toolbar {
+      ToolbarItem(placement: .navigation) {
+        Color.clear.frame(width: 0, height: 0)
+      }
+    }
+    .background {
+      WindowKeyFocus { applyInitialFocus() }
+        .frame(width: 0, height: 0)
+    }
     .onChange(of: focusedColumn) { _, focus in store.send(.focusChanged(focus)) }
   }
 
   // MARK: Private
 
   @FocusState private var focusedColumn: SettingsWindowFocus?
+  @FocusState private var isHistorySearchFocused: Bool
+  @State private var hasAppliedInitialFocus = false
 
   /// `List` selection is optional and the window's never is, so this is the only place the two
   /// shapes meet: a deselection is simply not a destination change.
@@ -55,18 +80,68 @@ struct SettingsWindowView: View {
     )
   }
 
+  private var sidebarKeys: WindowKeyActions {
+    WindowKeyActions(
+      down: { moveDestination(by: 1) },
+      up: { moveDestination(by: -1) },
+      right: { focusedColumn = .detail },
+      press: { focusedColumn = .detail },
+    )
+  }
+
+  /// The detail column's whole keymap, one destination per arm. Panes own meaning; the window owns
+  /// recognition, so a new pane is a new arm here rather than an edit in five key handlers.
+  private var detailKeys: WindowKeyActions {
+    switch store.selection {
+    case .settings:
+      WindowKeyActions(
+        left: {
+          // Ascending is the window's move: focus may only be driven by @FocusState, so the edge
+          // is read here before the pane is told to step off it.
+          let ascends = store.settingsPane.cursor.target == 0
+          store.send(.settingsPane(.leftPressed))
+          if ascends {
+            focusedColumn = .sidebar
+          }
+        },
+        down: { store.send(.settingsPane(.rowMoved(.next))) },
+        up: { store.send(.settingsPane(.rowMoved(.previous))) },
+        right: { store.send(.settingsPane(.rightPressed)) },
+        press: { store.send(.settingsPane(.pressRequested)) },
+        escape: cancelSettingsRecording,
+      )
+    case .history:
+      WindowKeyActions(
+        left: { focusedColumn = .sidebar },
+        down: { store.send(.history(.cursorMoved(.next))) },
+        up: { store.send(.history(.cursorMoved(.previous))) },
+        right: { store.send(.history(.copyRequested)) },
+        press: { store.send(.history(.copyRequested)) },
+        search: {
+          guard !isHistorySearchFocused else {
+            return .ignored
+          }
+          isHistorySearchFocused = true
+          return .handled
+        },
+      )
+    case .model,
+         .dictionary,
+         .cleanup:
+      WindowKeyActions(left: { focusedColumn = .sidebar })
+    }
+  }
+
   @ViewBuilder private var detail: some View {
     switch store.selection {
+    case .settings:
+      SettingsPane(store: store)
     case .history:
-      HistoryPane(store: store, focusedColumn: $focusedColumn)
-    case .settings,
-         .model,
+      HistoryPane(store: store, searchFocus: $isHistorySearchFocused)
+    case .model,
          .dictionary,
          .cleanup:
       SettingsPlaceholderPane(destination: store.selection)
-        .focusable()
-        .focused($focusedColumn, equals: .detail)
-        .vimKeys(store: store, onAscend: { focusedColumn = .sidebar })
     }
   }
 
@@ -75,11 +150,31 @@ struct SettingsWindowView: View {
       Text(destination.rawValue)
         .accessibilityIdentifier(destination.accessibilityIdentifier)
         .accessibilityLabel("\(destination.rawValue) section")
-        .accessibilityValue(destination.rawValue)
+        .accessibilityValue(
+          destination == store.selection
+            ? "\(destination.rawValue); Selected"
+            : "\(destination.rawValue); Not selected",
+        )
     } icon: {
       Image(systemName: destination.symbolName)
     }
     .tag(destination)
+  }
+
+  private func cancelSettingsRecording() -> KeyPress.Result {
+    guard store.settingsPane.recordingTarget != nil else {
+      return .ignored
+    }
+    store.send(.settingsPane(.cancelRecording))
+    return .handled
+  }
+
+  private func applyInitialFocus() {
+    guard !hasAppliedInitialFocus else {
+      return
+    }
+    hasAppliedInitialFocus = true
+    focusedColumn = initialFocus ?? (store.selection == .history ? .detail : .sidebar)
   }
 
   private func moveDestination(by offset: Int) {
@@ -89,67 +184,6 @@ struct SettingsWindowView: View {
     }
     let next = min(max(current + offset, 0), destinations.count - 1)
     store.send(.selectionChanged(destinations[next]))
-  }
-}
-
-// MARK: - VimKeys
-
-/// The window's one h/j/k/l loop. Each column supplies what the four keys mean where it is, and
-/// every press marks the window keyboard-driven, so the grey cursor follows focus without any
-/// column reaching into another's state.
-private struct VimKeys: ViewModifier {
-  // MARK: Internal
-
-  let store: StoreOf<SettingsWindowFeature>
-  var onPrevious: () -> Void = {}
-  var onNext: () -> Void = {}
-  var onAscend: () -> Void = {}
-  var onDescend: () -> Void = {}
-
-  func body(content: Content) -> some View {
-    content
-      .onKeyPress(.return) {
-        press(onDescend)
-      }
-      .onKeyPress(characters: .init(charactersIn: "hjkl")) { keyPress in
-        switch keyPress.characters {
-        case "h":
-          press(onAscend)
-        case "j":
-          press(onNext)
-        case "k":
-          press(onPrevious)
-        case "l":
-          press(onDescend)
-        default:
-          .ignored
-        }
-      }
-  }
-
-  // MARK: Private
-
-  private func press(_ action: () -> Void) -> KeyPress.Result {
-    store.send(.keyboardModeEntered)
-    action()
-    return .handled
-  }
-}
-
-extension View {
-  func vimKeys(
-    store: StoreOf<SettingsWindowFeature>,
-    onPrevious: @escaping () -> Void = {},
-    onNext: @escaping () -> Void = {},
-    onAscend: @escaping () -> Void = {},
-    onDescend: @escaping () -> Void = {},
-  ) -> some View {
-    modifier(
-      VimKeys(
-        store: store, onPrevious: onPrevious, onNext: onNext, onAscend: onAscend,
-        onDescend: onDescend,
-      ),
-    )
   }
 }
 

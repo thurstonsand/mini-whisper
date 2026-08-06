@@ -2,7 +2,7 @@
 
 MiniWhisper is a macOS menu bar dictation app. It records from the default microphone, transcribes speech locally, and pastes the result into the frontmost app.
 
-Hold right Option to dictate and release it to transcribe. Double-tap right Option to keep recording without holding it; tap once to finish.
+Hold right Option to dictate and release it to transcribe. Double-tap right Option to keep recording without holding it; tap once to finish. The shortcut is rebindable in Settings, and more than one binding can be recorded.
 
 ## Install
 
@@ -19,7 +19,7 @@ The speech model is downloaded on first run and is not included in the app bundl
 Onboarding asks for two macOS permissions:
 
 - **Microphone** lets it record speech for local transcription.
-- **Accessibility** covers the rest: watching for the right Option hotkey while another app is active, sending Command-V to the frontmost app, and reading the text around the insertion point.
+- **Accessibility** covers the rest: watching for the activation shortcut while another app is active, sending Command-V to the frontmost app, and reading the text around the insertion point.
 
 If automatic paste is unavailable, MiniWhisper leaves the transcript on the clipboard instead.
 

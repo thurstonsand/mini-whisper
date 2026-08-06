@@ -33,7 +33,7 @@ public enum HotkeyListenerError: Error, Equatable, Sendable { case eventTapCreat
 public enum HotkeyListener {
   /// Starts listening without raising a permission dialog. A missing grant is reported as
   /// `.accessibilityPermissionMissing` so the caller can send the user to System Settings.
-  public static func events(hotkey: Hotkey) async throws -> AsyncStream<HotkeyListenerEvent> {
+  public static func events(hotkeys: [Hotkey]) async throws -> AsyncStream<HotkeyListenerEvent> {
     let (stream, continuation) = AsyncStream.makeStream(of: HotkeyListenerEvent.self)
     // The last-mile guard: an Accessibility grant is what lets the session tap actually receive
     // keyboard events, and `AXIsProcessTrusted` answers live rather than caching a launch-time
@@ -44,7 +44,7 @@ public enum HotkeyListener {
       return stream
     }
 
-    let session = EventTapSession(hotkey: hotkey, continuation: continuation)
+    let session = EventTapSession(hotkeys: hotkeys, continuation: continuation)
     continuation.onTermination = { @Sendable _ in session.stop() }
 
     do {
@@ -62,10 +62,9 @@ public enum HotkeyListener {
 private final class EventTapSession: @unchecked Sendable {
   // MARK: Lifecycle
 
-  init(hotkey: Hotkey, continuation: AsyncStream<HotkeyListenerEvent>.Continuation) {
-    self.hotkey = hotkey
+  init(hotkeys: [Hotkey], continuation: AsyncStream<HotkeyListenerEvent>.Continuation) {
     self.continuation = continuation
-    matcher = PhysicalChordMatcher(hotkey: hotkey)
+    matcher = MultipleChordMatcher(hotkeys: hotkeys)
   }
 
   // MARK: Internal
@@ -93,23 +92,17 @@ private final class EventTapSession: @unchecked Sendable {
 
   // MARK: Private
 
-  private static let capsLockKeyCode: UInt16 = 57
-
   private let lock = NSLock()
-  private let hotkey: Hotkey
 
   private var continuation: AsyncStream<HotkeyListenerEvent>.Continuation?
   private var runLoop: CFRunLoop?
   private var eventTap: CFMachPort?
   private var stopWasRequested = false
   private var pressedKeys: Set<PhysicalKey> = []
-  private var matcher: PhysicalChordMatcher
+  private var matcher: MultipleChordMatcher
   private var gestureMachine = HotkeyGestureMachine()
 
   private func run(startup: CheckedContinuation<Void, any Error>) {
-    pressedKeys = currentlyPressedKeys()
-    gestureMachine = HotkeyGestureMachine(initiallyBlocked: !pressedKeys.isEmpty)
-
     let mask = [
       CGEventType.flagsChanged, .keyDown, .keyUp, .leftMouseDown, .rightMouseDown, .otherMouseDown,
     ].reduce(CGEventMask(0)) { mask, type in mask | (CGEventMask(1) << type.rawValue) }
@@ -234,11 +227,9 @@ private final class EventTapSession: @unchecked Sendable {
 
   private func interrupt(reason: TapDisableReason, reenable: Bool) {
     emit(gestureMachine.receive(.monitoringInterrupted))
-    pressedKeys = currentlyPressedKeys()
+    pressedKeys.removeAll()
     matcher.interrupt()
-    if pressedKeys.isEmpty {
-      _ = gestureMachine.receive(.neutral)
-    }
+    _ = gestureMachine.receive(.neutral)
     yield(.monitoringInterrupted(reason))
     if reenable, let eventTap {
       CGEvent.tapEnable(tap: eventTap, enable: true)
@@ -250,23 +241,6 @@ private final class EventTapSession: @unchecked Sendable {
     if let runLoop {
       CFRunLoopStop(runLoop)
     }
-  }
-
-  private func currentlyPressedKeys() -> Set<PhysicalKey> {
-    Set(
-      (UInt16(0) ... UInt16(127)).compactMap { keyCode in
-        // Caps Lock reports its toggle state rather than whether the physical key is held.
-        guard keyCode != Self.capsLockKeyCode,
-              CGEventSource.keyState(.combinedSessionState, key: CGKeyCode(keyCode))
-        else {
-          return nil
-        }
-        if let modifier = ModifierKey.allCases.first(where: { $0.keyCode == keyCode }) {
-          return .modifier(modifier)
-        }
-        return .keyCode(keyCode)
-      },
-    )
   }
 
   private func emit(_ event: GestureEvent?) {

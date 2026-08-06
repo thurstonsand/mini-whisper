@@ -180,14 +180,6 @@ struct HotkeyGestureMachineTests {
     #expect(machine.receive(.activation(at: .milliseconds(100))) == .startRecording)
   }
 
-  @Test func `initially blocked machine requires neutral input`() {
-    var machine = HotkeyGestureMachine(initiallyBlocked: true)
-
-    #expect(machine.receive(.activation(at: .zero)) == nil)
-    #expect(machine.receive(.neutral) == nil)
-    #expect(machine.receive(.activation(at: .milliseconds(100))) == .startRecording)
-  }
-
   // MARK: Private
 
   private func latchedMachine() -> HotkeyGestureMachine {

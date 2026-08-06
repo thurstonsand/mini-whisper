@@ -369,7 +369,7 @@ import Testing
     let state = AppFeature.State(
       history: Shared(value: original),
       settings: Shared(value: MiniWhisperSettings(
-        hotkey: .rightOption, soundsEnabled: true,
+        hotkeys: [.rightOption], soundsEnabled: true,
         retention: RetentionPolicy(transcripts: .forever, audio: .oneDay),
       )),
     )

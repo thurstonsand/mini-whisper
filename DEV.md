@@ -44,7 +44,7 @@ Three build configurations produce three separate apps, so all three can be inst
 - `Packages/ASREngine` — silence gate + transcription
 - `Packages/FieldContext` — focused-field capture payload, fallback taxonomy, and the transcript join rules
 - `Packages/TranscriptCleanup` — optional LLM cleanup client
-- `Packages/HotkeyListener` — pinned-modifier event pipeline and hold/latch state machine
+- `Packages/HotkeyListener` — event pipeline matching multiple alternative bindings, the hold/latch state machine, and the chord recorder
 - `Packages/History` — history log model, retention policy, and the audio vault
 - `Packages/AppSettings` — the `settings.json` model and store, aggregating settings from the feature packages
 

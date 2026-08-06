@@ -9,11 +9,16 @@ swiftc -framework AppKit -framework SwiftUI \
   spikes/settings-mockup/SettingsMockup.swift -o .build/settings-mockup
 .build/settings-mockup            # opens on Settings
 .build/settings-mockup history    # also: model, dictionary, cleanup, componentstates
+.build/settings-mockup playground # also: cursorlab1, cursorlab2, cursorlab3
 ```
+
+A trailing `light` or `dark` argument forces that appearance.
 
 The launch argument picks the starting pane, matching on the destination name with spaces removed. Everything is interactive: panes navigate, rows hover and copy, sheets open, pickers and toggles work.
 
 `componentstates` is a mock-up-only page with no counterpart in the app. It shows every state the stateful rows can take — six model install states, six endpoint save outcomes, three API-key states — side by side, so they can be compared rather than imagined one at a time.
+
+The cursor labs settled the Settings pane's keyboard-cursor design for [ticket 31](../../docs/wayfinding/finishing-mini-whisper/tickets/31-settings-pane.md): `cursorlab1`/`cursorlab2` show six row-cursor treatments A–F, `cursorlab3` freezes the chosen composition (accent bar for the row, focus ring for the target within it), and `playground` is that composition live — j/k/h/l/Return work, mouse hover moves the same bar, and the caption strip narrates what each press would do.
 
 ## Screenshots
 

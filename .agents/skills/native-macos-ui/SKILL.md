@@ -56,9 +56,18 @@ macOS 26's Liquid Glass arrives **automatically** for stock components when buil
 - `hoverEffect` and `listRowHoverEffect` are **unavailable on macOS**. A hand-drawn hover background is not a workaround here, it is the only option.
 - Concentric radii (`ConcentricRectangle`, `containerShape`) apply when a shape nests inside a rounded container. A row highlight inside a plain list has no such container, so a fixed radius is right in kind — match it to the selection highlight the same list draws, which is **8**, not the 6 that looks correct in isolation.
 
+## Window chrome and focus
+
+Both of these were regressions before they were rules. Chrome and focus belong to the window; panes that own either will break it whenever the pane changes.
+
+- **Chrome must not depend on which pane is selected.** SwiftUI only materialises the window toolbar while some view contributes to it, and titlebar/sidebar geometry follows the toolbar's existence — so a pane whose `.searchable` is the only contribution changes the window's shape when the user navigates away. Pin it window-wide: a persistent `NSToolbar` on the window plus an always-present zero-size keeper `ToolbarItem`. Put the keeper in `placement: .navigation`: a zero-size sibling in the trailing group still widens a real button's glass capsule and pushes its glyph off-centre.
+- **Column focus is carried by a persistent host, never by a pane's Form/List root.** A grouped `Form` resolves focus to its internal scroll responder, and replacing the detail subtree kills the focus target — `@FocusState` silently goes nil and keyboard paint dies. Wrap the swapping content in one stable container that owns `.focusable()`, `.focused(…)`, and key routing; panes are content.
+- Initial focus assigns on the window's actual `didBecomeKey` (one-shot), not `onAppear` — and audit for `makeFirstResponder(nil)` calls that erase it after presentation.
+- Containers that hold a column-focus role wear `.focusEffectDisabled()`, or the system rings the entire scroll area. The interaction model's own paint is the focus indicator.
+
 ## Controls
 
-- Never hand-draw a control. No rounded-rect "keycaps," no custom toggles, no bespoke progress bars.
+- Never hand-draw a control. No rounded-rect "keycaps" as buttons, no custom toggles, no bespoke progress bars. (Keycap boxes *displaying* a recorded chord inside a real `Button` are content, not a control — that one is deliberate.)
 - `Toggle` keeps its own label. `.labelsHidden()` is for when the enclosing row already labels it, not a layout convenience.
 - Exclusive options are one `Picker` with one selection, never several toggles that can contradict each other.
 - Buttons say what they do: `Copy`, `Delete`, `Choose…`. A trailing ellipsis means a further dialog follows; without one, the action happens immediately.

@@ -78,10 +78,10 @@ final class MiniWhisperUITests: XCTestCase {
         ),
         contract(
           .staticText, "miniwhisper.onboarding.try-it.instructions", "Try it instructions",
-          "Focus the text box below, hold Right Option while you speak, then release. Or double-tap Right Option to keep recording until you tap it again.",
+          "Focus the text box below, hold ⌥ Opt → while you speak, then release. Or double-tap ⌥ Opt → to keep recording until you tap it again.",
         ), contract(.textView, "miniwhisper.onboarding.try-it.text", "Try dictation", ""),
         contract(
-          .staticText, "miniwhisper.onboarding.try-it.hotkey", "Dictation hotkey", "Right Option",
+          .staticText, "miniwhisper.onboarding.try-it.hotkey", "Dictation hotkey", "⌥ Opt →",
         ),
         contract(
           .staticText, "miniwhisper.onboarding.try-it.guidance", "Try it guidance",
@@ -101,7 +101,7 @@ final class MiniWhisperUITests: XCTestCase {
         contract(.staticText, "miniwhisper.onboarding.ready.title", "Setup status", "Ready"),
         contract(
           .staticText, "miniwhisper.onboarding.ready.summary", "Ready instructions",
-          "Your first dictation made the full trip. Hold Right Option in any text field and speak.",
+          "Your first dictation made the full trip. Hold ⌥ Opt → in any text field and speak.",
         ),
         contract(
           .staticText, "miniwhisper.onboarding.ready.transcript", "Completed dictation",
@@ -203,27 +203,199 @@ final class MiniWhisperUITests: XCTestCase {
       scene: "settings",
       elements: [
         contract(.window, "miniwhisper.settings.window", "\(appName) Settings"),
-        contract(.outline, "miniwhisper.settings.sidebar", "Settings sections"),
+        contract(.outline, "miniwhisper.settings.sidebar", "Settings sections", "Focused"),
         contract(
-          .staticText, "miniwhisper.settings.sidebar.settings", "Settings section", "Settings",
+          .staticText, "miniwhisper.settings.sidebar.settings", "Settings section",
+          "Settings; Selected",
         ),
         contract(
-          .staticText, "miniwhisper.settings.sidebar.history", "History section", "History",
+          .staticText, "miniwhisper.settings.sidebar.history", "History section",
+          "History; Not selected",
         ),
-        contract(.staticText, "miniwhisper.settings.sidebar.model", "Model section", "Model"),
+        contract(
+          .staticText, "miniwhisper.settings.sidebar.model", "Model section",
+          "Model; Not selected",
+        ),
         contract(
           .staticText, "miniwhisper.settings.sidebar.dictionary", "Dictionary section",
-          "Dictionary",
+          "Dictionary; Not selected",
         ),
         contract(
-          .staticText, "miniwhisper.settings.sidebar.cleanup", "Cleanup section", "Cleanup",
+          .staticText, "miniwhisper.settings.sidebar.cleanup", "Cleanup section",
+          "Cleanup; Not selected",
+        ),
+        contract(.group, "miniwhisper.settings.shortcut.activate", "Activate shortcut"),
+        contract(
+          .staticText, "miniwhisper.settings.shortcut.activate.state",
+          "Activate shortcut highlight", "Bar off",
         ),
         contract(
-          .other, "miniwhisper.settings.placeholder",
-          "Settings. Dictation controls will appear here.",
+          .button, "miniwhisper.settings.shortcut.binding.0", "⌥ Opt →", "Ring off",
+          isEnabled: true, isActionable: true,
+        ),
+        contract(
+          .button, "miniwhisper.settings.shortcut.binding.1", "⌃ Ctrl → R", "Ring off",
+          isEnabled: true, isActionable: true,
+        ),
+        contract(
+          .menuButton, "miniwhisper.settings.shortcut.menu", "Shortcut actions", isEnabled: true,
+          isActionable: true,
         ),
       ],
     )
+  }
+
+  @MainActor func testSettingsRealWindowStartsInSidebar() {
+    let app = launchRealSettings()
+    defer { terminate(app) }
+
+    let sidebar = app.outlines["miniwhisper.settings.sidebar"]
+    let settings = app.staticTexts["miniwhisper.settings.sidebar.settings"]
+    let history = app.staticTexts["miniwhisper.settings.sidebar.history"]
+    assertValue("Focused", of: sidebar)
+    assertValue("Settings; Selected", of: settings)
+
+    app.typeText("j")
+    assertValue("History; Selected", of: history)
+    app.typeText("k")
+    assertValue("Settings; Selected", of: settings)
+  }
+
+  @MainActor func testSettingsEnteringDetailPaintsCursor() {
+    let app = launch("settings")
+    defer { terminate(app) }
+
+    app.typeText("jkl")
+    assertValue("Not focused", of: app.outlines["miniwhisper.settings.sidebar"])
+    assertValue(
+      "Bar on", of: app.staticTexts["miniwhisper.settings.shortcut.activate.state"],
+    )
+    assertValue(
+      "Ring on", of: app.buttons["miniwhisper.settings.shortcut.binding.0"],
+    )
+  }
+
+  @MainActor func testSettingsReturningToSidebarClearsCursorPaint() {
+    let app = launch("settings")
+    defer { terminate(app) }
+
+    app.typeText("lh")
+    assertValue("Focused", of: app.outlines["miniwhisper.settings.sidebar"])
+    assertValue(
+      "Bar off", of: app.staticTexts["miniwhisper.settings.shortcut.activate.state"],
+    )
+    assertValue(
+      "Ring off", of: app.buttons["miniwhisper.settings.shortcut.binding.0"],
+    )
+  }
+
+  @MainActor func testSettingsHoverSurvivesKeyboardModeEntry() {
+    let app = launch("settings")
+    defer { terminate(app) }
+
+    app.typeText("l")
+    let row = app.groups["miniwhisper.settings.shortcut.activate"]
+    let rowState = app.staticTexts["miniwhisper.settings.shortcut.activate.state"]
+    let binding = app.buttons["miniwhisper.settings.shortcut.binding.0"]
+    row.hover()
+    assertValue("Bar on", of: rowState)
+    assertValue("Ring off", of: binding)
+
+    app.typeText("j")
+    assertValue("Bar on", of: rowState)
+    assertValue("Ring on", of: binding)
+  }
+
+  @MainActor func testHistoryEnteringFromSidebarPaintsFirstCursor() {
+    let app = launch("settings-history")
+    defer { terminate(app) }
+
+    let firstRow = historyRow(app, id: "11111111-1111-1111-1111-111111111111")
+    XCTAssertTrue(firstRow.waitForExistence(timeout: 5))
+    app.typeText("h")
+    assertValue("Focused", of: app.outlines["miniwhisper.settings.sidebar"])
+    app.typeText("l")
+    assertValue("Not focused", of: app.outlines["miniwhisper.settings.sidebar"])
+    assertValue(
+      "Grey on; Cursor on; Copied off",
+      of: historyRowState(app, id: "11111111-1111-1111-1111-111111111111"),
+    )
+  }
+
+  @MainActor func testHistoryMovementKeepsExactlyOneGreyRow() {
+    let app = launch("settings-history")
+    defer { terminate(app) }
+
+    XCTAssertTrue(historyRows(app).firstMatch.waitForExistence(timeout: 5))
+    app.typeText("j")
+    assertSingleGreyHistoryRow(app, id: "22222222-2222-2222-2222-222222222222")
+    app.typeText("k")
+    assertSingleGreyHistoryRow(app, id: "11111111-1111-1111-1111-111111111111")
+  }
+
+  @MainActor func testHistoryCopyKeepsCursor() {
+    let app = launch("settings-history")
+    defer { terminate(app) }
+
+    let firstID = "11111111-1111-1111-1111-111111111111"
+    let firstRow = historyRow(app, id: firstID)
+    XCTAssertTrue(firstRow.waitForExistence(timeout: 5))
+    app.typeText("l")
+    XCTAssertTrue(
+      app.descendants(matching: .any)["miniwhisper.history.copied.\(firstID)"]
+        .waitForExistence(timeout: 2),
+    )
+    XCTAssertTrue(accessibilityValue(historyRowState(app, id: firstID)).contains("Cursor on"))
+  }
+
+  @MainActor func testHistoryRoundTripRestoresSameCursor() {
+    let app = launch("settings-history")
+    defer { terminate(app) }
+
+    XCTAssertTrue(historyRows(app).firstMatch.waitForExistence(timeout: 5))
+    let secondID = "22222222-2222-2222-2222-222222222222"
+    app.typeText("jh")
+    XCTAssertTrue(
+      historyRowStates(app).allElementsBoundByIndex.allSatisfy {
+        !accessibilityValue($0).contains("Grey on")
+      },
+    )
+    app.typeText("l")
+    assertSingleGreyHistoryRow(app, id: secondID)
+  }
+
+  @MainActor func testHistoryParkedPointerCannotStealKeyboardGrey() {
+    let app = launch("settings-history")
+    defer { terminate(app) }
+
+    let firstRow = historyRow(app, id: "11111111-1111-1111-1111-111111111111")
+    XCTAssertTrue(firstRow.waitForExistence(timeout: 5))
+    firstRow.hover()
+    app.typeText("jj")
+    assertSingleGreyHistoryRow(app, id: "00000000-0000-0000-0000-000000000003")
+  }
+
+  @MainActor func testHistorySearchFocusAndExitLaws() {
+    let app = launch("settings-history")
+    defer { terminate(app) }
+
+    XCTAssertTrue(historyRows(app).firstMatch.waitForExistence(timeout: 5))
+    app.typeText("/")
+    let search = app.searchFields.firstMatch
+    XCTAssertTrue(search.waitForExistence(timeout: 2))
+    search.typeText("second")
+    XCTAssertTrue(
+      historyRowStates(app).allElementsBoundByIndex.allSatisfy {
+        !accessibilityValue($0).contains("Grey on")
+      },
+    )
+    search.typeKey(.return, modifierFlags: [])
+    let secondID = "22222222-2222-2222-2222-222222222222"
+    assertSingleGreyHistoryRow(app, id: secondID)
+
+    app.typeText("/")
+    search.typeKey(.escape, modifierFlags: [])
+    assertValue("", of: search)
   }
 
   @MainActor func testHistorySettingsInteractions() throws {
@@ -471,10 +643,6 @@ final class MiniWhisperUITests: XCTestCase {
     }
   }
 
-  @MainActor func testLaunchPerformance() throws {
-    throw XCTSkip("Launch performance metrics are unstable for the menu bar test host.")
-  }
-
   // MARK: Private
 
   private var agentCommandFileURL: URL {
@@ -550,6 +718,19 @@ final class MiniWhisperUITests: XCTestCase {
     mutation?(app)
   }
 
+  @MainActor private func launchRealSettings() -> XCUIApplication {
+    let app = XCUIApplication()
+    app.launch()
+    let statusItem = app.statusItems["miniwhisper.menu.status-item"]
+    XCTAssertTrue(statusItem.waitForExistence(timeout: 5))
+    statusItem.click()
+    let settings = app.menuItems["miniwhisper.menu.settings"]
+    XCTAssertTrue(settings.waitForExistence(timeout: 2))
+    settings.click()
+    XCTAssertTrue(app.windows["miniwhisper.settings.window"].waitForExistence(timeout: 5))
+    return app
+  }
+
   @MainActor private func launch(_ scene: String) -> XCUIApplication {
     let app = XCUIApplication()
     try? FileManager.default.removeItem(at: agentCommandFileURL)
@@ -562,6 +743,51 @@ final class MiniWhisperUITests: XCTestCase {
   private func postAgentMutation(_ action: String, value: Any) {
     try! "\(UUID().uuidString)|\(action)|\(value)".write(
       to: agentCommandFileURL, atomically: true, encoding: .utf8,
+    )
+  }
+
+  private func historyRows(_ app: XCUIApplication) -> XCUIElementQuery {
+    app.descendants(matching: .any).matching(
+      NSPredicate(
+        format: "identifier BEGINSWITH %@ AND NOT identifier ENDSWITH %@",
+        "miniwhisper.history.row.", ".state",
+      ),
+    )
+  }
+
+  private func historyRowStates(_ app: XCUIApplication) -> XCUIElementQuery {
+    app.descendants(matching: .any).matching(
+      NSPredicate(
+        format: "identifier BEGINSWITH %@ AND identifier ENDSWITH %@",
+        "miniwhisper.history.row.", ".state",
+      ),
+    )
+  }
+
+  private func historyRow(_ app: XCUIApplication, id: String) -> XCUIElement {
+    app.descendants(matching: .any)["miniwhisper.history.row.\(id)"]
+  }
+
+  private func historyRowState(_ app: XCUIApplication, id: String) -> XCUIElement {
+    app.staticTexts["miniwhisper.history.row.\(id).state"]
+  }
+
+  private func assertSingleGreyHistoryRow(
+    _ app: XCUIApplication, id: String, file: StaticString = #filePath, line: UInt = #line,
+  ) {
+    let states = historyRowStates(app).allElementsBoundByIndex
+    let greyStates = states.filter { accessibilityValue($0).contains("Grey on") }
+    XCTAssertEqual(greyStates.count, 1, file: file, line: line)
+    XCTAssertEqual(
+      greyStates.first?.identifier,
+      "miniwhisper.history.row.\(id).state",
+      file: file,
+      line: line,
+    )
+    XCTAssertTrue(
+      accessibilityValue(historyRowState(app, id: id)).contains("Cursor on"),
+      file: file,
+      line: line,
     )
   }
 

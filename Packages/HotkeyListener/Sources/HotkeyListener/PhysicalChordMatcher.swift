@@ -51,6 +51,24 @@ public enum GestureInput: Equatable, Sendable {
   case escape
   case monitoringInterrupted
   case neutral
+
+  // MARK: Public
+
+  public var isActivation: Bool {
+    if case .activation = self {
+      true
+    } else {
+      false
+    }
+  }
+
+  public var isRelease: Bool {
+    if case .release = self {
+      true
+    } else {
+      false
+    }
+  }
 }
 
 // MARK: - EventDisposition
@@ -94,6 +112,8 @@ public struct PhysicalChordMatcher: Equatable, Sendable {
     return ChordMatch(input: keyedInput(for: transition), disposition: disposition)
   }
 
+  /// Abandons the gesture but not the suppression: a key whose down was swallowed still owes the
+  /// app a swallowed up, or the frontmost field sees a key-up it never saw pressed.
   public mutating func interrupt() {
     isActive = false
   }
