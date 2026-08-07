@@ -215,7 +215,7 @@ private struct MenuActionFailure: LocalizedError {
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
-      $0.audioCapture.currentInputDeviceName = { "Shure MV7" }
+      $0.audioCapture.currentInputDeviceName = { _ in "Shure MV7" }
       $0.accessibilityPermission.hasPermission = { true }
       $0.launchAtLogin.isRegistered = { true }
     }
@@ -236,7 +236,7 @@ private struct MenuActionFailure: LocalizedError {
       AppFeature()
     } withDependencies: {
       $0.accessibilityPermission.hasPermission = { true }
-      $0.audioCapture.currentInputDeviceName = { "Shure MV7" }
+      $0.audioCapture.currentInputDeviceName = { _ in "Shure MV7" }
       $0.hotkeyListener.events = { _ in events }
       $0.launchAtLogin.isRegistered = { false }
     }

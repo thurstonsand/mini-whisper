@@ -1,4 +1,5 @@
 @testable import AppSettings
+import AudioCapture
 import Foundation
 import History
 import HotkeyListener
@@ -9,7 +10,7 @@ struct MiniWhisperSettingsTests {
     let data = try SettingsCoding.encode(.defaults)
 
     let object = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
-    #expect(Set(object.keys) == ["hotkeys", "retention", "soundsEnabled"])
+    #expect(Set(object.keys) == ["hotkeys", "microphone", "retention", "soundsEnabled"])
     #expect(try SettingsCoding.decode(data) == .defaults)
     let text = try #require(String(data: data, encoding: .utf8))
     #expect(text.hasSuffix("}\n"))
@@ -26,6 +27,7 @@ struct MiniWhisperSettingsTests {
 
     #expect(try settings.hotkeys == [Hotkey(keyCode: 0, modifiers: [.leftCommand])])
     #expect(settings.retention == .defaults)
+    #expect(settings.microphone == .systemDefault)
     #expect(settings.soundsEnabled == false)
   }
 
@@ -51,11 +53,22 @@ struct MiniWhisperSettingsTests {
   @Test func `every setting survives a round trip`() throws {
     let settings = try MiniWhisperSettings(
       hotkeys: [Hotkey(keyCode: 0, modifiers: [.leftCommand])],
+      microphone: .device(uid: "studio-mic", lastKnownName: "Studio Microphone"),
       soundsEnabled: false,
       retention: RetentionPolicy(transcripts: .ninetyDays, audio: .never),
     )
 
     #expect(try SettingsCoding.decode(SettingsCoding.encode(settings)) == settings)
+  }
+
+  @Test func `microphone selection survives A round trip`() throws {
+    let selection = MicrophoneSelection.device(
+      uid: "usb-audio-device", lastKnownName: "Desk Microphone",
+    )
+    var settings = MiniWhisperSettings.defaults
+    settings.microphone = selection
+
+    #expect(try SettingsCoding.decode(SettingsCoding.encode(settings)).microphone == selection)
   }
 
   @Test func `hotkey validation rejects empty and reserved keys`() {

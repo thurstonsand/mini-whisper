@@ -29,6 +29,7 @@ enum PresentedWindow: Equatable {
     case onboardingReady = "onboarding-ready"
     case settings
     case settingsShortcutsKeyboard = "settings-shortcuts-keyboard"
+    case settingsMicrophoneUnavailable = "settings-microphone-unavailable"
     case settingsHistory = "settings-history"
     case about
     case pillRecording = "pill-recording"
@@ -54,6 +55,8 @@ enum PresentedWindow: Equatable {
         .settings(.settings, initialFocus: nil)
       case .settingsShortcutsKeyboard:
         .settings(.settings, initialFocus: .detail)
+      case .settingsMicrophoneUnavailable:
+        .settings(.settings, initialFocus: nil)
       case .settingsHistory:
         .settings(.history, initialFocus: nil)
       case .about:
@@ -137,6 +140,7 @@ enum PresentedWindow: Equatable {
                 readiness: .ready, hasCompletedShortcut: true, isCompleted: true,
                 tryItText: "MiniWhisper is ready.")
       case .settings,
+           .settingsMicrophoneUnavailable,
            .settingsHistory,
            .about:
         break
@@ -169,7 +173,15 @@ enum PresentedWindow: Equatable {
 
     private var seededSettings: MiniWhisperSettings {
       var settings = MiniWhisperSettings.defaults
-      guard self == .settings || self == .settingsShortcutsKeyboard else {
+      switch self {
+      case .settings,
+           .settingsShortcutsKeyboard:
+        break
+      case .settingsMicrophoneUnavailable:
+        settings.microphone = .device(
+          uid: "seeded-disconnected-microphone", lastKnownName: "Studio Microphone",
+        )
+      default:
         return settings
       }
       do {

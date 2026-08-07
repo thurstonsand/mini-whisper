@@ -24,7 +24,7 @@ import Testing
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
-      $0.audioCapture.start = {
+      $0.audioCapture.start = { _ in
         AudioCaptureSession(
           id: sessionID, inputDeviceName: "Test Microphone", events: captureEvents,
         )
@@ -33,7 +33,7 @@ import Testing
         #expect(id == sessionID)
         return recording
       }
-      $0.audioCapture.currentInputDeviceName = { "Test Microphone" }
+      $0.audioCapture.currentInputDeviceName = { _ in "Test Microphone" }
       $0.asrEngine.submit = { _ in .noSpeech }
       $0.contextCapture.prewarmFrontmostApp = {}
       $0.date.now = Date(timeIntervalSince1970: 1000)
@@ -258,7 +258,7 @@ import Testing
     let store = TestStore(initialState: AppFeature.State()) {
       AppFeature()
     } withDependencies: {
-      $0.audioCapture.prepare = {}
+      $0.audioCapture.prepare = { _ in }
       $0.asrEngine.prepareInstalled = {
         AsyncStream { continuation in
           continuation.yield(.compiling)
@@ -298,7 +298,7 @@ import Testing
     let store = TestStore(initialState: AppFeature.State()) {
       AppFeature()
     } withDependencies: {
-      $0.audioCapture.prepare = {}
+      $0.audioCapture.prepare = { _ in }
       $0.asrEngine.prepareInstalled = {
         AsyncStream { continuation in
           continuation.yield(.compiling)
@@ -819,13 +819,13 @@ import Testing
         await deliveries.record()
         return .pasted(.restored)
       }
-      $0.audioCapture.start = {
+      $0.audioCapture.start = { _ in
         AudioCaptureSession(
           id: UUID(), inputDeviceName: "Test Microphone", events: AsyncStream { $0.finish() },
         )
       }
       $0.audioCapture.cancel = { _ in }
-      $0.audioCapture.currentInputDeviceName = { "Test Microphone" }
+      $0.audioCapture.currentInputDeviceName = { _ in "Test Microphone" }
       $0.asrEngine.prepareForActivation = { AsyncStream { $0.finish() } }
       $0.continuousClock = TestClock()
     }
@@ -952,7 +952,7 @@ import Testing
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
-      $0.audioCapture.currentInputDeviceName = { "Microphone" }
+      $0.audioCapture.currentInputDeviceName = { _ in "Microphone" }
       $0.asrEngine.prepareForActivation = { AsyncStream { $0.finish() } }
       $0.contextCapture.prewarmFrontmostApp = { await prewarms.record() }
       $0.sounds.play = { cue in await sounds.record(cue) }

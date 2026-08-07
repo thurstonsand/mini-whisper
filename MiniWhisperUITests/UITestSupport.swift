@@ -18,6 +18,7 @@ extension XCTestCase {
 
   @MainActor func launch(_ scene: String) -> XCUIApplication {
     let app = XCUIApplication()
+    parkPointer()
     try? FileManager.default.removeItem(at: agentCommandFileURL)
     app.launchEnvironment["MINIWHISPER_AGENT_SCENE"] = scene
     app.launchEnvironment["MINIWHISPER_AGENT_COMMAND_FILE"] = agentCommandFileURL.path
@@ -28,6 +29,25 @@ extension XCTestCase {
   @MainActor func terminate(_ app: XCUIApplication) {
     app.terminate()
     XCTAssertTrue(app.wait(for: .notRunning, timeout: 5))
+  }
+
+  /// The pointer is physical and outlives the app under test, so a scene would otherwise open
+  /// underneath whatever the previous case last hovered and report that as its starting state.
+  /// Parked bottom-right: the status item lives at the top, and hot corners do not.
+  @MainActor private func parkPointer() {
+    guard let screen = NSScreen.main?.frame else {
+      return
+    }
+    CGWarpMouseCursorPosition(CGPoint(x: screen.maxX - 2, y: screen.maxY - 2))
+  }
+
+  /// The window ignores the first pointer location it is told about, so that a parked pointer
+  /// cannot claim mouse mode from the keyboard. A pointer warped in from outside looks exactly
+  /// like a parked one on its first sample, so landing somewhere harmless first is what makes the
+  /// hover that follows a real move.
+  @MainActor func hoverAfterEnteringWindow(_ element: XCUIElement, in app: XCUIApplication) {
+    app.outlines["miniwhisper.settings.sidebar"].hover()
+    element.hover()
   }
 
   func postAgentMutation(_ action: String, value: Any) {

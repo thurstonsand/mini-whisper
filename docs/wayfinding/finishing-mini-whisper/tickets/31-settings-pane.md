@@ -32,7 +32,7 @@ The pane exists with its first real section, and the two hardest problems it sur
 - **Window laws** (fixed here, owned window-wide): chrome is pinned by a persistent toolbar with a keeper item in the `.navigation` group — pane selection can no longer change titlebar or sidebar geometry, and the keeper cannot stretch a pane's button capsule. Detail focus is carried by a persistent host outside every pane's Form/List, assigned on the window's `didBecomeKey`, so switching destinations cannot kill it and a focused pane can never paint nothing.
 - **Regression insurance**: XCUITest contract batches for the settings focus/paint laws and the History cursor laws (one-grey counted across all rows, copy-keeps-cursor, round-trip, parked pointer, search), asserting AX state derived from the same expressions that drive paint.
 
-Remaining: Microphone (scope item 2), Sounds (3), permissions row (5), Open at login/Version, and the menu slimming (6).
+Remaining after element 1: Microphone (built — see below), Sounds (3), permissions row (5), Open at login/Version, and the menu slimming (6).
 
 ## Built: the onboarding Shortcut step
 
@@ -44,6 +44,22 @@ A fast-follow the pane earned immediately: the primary binding is now chosen dur
 - **Focus laws, learned the hard way**: claim focus when the field exists, not when the state that summons it changes — `.defaultFocus` fails on real mid-flow transitions, and `.onAppear` races AppKit's key-view selection (the Try It Skip button briefly wore focus paint nobody asked for). Focus paint derives only from `@FocusState`; the system focus effect lies and stays disabled where hand-drawn rings exist. Both laws recorded in the skill.
 - **Pixel-truth testing**: entry states are asserted from decoded screenshots (zero focus-blue where no focus is claimed) after AX-only assertions passed while pixels showed a phantom ring. AX values derive from the same expressions that paint (`accessibilityPaintState`), real typed key events drive the keyboard suites, and scenes seed dependencies — a fixture bug had every onboarding scene wired to the live settings.json, and a UI test wrote into it before it was caught.
 - Standing sighting, unreproduced: one report of a stray Skip focus ring post-refactor; a focus trace showed honest behaviour and is recoverable from session 019fd8f6 (`category == "focus-trace"`).
+
+## Built: element 2 — Microphone
+
+The picker: System Default or one explicit device, persisted as CoreAudio UID plus last-known name (the name exists only so the UI can speak about an absent device). Absent settings key decodes to System Default. An absent explicit device falls back to the current default with a visible sentence — "[Name] not connected. Using system default: [Default]." — and the stored selection is never overwritten; it heals when the device returns. The row is a full cursor-grammar citizen (j/k, ring, Return opens the popup) and carries a live level meter: the pill's own `AudioLevelBars` extracted and shared (pill rendering byte-identical, hash-proven), fed raw per-buffer RMS through the same normalization — no smoothing anywhere; the one lag ever observed was stock ProgressView's presentation animation, root-caused and removed.
+
+What the spike campaign proved (`spikes/mic-binding-spike/`, the evidence record):
+
+- Explicit binding via `kAudioOutputUnitProperty_CurrentDevice` on a fresh unprepared engine works for ordinary devices, cold USB included (Shure MV7). Ordering is irrelevant; readback is asserted; formats are read only after binding.
+- System Default stays deliberately **unbound** — the engine follows macOS's own routing, which erases default-churn prewarm staleness and keeps Continuity-as-default working (coreaudiod owns that wake).
+- Continuity mics are unreachable via app-local HAL binding — readback succeeds, IO never starts, even during a successful concurrent AVCaptureSession capture of the same phone. Not an OS impossibility: Apple's sanctioned app-local route is an AVCaptureSession backend (Continuity Camera sample), so Continuity is excluded from explicit selection until that backend exists — recorded follow-up, backend-tagged selection identity (`AVCaptureDevice.uniqueID` is a different namespace than CoreAudio UIDs; never bridge by name).
+- Idle virtual/loopback devices and sleeping headset dongles clock zero or silent buffers by nature; the silence gate absorbs the empty result — no watchdogs.
+- Device filtering is by declared attribute only, never name: `IsHidden == 1` dropped; aggregate-transport devices declaring composition `private = 1` dropped — that is AVAudioEngine's own `CADefaultDeviceAggregate` (which declares `IsHidden = 0`), usually manufactured by our own prewarmed engine and reflected back by enumeration. User-created Audio MIDI aggregates declare `private = 0` and survive.
+
+Architecture: one `MicrophoneSelection` type (lives in AudioCapture; AppSettings imports it like Hotkey); one selectability policy feeding both enumeration and resolution, contract-tested so the picker can never offer what the route won't bind; fresh UID resolution before every prepare/start (`kAudioObjectUnknown` means absent, never an error); prewarm keyed by resolved binding and re-prepared on selection commit (pane delegate → AppFeature → RecordingFeature); debounced CoreAudio listeners (250 ms, retained blocks, same-queue removal) publishing immutable snapshots only while the pane is open; the meter runs its own engine through the shared `AudioEngineInput` seam — CoreAudio is multi-client, so it coexists with real dictation (proven live) and can never diverge from capture on resolution policy. Mid-recording device loss keeps the conservative failure; a sibling quality audit collapsed the routing types (`AudioInputBinding`), fixed a reachable release-beats-session-ID hang on silent devices, and caught the menu naming the default instead of the selection.
+
+Remaining: Sounds (3), permissions row (5), Open at login/Version, and the menu slimming (6).
 
 ## Inherited constraints
 

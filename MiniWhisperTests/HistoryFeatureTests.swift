@@ -247,8 +247,8 @@ import Testing
     try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
     let settingsURL = root.appending(path: "settings.json")
     let stored = try MiniWhisperSettings(
-      hotkeys: [Hotkey(keyCode: 0, modifiers: [.leftCommand])], soundsEnabled: false,
-      retention: .defaults,
+      hotkeys: [Hotkey(keyCode: 0, modifiers: [.leftCommand])], microphone: .systemDefault,
+      soundsEnabled: false, retention: .defaults,
     )
     try SettingsCoding.encode(stored).write(to: settingsURL)
 

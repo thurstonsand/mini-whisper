@@ -253,9 +253,34 @@ struct CanonicalWAVWriterTests {
   }
 }
 
+// MARK: - AudioInputLevelThrottleTests
+
+struct AudioInputLevelThrottleTests {
+  @Test func `meter publication is capped at thirty hertz`() {
+    var throttle = AudioInputLevelThrottle()
+
+    let first = throttle.shouldPublish(now: 1_000_000_000)
+    let tooSoon = throttle.shouldPublish(now: 1_033_333_332)
+    let next = throttle.shouldPublish(now: 1_033_333_333)
+
+    #expect(first)
+    #expect(!tooSoon)
+    #expect(next)
+  }
+}
+
 // MARK: - AudioLevelTests
 
 struct AudioLevelTests {
+  @Test func `the meter's running sum lands where the sample array would`() {
+    let samples: [Float] = [0.1, -0.4, 1, 0.25]
+    let sumSquares = samples.reduce(Float.zero) { $0 + $1 * $1 }
+
+    let accumulated = AudioLevel(sumSquares: sumSquares, sampleCount: samples.count)
+
+    #expect(accumulated == AudioLevel(samples: samples))
+  }
+
   @Test func `silence and full scale have canonical bounds`() {
     let silence = AudioLevel(samples: [0, 0, 0])
     let fullScale = AudioLevel(samples: [1, 1, 1])

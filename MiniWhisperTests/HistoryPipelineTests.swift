@@ -309,8 +309,8 @@ import Testing
       AppFeature()
     } withDependencies: {
       $0.asrEngine.prepareForActivation = { AsyncStream { _ in } }
-      $0.audioCapture.currentInputDeviceName = { "Test Microphone" }
-      $0.audioCapture.start = {
+      $0.audioCapture.currentInputDeviceName = { _ in "Test Microphone" }
+      $0.audioCapture.start = { _ in
         AudioCaptureSession(
           id: UUID(), inputDeviceName: "Test Microphone", events: AsyncStream { _ in },
         )
@@ -369,7 +369,7 @@ import Testing
     let state = AppFeature.State(
       history: Shared(value: original),
       settings: Shared(value: MiniWhisperSettings(
-        hotkeys: [.rightOption], soundsEnabled: true,
+        hotkeys: [.rightOption], microphone: .systemDefault, soundsEnabled: true,
         retention: RetentionPolicy(transcripts: .forever, audio: .oneDay),
       )),
     )

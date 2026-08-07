@@ -1,3 +1,4 @@
+import AppSettings
 import ASREngine
 import AudioCapture
 import ComposableArchitecture
@@ -8,12 +9,18 @@ import Testing
 // MARK: - RecordingFeatureTests
 
 @MainActor struct RecordingFeatureTests {
-  @Test func `task prepares audio capture`() async {
+  @Test func `task prepares audio capture for the stored microphone`() async {
     let preparations = RecordingCounter()
-    let store = TestStore(initialState: RecordingFeature.State()) {
+    var settings = MiniWhisperSettings.defaults
+    settings.microphone = .device(uid: "studio", lastKnownName: "Studio Microphone")
+    let microphone = settings.microphone
+    let store = TestStore(initialState: recordingState(settings)) {
       RecordingFeature()
     } withDependencies: {
-      $0.audioCapture.prepare = { preparations.increment() }
+      $0.audioCapture.prepare = { selection in
+        #expect(selection == microphone)
+        preparations.increment()
+      }
     }
 
     await store.send(.task)
@@ -21,13 +28,37 @@ import Testing
     #expect(preparations.value == 1)
   }
 
+  @Test func `committing A microphone selection prewarms that device`() async {
+    let preparedSelection = MicrophoneSelectionRecorder()
+    let studio = AudioInputDevice(uid: "studio", name: "Studio Microphone")
+    var state = AppFeature.State()
+    state.settingsWindow.settingsPane.inputDevices = AudioInputDeviceSnapshot(
+      devices: [studio], defaultDevice: studio,
+    )
+    let selection = MicrophoneSelection.device(uid: studio.uid, lastKnownName: studio.name)
+    let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
+      $0.audioCapture.prepare = { preparedSelection.record($0) }
+    }
+
+    await store.send(.settingsWindow(.settingsPane(.microphoneSelected(selection)))) {
+      $0.$settings.withLock { $0.microphone = selection }
+    }
+    await store.receive(
+      .settingsWindow(.settingsPane(.delegate(.microphoneChanged(selection)))),
+    )
+    await store.receive(.recording(.microphoneChanged(selection)))
+    await store.receive(.settingsWindow(.settingsPane(.inputLevelUpdated(nil))))
+    await store.finish()
+    #expect(preparedSelection.value == selection)
+  }
+
   @Test func `cancel discards the active recording`() async {
     let (events, continuation) = AsyncStream.makeStream(of: AudioCaptureEvent.self)
     let sessionID = UUID()
-    let store = TestStore(initialState: RecordingFeature.State()) {
+    let store = TestStore(initialState: recordingState()) {
       RecordingFeature()
     } withDependencies: {
-      $0.audioCapture.start = {
+      $0.audioCapture.start = { _ in
         AudioCaptureSession(id: sessionID, inputDeviceName: "Test Microphone", events: events)
       }
       $0.audioCapture.cancel = { id in #expect(id == sessionID) }
@@ -53,21 +84,15 @@ import Testing
     await store.receive(.captureEventsFinished(1))
   }
 
-  @Test func `stop requested while permission is pending completes after capture starts`() async {
-    let (startGate, startContinuation) = AsyncStream.makeStream(of: Void.self)
-    let (events, eventsContinuation) = AsyncStream.makeStream(of: AudioCaptureEvent.self)
-    let recording = CanonicalRecording(samples: [0.1, 0.2])
+  @Test func `stop completes an empty capture that never receives A buffer`() async {
+    let (events, continuation) = AsyncStream.makeStream(of: AudioCaptureEvent.self)
     let sessionID = UUID()
-    let store = TestStore(initialState: RecordingFeature.State()) {
+    let recording = CanonicalRecording(samples: [])
+    let store = TestStore(initialState: recordingState()) {
       RecordingFeature()
     } withDependencies: {
-      $0.audioCapture.start = {
-        for await _ in startGate {
-          break
-        }
-        return AudioCaptureSession(
-          id: sessionID, inputDeviceName: "Test Microphone", events: events,
-        )
+      $0.audioCapture.start = { _ in
+        AudioCaptureSession(id: sessionID, inputDeviceName: "Idle Loopback", events: events)
       }
       $0.audioCapture.stop = { id in
         #expect(id == sessionID)
@@ -79,22 +104,53 @@ import Testing
       $0.captureGeneration = 1
       $0.phase = .starting(nil)
     }
-    await store.send(.stopAndRetain) { $0.phase = .starting(.stop) }
-    startContinuation.yield(())
-    startContinuation.finish()
     await store.receive(.captureSessionStarted(1, sessionID)) { $0.captureSessionID = sessionID }
-    eventsContinuation.yield(.captureBecameLive)
-    await store.receive(.captureBecameLive(1, sessionID, "Test Microphone")) {
-      $0.phase = .recording
-    }
-    await store.receive(.delegate(.recordingStarted(inputDeviceName: "Test Microphone")))
-    await store.receive(.stopAndRetain) { $0.phase = .stopping(nil) }
+    await store.send(.stopAndRetain) { $0.phase = .stopping(nil) }
     await store.receive(.captureStopped(1, recording)) {
       $0.captureSessionID = nil
       $0.phase = .idle
     }
     await store.receive(.delegate(.completed(recording)))
-    eventsContinuation.finish()
+    continuation.finish()
+    await store.receive(.captureEventsFinished(1))
+  }
+
+  @Test func `A stop that beats the session ID still ends the capture`() async {
+    let (startGate, startContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (events, continuation) = AsyncStream.makeStream(of: AudioCaptureEvent.self)
+    let sessionID = UUID()
+    let recording = CanonicalRecording(samples: [])
+    let store = TestStore(initialState: recordingState()) {
+      RecordingFeature()
+    } withDependencies: {
+      $0.audioCapture.start = { _ in
+        for await _ in startGate {
+          break
+        }
+        return AudioCaptureSession(id: sessionID, inputDeviceName: "Idle Loopback", events: events)
+      }
+      $0.audioCapture.stop = { _ in recording }
+    }
+
+    await store.send(.startRecording) {
+      $0.captureGeneration = 1
+      $0.phase = .starting(nil)
+    }
+    await store.send(.stopAndRetain) { $0.phase = .starting(.stop) }
+    startContinuation.yield(())
+    startContinuation.finish()
+    // The session never goes live, so the pending stop is spent the moment its ID lands rather
+    // than waiting for a first buffer that is not coming.
+    await store.receive(.captureSessionStarted(1, sessionID)) {
+      $0.captureSessionID = sessionID
+      $0.phase = .stopping(nil)
+    }
+    await store.receive(.captureStopped(1, recording)) {
+      $0.captureSessionID = nil
+      $0.phase = .idle
+    }
+    await store.receive(.delegate(.completed(recording)))
+    continuation.finish()
     await store.receive(.captureEventsFinished(1))
   }
 
@@ -102,10 +158,10 @@ import Testing
     let (startGate, startContinuation) = AsyncStream.makeStream(of: Void.self)
     let (events, eventsContinuation) = AsyncStream.makeStream(of: AudioCaptureEvent.self)
     let sessionID = UUID()
-    let store = TestStore(initialState: RecordingFeature.State()) {
+    let store = TestStore(initialState: recordingState()) {
       RecordingFeature()
     } withDependencies: {
-      $0.audioCapture.start = {
+      $0.audioCapture.start = { _ in
         for await _ in startGate {
           break
         }
@@ -138,7 +194,7 @@ import Testing
   }
 
   @Test func `second activation keeps A still starting capture alive for latch`() async {
-    var state = RecordingFeature.State()
+    var state = recordingState()
     state.captureGeneration = 1
     state.phase = .starting(.stop)
     let store = TestStore(initialState: state) { RecordingFeature() }
@@ -151,14 +207,14 @@ import Testing
     let secondSessionID = UUID()
     let firstRecording = CanonicalRecording(samples: [0.1])
     let (events, eventsContinuation) = AsyncStream.makeStream(of: AudioCaptureEvent.self)
-    var state = RecordingFeature.State()
+    var state = recordingState()
     state.captureGeneration = 1
     state.captureSessionID = firstSessionID
     state.phase = .stopping(nil)
     let store = TestStore(initialState: state) {
       RecordingFeature()
     } withDependencies: {
-      $0.audioCapture.start = {
+      $0.audioCapture.start = { _ in
         AudioCaptureSession(id: secondSessionID, inputDeviceName: "Test Microphone", events: events)
       }
       $0.audioCapture.cancel = { id in #expect(id == secondSessionID) }
@@ -189,10 +245,10 @@ import Testing
   }
 
   @Test func `denied capture updates the permission boundary`() async {
-    let store = TestStore(initialState: RecordingFeature.State()) {
+    let store = TestStore(initialState: recordingState()) {
       RecordingFeature()
     } withDependencies: {
-      $0.audioCapture.start = { throw AudioCaptureError.microphonePermission(.denied) }
+      $0.audioCapture.start = { _ in throw AudioCaptureError.microphonePermission(.denied) }
     }
 
     await store.send(.startRecording) {
@@ -210,7 +266,7 @@ import Testing
 
   @Test func `runtime permission error updates structural status`() async {
     let sessionID = UUID()
-    var state = RecordingFeature.State()
+    var state = recordingState()
     state.micStatus = .granted
     state.captureGeneration = 1
     state.captureSessionID = sessionID
@@ -235,7 +291,7 @@ import Testing
 
   @Test func `cancellation does not infer permission changes`() async {
     let sessionID = UUID()
-    var state = RecordingFeature.State()
+    var state = recordingState()
     state.micStatus = .granted
     state.captureGeneration = 1
     state.captureSessionID = sessionID
@@ -256,7 +312,7 @@ import Testing
 
   @Test func `stop failure uses capture failure cleanup`() async {
     let sessionID = UUID()
-    var state = RecordingFeature.State()
+    var state = recordingState()
     state.captureGeneration = 1
     state.captureSessionID = sessionID
     state.phase = .recording
@@ -282,7 +338,7 @@ import Testing
   @Test func `cancel while stopping discards any late stop result`() async {
     let sessionID = UUID()
     let recording = CanonicalRecording(samples: [0.1])
-    var state = RecordingFeature.State()
+    var state = recordingState()
     state.captureGeneration = 1
     state.captureSessionID = sessionID
     state.phase = .stopping(nil)
@@ -303,7 +359,7 @@ import Testing
 
   @Test func `stale capture actions cannot mutate the current capture`() async {
     let sessionID = UUID()
-    var state = RecordingFeature.State()
+    var state = recordingState()
     state.captureGeneration = 2
     state.captureSessionID = sessionID
     state.phase = .recording
@@ -313,6 +369,31 @@ import Testing
     await store.send(.captureStopped(1, CanonicalRecording(samples: [1])))
     await store.send(.levelUpdated(1, AudioLevel(decibels: 0, normalizedPower: 1)))
   }
+}
+
+private func recordingState(
+  _ settings: MiniWhisperSettings = .defaults,
+) -> RecordingFeature.State {
+  RecordingFeature.State(settings: Shared(value: settings))
+}
+
+// MARK: - MicrophoneSelectionRecorder
+
+private final class MicrophoneSelectionRecorder: @unchecked Sendable {
+  // MARK: Internal
+
+  var value: MicrophoneSelection? {
+    lock.withLock { selection }
+  }
+
+  func record(_ selection: MicrophoneSelection) {
+    lock.withLock { self.selection = selection }
+  }
+
+  // MARK: Private
+
+  private let lock = NSLock()
+  private var selection: MicrophoneSelection?
 }
 
 // MARK: - RecordingCounter

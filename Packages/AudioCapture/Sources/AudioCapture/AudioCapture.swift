@@ -84,14 +84,22 @@ public struct AudioLevel: Equatable, Sendable {
   }
 
   init(samples: [Float]) {
-    guard !samples.isEmpty else {
-      self.decibels = -60
+    self.init(
+      sumSquares: samples.reduce(Float.zero) { $0 + $1 * $1 }, sampleCount: samples.count,
+    )
+  }
+
+  /// The settings meter accumulates as it walks the buffer rather than materialising a sample
+  /// array, but it must land on the same number dictation would, or the two would disagree about
+  /// loudness.
+  init(sumSquares: Float, sampleCount: Int) {
+    guard sampleCount > 0 else {
+      decibels = -60
       normalizedPower = 0
       return
     }
-
-    let meanSquare = samples.reduce(Float.zero) { $0 + $1 * $1 } / Float(samples.count)
-    let decibels = max(-60, 20 * log10(max(sqrt(meanSquare), Float.leastNonzeroMagnitude)))
+    let rootMeanSquare = sqrt(sumSquares / Float(sampleCount))
+    let decibels = max(-60, 20 * log10(max(rootMeanSquare, Float.leastNonzeroMagnitude)))
     self.decibels = decibels
     normalizedPower = min(max((decibels + 60) / 60, 0), 1)
   }
@@ -124,6 +132,7 @@ public struct AudioCaptureSession: Sendable {
   // MARK: Public
 
   public let id: UUID
+  /// What actually recorded, which is not always what was selected.
   public let inputDeviceName: String
   public let events: AsyncStream<AudioCaptureEvent>
 }
@@ -135,18 +144,24 @@ public actor AudioCapture {
 
   public static let shared = AudioCapture()
 
-  public static var defaultInputDeviceName: String? {
-    AVCaptureDevice.default(for: .audio)?.localizedName
+  /// The device a dictation started right now would record from — the selection when it is
+  /// present and reachable, the system default when it is not. Resolved through the same policy
+  /// as capture rather than a cheaper name read, so the menu can never name a different device
+  /// than the one that would record.
+  public static func inputDeviceName(for selection: MicrophoneSelection) -> String? {
+    try? CoreAudioInputDevices.resolve(selection).deviceName
   }
 
-  public func prepare() throws(AudioCaptureError) {
+  public func prepare(selection: MicrophoneSelection) throws(AudioCaptureError) {
     guard MicPermission.shared.status == .granted else {
       return
     }
-    _ = try preparedAudioEngine()
+    _ = try preparedAudioEngine(for: CoreAudioInputDevices.resolve(selection).binding)
   }
 
-  public func start() async throws(AudioCaptureError) -> AudioCaptureSession {
+  public func start(
+    selection: MicrophoneSelection,
+  ) async throws(AudioCaptureError) -> AudioCaptureSession {
     performanceLogger.notice("benchmark audio-capture-start-entered")
     guard session == nil, !isStarting else {
       throw .alreadyRecording
@@ -163,14 +178,16 @@ public actor AudioCapture {
       throw .startCancelled
     }
 
-    guard let inputDeviceName = Self.defaultInputDeviceName else {
-      throw .inputUnavailable
-    }
-    let capture = try EngineCaptureSession.start(resources: preparedAudioEngine())
+    let resolvedInput = try CoreAudioInputDevices.resolve(selection)
+    let capture = try EngineCaptureSession.start(
+      resources: preparedAudioEngine(for: resolvedInput.binding),
+    )
     performanceLogger.notice("benchmark audio-engine-start-returned")
     let id = UUID()
     session = (id, capture)
-    return AudioCaptureSession(id: id, inputDeviceName: inputDeviceName, events: capture.events)
+    return AudioCaptureSession(
+      id: id, inputDeviceName: resolvedInput.deviceName, events: capture.events,
+    )
   }
 
   public func stop(sessionID: UUID) throws(AudioCaptureError) -> CanonicalRecording {
@@ -198,11 +215,16 @@ public actor AudioCapture {
   private var session: (id: UUID, capture: EngineCaptureSession)?
   private var isStarting = false
 
-  private func preparedAudioEngine() throws(AudioCaptureError) -> PreparedAudioEngine {
-    if let preparedEngine, preparedEngine.matchesCurrentInputFormat {
+  private func preparedAudioEngine(
+    for binding: AudioInputBinding,
+  ) throws(AudioCaptureError) -> PreparedAudioEngine {
+    if let preparedEngine, preparedEngine.matches(binding: binding) {
       return preparedEngine
     }
-    let preparedEngine = try PreparedAudioEngine.prepare()
+    // A system-default change while Settings is closed intentionally rebuilds here. Keeping the
+    // prewarm current for external churn would require the global device monitor this ticket
+    // avoids.
+    let preparedEngine = try PreparedAudioEngine.prepare(binding: binding)
     self.preparedEngine = preparedEngine
     return preparedEngine
   }

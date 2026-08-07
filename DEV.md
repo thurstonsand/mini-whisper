@@ -40,7 +40,7 @@ Three build configurations produce three separate apps, so all three can be inst
 ## Architecture
 
 - `MiniWhisper/` — SwiftUI app target (thin shell, NSStatusItem menu, TCA features and clients)
-- `Packages/AudioCapture` — AVAudioEngine mic capture, canonical whole-utterance accumulation, level metering
+- `Packages/AudioCapture` — AVAudioEngine mic capture, input-device selection and observation, canonical whole-utterance accumulation, level metering
 - `Packages/ASREngine` — silence gate + transcription
 - `Packages/FieldContext` — focused-field capture payload, fallback taxonomy, and the transcript join rules
 - `Packages/TranscriptCleanup` — optional LLM cleanup client
@@ -52,4 +52,4 @@ Design principle: the app target is a thin shell; business logic lives in packag
 
 ## Accessibility contract
 
-`mise run test-ui` runs the curated XCUITest manifest for onboarding, the menu, About, the settings window, and every pill presentation. It commandeers the screen and focus, so it is deliberately excluded from `mise run test` and the lint gate: run it when you are specifically testing something interactive, or as an end-to-end pass when concluding a unit of work — not habitually. Debug UI-test launches select deterministic production surfaces with `MINIWHISPER_AGENT_SCENE`; the supported scene catalogue, state mutations, and seeded dependency overrides live in `AgentDriveabilityScene.swift`, `AgentDriveabilitySceneDriver.swift`, and `AgentDriveabilitySceneDependencies.swift`. This is an internal test seam, not a demo mode, and Release builds fail fast if the variable is set.
+`mise run test-ui` runs the curated XCUITest manifest for onboarding, the menu, About, the settings window, and every pill presentation. It commandeers the screen and focus, so it is deliberately excluded from `mise run test` and the lint gate: run it when you are specifically testing something interactive, or as an end-to-end pass when concluding a unit of work — not habitually. Debug UI-test launches select deterministic production surfaces with `MINIWHISPER_AGENT_SCENE`; the supported scene catalogue and state mutations live in `AgentDriveabilityScene.swift` and `AgentDriveabilitySceneDriver.swift`. This is an internal test seam, not a demo mode, and Release builds fail fast if the variable is set.

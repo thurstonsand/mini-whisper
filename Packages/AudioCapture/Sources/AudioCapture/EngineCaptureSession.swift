@@ -13,11 +13,13 @@ final class PreparedAudioEngine: @unchecked Sendable {
 
   private init(
     engine: AVAudioEngine, inputNode: AVAudioInputNode, inputFormat: AVAudioFormat,
-    converter: CanonicalAudioConverter, inputBuffers: AudioBufferPool, tapRouter: CaptureTapRouter,
+    binding: AudioInputBinding, converter: CanonicalAudioConverter,
+    inputBuffers: AudioBufferPool, tapRouter: CaptureTapRouter,
   ) {
     self.engine = engine
     self.inputNode = inputNode
     self.inputFormat = inputFormat
+    self.binding = binding
     self.converter = converter
     self.inputBuffers = inputBuffers
     self.tapRouter = tapRouter
@@ -30,22 +32,19 @@ final class PreparedAudioEngine: @unchecked Sendable {
   let engine: AVAudioEngine
   let inputNode: AVAudioInputNode
   let inputFormat: AVAudioFormat
+  let binding: AudioInputBinding
   let converter: CanonicalAudioConverter
   let inputBuffers: AudioBufferPool
   let tapRouter: CaptureTapRouter
 
-  var matchesCurrentInputFormat: Bool {
-    validityLock.withLock { isValid } && inputNode.outputFormat(forBus: 0) == inputFormat
-  }
-
-  static func prepare() throws(AudioCaptureError) -> PreparedAudioEngine {
+  static func prepare(
+    binding: AudioInputBinding,
+  ) throws(AudioCaptureError) -> PreparedAudioEngine {
     let engine = AVAudioEngine()
     performanceLogger.notice("benchmark audio-engine-created")
-    let inputNode = engine.inputNode
-    let inputFormat = inputNode.outputFormat(forBus: 0)
-    guard inputFormat.sampleRate > 0, inputFormat.channelCount > 0 else {
-      throw .inputUnavailable
-    }
+    let input = try AudioEngineInput.make(binding: binding, engine: engine)
+    let inputNode = input.node
+    let inputFormat = input.format
     let inputBufferSize = try CaptureBufferConfiguration.frameCount(
       sampleRate: inputFormat.sampleRate,
     )
@@ -59,9 +58,16 @@ final class PreparedAudioEngine: @unchecked Sendable {
     engine.prepare()
     performanceLogger.notice("benchmark audio-engine-prewarmed")
     return PreparedAudioEngine(
-      engine: engine, inputNode: inputNode, inputFormat: inputFormat, converter: converter,
-      inputBuffers: inputBuffers, tapRouter: tapRouter,
+      engine: engine, inputNode: inputNode, inputFormat: inputFormat, binding: binding,
+      converter: converter, inputBuffers: inputBuffers, tapRouter: tapRouter,
     )
+  }
+
+  /// Keyed on the binding as well as the format: reusing a prewarmed engine across two devices
+  /// that happen to share a format was a real bug.
+  func matches(binding: AudioInputBinding) -> Bool {
+    validityLock.withLock { isValid } && self.binding == binding &&
+      inputNode.outputFormat(forBus: 0) == inputFormat
   }
 
   func invalidate() {

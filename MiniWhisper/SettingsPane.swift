@@ -1,4 +1,5 @@
 import AppSettings
+import AudioCapture
 import ComposableArchitecture
 import HotkeyListener
 import SwiftUI
@@ -17,9 +18,189 @@ struct SettingsPane: View {
       } footer: {
         Text("Hold to dictate, or double-tap to keep recording hands free.")
       }
+
+      Section("Microphone") {
+        MicrophoneRow(store: store)
+      }
     }
     .formStyle(.grouped)
     .focusEffectDisabled()
+    .task { store.send(.settingsPane(.task)) }
+    .onDisappear { store.send(.settingsPane(.paneClosed)) }
+  }
+}
+
+// MARK: - MicrophoneRow
+
+private struct MicrophoneRow: View {
+  // MARK: Internal
+
+  let store: StoreOf<SettingsWindowFeature>
+
+  var body: some View {
+    LabeledContent("Input") {
+      VStack(alignment: .trailing, spacing: 4) {
+        HStack(spacing: 8) {
+          MicrophoneLevelMeter(level: store.settingsPane.inputLevel)
+          MicrophonePopUpButton(
+            options: options,
+            selection: store.settingsPane.microphone,
+            activation: store.settingsPane.microphoneActivation,
+            onSelection: { store.send(.settingsPane(.microphoneSelected($0))) },
+          )
+          .fixedSize()
+          .overlay {
+            RoundedRectangle(cornerRadius: 6)
+              .strokeBorder(Color(nsColor: .keyboardFocusIndicatorColor), lineWidth: 2)
+              .padding(-1)
+              .opacity(store.state.showsSettingsRing(.microphone, target: .microphone) ? 1 : 0)
+          }
+          .accessibilityIdentifier(AccessibilityID.settingsMicrophonePicker)
+          .accessibilityLabel("Microphone input")
+        }
+
+        if let unavailableName = store.settingsPane.unavailableMicrophoneName {
+          let notice = "\(unavailableName) not connected. Using system default: \(defaultDeviceName)."
+          Text(notice)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .accessibilityElement()
+            .accessibilityIdentifier(AccessibilityID.settingsMicrophoneUnavailable)
+            .accessibilityLabel(notice)
+        }
+      }
+    }
+    .modifier(SettingsFormRow(store: store, row: .microphone))
+    .accessibilityElement(children: .contain)
+    .accessibilityIdentifier(AccessibilityID.settingsMicrophoneRow)
+    .accessibilityLabel("Microphone")
+    .accessibilityPaintState(
+      AccessibilityID.settingsMicrophoneRowState, label: "Microphone highlight",
+      value: store.state.showsSettingsBar(.microphone) ? "Bar on" : "Bar off",
+    )
+  }
+
+  // MARK: Private
+
+  private var defaultDeviceName: String {
+    store.settingsPane.inputDevices.defaultDevice?.name ?? "Unavailable"
+  }
+
+  /// A selection the machine cannot currently offer still gets an entry, carrying the stored
+  /// value unchanged, so the popup can show what the user chose instead of quietly showing
+  /// something else.
+  private var options: [MicrophonePopUpButton.Option] {
+    var options = [
+      MicrophonePopUpButton.Option(
+        selection: .systemDefault, title: "System Default (\(defaultDeviceName))",
+      ),
+    ]
+    options.append(contentsOf: store.settingsPane.inputDevices.devices.map {
+      MicrophonePopUpButton.Option(
+        selection: .device(uid: $0.uid, lastKnownName: $0.name), title: $0.name,
+      )
+    })
+    if let unavailableName = store.settingsPane.unavailableMicrophoneName {
+      options.append(
+        MicrophonePopUpButton.Option(
+          selection: store.settingsPane.microphone,
+          title: "\(unavailableName) (Unavailable)",
+        ),
+      )
+    }
+    return options
+  }
+}
+
+// MARK: - MicrophoneLevelMeter
+
+private struct MicrophoneLevelMeter: View {
+  // MARK: Internal
+
+  let level: AudioLevel?
+
+  var body: some View {
+    AudioLevelBars(level: paintedLevel)
+      .opacity(level == nil ? 0.5 : 1)
+      .accessibilityHidden(true)
+      .accessibilityPaintState(
+        AccessibilityID.settingsMicrophoneLevel,
+        label: level == nil ? "Microphone input level, inactive" : "Microphone input level",
+        value: String(paintedLevel),
+      )
+  }
+
+  // MARK: Private
+
+  private var paintedLevel: Float {
+    level?.normalizedPower ?? 0
+  }
+}
+
+// MARK: - MicrophonePopUpButton
+
+private struct MicrophonePopUpButton: NSViewRepresentable {
+  struct Option: Equatable {
+    let selection: MicrophoneSelection
+    let title: String
+  }
+
+  @MainActor final class Coordinator: NSObject {
+    // MARK: Lifecycle
+
+    init(activation: Int, onSelection: @escaping (MicrophoneSelection) -> Void) {
+      self.activation = activation
+      self.onSelection = onSelection
+    }
+
+    // MARK: Internal
+
+    var options: [Option] = []
+    var activation: Int
+    var onSelection: (MicrophoneSelection) -> Void
+
+    @objc func selectionChanged(_ sender: NSPopUpButton) {
+      guard options.indices.contains(sender.indexOfSelectedItem) else {
+        return
+      }
+      onSelection(options[sender.indexOfSelectedItem].selection)
+    }
+  }
+
+  let options: [Option]
+  let selection: MicrophoneSelection
+  let activation: Int
+  let onSelection: (MicrophoneSelection) -> Void
+
+  func makeCoordinator() -> Coordinator {
+    Coordinator(activation: activation, onSelection: onSelection)
+  }
+
+  func makeNSView(context: Context) -> NSPopUpButton {
+    let button = NSPopUpButton(frame: .zero, pullsDown: false)
+    button.target = context.coordinator
+    button.action = #selector(Coordinator.selectionChanged(_:))
+    return button
+  }
+
+  func updateNSView(_ button: NSPopUpButton, context: Context) {
+    context.coordinator.options = options
+    context.coordinator.onSelection = onSelection
+    if button.itemTitles != options.map(\.title) {
+      button.removeAllItems()
+      for option in options {
+        button.addItem(withTitle: option.title)
+      }
+    }
+    if let selectedIndex = options.firstIndex(where: { $0.selection == selection }) {
+      button.selectItem(at: selectedIndex)
+    }
+    // Only a click opens a pop-up button, so Return on this row arrives as a changed count.
+    guard activation != context.coordinator.activation else {
+      return
+    }
+    context.coordinator.activation = activation
+    DispatchQueue.main.async { button.performClick(nil) }
   }
 }
 

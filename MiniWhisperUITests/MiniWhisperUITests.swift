@@ -272,7 +272,73 @@ final class MiniWhisperUITests: XCTestCase {
           .menuButton, "miniwhisper.settings.shortcut.menu", "Shortcut actions", isEnabled: true,
           isActionable: true,
         ),
+        contract(.group, "miniwhisper.settings.microphone", "Microphone"),
+        contract(
+          .staticText, "miniwhisper.settings.microphone.state", "Microphone highlight",
+          "Bar off",
+        ),
+        contract(
+          .staticText, "miniwhisper.settings.microphone.level", "Microphone input level", "0.42",
+        ),
+        contract(
+          .popUpButton, "miniwhisper.settings.microphone.picker", "Microphone input",
+          "System Default (MacBook Pro Microphone)", isEnabled: true, isActionable: true,
+        ),
       ],
+    )
+  }
+
+  @MainActor func testSettingsMicrophoneRowJoinsTheKeyboardGrammar() {
+    let app = launch("settings")
+    defer { terminate(app) }
+
+    let picker = app.popUpButtons["miniwhisper.settings.microphone.picker"]
+    let rowState = app.staticTexts["miniwhisper.settings.microphone.state"]
+    XCTAssertTrue(picker.waitForExistence(timeout: 5))
+
+    app.typeText("lj")
+    assertValue("Bar on", of: rowState)
+    assertValue("Bar off", of: app.staticTexts["miniwhisper.settings.shortcut.activate.state"])
+
+    app.typeKey(.return, modifierFlags: [])
+    XCTAssertTrue(
+      app.menuItems["System Default (MacBook Pro Microphone)"].waitForExistence(timeout: 2),
+    )
+    app.typeKey(.escape, modifierFlags: [])
+  }
+
+  @MainActor func testSettingsMicrophoneRowAnswersThePointer() {
+    let app = launch("settings")
+    defer { terminate(app) }
+
+    let picker = app.popUpButtons["miniwhisper.settings.microphone.picker"]
+    let rowState = app.staticTexts["miniwhisper.settings.microphone.state"]
+    XCTAssertTrue(picker.waitForExistence(timeout: 5))
+
+    hoverAfterEnteringWindow(
+      app.descendants(matching: .any)["miniwhisper.settings.microphone"], in: app,
+    )
+    assertValue("Bar on", of: rowState)
+
+    picker.click()
+    let studio = app.menuItems["Studio Microphone"]
+    XCTAssertTrue(studio.waitForExistence(timeout: 2))
+    studio.click()
+    assertValue("Studio Microphone", of: picker)
+  }
+
+  @MainActor func testSettingsUnavailableMicrophoneShowsTruthfulFallback() {
+    let app = launch("settings-microphone-unavailable")
+    defer { terminate(app) }
+
+    let picker = app.popUpButtons["miniwhisper.settings.microphone.picker"]
+    let notice = app.descendants(matching: .any)["miniwhisper.settings.microphone.unavailable"]
+    XCTAssertTrue(picker.waitForExistence(timeout: 5))
+    XCTAssertTrue(picker.isEnabled)
+    XCTAssertEqual(accessibilityValue(picker), "Studio Microphone (Unavailable)")
+    XCTAssertEqual(
+      notice.label,
+      "Studio Microphone not connected. Using system default: MacBook Pro Microphone.",
     )
   }
 
@@ -328,11 +394,13 @@ final class MiniWhisperUITests: XCTestCase {
     let row = app.groups["miniwhisper.settings.shortcut.activate"]
     let rowState = app.staticTexts["miniwhisper.settings.shortcut.activate.state"]
     let binding = app.buttons["miniwhisper.settings.shortcut.binding.0"]
-    row.hover()
+    hoverAfterEnteringWindow(row, in: app)
     assertValue("Bar on", of: rowState)
     assertValue("Ring off", of: binding)
 
-    app.typeText("j")
+    // `k` at the top of the list moves nowhere, so what this observes is only the handover: the
+    // keyboard takes back a cursor that was already standing where the pointer was.
+    app.typeText("k")
     assertValue("Bar on", of: rowState)
     assertValue("Ring on", of: binding)
   }
@@ -446,8 +514,13 @@ final class MiniWhisperUITests: XCTestCase {
         .waitForExistence(timeout: 2),
     )
 
+    // The copy toast lands before the toolbar settles, so hittability is waited on rather than
+    // sampled the instant the click returns.
     let storage = app.buttons["miniwhisper.history.storage"]
-    XCTAssertTrue(storage.isHittable)
+    let hittable = XCTNSPredicateExpectation(
+      predicate: NSPredicate(format: "isHittable == true"), object: storage,
+    )
+    XCTAssertEqual(XCTWaiter.wait(for: [hittable], timeout: 3), .completed)
     storage.click()
     XCTAssertTrue(
       app.descendants(matching: .any)["miniwhisper.history.storage.popover"]

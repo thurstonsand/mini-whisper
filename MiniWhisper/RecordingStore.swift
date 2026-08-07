@@ -1,3 +1,4 @@
+import AppSettings
 import AudioCapture
 import ComposableArchitecture
 import Foundation
@@ -14,6 +15,14 @@ private let performanceLogger = Logger(
   // MARK: Internal
 
   @ObservableState struct State: Equatable {
+    // MARK: Lifecycle
+
+    init(settings: Shared<MiniWhisperSettings>) {
+      _settings = settings
+    }
+
+    // MARK: Internal
+
     enum Phase: Equatable {
       case idle
       case starting(PendingCompletion?)
@@ -25,6 +34,7 @@ private let performanceLogger = Logger(
     enum PendingCompletion: Equatable { case stop, cancel }
     enum PendingRestart: Equatable { case restart }
 
+    @Shared var settings: MiniWhisperSettings
     var micStatus: MicPermissionStatus = .undetermined
     var phase = Phase.idle
     var latestLevel: Float = 0
@@ -35,6 +45,7 @@ private let performanceLogger = Logger(
 
   enum Action: Equatable {
     case task
+    case microphoneChanged(MicrophoneSelection)
     case micStatusUpdated(MicPermissionStatus)
     case capturePreparationFailed(AudioCaptureError)
     case startRecording
@@ -66,11 +77,9 @@ private let performanceLogger = Logger(
     Reduce { state, action in
       switch action {
       case .task:
-        return .run { send in
-          do { try await audioCapture.prepare() } catch {
-            await send(.capturePreparationFailed(captureError(from: error)))
-          }
-        }
+        return prepareCapture(selection: state.settings.microphone)
+      case let .microphoneChanged(selection):
+        return prepareCapture(selection: selection)
       case let .micStatusUpdated(status):
         state.micStatus = status
         return .none
@@ -89,7 +98,9 @@ private let performanceLogger = Logger(
           state.phase = .starting(nil)
           state.latestLevel = 0
           state.captureError = nil
-          return startCapture(generation: state.captureGeneration)
+          return startCapture(
+            generation: state.captureGeneration, selection: state.settings.microphone,
+          )
         case .starting(.stop):
           state.phase = .starting(nil)
           return .none
@@ -106,8 +117,11 @@ private let performanceLogger = Logger(
         case .starting(.cancel):
           return .none
         case .starting:
-          state.phase = .starting(.stop)
-          return .none
+          guard let sessionID = state.captureSessionID else {
+            state.phase = .starting(.stop)
+            return .none
+          }
+          return completeStarting(&state, .stop, sessionID: sessionID)
         case .recording:
           guard let sessionID = state.captureSessionID else {
             return missingSessionFailure(generation: state.captureGeneration)
@@ -122,15 +136,14 @@ private let performanceLogger = Logger(
       case .cancelRecording:
         switch state.phase {
         case .starting:
-          if let sessionID = state.captureSessionID {
-            state.phase = .cancelling
-            return .concatenate(
-              .send(.delegate(.discarded)),
-              cancelCapture(generation: state.captureGeneration, sessionID: sessionID),
-            )
+          guard let sessionID = state.captureSessionID else {
+            state.phase = .starting(.cancel)
+            return .send(.delegate(.discarded))
           }
-          state.phase = .starting(.cancel)
-          return .send(.delegate(.discarded))
+          return .concatenate(
+            .send(.delegate(.discarded)),
+            completeStarting(&state, .cancel, sessionID: sessionID),
+          )
         case .recording,
              .stopping:
           guard let sessionID = state.captureSessionID else {
@@ -156,32 +169,22 @@ private let performanceLogger = Logger(
         }
 
         state.captureSessionID = sessionID
-        guard pendingCompletion == .cancel else {
+        guard let pendingCompletion else {
           return .none
         }
-        state.phase = .cancelling
-        return cancelCapture(generation: generation, sessionID: sessionID)
+        return completeStarting(&state, pendingCompletion, sessionID: sessionID)
       case let .captureBecameLive(generation, sessionID, inputDeviceName):
+        // A pending completion is always spent the moment the session ID lands, so a capture that
+        // reaches this point is one nobody has asked to end.
         guard generation == state.captureGeneration, state.captureSessionID == sessionID,
-              case let .starting(pendingCompletion) = state.phase
+              state.phase == .starting(nil)
         else {
           return .none
         }
 
         state.phase = .recording
         captureLogger.notice("Audio capture became live")
-        switch pendingCompletion {
-        case .stop:
-          return .concatenate(
-            .send(.delegate(.recordingStarted(inputDeviceName: inputDeviceName))),
-            .send(.stopAndRetain),
-          )
-        case .cancel:
-          state.phase = .cancelling
-          return cancelCapture(generation: generation, sessionID: sessionID)
-        case nil:
-          return .send(.delegate(.recordingStarted(inputDeviceName: inputDeviceName)))
-        }
+        return .send(.delegate(.recordingStarted(inputDeviceName: inputDeviceName)))
       case let .levelUpdated(generation, level):
         guard generation == state.captureGeneration else {
           return .none
@@ -243,7 +246,9 @@ private let performanceLogger = Logger(
           state.captureGeneration += 1
           state.phase = .starting(nil)
           captureLogger.notice("Restarting audio capture for latch")
-          return startCapture(generation: state.captureGeneration)
+          return startCapture(
+            generation: state.captureGeneration, selection: state.settings.microphone,
+          )
         }
 
         state.phase = .idle
@@ -268,14 +273,43 @@ private let performanceLogger = Logger(
 
   // MARK: Private
 
-  private enum CancelID { case captureEvents, stop }
+  private enum CancelID { case captureEvents, preparation, stop }
 
-  private func startCapture(generation: Int) -> Effect<Action> {
+  /// A completion asked for during `.starting` runs at whichever moment the session ID is known:
+  /// here if it has already arrived, otherwise when `captureSessionStarted` delivers it. Waiting
+  /// for the capture to go live instead would strand a device that never produces a buffer.
+  private func completeStarting(
+    _ state: inout State, _ completion: State.PendingCompletion, sessionID: UUID,
+  ) -> Effect<Action> {
+    switch completion {
+    case .stop:
+      state.phase = .stopping(nil)
+      return stopCapture(generation: state.captureGeneration, sessionID: sessionID)
+    case .cancel:
+      state.phase = .cancelling
+      return cancelCapture(generation: state.captureGeneration, sessionID: sessionID)
+    }
+  }
+
+  /// Cancellation drops the reply, not the actor call already in flight, which is all this needs:
+  /// prewarming is a hint, and rapid switching just leaves the cache on the last selection asked
+  /// for. What it does prevent is a superseded failure reporting against the current device.
+  private func prepareCapture(selection: MicrophoneSelection) -> Effect<Action> {
+    .run { send in
+      do { try await audioCapture.prepare(selection) } catch {
+        await send(.capturePreparationFailed(captureError(from: error)))
+      }
+    }.cancellable(id: CancelID.preparation, cancelInFlight: true)
+  }
+
+  private func startCapture(
+    generation: Int, selection: MicrophoneSelection,
+  ) -> Effect<Action> {
     let cancellation = CaptureCancellation()
     return .run { send in
       await withTaskCancellationHandler {
         do {
-          let session = try await audioCapture.start()
+          let session = try await audioCapture.start(selection)
           if cancellation.setSessionID(session.id) {
             await audioCapture.cancel(session.id)
             return

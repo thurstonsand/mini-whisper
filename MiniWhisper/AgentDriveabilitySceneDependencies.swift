@@ -30,6 +30,26 @@ import Foundation
       )
       dependencies.modelDownloadConsent.markConsented = {}
       dependencies.asrEngine.installAndPrepare = { AsyncStream { $0.finish() } }
+      let inputDevices = AudioInputDeviceSnapshot(
+        devices: [
+          AudioInputDevice(uid: "built-in-microphone", name: "MacBook Pro Microphone"),
+          AudioInputDevice(uid: "studio-microphone", name: "Studio Microphone"),
+        ],
+        defaultDevice: AudioInputDevice(
+          uid: "built-in-microphone", name: "MacBook Pro Microphone",
+        ),
+      )
+      dependencies.audioInputDevices.snapshots = {
+        AsyncStream { continuation in
+          continuation.yield(inputDevices)
+          continuation.finish()
+        }
+      }
+      dependencies.audioInputLevels.levels = { _ in
+        AsyncStream { continuation in
+          continuation.yield(AudioLevel(decibels: -34.8, normalizedPower: 0.42))
+        }
+      }
       // No scene may leave the app it is driving. Reporting the refusal is also the only way a
       // test can see that "Open Settings" was the thing that ran.
       dependencies.workspace.open = { _ in throw AgentSceneRefusal.systemSettings }

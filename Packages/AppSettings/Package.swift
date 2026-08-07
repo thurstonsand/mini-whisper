@@ -8,9 +8,12 @@ let package = Package(
   dependencies: [
     .package(path: "../HotkeyListener"),
     .package(path: "../History"),
+    .package(path: "../AudioCapture"),
   ],
   targets: [
-    .target(name: "AppSettings", dependencies: ["HotkeyListener", "History"]),
-    .testTarget(name: "AppSettingsTests", dependencies: ["AppSettings", "HotkeyListener"]),
+    .target(name: "AppSettings", dependencies: ["HotkeyListener", "History", "AudioCapture"]),
+    .testTarget(
+      name: "AppSettingsTests", dependencies: ["AppSettings", "HotkeyListener", "AudioCapture"],
+    ),
   ],
 )

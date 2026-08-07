@@ -58,13 +58,14 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
     ) {
       _history = history
       _settings = settings
+      recording = RecordingFeature.State(settings: settings)
       onboarding = OnboardingFeature.State(settings: settings)
       settingsWindow = SettingsWindowFeature.State(history: history, settings: settings)
     }
 
     // MARK: Internal
 
-    var recording = RecordingFeature.State()
+    var recording: RecordingFeature.State
     var pill = PillFeature.State()
     var onboarding: OnboardingFeature.State
     var settingsWindow: SettingsWindowFeature.State
@@ -176,6 +177,8 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
       switch action {
       case .settingsWindow(.history(.delegate(.retentionChanged))):
         return .send(.historyMaintenanceRequested)
+      case let .settingsWindow(.settingsPane(.delegate(.microphoneChanged(selection)))):
+        return .send(.recording(.microphoneChanged(selection)))
       case .settingsWindow(.settingsPane(.bindings(.delegate(.recordingStarted)))):
         return beginHotkeyRecording(
           &state, recorderReady: .settingsWindow(.settingsPane(.bindings(.recorderReady))),
@@ -323,7 +326,8 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
             .send(
               .pill(
                 .recordingStarting(
-                  inputDeviceName: audioCapture.currentInputDeviceName() ?? "Microphone",
+                  inputDeviceName: audioCapture
+                    .currentInputDeviceName(state.settings.microphone) ?? "Microphone",
                 ),
               ),
             ),
@@ -376,7 +380,7 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
         gestureLogger.error("Hotkey event stream ended; the tap is no longer listening")
         return diagnoseTapLoss(&state)
       case .menuWillOpen:
-        state.inputDeviceName = audioCapture.currentInputDeviceName()
+        state.inputDeviceName = audioCapture.currentInputDeviceName(state.settings.microphone)
         state.launchAtLoginRegistered = launchAtLogin.isRegistered()
         return reconcileAccessibility(accessibilityPermission.hasPermission(), &state)
       case .repairDegradedState:
