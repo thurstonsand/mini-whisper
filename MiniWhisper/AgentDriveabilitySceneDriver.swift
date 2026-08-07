@@ -57,6 +57,8 @@ import Foundation
           return
         }
         store.send(.onboarding(.engineReadinessUpdated(.downloading(fraction))))
+      case "model-ready":
+        store.send(.onboarding(.engineReadinessUpdated(.ready)))
       case "sounds":
         guard store.settings.soundsEnabled != (fields[2] == "true") else {
           return

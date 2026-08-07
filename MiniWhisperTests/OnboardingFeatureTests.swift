@@ -1,7 +1,9 @@
+import AppSettings
 import ASREngine
 import AudioCapture
 import ComposableArchitecture
 import Foundation
+import HotkeyListener
 @testable import MiniWhisper
 import Testing
 
@@ -15,19 +17,20 @@ struct OnboardingStepDerivationTests {
       ),
       engineReadiness: .modelMissing, hasModelDownloadConsent: false, isCompleted: false,
     )
-    #expect(OnboardingStep.derive(from: snapshot) == .permissions)
+    #expect(OnboardingStep.derive(from: snapshot, hasCompletedShortcut: false) == .permissions)
 
     snapshot.permissions.microphoneStatus = .granted
-    #expect(OnboardingStep.derive(from: snapshot) == .permissions)
+    #expect(OnboardingStep.derive(from: snapshot, hasCompletedShortcut: false) == .permissions)
 
     snapshot.permissions.hasAccessibilityPermission = true
-    #expect(OnboardingStep.derive(from: snapshot) == .model)
+    #expect(OnboardingStep.derive(from: snapshot, hasCompletedShortcut: false) == .shortcut)
+    #expect(OnboardingStep.derive(from: snapshot, hasCompletedShortcut: true) == .model)
 
     snapshot.engineReadiness = .ready
-    #expect(OnboardingStep.derive(from: snapshot) == .tryIt)
+    #expect(OnboardingStep.derive(from: snapshot, hasCompletedShortcut: true) == .tryIt)
 
     snapshot.isCompleted = true
-    #expect(OnboardingStep.derive(from: snapshot) == .ready)
+    #expect(OnboardingStep.derive(from: snapshot, hasCompletedShortcut: true) == .ready)
   }
 
   @Test func `only the first ungranted permission owns the action`() {
@@ -53,7 +56,7 @@ struct OnboardingStepDerivationTests {
       engineReadiness: .ready, hasModelDownloadConsent: true, isCompleted: true,
     )
 
-    #expect(OnboardingStep.derive(from: snapshot) == .permissions)
+    #expect(OnboardingStep.derive(from: snapshot, hasCompletedShortcut: true) == .permissions)
     #expect(!snapshot.permissions.isGranted(.microphone))
   }
 }
@@ -181,7 +184,7 @@ struct OnboardingStepDerivationTests {
       $0.snapshot.permissions.hasAccessibilityPermission = true
     }
     await store.receive(.delegate(.permissionsUpdated(statuses.value)))
-    #expect(store.state.step == .model)
+    #expect(store.state.step == .shortcut)
   }
 
   @Test func `an accessibility prompt suspends checks and cannot be requested twice`() async {
@@ -309,6 +312,7 @@ struct OnboardingStepDerivationTests {
     var state = OnboardingFeature.State()
     state.isPresented = true
     state.snapshot = snapshot
+    state.hasCompletedShortcut = true
     let store = TestStore(initialState: state) {
       OnboardingFeature()
     } withDependencies: {
@@ -356,11 +360,96 @@ struct OnboardingStepDerivationTests {
     await store.receive(.delegate(.permissionsUpdated(grantedPermissionStatuses)))
   }
 
+  @Test func `shortcut continue advances to the model step`() async {
+    var state = OnboardingFeature.State()
+    state.isPresented = true
+    state.snapshot = modelSnapshot(readiness: .downloading(0.42))
+    let store = TestStore(initialState: state) { OnboardingFeature() }
+
+    #expect(store.state.step == .shortcut)
+    await store.send(.shortcutContinueTapped) {
+      $0.hasCompletedShortcut = true
+    }
+    #expect(store.state.step == .model)
+    #expect(store.state.visibleStep == .model)
+  }
+
+  @Test func `shortcut continue skips a model that became ready in the background`() async {
+    var state = shortcutState()
+    state.snapshot.engineReadiness = .ready
+    let store = TestStore(initialState: state) { OnboardingFeature() }
+
+    #expect(store.state.visibleStep == .shortcut)
+    await store.send(.shortcutContinueTapped) {
+      $0.hasCompletedShortcut = true
+    }
+    #expect(store.state.step == .tryIt)
+    #expect(store.state.visibleStep == .tryIt)
+  }
+
+  @Test func `the step is frozen while A recording is in flight`() async {
+    var state = shortcutState()
+    state.shortcutBindings.target = .existing(0)
+    let store = TestStore(initialState: state) { OnboardingFeature() }
+
+    await store.send(.shortcutContinueTapped)
+    #expect(!store.state.hasCompletedShortcut)
+    #expect(store.state.visibleStep == .shortcut)
+
+    await store.send(.navigate(.permissions))
+    #expect(store.state.visibleStep == .shortcut)
+  }
+
+  @Test func `the hero keycap records into the primary binding and keeps the rest`() async throws {
+    let extra = try Hotkey(keyCode: 15, modifiers: [.rightControl])
+    let replacement = try Hotkey(keyCode: 0, modifiers: [.leftCommand])
+    let store = TestStore(initialState: shortcutState(hotkeys: [.rightOption, extra])) {
+      OnboardingFeature()
+    }
+
+    await store.send(.shortcutBindings(.primaryBindingTapped)) {
+      $0.shortcutBindings.target = .existing(0)
+    }
+    await store.receive(.shortcutBindings(.delegate(.recordingStarted)))
+    await store.send(.shortcutBindings(.recorderEvent(.committed(replacement)))) {
+      $0.shortcutBindings.$settings.withLock { $0.hotkeys = [replacement, extra] }
+      $0.shortcutBindings.target = nil
+    }
+    await store.receive(.shortcutBindings(.delegate(.recordingStopped)))
+    #expect(store.state.hotkeys == [replacement, extra])
+  }
+
+  @Test func `escape keeps whatever was last committed`() async throws {
+    let replacement = try Hotkey(keyCode: 0, modifiers: [.leftCommand])
+    let store = TestStore(initialState: shortcutState()) { OnboardingFeature() }
+
+    await store.send(.shortcutBindings(.primaryBindingTapped)) {
+      $0.shortcutBindings.target = .existing(0)
+    }
+    await store.receive(.shortcutBindings(.delegate(.recordingStarted)))
+    await store.send(.shortcutBindings(.recorderEvent(.committed(replacement)))) {
+      $0.shortcutBindings.$settings.withLock { $0.hotkeys = [replacement] }
+      $0.shortcutBindings.target = nil
+    }
+    await store.receive(.shortcutBindings(.delegate(.recordingStopped)))
+
+    await store.send(.shortcutBindings(.primaryBindingTapped)) {
+      $0.shortcutBindings.target = .existing(0)
+    }
+    await store.receive(.shortcutBindings(.delegate(.recordingStarted)))
+    await store.send(.shortcutBindings(.recorderEvent(.cancelled))) {
+      $0.shortcutBindings.target = nil
+    }
+    await store.receive(.shortcutBindings(.delegate(.recordingStopped)))
+    #expect(store.state.hotkeys == [replacement])
+  }
+
   @Test func `model setup reports download compile prewarm and ready`() async {
     let readiness = [EngineReadiness.downloading(0.4), .compiling, .prewarming, .ready]
     var state = OnboardingFeature.State()
     state.isPresented = true
     state.snapshot = modelSnapshot(readiness: .modelMissing)
+    state.hasCompletedShortcut = true
     let store = TestStore(initialState: state) {
       OnboardingFeature()
     } withDependencies: {
@@ -389,6 +478,7 @@ struct OnboardingStepDerivationTests {
     var state = OnboardingFeature.State()
     state.isPresented = true
     state.snapshot = modelSnapshot(readiness: .failed("network unavailable"))
+    state.hasCompletedShortcut = true
     state.failureMessage = "network unavailable"
     let store = TestStore(initialState: state) {
       OnboardingFeature()
@@ -418,6 +508,7 @@ struct OnboardingStepDerivationTests {
     var state = OnboardingFeature.State()
     state.isPresented = true
     state.snapshot = modelSnapshot(readiness: .ready)
+    state.hasCompletedShortcut = true
     state.selectedStep = .tryIt
     let store = TestStore(initialState: state) {
       OnboardingFeature()
@@ -447,6 +538,7 @@ struct OnboardingStepDerivationTests {
     var state = OnboardingFeature.State()
     state.isPresented = true
     state.snapshot = modelSnapshot(readiness: .ready)
+    state.hasCompletedShortcut = true
     let store = TestStore(initialState: state) {
       OnboardingFeature()
     } withDependencies: {
@@ -471,10 +563,12 @@ struct OnboardingStepDerivationTests {
     permissions.isPresented = true
     var model = permissions
     model.snapshot = modelSnapshot(readiness: .modelMissing)
+    model.hasCompletedShortcut = true
     var revisitingTryIt = model
     revisitingTryIt.selectedStep = .tryIt
     var ready = permissions
     ready.snapshot = modelSnapshot(readiness: .ready)
+    ready.hasCompletedShortcut = true
     ready.snapshot.isCompleted = true
 
     for state in [permissions, model, revisitingTryIt, ready] {
@@ -495,6 +589,15 @@ struct OnboardingStepDerivationTests {
   private func presentedPermissionsState() -> OnboardingFeature.State {
     var state = OnboardingFeature.State()
     state.isPresented = true
+    return state
+  }
+
+  private func shortcutState(hotkeys: [Hotkey] = [.rightOption]) -> OnboardingFeature.State {
+    var settings = MiniWhisperSettings.defaults
+    settings.hotkeys = hotkeys
+    var state = OnboardingFeature.State(settings: Shared(value: settings))
+    state.isPresented = true
+    state.snapshot = modelSnapshot(readiness: .downloading(0.42))
     return state
   }
 

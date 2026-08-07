@@ -58,111 +58,17 @@ import Testing
     state.cursor.target = 1
     let store = TestStore(initialState: state) { SettingsPaneFeature() }
 
-    await store.send(.pressRequested) { $0.recordingTarget = .existing(1) }
-    await store.receive(.delegate(.recordingStarted))
+    await store.send(.pressRequested)
+    await store.receive(.bindings(.bindingTapped(1))) { $0.bindings.target = .existing(1) }
+    await store.receive(.bindings(.delegate(.recordingStarted)))
   }
 
   @Test func `press sets an empty binding`() async {
     let store = TestStore(initialState: makeState(hotkeys: [])) { SettingsPaneFeature() }
 
-    await store.send(.pressRequested) { $0.recordingTarget = .new }
-    await store.receive(.delegate(.recordingStarted))
-  }
-
-  @Test func `recording replaces a binding on commit`() async throws {
-    let (events, continuation) = AsyncStream.makeStream(of: HotkeyRecorderEvent.self)
-    let replacement = try Hotkey(keyCode: 15, modifiers: [.rightControl])
-    let store = TestStore(initialState: makeState()) { SettingsPaneFeature() } withDependencies: {
-      $0.hotkeyListener.record = { events }
-    }
-
-    await store.send(.bindingTapped(0)) { $0.recordingTarget = .existing(0) }
-    await store.receive(.delegate(.recordingStarted))
-    await store.send(.recorderReady)
-    continuation.yield(
-      .chordChanged(HotkeyRecordingChord(keyCodes: [15], modifiers: [.rightControl])),
-    )
-    await store.receive(
-      .recorderEvent(
-        .chordChanged(HotkeyRecordingChord(keyCodes: [15], modifiers: [.rightControl])),
-      ),
-    ) {
-      $0.liveChord = HotkeyRecordingChord(keyCodes: [15], modifiers: [.rightControl])
-    }
-    continuation.yield(.committed(replacement))
-    await store.receive(.recorderEvent(.committed(replacement))) {
-      $0.$settings.withLock { $0.hotkeys = [replacement] }
-      $0.recordingTarget = nil
-      $0.liveChord = nil
-    }
-    await store.receive(.delegate(.recordingStopped))
-    continuation.finish()
-    await store.receive(.recorderFinished)
-  }
-
-  @Test func `add and remove mutate the ordered bindings`() async throws {
-    let added = try Hotkey(keyCode: 0, modifiers: [.leftCommand])
-    let state = makeState()
-    let store = TestStore(initialState: state) { SettingsPaneFeature() }
-
-    await store.send(.addTapped) { $0.recordingTarget = .new }
-    await store.receive(.delegate(.recordingStarted))
-    await store.send(.recorderEvent(.committed(added))) {
-      $0.$settings.withLock { $0.hotkeys.append(added) }
-      $0.recordingTarget = nil
-    }
-    await store.receive(.delegate(.recordingStopped))
-    await store.send(.removeTapped(0)) {
-      $0.$settings.withLock { _ = $0.hotkeys.remove(at: 0) }
-    }
-    await store.receive(.delegate(.bindingsChanged))
-    #expect(store.state.settings.hotkeys == [added])
-  }
-
-  @Test func `adding an existing binding commits as A no-op`() async {
-    let store = TestStore(initialState: makeState()) { SettingsPaneFeature() }
-
-    await store.send(.addTapped) { $0.recordingTarget = .new }
-    await store.receive(.delegate(.recordingStarted))
-    await store.send(.recorderEvent(.committed(.rightOption))) {
-      $0.recordingTarget = nil
-    }
-    await store.receive(.delegate(.recordingStopped))
-    #expect(store.state.settings.hotkeys == [.rightOption])
-  }
-
-  @Test func `a missing replacement target drops the commit safely`() async throws {
-    var state = makeState()
-    state.recordingTarget = .existing(7)
-    let replacement = try Hotkey(keyCode: 15, modifiers: [.rightControl])
-    let store = TestStore(initialState: state) { SettingsPaneFeature() }
-
-    await store.send(.recorderEvent(.committed(replacement))) {
-      $0.recordingTarget = nil
-    }
-    await store.receive(.delegate(.recordingStopped))
-    #expect(store.state.settings.hotkeys == [.rightOption])
-  }
-
-  @Test func `escape cancellation preserves bindings`() async {
-    let store = TestStore(initialState: makeState()) { SettingsPaneFeature() }
-
-    await store.send(.bindingTapped(0)) { $0.recordingTarget = .existing(0) }
-    await store.receive(.delegate(.recordingStarted))
-    await store.send(.cancelRecording) { $0.recordingTarget = nil }
-    await store.receive(.delegate(.recordingStopped))
-    #expect(store.state.settings.hotkeys == [.rightOption])
-  }
-
-  @Test func `invalid chords show why and remain recording`() async {
-    let store = TestStore(initialState: makeState()) { SettingsPaneFeature() }
-
-    await store.send(.addTapped) { $0.recordingTarget = .new }
-    await store.receive(.delegate(.recordingStarted))
-    await store.send(.recorderEvent(.validationFailed(.multipleKeys))) {
-      $0.validationMessage = "Use at most one non-modifier key."
-    }
-    #expect(store.state.recordingTarget == .new)
+    await store.send(.pressRequested)
+    await store.receive(.bindings(.addTapped)) { $0.bindings.target = .new }
+    await store.receive(.bindings(.delegate(.recordingStarted)))
   }
 
   @Test func `leaving A row hands the bar back to the focused cursor`() async {
@@ -192,25 +98,24 @@ import Testing
     state.cursor.target = 1
     let store = TestStore(initialState: state) { SettingsPaneFeature() }
 
-    await store.send(.removeTapped(1)) {
-      $0.$settings.withLock { $0.hotkeys = [.rightOption] }
-      $0.cursor.target = 0
+    await store.send(.bindings(.removeTapped(1))) {
+      $0.bindings.$settings.withLock { $0.hotkeys = [.rightOption] }
     }
-    await store.receive(.delegate(.bindingsChanged))
+    await store.receive(.bindings(.delegate(.bindingsChanged))) { $0.cursor.target = 0 }
     #expect(store.state.cursorTarget == .binding(0))
 
-    await store.send(.removeTapped(0)) {
-      $0.$settings.withLock { $0.hotkeys = [] }
+    await store.send(.bindings(.removeTapped(0))) {
+      $0.bindings.$settings.withLock { $0.hotkeys = [] }
     }
-    await store.receive(.delegate(.bindingsChanged))
+    await store.receive(.bindings(.delegate(.bindingsChanged)))
     #expect(store.state.cursorTarget == .set)
   }
 
   @Test func `A new binding is recorded in its own chip rather than the set button`() async {
     let store = TestStore(initialState: makeState()) { SettingsPaneFeature() }
 
-    await store.send(.addTapped) { $0.recordingTarget = .new }
-    await store.receive(.delegate(.recordingStarted))
+    await store.send(.bindings(.addTapped)) { $0.bindings.target = .new }
+    await store.receive(.bindings(.delegate(.recordingStarted)))
     #expect(store.state.targets == [.binding(0), .recording])
   }
 

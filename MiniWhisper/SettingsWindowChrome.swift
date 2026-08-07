@@ -89,60 +89,6 @@ private struct WindowPointerMovement: ViewModifier {
   @State private var pointerLocation: CGPoint?
 }
 
-// MARK: - WindowKeyFocus
-
-/// First focus has to wait for the window to actually become key; applying it any earlier leaves
-/// the column focused in SwiftUI's model and unfocused in AppKit's.
-struct WindowKeyFocus: NSViewRepresentable {
-  final class KeyObserverView: NSView {
-    // MARK: Lifecycle
-
-    init(onWindowKey: @escaping () -> Void) {
-      self.onWindowKey = onWindowKey
-      super.init(frame: .zero)
-    }
-
-    @available(*, unavailable)
-    required init?(coder _: NSCoder) {
-      fatalError()
-    }
-
-    // MARK: Internal
-
-    var onWindowKey: () -> Void
-
-    override func viewDidMoveToWindow() {
-      super.viewDidMoveToWindow()
-      NotificationCenter.default.removeObserver(self)
-      guard let window else {
-        return
-      }
-      NotificationCenter.default.addObserver(
-        self,
-        selector: #selector(windowDidBecomeKey),
-        name: NSWindow.didBecomeKeyNotification,
-        object: window,
-      )
-    }
-
-    // MARK: Private
-
-    @objc private func windowDidBecomeKey() {
-      onWindowKey()
-    }
-  }
-
-  let onWindowKey: () -> Void
-
-  func makeNSView(context _: Context) -> KeyObserverView {
-    KeyObserverView(onWindowKey: onWindowKey)
-  }
-
-  func updateNSView(_ view: KeyObserverView, context _: Context) {
-    view.onWindowKey = onWindowKey
-  }
-}
-
 extension View {
   func windowKeys(
     store: StoreOf<SettingsWindowFeature>, _ actions: WindowKeyActions,

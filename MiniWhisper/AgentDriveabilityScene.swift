@@ -20,7 +20,11 @@ enum PresentedWindow: Equatable {
     case onboardingWelcome = "onboarding-welcome"
     case onboardingPermissionsMicrophone = "onboarding-permissions-microphone"
     case onboardingPermissionsAccessibility = "onboarding-permissions-accessibility"
+    case onboardingPermissionsAccessibilitySettings =
+      "onboarding-permissions-accessibility-settings"
+    case onboardingShortcut = "onboarding-shortcut"
     case onboardingModel = "onboarding-model"
+    case onboardingModelActionable = "onboarding-model-actionable"
     case onboardingTryIt = "onboarding-try-it"
     case onboardingReady = "onboarding-ready"
     case settings
@@ -87,37 +91,51 @@ enum PresentedWindow: Equatable {
       case .onboardingWelcome:
         state.onboardingCompleted = false
         state.modelDownloadConsented = false
-        state.onboarding = onboardingState(
-          permissions: permissions(), readiness: .modelMissing, hasConsent: false,
-          isShowingWelcome: true,
-        )
+        present(&state.onboarding,
+                permissions: permissions(), readiness: .modelMissing, hasConsent: false,
+                isShowingWelcome: true)
       case .onboardingPermissionsMicrophone:
         state.onboardingCompleted = false
-        state.onboarding = onboardingState(
-          permissions: permissions(), readiness: .downloading(0.42),
-        )
+        present(&state.onboarding,
+                permissions: permissions(), readiness: .downloading(0.42))
       case .onboardingPermissionsAccessibility:
         state.onboardingCompleted = false
-        state.onboarding = onboardingState(
-          permissions: permissions(microphone: .granted), readiness: .downloading(0.42),
-        )
+        present(&state.onboarding,
+                permissions: permissions(microphone: .granted), readiness: .downloading(0.42))
+      case .onboardingPermissionsAccessibilitySettings:
+        state.onboardingCompleted = false
+        present(&state.onboarding,
+                permissions: permissions(microphone: .granted), readiness: .downloading(0.42),
+                requestedPermissions: [.accessibility])
+      case .onboardingShortcut:
+        state.onboardingCompleted = false
+        present(&state.onboarding,
+                permissions: permissions(microphone: .granted, accessibility: true),
+                readiness: .downloading(0.42), selectedStep: .shortcut)
       case .onboardingModel:
         state.onboardingCompleted = false
-        state.onboarding = onboardingState(
-          permissions: permissions(microphone: .granted, accessibility: true),
-          readiness: .downloading(0.42), selectedStep: .model,
-        )
+        present(&state.onboarding,
+                permissions: permissions(microphone: .granted, accessibility: true),
+                readiness: .downloading(0.42), selectedStep: .model, hasCompletedShortcut: true)
+      case .onboardingModelActionable:
+        state.onboardingCompleted = false
+        present(&state.onboarding,
+                permissions: permissions(microphone: .granted, accessibility: true),
+                readiness: .failed("Model setup failed"), selectedStep: .model,
+                hasCompletedShortcut: true)
+        // A real failure arrives through the readiness stream, which also posts the message the
+        // footer shows — and clearing it is how a retry announces itself.
+        state.onboarding.failureMessage = "Model setup failed"
       case .onboardingTryIt:
         state.onboardingCompleted = false
-        state.onboarding = onboardingState(
-          permissions: permissions(microphone: .granted, accessibility: true),
-          readiness: .ready, selectedStep: .tryIt,
-        )
+        present(&state.onboarding,
+                permissions: permissions(microphone: .granted, accessibility: true),
+                readiness: .ready, selectedStep: .tryIt, hasCompletedShortcut: true)
       case .onboardingReady:
-        state.onboarding = onboardingState(
-          permissions: permissions(microphone: .granted, accessibility: true),
-          readiness: .ready, isCompleted: true, tryItText: "MiniWhisper is ready.",
-        )
+        present(&state.onboarding,
+                permissions: permissions(microphone: .granted, accessibility: true),
+                readiness: .ready, hasCompletedShortcut: true, isCompleted: true,
+                tryItText: "MiniWhisper is ready.")
       case .settings,
            .settingsHistory,
            .about:
@@ -136,6 +154,13 @@ enum PresentedWindow: Equatable {
         state.pill.presentation = .notice(.noSpeechDetected)
       case .pillCopied:
         state.pill.presentation = .notice(.copiedToClipboard)
+      }
+      // An onboarding scene's permission truth is its snapshot; the app-level fields follow it, so
+      // the seeded state and the seeded clients can never disagree about what has been granted.
+      if state.onboarding.isPresented {
+        state.recording.micStatus = state.onboarding.snapshot.permissions.microphoneStatus
+        state.accessibilityGranted =
+          state.onboarding.snapshot.permissions.hasAccessibilityPermission
       }
       return state
     }
@@ -210,12 +235,15 @@ enum PresentedWindow: Equatable {
       return HistoryLog(entries: entries)
     }
 
-    private func onboardingState(
+    /// Seeded in place: the onboarding state built by `AppFeature.State` already shares the
+    /// scene's settings, and replacing it would hand the window the real settings file instead.
+    private func present(
+      _ state: inout OnboardingFeature.State,
       permissions: OnboardingPermissionStatuses, readiness: EngineReadiness,
       hasConsent: Bool = true, isShowingWelcome: Bool = false, selectedStep: OnboardingStep? = nil,
-      isCompleted: Bool = false, tryItText: String = "",
-    ) -> OnboardingFeature.State {
-      var state = OnboardingFeature.State()
+      hasCompletedShortcut: Bool = false, isCompleted: Bool = false, tryItText: String = "",
+      requestedPermissions: Set<OnboardingPermission> = [],
+    ) {
       state.isPresented = true
       state.snapshot = OnboardingSnapshot(
         permissions: permissions, engineReadiness: readiness, hasModelDownloadConsent: hasConsent,
@@ -223,8 +251,9 @@ enum PresentedWindow: Equatable {
       )
       state.selectedStep = selectedStep
       state.isShowingWelcome = isShowingWelcome
+      state.hasCompletedShortcut = hasCompletedShortcut
       state.tryItText = tryItText
-      return state
+      state.requestedPermissions = requestedPermissions
     }
 
     private func permissions(
@@ -235,6 +264,7 @@ enum PresentedWindow: Equatable {
       )
     }
   }
+
 #else
   enum AgentDriveabilityScene {
     static var current: Self? {
@@ -254,6 +284,10 @@ enum PresentedWindow: Equatable {
     }
 
     var initialState: AppFeature.State {
+      preconditionFailure()
+    }
+
+    func configure(_: inout DependencyValues) {
       preconditionFailure()
     }
   }

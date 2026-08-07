@@ -2,12 +2,6 @@ import AppKit
 import ApplicationServices
 import XCTest
 
-/// UI tests only ever drive the Debug product, which keeps its own bundle identifier so that its
-/// permission grants never collide with an installed release build.
-private let debugBundleIdentifier = "com.thurstonsand.MiniWhisper.dev"
-/// UI tests drive the dev channel, and user-facing chrome names the running channel.
-private let appName = "MiniWhisper Dev"
-
 // MARK: - MiniWhisperUITests
 
 final class MiniWhisperUITests: XCTestCase {
@@ -49,29 +43,63 @@ final class MiniWhisperUITests: XCTestCase {
     }
 
     try assertManifest(
-      scene: "onboarding-model",
-      elements: onboardingRail(["Complete", "Current; Downloading 42%", "Available"]) + [
-        contract(.group, "miniwhisper.onboarding.model", "Speech model setup"),
+      scene: "onboarding-shortcut",
+      elements: onboardingRail(
+        ["Complete", "Current", "Available; Downloading 42%", "Available"],
+      ) + [
+        contract(.group, "miniwhisper.onboarding.shortcut", "Activation shortcut setup"),
         contract(
-          .staticText, "miniwhisper.onboarding.model.title", "Model setup heading",
-          "Prepare Parakeet v2",
+          .staticText, "miniwhisper.onboarding.shortcut.title", "Shortcut heading",
+          "Activating \(appName)",
         ),
         contract(
-          .staticText, "miniwhisper.onboarding.model.summary", "Model setup information",
-          "Downloads once (~450 MB), then everything runs on this Mac.",
+          .staticText, "miniwhisper.onboarding.shortcut.summary", "Shortcut information",
+          "Shortcut to start dictation.",
         ),
         contract(
-          .staticText, "miniwhisper.onboarding.model.status", "Model status", "Downloading model",
+          .button, "miniwhisper.onboarding.shortcut.binding", "Dictation shortcut", "⌥ Opt →",
+          isEnabled: true, isActionable: true,
         ),
         contract(
-          .progressIndicator, "miniwhisper.onboarding.model-progress", "Model download", "0.42",
+          .staticText, "miniwhisper.onboarding.shortcut.binding.state",
+          "Dictation shortcut ring", "Ring off",
+        ),
+        contract(
+          .staticText, "miniwhisper.onboarding.shortcut.caption", "Shortcut guidance",
+          "Click the shortcut to change",
+        ),
+        contract(
+          .button, "miniwhisper.onboarding.shortcut.continue", "Continue", isEnabled: true,
+          isActionable: true,
         ),
       ],
     )
 
     try assertManifest(
+      scene: "onboarding-model",
+      elements: onboardingRail(["Complete", "Complete", "Current; Downloading 42%", "Available"]) +
+        [
+          contract(.group, "miniwhisper.onboarding.model", "Speech model setup"),
+          contract(
+            .staticText, "miniwhisper.onboarding.model.title", "Model setup heading",
+            "Prepare Parakeet v2",
+          ),
+          contract(
+            .staticText, "miniwhisper.onboarding.model.summary", "Model setup information",
+            "Downloads once (~450 MB), then everything runs on this Mac.",
+          ),
+          contract(
+            .staticText, "miniwhisper.onboarding.model.status", "Model status", "Downloading model",
+          ),
+          contract(
+            .progressIndicator, "miniwhisper.onboarding.model-progress", "Model download", "0.42",
+          ),
+        ],
+    )
+
+    try assertManifest(
       scene: "onboarding-try-it",
-      elements: onboardingRail(["Complete", "Complete", "Current"]) + [
+      elements: onboardingRail(["Complete", "Complete", "Complete", "Current"]) + [
         contract(.group, "miniwhisper.onboarding.try-it", "Try \(appName)"),
         contract(
           .staticText, "miniwhisper.onboarding.try-it.title", "Try it heading", "Give it a try",
@@ -91,12 +119,15 @@ final class MiniWhisperUITests: XCTestCase {
           .button, "miniwhisper.onboarding.try-it.skip", "Skip test dictation", isEnabled: true,
           isActionable: true,
         ),
+        contract(
+          .staticText, "miniwhisper.onboarding.try-it.skip.state", "Skip ring", "Ring off",
+        ),
       ],
     )
 
     try assertManifest(
       scene: "onboarding-ready",
-      elements: onboardingRail(["Complete", "Complete", "Complete"]) + [
+      elements: onboardingRail(["Complete", "Complete", "Complete", "Complete"]) + [
         contract(.group, "miniwhisper.onboarding.ready", "\(appName) is ready"),
         contract(.staticText, "miniwhisper.onboarding.ready.title", "Setup status", "Ready"),
         contract(
@@ -645,25 +676,6 @@ final class MiniWhisperUITests: XCTestCase {
 
   // MARK: Private
 
-  private var agentCommandFileURL: URL {
-    FileManager.default.temporaryDirectory.appending(
-      path: "miniwhisper-agent-driveability-\(ProcessInfo.processInfo.processIdentifier)",
-    )
-  }
-
-  @MainActor private func waitForDisappearance(
-    of element: XCUIElement, timeout: TimeInterval = 3,
-  ) -> XCTWaiter.Result {
-    XCTWaiter.wait(
-      for: [
-        XCTNSPredicateExpectation(
-          predicate: NSPredicate(format: "exists == false"), object: element,
-        ),
-      ],
-      timeout: timeout,
-    )
-  }
-
   @MainActor private func assertAccessibilityAudit(scene: String) throws {
     let app = launch(scene)
     defer { terminate(app) }
@@ -731,21 +743,6 @@ final class MiniWhisperUITests: XCTestCase {
     return app
   }
 
-  @MainActor private func launch(_ scene: String) -> XCUIApplication {
-    let app = XCUIApplication()
-    try? FileManager.default.removeItem(at: agentCommandFileURL)
-    app.launchEnvironment["MINIWHISPER_AGENT_SCENE"] = scene
-    app.launchEnvironment["MINIWHISPER_AGENT_COMMAND_FILE"] = agentCommandFileURL.path
-    app.launch()
-    return app
-  }
-
-  private func postAgentMutation(_ action: String, value: Any) {
-    try! "\(UUID().uuidString)|\(action)|\(value)".write(
-      to: agentCommandFileURL, atomically: true, encoding: .utf8,
-    )
-  }
-
   private func historyRows(_ app: XCUIApplication) -> XCUIElementQuery {
     app.descendants(matching: .any).matching(
       NSPredicate(
@@ -791,29 +788,11 @@ final class MiniWhisperUITests: XCTestCase {
     )
   }
 
-  private func assertValue(
-    _ expectedValue: String, of element: XCUIElement, file: StaticString = #filePath,
-    line: UInt = #line,
-  ) {
-    let expectation = XCTNSPredicateExpectation(
-      predicate: NSPredicate(format: "value == %@", expectedValue), object: element,
-    )
-    XCTAssertEqual(
-      XCTWaiter.wait(for: [expectation], timeout: 3), .completed, file: file, line: line,
-    )
-    XCTAssertEqual(accessibilityValue(element), expectedValue, file: file, line: line)
-  }
-
   private func recordSpikeEvidence(_ evidence: String) {
     print("RAW_AX_SPIKE: \(evidence)")
     let attachment = XCTAttachment(string: evidence)
     attachment.lifetime = .keepAlways
     add(attachment)
-  }
-
-  @MainActor private func terminate(_ app: XCUIApplication) {
-    app.terminate()
-    XCTAssertTrue(app.wait(for: .notRunning, timeout: 5))
   }
 
   @MainActor private func assert(
@@ -888,13 +867,6 @@ final class MiniWhisperUITests: XCTestCase {
     )
   }
 
-  private func accessibilityValue(_ element: XCUIElement) -> String {
-    guard let value = element.value else {
-      return ""
-    }
-    return String(describing: value)
-  }
-
   private func contract(
     _ elementType: XCUIElement.ElementType, _ identifier: String, _ label: String,
     _ value: String? = nil, valuePattern: String? = nil, isEnabled: Bool? = nil,
@@ -920,11 +892,15 @@ final class MiniWhisperUITests: XCTestCase {
         isEnabled: true, isActionable: true,
       ),
       contract(
-        .button, "miniwhisper.onboarding.rail.model", "Speech Model", values[1], isEnabled: true,
+        .button, "miniwhisper.onboarding.rail.shortcut", "Shortcut", values[1], isEnabled: true,
         isActionable: true,
       ),
       contract(
-        .button, "miniwhisper.onboarding.rail.try-it", "Try It", values[2], isEnabled: true,
+        .button, "miniwhisper.onboarding.rail.model", "Speech Model", values[2], isEnabled: true,
+        isActionable: true,
+      ),
+      contract(
+        .button, "miniwhisper.onboarding.rail.try-it", "Try It", values[3], isEnabled: true,
         isActionable: true,
       ),
     ]
@@ -1050,7 +1026,7 @@ private enum PermissionManifest: CaseIterable {
   }
 
   var railValues: [String] {
-    ["Current", "Available; Downloading 42%", "Available"]
+    ["Current", "Available", "Available; Downloading 42%", "Available"]
   }
 }
 

@@ -37,15 +37,15 @@ private struct ShortcutRow: View {
           ForEach(Array(hotkeys.enumerated()), id: \.offset) { index, hotkey in
             bindingButton(index: index, hotkey: hotkey)
           }
-          if store.settingsPane.recordingTarget == .new {
+          if store.settingsPane.bindings.target == .new {
             recordingChip
           }
-          if hotkeys.isEmpty, store.settingsPane.recordingTarget == nil {
+          if hotkeys.isEmpty, !store.settingsPane.bindings.isRecording {
             emptyState
           }
           ShortcutMoreMenu(store: store)
         }
-        if let message = store.settingsPane.validationMessage {
+        if let message = store.settingsPane.bindings.validationMessage {
           Text(message)
             .font(.caption)
             .foregroundStyle(.orange)
@@ -66,16 +66,16 @@ private struct ShortcutRow: View {
   // MARK: Private
 
   private var hotkeys: [Hotkey] {
-    store.settingsPane.settings.hotkeys
+    store.settingsPane.bindings.hotkeys
   }
 
   /// A recording in flight shows the chord as it is built, and says so before there is one.
   private var recordingComponents: [String] {
-    store.settingsPane.liveChord?.displayComponents ?? ["Recording…"]
+    store.settingsPane.bindings.liveChord?.displayComponents ?? ["Recording…"]
   }
 
   private var recordingTitle: String {
-    store.settingsPane.liveChord?.displayName ?? "Recording…"
+    store.settingsPane.bindings.liveChord?.displayName ?? "Recording…"
   }
 
   private var recordingChip: some View {
@@ -88,7 +88,7 @@ private struct ShortcutRow: View {
 
   @ViewBuilder private var emptyState: some View {
     Text("Not set").foregroundStyle(.secondary)
-    Button("Set…") { store.send(.settingsPane(.addTapped)) }
+    Button("Set…") { store.send(.settingsPane(.bindings(.addTapped))) }
       .overlay {
         RoundedRectangle(cornerRadius: 6)
           .strokeBorder(Color(nsColor: .keyboardFocusIndicatorColor), lineWidth: 2)
@@ -100,10 +100,10 @@ private struct ShortcutRow: View {
   }
 
   private func bindingButton(index: Int, hotkey: Hotkey) -> some View {
-    let isRecording = store.settingsPane.isRecording(index)
+    let isRecording = store.settingsPane.bindings.isRecording(index)
     let target = SettingsPaneFeature.Target.binding(index)
     return Button {
-      store.send(.settingsPane(.bindingTapped(index)))
+      store.send(.settingsPane(.bindings(.bindingTapped(index))))
     } label: {
       HotkeyKeycaps(
         components: isRecording ? recordingComponents : hotkey.displayComponents,
@@ -166,14 +166,14 @@ private struct ShortcutMoreMenu: View {
   var body: some View {
     Menu {
       Button("Add Another…", systemImage: "plus") {
-        store.send(.settingsPane(.addTapped))
+        store.send(.settingsPane(.bindings(.addTapped)))
       }
       if !hotkeys.isEmpty {
         Divider()
         ForEach(Array(hotkeys.enumerated()), id: \.offset) {
           index, hotkey in
           Button("Remove \(hotkey.displayName)", systemImage: "xmark", role: .destructive) {
-            store.send(.settingsPane(.removeTapped(index)))
+            store.send(.settingsPane(.bindings(.removeTapped(index))))
           }
         }
       }
@@ -183,7 +183,7 @@ private struct ShortcutMoreMenu: View {
     .menuStyle(.borderlessButton)
     .menuIndicator(.hidden)
     .fixedSize()
-    .disabled(store.settingsPane.recordingTarget != nil)
+    .disabled(store.settingsPane.bindings.isRecording)
     .focusable(false)
     .accessibilityIdentifier(AccessibilityID.settingsShortcutMenu)
     .accessibilityLabel("Shortcut actions")
@@ -192,6 +192,6 @@ private struct ShortcutMoreMenu: View {
   // MARK: Private
 
   private var hotkeys: [Hotkey] {
-    store.settingsPane.settings.hotkeys
+    store.settingsPane.bindings.hotkeys
   }
 }

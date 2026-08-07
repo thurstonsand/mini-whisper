@@ -53,6 +53,7 @@ enum AccessibilityID {
   static let onboardingRailBrand = "miniwhisper.onboarding.rail.brand"
   static let onboardingRailTagline = "miniwhisper.onboarding.rail.tagline"
   static let onboardingRailPermissions = "miniwhisper.onboarding.rail.permissions"
+  static let onboardingRailShortcut = "miniwhisper.onboarding.rail.shortcut"
   static let onboardingRailModel = "miniwhisper.onboarding.rail.model"
   static let onboardingRailTryIt = "miniwhisper.onboarding.rail.try-it"
 
@@ -71,6 +72,15 @@ enum AccessibilityID {
     "miniwhisper.onboarding.permission.accessibility.action"
   static let onboardingPermissionsGuidance = "miniwhisper.onboarding.permissions.guidance"
 
+  static let onboardingShortcut = "miniwhisper.onboarding.shortcut"
+  static let onboardingShortcutTitle = "miniwhisper.onboarding.shortcut.title"
+  static let onboardingShortcutSummary = "miniwhisper.onboarding.shortcut.summary"
+  static let onboardingShortcutBinding = "miniwhisper.onboarding.shortcut.binding"
+  static let onboardingShortcutBindingRing = "miniwhisper.onboarding.shortcut.binding.state"
+  static let onboardingShortcutCaption = "miniwhisper.onboarding.shortcut.caption"
+  static let onboardingShortcutError = "miniwhisper.onboarding.shortcut.error"
+  static let onboardingShortcutContinue = "miniwhisper.onboarding.shortcut.continue"
+
   static let onboardingModel = "miniwhisper.onboarding.model"
   static let onboardingModelTitle = "miniwhisper.onboarding.model.title"
   static let onboardingModelSummary = "miniwhisper.onboarding.model.summary"
@@ -88,6 +98,7 @@ enum AccessibilityID {
   static let onboardingTryItCompletionSummary = "miniwhisper.onboarding.try-it.completion-summary"
   static let onboardingTryItGuidance = "miniwhisper.onboarding.try-it.guidance"
   static let onboardingTryItSkip = "miniwhisper.onboarding.try-it.skip"
+  static let onboardingTryItSkipRing = "miniwhisper.onboarding.try-it.skip.state"
 
   static let onboardingReady = "miniwhisper.onboarding.ready"
   static let onboardingReadyTitle = "miniwhisper.onboarding.ready.title"

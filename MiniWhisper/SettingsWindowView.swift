@@ -162,10 +162,10 @@ struct SettingsWindowView: View {
   }
 
   private func cancelSettingsRecording() -> KeyPress.Result {
-    guard store.settingsPane.recordingTarget != nil else {
+    guard store.settingsPane.bindings.isRecording else {
       return .ignored
     }
-    store.send(.settingsPane(.cancelRecording))
+    store.send(.settingsPane(.bindings(.cancelRecording)))
     return .handled
   }
 

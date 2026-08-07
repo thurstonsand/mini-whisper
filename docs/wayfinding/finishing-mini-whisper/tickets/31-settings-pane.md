@@ -34,6 +34,17 @@ The pane exists with its first real section, and the two hardest problems it sur
 
 Remaining: Microphone (scope item 2), Sounds (3), permissions row (5), Open at login/Version, and the menu slimming (6).
 
+## Built: the onboarding Shortcut step
+
+A fast-follow the pane earned immediately: the primary binding is now chosen during onboarding, in a new step between Permissions and Speech Model. The model download runs behind it untouched.
+
+- **The page**: hero-scale keycap that *is* the button — the settings row's contract writ large. Click (or focused Return/Space) → grey "Recording…" chip → live chord; release commits, Escape keeps whatever was last committed. One caption toggles "Click the shortcut to change" ↔ "Record your shortcut"; no ring while recording. Only the primary binding lives here — extras stay in Settings and are preserved by every commit.
+- **One recorder, named**: `HotkeyBindingsFeature` owns bindings + recording + delegates; the settings pane (cursor/hover chrome only) and onboarding both scope to it. Commit policy is one invariant — a hotkey appears in the list at most once. `primaryBindingTapped` is the only holder of "empty appends, else replace index 0." AppFeature's cancel-before-install/restart-after-stop serves both consumers through one `beginHotkeyRecording`.
+- **The window keyboard grammar**: Return activates the visible step's primary action on every page (the active permission's action as grants land, included). Tab visits only the page's actionable controls — rail buttons are mouse affordances, out of the chain everywhere; Shortcut and Try It own explicit two-target cycles driven by a `tabCycle` table and a window-scoped Tab monitor (`WindowTabKeys`), because SwiftUI key handling is deaf until a SwiftUI view owns focus. First Tab lands on the keycap; unfocused Return always sails to Continue.
+- **Focus laws, learned the hard way**: claim focus when the field exists, not when the state that summons it changes — `.defaultFocus` fails on real mid-flow transitions, and `.onAppear` races AppKit's key-view selection (the Try It Skip button briefly wore focus paint nobody asked for). Focus paint derives only from `@FocusState`; the system focus effect lies and stays disabled where hand-drawn rings exist. Both laws recorded in the skill.
+- **Pixel-truth testing**: entry states are asserted from decoded screenshots (zero focus-blue where no focus is claimed) after AX-only assertions passed while pixels showed a phantom ring. AX values derive from the same expressions that paint (`accessibilityPaintState`), real typed key events drive the keyboard suites, and scenes seed dependencies — a fixture bug had every onboarding scene wired to the live settings.json, and a UI test wrote into it before it was caught.
+- Standing sighting, unreproduced: one report of a stray Skip focus ring post-refactor; a focus trace showed honest behaviour and is recoverable from session 019fd8f6 (`category == "focus-trace"`).
+
 ## Inherited constraints
 
 - The window's input model is already law: the pane participates in the h/j/k/l loop (`h` ascends to the sidebar), and keyboard focus behavior follows the contract recorded in [History](11-history.md).

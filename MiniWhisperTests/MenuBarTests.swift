@@ -300,7 +300,7 @@ private struct MenuActionFailure: LocalizedError {
     #expect(opened.values == [SystemSettingsPane.accessibility])
   }
 
-  @Test func `a missing model reenters onboarding at model setup`() async {
+  @Test func `an incomplete setup reenters onboarding at shortcut setup`() async {
     var state = AppFeature.State()
     state.hotkeyTap = .active
     state.recording.micStatus = .granted
@@ -324,7 +324,7 @@ private struct MenuActionFailure: LocalizedError {
       $0.onboarding.isPresented = true
       $0.onboarding.snapshot = snapshot
     }
-    #expect(store.state.onboarding.step == .model)
+    #expect(store.state.onboarding.step == .shortcut)
   }
 
   @Test func `a dead tap is repaired by restarting the listener without prompting`() async {

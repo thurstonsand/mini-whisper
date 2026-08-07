@@ -13,7 +13,7 @@
 - Engine: an implementation of the transcription protocol in `ASREngine` (pinned FluidAudio + Parakeet TDT v2 for MVP; whisper.cpp Medium.en is the recorded fallback, not shipped).
 - The pill: the bottom-center HUD panel that owns all dictation-time state (recording, latch, transcribing, transient notices). Success is its disappearance.
 - Degraded: a failure state represented in the menu bar — missing Accessibility, blocked microphone, a dead event tap, or an uninstalled/failed model.
-- Onboarding: the app's only modal flow — welcome, sequential permissions, model download/compile/prewarm, and one real try-it dictation; the welcome button records bandwidth consent and starts a durable background download that resumes across relaunches.
+- Onboarding: the app's only modal flow — welcome, sequential permissions, activation-shortcut choice, model download/compile/prewarm, and one real try-it dictation; the welcome button records bandwidth consent and starts a durable background download that resumes across relaunches.
 - Channel: one of the three apps this project builds — dev, nightly, release. Each is its own bundle identifier, its own name in System Settings, and its own application support directory, so grants and state never cross.
 - Settings file: `settings.json` in the running channel's application support directory. Every setting is backed by that file.
 - The settings window: the app's only non-modal window, and its one home for everything that is not a dictation: configurable settings, history, dictionary, cleanup.

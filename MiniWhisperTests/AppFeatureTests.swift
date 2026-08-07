@@ -144,25 +144,82 @@ import Testing
       }
     }
 
-    await store.send(.settingsWindow(.settingsPane(.bindingTapped(0)))) {
-      $0.settingsWindow.settingsPane.recordingTarget = .existing(0)
+    await store.send(.settingsWindow(.settingsPane(.bindings(.bindingTapped(0))))) {
+      $0.settingsWindow.settingsPane.bindings.target = .existing(0)
     }
-    await store.receive(.settingsWindow(.settingsPane(.delegate(.recordingStarted)))) {
+    await store.receive(.settingsWindow(.settingsPane(.bindings(.delegate(.recordingStarted))))) {
       $0.hotkeyTap = .idle
     }
-    await store.receive(.settingsWindow(.settingsPane(.recorderReady)))
+    await store.receive(.settingsWindow(.settingsPane(.bindings(.recorderReady))))
     recorderContinuation.yield(.committed(replacement))
-    await store.receive(.settingsWindow(.settingsPane(.recorderEvent(.committed(replacement))))) {
-      $0.$settings.withLock { $0.hotkeys = [replacement] }
-      $0.settingsWindow.settingsPane.recordingTarget = nil
-    }
-    await store.receive(.settingsWindow(.settingsPane(.delegate(.recordingStopped)))) {
+    await store
+      .receive(.settingsWindow(.settingsPane(.bindings(.recorderEvent(.committed(replacement)))))) {
+        $0.$settings.withLock { $0.hotkeys = [replacement] }
+        $0.settingsWindow.settingsPane.bindings.target = nil
+      }
+    await store.receive(.settingsWindow(.settingsPane(.bindings(.delegate(.recordingStopped))))) {
       $0.hotkeyTap = .starting
     }
     listenerContinuation.yield(.monitoringStarted)
     await store.receive(.hotkeyListenerEvent(.monitoringStarted)) { $0.hotkeyTap = .active }
     recorderContinuation.finish()
-    await store.receive(.settingsWindow(.settingsPane(.recorderFinished)))
+    await store.receive(.settingsWindow(.settingsPane(.bindings(.recorderFinished))))
+    listenerContinuation.finish()
+    await store.receive(.hotkeyListenerFinished) { $0.hotkeyTap = .dead }
+  }
+
+  @Test func `recording the onboarding shortcut suppresses and restarts activation listening`(
+  ) async throws {
+    let (recorderEvents, recorderContinuation) = AsyncStream.makeStream(
+      of: HotkeyRecorderEvent.self,
+    )
+    let (listenerEvents, listenerContinuation) = AsyncStream.makeStream(
+      of: HotkeyListenerEvent.self,
+    )
+    let extra = try Hotkey(keyCode: 15, modifiers: [.rightControl])
+    let replacement = try Hotkey(keyCode: 0, modifiers: [.leftCommand])
+    var settings = MiniWhisperSettings.defaults
+    settings.hotkeys = [.rightOption, extra]
+    var state = AppFeature.State(
+      history: Shared(value: HistoryLog()), settings: Shared(value: settings),
+    )
+    state.accessibilityGranted = true
+    state.hotkeyTap = .active
+    state.onboarding.isPresented = true
+    state.onboarding.snapshot.permissions = OnboardingPermissionStatuses(
+      microphoneStatus: .granted, hasAccessibilityPermission: true,
+    )
+    state.onboarding.selectedStep = .shortcut
+    let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
+      $0.accessibilityPermission.hasPermission = { true }
+      $0.hotkeyListener.record = { recorderEvents }
+      $0.hotkeyListener.events = { hotkeys in
+        #expect(hotkeys == [replacement, extra])
+        return listenerEvents
+      }
+    }
+
+    await store.send(.onboarding(.shortcutBindings(.primaryBindingTapped))) {
+      $0.onboarding.shortcutBindings.target = .existing(0)
+    }
+    await store.receive(.onboarding(.shortcutBindings(.delegate(.recordingStarted)))) {
+      $0.hotkeyTap = .idle
+    }
+    await store.receive(.onboarding(.shortcutBindings(.recorderReady)))
+    recorderContinuation.yield(.committed(replacement))
+    await store.receive(
+      .onboarding(.shortcutBindings(.recorderEvent(.committed(replacement)))),
+    ) {
+      $0.$settings.withLock { $0.hotkeys = [replacement, extra] }
+      $0.onboarding.shortcutBindings.target = nil
+    }
+    await store.receive(.onboarding(.shortcutBindings(.delegate(.recordingStopped)))) {
+      $0.hotkeyTap = .starting
+    }
+    listenerContinuation.yield(.monitoringStarted)
+    await store.receive(.hotkeyListenerEvent(.monitoringStarted)) { $0.hotkeyTap = .active }
+    recorderContinuation.finish()
+    await store.receive(.onboarding(.shortcutBindings(.recorderFinished)))
     listenerContinuation.finish()
     await store.receive(.hotkeyListenerFinished) { $0.hotkeyTap = .dead }
   }
@@ -368,7 +425,7 @@ import Testing
     }
     hotkeyContinuation.yield(.monitoringStarted)
     await store.receive(.hotkeyListenerEvent(.monitoringStarted)) { $0.hotkeyTap = .active }
-    #expect(store.state.onboarding.step == .model)
+    #expect(store.state.onboarding.step == .shortcut)
 
     hotkeyContinuation.finish()
     await store.receive(.hotkeyListenerFinished) { $0.hotkeyTap = .dead }

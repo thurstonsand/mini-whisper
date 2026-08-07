@@ -1,7 +1,9 @@
+import AppSettings
 import ASREngine
 import AudioCapture
 import ComposableArchitecture
 import Foundation
+import HotkeyListener
 import OSLog
 
 private let onboardingLogger = Logger(
@@ -59,15 +61,19 @@ struct OnboardingSnapshot: Equatable {
 
 enum OnboardingStep: Int, Equatable {
   case permissions
+  case shortcut
   case model
   case tryIt
   case ready
 
   // MARK: Internal
 
-  static func derive(from snapshot: OnboardingSnapshot) -> Self {
+  static func derive(from snapshot: OnboardingSnapshot, hasCompletedShortcut: Bool) -> Self {
     guard snapshot.permissions.allGranted else {
       return .permissions
+    }
+    guard hasCompletedShortcut else {
+      return .shortcut
     }
     guard snapshot.engineReadiness == .ready else {
       return .model
@@ -82,11 +88,24 @@ enum OnboardingStep: Int, Equatable {
   // MARK: Internal
 
   @ObservableState struct State: Equatable {
+    // MARK: Lifecycle
+
+    init(
+      settings: Shared<MiniWhisperSettings> = Shared(
+        wrappedValue: .defaults, .settingsFile,
+      ),
+    ) {
+      shortcutBindings = HotkeyBindingsFeature.State(settings: settings)
+    }
+
+    // MARK: Internal
+
     enum CompletionIntent: Equatable {
       case dictation
       case skip
     }
 
+    var shortcutBindings: HotkeyBindingsFeature.State
     var isPresented = false
     var snapshot = OnboardingSnapshot(
       permissions: OnboardingPermissionStatuses(
@@ -100,12 +119,21 @@ enum OnboardingStep: Int, Equatable {
     var requestingPermission: OnboardingPermission?
     var pendingSystemPermissionPrompt: OnboardingPermission?
     var requestedPermissions: Set<OnboardingPermission> = []
+    var hasCompletedShortcut = false
     var tryItText = ""
     var completionIntent: CompletionIntent?
     var failureMessage: String?
 
     var step: OnboardingStep {
-      OnboardingStep.derive(from: snapshot)
+      OnboardingStep.derive(from: snapshot, hasCompletedShortcut: hasCompletedShortcut)
+    }
+
+    var hotkeys: [Hotkey] {
+      shortcutBindings.hotkeys
+    }
+
+    var isRecordingShortcut: Bool {
+      shortcutBindings.isRecording
     }
 
     var visibleStep: OnboardingStep {
@@ -168,6 +196,8 @@ enum OnboardingStep: Int, Equatable {
     case modelDownloadConsented
     case modelDownloadConsentFailed(String)
     case navigate(OnboardingStep)
+    case shortcutBindings(HotkeyBindingsFeature.Action)
+    case shortcutContinueTapped
     case requestPermission(OnboardingPermission)
     case microphonePermissionRequested(MicPermissionStatus)
     case accessibilityPermissionRequested(Bool)
@@ -208,6 +238,8 @@ enum OnboardingStep: Int, Equatable {
   @Dependency(\.workspace) var workspace
 
   var body: some ReducerOf<Self> {
+    Scope(state: \.shortcutBindings, action: \.shortcutBindings) { HotkeyBindingsFeature() }
+
     Reduce { state, action in
       switch action {
       case let .present(snapshot):
@@ -219,6 +251,7 @@ enum OnboardingStep: Int, Equatable {
         state.requestingPermission = nil
         state.pendingSystemPermissionPrompt = nil
         state.requestedPermissions = []
+        state.hasCompletedShortcut = false
         state.tryItText = ""
         state.completionIntent = nil
         state.failureMessage = nil
@@ -247,13 +280,22 @@ enum OnboardingStep: Int, Equatable {
         state.failureMessage = message
         return .none
       case let .navigate(step):
-        guard step != .ready else {
+        guard step != .ready, !state.isRecordingShortcut else {
           return .none
         }
         state.selectedStep = step
         let polling = permissionPollingEffect(for: state)
         return step == .permissions
           ? .merge(refreshPermissionStatuses(for: state), polling) : polling
+      case .shortcutContinueTapped:
+        guard state.visibleStep == .shortcut, !state.isRecordingShortcut else {
+          return .none
+        }
+        state.hasCompletedShortcut = true
+        state.selectedStep = nil
+        return .none
+      case .shortcutBindings:
+        return .none
       case let .requestPermission(permission):
         guard state.requestingPermission == nil, state.canRequest(permission) else {
           return .none

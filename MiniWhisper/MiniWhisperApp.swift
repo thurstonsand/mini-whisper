@@ -22,7 +22,9 @@ import SwiftUI
     let agentScene: AgentDriveabilityScene? = AgentDriveabilityScene.current
     let initialState = agentScene?.initialState ?? AppFeature.State()
     self.agentScene = agentScene
-    store = Store(initialState: initialState) { AppFeature() }
+    store = Store(initialState: initialState) { AppFeature() } withDependencies: {
+      agentScene?.configure(&$0)
+    }
     super.init()
   }
 

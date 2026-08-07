@@ -1,14 +1,11 @@
 import AppSettings
 import ComposableArchitecture
 import HotkeyListener
-import OSLog
-
-private let shortcutLogger = Logger(
-  subsystem: "com.thurstonsand.MiniWhisper", category: "shortcuts",
-)
 
 // MARK: - SettingsPaneFeature
 
+/// The settings pane's keyboard cursor and pointer highlight. Editing the bindings themselves is
+/// `HotkeyBindingsFeature`'s job; this decides only which control the cursor is standing on.
 @Reducer struct SettingsPaneFeature {
   // MARK: Internal
 
@@ -34,34 +31,26 @@ private let shortcutLogger = Logger(
     var target = 0
   }
 
-  enum RecordingTarget: Equatable {
-    case existing(Int)
-    case new
-  }
-
   @ObservableState struct State: Equatable {
     // MARK: Lifecycle
 
     init(settings: Shared<MiniWhisperSettings>) {
-      _settings = settings
+      bindings = HotkeyBindingsFeature.State(settings: settings)
     }
 
     // MARK: Internal
 
-    @Shared var settings: MiniWhisperSettings
-    var recordingTarget: RecordingTarget?
-    var liveChord: HotkeyRecordingChord?
-    var validationMessage: String?
+    var bindings: HotkeyBindingsFeature.State
     var cursor = Cursor()
     var hoveredRow: Row?
 
     /// Never empty, so the cursor always has somewhere to be.
     var targets: [Target] {
-      let bindings = settings.hotkeys.indices.map(Target.binding)
-      if recordingTarget == .new {
-        return bindings + [.recording]
+      let indices = bindings.hotkeys.indices.map(Target.binding)
+      if bindings.target == .new {
+        return indices + [.recording]
       }
-      return bindings.isEmpty ? [.set] : bindings
+      return indices.isEmpty ? [.set] : indices
     }
 
     /// Clamped on read as well as on move: the settings file can be edited underneath a live
@@ -69,43 +58,21 @@ private let shortcutLogger = Logger(
     var cursorTarget: Target {
       targets[min(cursor.target, targets.count - 1)]
     }
-
-    func isRecording(_ index: Int) -> Bool {
-      recordingTarget == .existing(index)
-    }
   }
 
   enum Action: Equatable {
-    case bindingTapped(Int)
-    case addTapped
-    case removeTapped(Int)
+    case bindings(HotkeyBindingsFeature.Action)
     case rowMoved(CursorMovement)
     case leftPressed
     case rightPressed
     case pressRequested
     case rowHovered(Row)
     case rowExited(Row)
-    case recorderReady
-    case recorderEvent(HotkeyRecorderEvent)
-    case recorderFailed(String)
-    case recorderFinished
-    case cancelRecording
-    case delegate(Delegate)
-
-    // MARK: Internal
-
-    enum Delegate: Equatable {
-      case recordingStarted
-      case recordingStopped
-      case bindingsChanged
-    }
   }
 
-  enum CancelID { case recorder }
-
-  @Dependency(\.hotkeyListener) var hotkeyListener
-
   var body: some ReducerOf<Self> {
+    Scope(state: \.bindings, action: \.bindings) { HotkeyBindingsFeature() }
+
     Reduce { state, action in
       switch action {
       case let .rowMoved(movement):
@@ -128,12 +95,10 @@ private let shortcutLogger = Logger(
       case .pressRequested:
         switch state.cursorTarget {
         case let .binding(index):
-          beginRecording(.existing(index), state: &state)
-          return .send(.delegate(.recordingStarted))
+          return .send(.bindings(.bindingTapped(index)))
         case .recording,
              .set:
-          beginRecording(.new, state: &state)
-          return .send(.delegate(.recordingStarted))
+          return .send(.bindings(.addTapped))
         }
       case let .rowHovered(row):
         state.hoveredRow = row
@@ -145,98 +110,13 @@ private let shortcutLogger = Logger(
           state.hoveredRow = nil
         }
         return .none
-      case let .bindingTapped(index):
-        guard state.settings.hotkeys.indices.contains(index) else {
-          return .none
-        }
-        beginRecording(.existing(index), state: &state)
-        return .send(.delegate(.recordingStarted))
-      case .addTapped:
-        beginRecording(.new, state: &state)
-        return .send(.delegate(.recordingStarted))
-      case let .removeTapped(index):
-        guard state.settings.hotkeys.indices.contains(index) else {
-          return .none
-        }
-        state.$settings.withLock { settings in
-          _ = settings.hotkeys.remove(at: index)
-        }
+      case .bindings(.delegate(.recordingStopped)),
+           .bindings(.delegate(.bindingsChanged)):
+        // The target list shrinks when a recording chip disappears or a binding is removed, so the
+        // cursor is re-clamped against the list it now has.
         moveTarget(&state, to: state.cursor.target)
-        return .send(.delegate(.bindingsChanged))
-      case .recorderReady:
-        guard state.recordingTarget != nil else {
-          return .none
-        }
-        return .run { send in
-          do {
-            for await event in try await hotkeyListener.record() {
-              await send(.recorderEvent(event))
-            }
-            await send(.recorderFinished)
-          } catch {
-            await send(.recorderFailed(String(describing: error)))
-          }
-        }.cancellable(id: CancelID.recorder, cancelInFlight: true)
-      case let .recorderEvent(.chordChanged(chord)):
-        state.liveChord = chord
-        state.validationMessage = nil
         return .none
-      case let .recorderEvent(.validationFailed(error)):
-        state.validationMessage = error.message
-        return .none
-      case let .recorderEvent(.committed(hotkey)):
-        guard let target = state.recordingTarget else {
-          return .none
-        }
-        switch target {
-        case let .existing(index):
-          guard state.settings.hotkeys.indices.contains(index) else {
-            shortcutLogger.error(
-              "Dropping a recorded hotkey because binding index \(index) no longer exists",
-            )
-            clearRecording(&state)
-            return .send(.delegate(.recordingStopped))
-          }
-          guard !state.settings.hotkeys.indices.contains(where: {
-            $0 != index && state.settings.hotkeys[$0] == hotkey
-          }) else {
-            clearRecording(&state)
-            return .send(.delegate(.recordingStopped))
-          }
-          state.$settings.withLock { $0.hotkeys[index] = hotkey }
-        case .new:
-          guard !state.settings.hotkeys.contains(hotkey) else {
-            clearRecording(&state)
-            return .send(.delegate(.recordingStopped))
-          }
-          state.$settings.withLock { $0.hotkeys.append(hotkey) }
-        }
-        clearRecording(&state)
-        return .send(.delegate(.recordingStopped))
-      case .recorderEvent(.cancelled),
-           .cancelRecording:
-        guard state.recordingTarget != nil else {
-          return .none
-        }
-        clearRecording(&state)
-        return .merge(
-          .cancel(id: CancelID.recorder), .send(.delegate(.recordingStopped)),
-        )
-      case let .recorderFailed(message):
-        guard state.recordingTarget != nil else {
-          return .none
-        }
-        shortcutLogger.error("Hotkey recording failed: \(message, privacy: .public)")
-        clearRecording(&state)
-        return .send(.delegate(.recordingStopped))
-      case .recorderFinished:
-        guard state.recordingTarget != nil else {
-          return .none
-        }
-        shortcutLogger.error("Hotkey recorder ended before producing a result")
-        clearRecording(&state)
-        return .send(.delegate(.recordingStopped))
-      case .delegate:
+      case .bindings:
         return .none
       }
     }
@@ -246,18 +126,5 @@ private let shortcutLogger = Logger(
 
   private func moveTarget(_ state: inout State, to index: Int) {
     state.cursor.target = min(max(index, 0), state.targets.count - 1)
-  }
-
-  private func beginRecording(_ target: RecordingTarget, state: inout State) {
-    state.recordingTarget = target
-    state.liveChord = nil
-    state.validationMessage = nil
-  }
-
-  private func clearRecording(_ state: inout State) {
-    state.recordingTarget = nil
-    state.liveChord = nil
-    state.validationMessage = nil
-    moveTarget(&state, to: state.cursor.target)
   }
 }

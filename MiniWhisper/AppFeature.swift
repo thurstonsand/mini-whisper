@@ -58,6 +58,7 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
     ) {
       _history = history
       _settings = settings
+      onboarding = OnboardingFeature.State(settings: settings)
       settingsWindow = SettingsWindowFeature.State(history: history, settings: settings)
     }
 
@@ -65,7 +66,7 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
 
     var recording = RecordingFeature.State()
     var pill = PillFeature.State()
-    var onboarding = OnboardingFeature.State()
+    var onboarding: OnboardingFeature.State
     var settingsWindow: SettingsWindowFeature.State
     var engineReadiness: EngineReadiness = .modelMissing
     var transcriptionGeneration = 0
@@ -175,16 +176,18 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
       switch action {
       case .settingsWindow(.history(.delegate(.retentionChanged))):
         return .send(.historyMaintenanceRequested)
-      case .settingsWindow(.settingsPane(.delegate(.recordingStarted))):
-        // Stop the activation tap before the recorder installs its owning tap. This ordering makes
-        // recording the activation shortcut race-free: no physical event can reach both consumers.
-        state.hotkeyTap = .idle
-        return .concatenate(
-          .cancel(id: CancelID.hotkeyEvents),
-          .send(.settingsWindow(.settingsPane(.recorderReady))),
+      case .settingsWindow(.settingsPane(.bindings(.delegate(.recordingStarted)))):
+        return beginHotkeyRecording(
+          &state, recorderReady: .settingsWindow(.settingsPane(.bindings(.recorderReady))),
         )
-      case .settingsWindow(.settingsPane(.delegate(.recordingStopped))),
-           .settingsWindow(.settingsPane(.delegate(.bindingsChanged))):
+      case .onboarding(.shortcutBindings(.delegate(.recordingStarted))):
+        return beginHotkeyRecording(
+          &state, recorderReady: .onboarding(.shortcutBindings(.recorderReady)),
+        )
+      case .settingsWindow(.settingsPane(.bindings(.delegate(.recordingStopped)))),
+           .settingsWindow(.settingsPane(.bindings(.delegate(.bindingsChanged)))),
+           .onboarding(.shortcutBindings(.delegate(.recordingStopped))),
+           .onboarding(.shortcutBindings(.delegate(.bindingsChanged))):
         return restartHotkeyListener(&state)
       case .settingsWindow:
         return .none
@@ -726,6 +729,15 @@ private let maximumAccidentalLoneTapDuration: TimeInterval = 0.35
       return .none
     }
     return restartHotkeyListener(&state)
+  }
+
+  private func beginHotkeyRecording(
+    _ state: inout State, recorderReady: Action,
+  ) -> Effect<Action> {
+    // Stop the activation tap before the recorder installs its owning tap. This ordering makes
+    // recording the activation shortcut race-free: no physical event can reach both consumers.
+    state.hotkeyTap = .idle
+    return .concatenate(.cancel(id: CancelID.hotkeyEvents), .send(recorderReady))
   }
 
   /// Every reason for not listening names itself, so the menu bar can tell a missing grant from a
