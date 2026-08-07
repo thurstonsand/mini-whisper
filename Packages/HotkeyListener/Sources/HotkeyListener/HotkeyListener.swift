@@ -20,6 +20,7 @@ public enum TapDisableReason: String, Equatable, Sendable {
 public enum HotkeyListenerEvent: Equatable, Sendable {
   case accessibilityPermissionMissing
   case monitoringStarted
+  case gestureInput(GestureInput)
   case gesture(GestureEvent)
   case monitoringInterrupted(TapDisableReason)
 }
@@ -100,7 +101,6 @@ private final class EventTapSession: @unchecked Sendable {
   private var stopWasRequested = false
   private var pressedKeys: Set<PhysicalKey> = []
   private var matcher: MultipleChordMatcher
-  private var gestureMachine = HotkeyGestureMachine()
 
   private func run(startup: CheckedContinuation<Void, any Error>) {
     let mask = [
@@ -171,7 +171,7 @@ private final class EventTapSession: @unchecked Sendable {
 
     let time = Duration.nanoseconds(Int64(clamping: event.timestamp))
     if type == .leftMouseDown || type == .rightMouseDown || type == .otherMouseDown {
-      emit(gestureMachine.receive(.mouseDown(at: time)))
+      emit(.mouseDown(at: time))
       return Unmanaged.passUnretained(event)
     }
 
@@ -180,7 +180,7 @@ private final class EventTapSession: @unchecked Sendable {
     }
     let match = matcher.receive(transition)
     if let input = match.input {
-      emit(gestureMachine.receive(input))
+      emit(input)
     }
     return match.disposition == .suppress ? nil : Unmanaged.passUnretained(event)
   }
@@ -226,10 +226,10 @@ private final class EventTapSession: @unchecked Sendable {
   }
 
   private func interrupt(reason: TapDisableReason, reenable: Bool) {
-    emit(gestureMachine.receive(.monitoringInterrupted))
+    emit(.monitoringInterrupted)
     pressedKeys.removeAll()
     matcher.interrupt()
-    _ = gestureMachine.receive(.neutral)
+    emit(.neutral)
     yield(.monitoringInterrupted(reason))
     if reenable, let eventTap {
       CGEvent.tapEnable(tap: eventTap, enable: true)
@@ -243,20 +243,11 @@ private final class EventTapSession: @unchecked Sendable {
     }
   }
 
-  private func emit(_ event: GestureEvent?) {
-    guard let event else {
-      return
-    }
-    switch event {
-    case .startRecording:
+  private func emit(_ input: GestureInput) {
+    if input.isActivation {
       performanceLogger.notice("benchmark hotkey-press")
-    case .stopAndTranscribe:
-      performanceLogger.notice("benchmark recording-release")
-    case .latchEngaged,
-         .cancel:
-      break
     }
-    yield(.gesture(event))
+    yield(.gestureInput(input))
   }
 
   private func yield(_ event: HotkeyListenerEvent) {

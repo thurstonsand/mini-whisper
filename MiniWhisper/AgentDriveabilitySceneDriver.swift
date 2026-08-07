@@ -59,12 +59,6 @@ import Foundation
         store.send(.onboarding(.engineReadinessUpdated(.downloading(fraction))))
       case "model-ready":
         store.send(.onboarding(.engineReadinessUpdated(.ready)))
-      case "sounds":
-        guard store.settings.soundsEnabled != (fields[2] == "true") else {
-          return
-        }
-        store.send(.toggleSounds)
-        refreshMenu()
       case "launch-at-login":
         store.send(.launchAtLoginUpdated(fields[2] == "true"))
         refreshMenu()

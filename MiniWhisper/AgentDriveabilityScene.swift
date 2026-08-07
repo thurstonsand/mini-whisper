@@ -30,6 +30,7 @@ enum PresentedWindow: Equatable {
     case settings
     case settingsShortcutsKeyboard = "settings-shortcuts-keyboard"
     case settingsMicrophoneUnavailable = "settings-microphone-unavailable"
+    case settingsSoundsNoAudio = "settings-sounds-no-audio"
     case settingsHistory = "settings-history"
     case about
     case pillRecording = "pill-recording"
@@ -55,7 +56,8 @@ enum PresentedWindow: Equatable {
         .settings(.settings, initialFocus: nil)
       case .settingsShortcutsKeyboard:
         .settings(.settings, initialFocus: .detail)
-      case .settingsMicrophoneUnavailable:
+      case .settingsMicrophoneUnavailable,
+           .settingsSoundsNoAudio:
         .settings(.settings, initialFocus: nil)
       case .settingsHistory:
         .settings(.history, initialFocus: nil)
@@ -84,11 +86,9 @@ enum PresentedWindow: Equatable {
 
       switch self {
       case .menuHealthy:
-        state.$settings.withLock { $0.soundsEnabled = true }
         state.launchAtLoginRegistered = true
         state.lastTranscript = "A previous transcript"
       case .menuDegraded:
-        state.$settings.withLock { $0.soundsEnabled = false }
         state.hotkeyTap = .accessibilityMissing
         state.accessibilityGranted = false
       case .onboardingWelcome:
@@ -141,6 +141,7 @@ enum PresentedWindow: Equatable {
                 tryItText: "MiniWhisper is ready.")
       case .settings,
            .settingsMicrophoneUnavailable,
+           .settingsSoundsNoAudio,
            .settingsHistory,
            .about:
         break
@@ -181,6 +182,8 @@ enum PresentedWindow: Equatable {
         settings.microphone = .device(
           uid: "seeded-disconnected-microphone", lastKnownName: "Studio Microphone",
         )
+      case .settingsSoundsNoAudio:
+        settings.sounds.cancel = nil
       default:
         return settings
       }

@@ -4,190 +4,217 @@ import Testing
 struct HotkeyGestureMachineTests {
   // MARK: Internal
 
-  @Test func `hold starts and stops recording`() {
-    var machine = HotkeyGestureMachine()
+  @Test func `idle input table`() {
+    assertCell(idle, .activation(at: .zero), .startRecording, .holding(startedAt: .zero))
+    assertCell(idle, .release(at: .milliseconds(100)), nil, .idle)
+    assertCell(idle, .release(at: .milliseconds(200)), nil, .idle)
+    assertCell(idle, .conflict(at: .milliseconds(100)), nil, .blockedUntilRelease)
+    assertCell(idle, .conflict(at: .milliseconds(300)), nil, .blockedUntilRelease)
+    assertCell(idle, .mouseDown(at: .milliseconds(100)), nil, .idle)
+    assertCell(idle, .escape, nil, .blockedUntilRelease)
+    assertCell(idle, .deadlineElapsed, nil, .idle)
+    assertCell(idle, .monitoringInterrupted, nil, .blockedUntilRelease)
+  }
 
+  @Test func `holding input table`() {
+    assertCell(holding, .activation(at: .milliseconds(100)), nil, .holding(startedAt: .zero))
+    assertCell(
+      holding, .release(at: .milliseconds(199)), nil,
+      .provisional(releasedAt: .milliseconds(199)),
+    )
+    assertCell(holding, .release(at: .milliseconds(200)), .stopAndTranscribe, .idle)
+    assertCell(
+      holding, .conflict(at: .milliseconds(299)), .discardRecording, .blockedUntilRelease,
+    )
+    assertCell(
+      holding, .conflict(at: .milliseconds(300)), nil, .holding(startedAt: .zero),
+    )
+    assertCell(
+      holding, .mouseDown(at: .milliseconds(100)), .discardRecording, .blockedUntilRelease,
+    )
+    assertCell(holding, .escape, .cancelAndArchive, .blockedUntilRelease)
+    assertCell(holding, .deadlineElapsed, nil, .holding(startedAt: .zero))
+    assertCell(holding, .monitoringInterrupted, .cancelAndArchive, .blockedUntilRelease)
+  }
+
+  @Test func `provisional input table`() {
+    assertCell(
+      provisional, .activation(at: .milliseconds(399)), nil,
+      .secondPress(startedAt: .milliseconds(399)),
+    )
+    assertCell(
+      provisional, .release(at: .milliseconds(150)), nil,
+      .provisional(releasedAt: .milliseconds(100)),
+    )
+    assertCell(
+      provisional, .release(at: .milliseconds(500)), nil,
+      .provisional(releasedAt: .milliseconds(100)),
+    )
+    assertCell(
+      provisional, .conflict(at: .milliseconds(200)), .discardRecording, .blockedUntilRelease,
+    )
+    assertCell(
+      provisional, .conflict(at: .milliseconds(500)), .discardRecording, .blockedUntilRelease,
+    )
+    assertCell(
+      provisional, .mouseDown(at: .milliseconds(200)), .discardRecording, .blockedUntilRelease,
+    )
+    assertCell(provisional, .escape, .discardRecording, .blockedUntilRelease)
+    assertCell(provisional, .deadlineElapsed, .discardRecording, .idle)
+    assertCell(provisional, .monitoringInterrupted, .discardRecording, .blockedUntilRelease)
+  }
+
+  @Test func `second press input table`() {
+    assertCell(
+      secondPress, .activation(at: .milliseconds(250)), nil,
+      .secondPress(startedAt: .milliseconds(200)),
+    )
+    assertCell(secondPress, .release(at: .milliseconds(399)), .latchEngaged, .latched)
+    assertCell(secondPress, .release(at: .milliseconds(400)), .stopAndTranscribe, .idle)
+    assertCell(
+      secondPress, .conflict(at: .milliseconds(499)), .discardRecording,
+      .blockedUntilRelease,
+    )
+    assertCell(
+      secondPress, .conflict(at: .milliseconds(500)), nil,
+      .secondPress(startedAt: .milliseconds(200)),
+    )
+    assertCell(
+      secondPress, .mouseDown(at: .milliseconds(250)), .discardRecording,
+      .blockedUntilRelease,
+    )
+    assertCell(secondPress, .escape, .cancelAndArchive, .blockedUntilRelease)
+    assertCell(
+      secondPress, .deadlineElapsed, nil, .secondPress(startedAt: .milliseconds(200)),
+    )
+    assertCell(secondPress, .monitoringInterrupted, .cancelAndArchive, .blockedUntilRelease)
+  }
+
+  @Test func `latched input table`() {
+    assertCell(latched, .activation(at: .seconds(1)), .stopAndTranscribe, .blockedUntilRelease)
+    assertCell(latched, .release(at: .milliseconds(100)), nil, .latched)
+    assertCell(latched, .release(at: .milliseconds(500)), nil, .latched)
+    assertCell(latched, .conflict(at: .milliseconds(100)), nil, .latched)
+    assertCell(latched, .conflict(at: .milliseconds(500)), nil, .latched)
+    assertCell(latched, .mouseDown(at: .milliseconds(100)), nil, .latched)
+    assertCell(latched, .escape, .cancelAndArchive, .blockedUntilRelease)
+    assertCell(latched, .deadlineElapsed, nil, .latched)
+    assertCell(latched, .monitoringInterrupted, .cancelAndArchive, .blockedUntilRelease)
+  }
+
+  @Test func `blocked input table`() {
+    assertCell(blocked, .activation(at: .milliseconds(100)), nil, .blockedUntilRelease)
+    assertCell(blocked, .release(at: .milliseconds(100)), nil, .idle)
+    assertCell(blocked, .release(at: .milliseconds(500)), nil, .idle)
+    assertCell(blocked, .conflict(at: .milliseconds(100)), nil, .blockedUntilRelease)
+    assertCell(blocked, .conflict(at: .milliseconds(500)), nil, .blockedUntilRelease)
+    assertCell(blocked, .mouseDown(at: .milliseconds(100)), nil, .blockedUntilRelease)
+    assertCell(blocked, .escape, nil, .blockedUntilRelease)
+    assertCell(blocked, .deadlineElapsed, nil, .blockedUntilRelease)
+    assertCell(blocked, .monitoringInterrupted, nil, .blockedUntilRelease)
+  }
+
+  @Test func `tap at two hundred milliseconds is A hold`() {
+    var machine = HotkeyGestureMachine()
     #expect(machine.receive(.activation(at: .zero)) == .startRecording)
-    #expect(machine.phase == .holding(startedAt: .zero))
-    #expect(machine.receive(.release(at: .seconds(1))) == .stopAndTranscribe)
+    #expect(machine.receive(.release(at: .milliseconds(200))) == .stopAndTranscribe)
     #expect(machine.phase == .idle)
   }
 
-  @Test func `lone tap is an immediate start and stop`() {
-    var machine = HotkeyGestureMachine()
-
-    #expect(machine.receive(.activation(at: .zero)) == .startRecording)
-    #expect(machine.receive(.release(at: .milliseconds(20))) == .stopAndTranscribe)
-    #expect(machine.phase == .idle)
+  @Test func `late mouse input preserves an established press`() {
+    assertCell(
+      holding, .mouseDown(at: .milliseconds(300)), nil, .holding(startedAt: .zero),
+    )
+    assertCell(
+      secondPress, .mouseDown(at: .milliseconds(500)), nil,
+      .secondPress(startedAt: .milliseconds(200)),
+    )
   }
 
-  @Test func `double tap engages latch on second release`() {
-    var machine = HotkeyGestureMachine()
-
-    #expect(machine.receive(.activation(at: .zero)) == .startRecording)
-    #expect(machine.receive(.release(at: .milliseconds(50))) == .stopAndTranscribe)
-    #expect(machine.receive(.activation(at: .milliseconds(100))) == .startRecording)
-    #expect(machine.phase == .holding(startedAt: .milliseconds(100)))
-    #expect(machine.receive(.release(at: .milliseconds(200))) == .latchEngaged)
-    #expect(machine.phase == .latched)
-  }
-
-  @Test func `latched tap stops immediately and rearms on release`() {
-    var machine = latchedMachine()
-
-    #expect(machine.receive(.activation(at: .seconds(1))) == .stopAndTranscribe)
+  @Test func `second press at three hundred milliseconds does not latch`() {
+    var machine = provisional()
+    #expect(machine.receive(.activation(at: .milliseconds(400))) == .discardRecording)
     #expect(machine.phase == .blockedUntilRelease)
-    #expect(machine.receive(.release(at: .seconds(1) + .milliseconds(10))) == nil)
+  }
+
+  @Test func `provisional expiry discards`() {
+    var machine = provisional()
+    #expect(machine.receive(.deadlineElapsed) == .discardRecording)
     #expect(machine.phase == .idle)
   }
 
-  @Test func `release gap just inside threshold latches`() {
-    var machine = HotkeyGestureMachine()
-
-    _ = machine.receive(.activation(at: .zero))
-    _ = machine.receive(.release(at: .milliseconds(100)))
-    _ = machine.receive(.activation(at: .milliseconds(200)))
-
-    #expect(machine.receive(.release(at: .milliseconds(399))) == .latchEngaged)
-    #expect(machine.phase == .latched)
-  }
-
-  @Test func `release gap at threshold does not latch`() {
-    var machine = HotkeyGestureMachine()
-
-    _ = machine.receive(.activation(at: .zero))
-    _ = machine.receive(.release(at: .milliseconds(100)))
-    _ = machine.receive(.activation(at: .milliseconds(200)))
-
+  @Test func `tap then hold transcribes the whole capture`() {
+    var machine = provisional()
+    #expect(machine.receive(.activation(at: .milliseconds(200))) == nil)
     #expect(machine.receive(.release(at: .milliseconds(400))) == .stopAndTranscribe)
     #expect(machine.phase == .idle)
   }
 
-  @Test func `release gap outside threshold does not latch`() {
-    var machine = HotkeyGestureMachine()
+  @Test func `double tap latches without restarting capture`() {
+    var machine = provisional()
+    #expect(machine.receive(.activation(at: .milliseconds(200))) == nil)
+    #expect(machine.receive(.release(at: .milliseconds(399))) == .latchEngaged)
+    #expect(machine.phase == .latched)
+  }
 
-    _ = machine.receive(.activation(at: .zero))
-    _ = machine.receive(.release(at: .milliseconds(100)))
-    _ = machine.receive(.activation(at: .milliseconds(200)))
-
-    #expect(machine.receive(.release(at: .milliseconds(401))) == .stopAndTranscribe)
+  @Test func `latch press transcribes and swallows its release`() {
+    var machine = latched()
+    #expect(machine.receive(.activation(at: .seconds(1))) == .stopAndTranscribe)
+    #expect(machine.receive(.release(at: .seconds(1) + .milliseconds(10))) == nil)
     #expect(machine.phase == .idle)
   }
 
-  @Test func `long second tap becomes an ordinary hold`() {
-    var machine = HotkeyGestureMachine()
-
-    _ = machine.receive(.activation(at: .zero))
-    _ = machine.receive(.release(at: .milliseconds(100)))
-    _ = machine.receive(.activation(at: .milliseconds(200)))
-
-    #expect(machine.receive(.release(at: .seconds(2))) == .stopAndTranscribe)
-    #expect(machine.phase == .idle)
-  }
-
-  @Test func `escape while idle blocks without inventing cancellation`() {
-    var machine = HotkeyGestureMachine()
-
-    #expect(machine.receive(.escape) == nil)
-    #expect(machine.phase == .blockedUntilRelease)
+  @Test func `neutral rearms every blocked interaction`() {
+    var machine = holding()
+    _ = machine.receive(.escape)
     #expect(machine.receive(.neutral) == nil)
     #expect(machine.phase == .idle)
-  }
-
-  @Test func `escape cancels hold and prevents backslide`() {
-    var machine = HotkeyGestureMachine()
-    _ = machine.receive(.activation(at: .zero))
-
-    #expect(machine.receive(.escape) == .cancel)
-    #expect(machine.phase == .blockedUntilRelease)
-    #expect(machine.receive(.activation(at: .milliseconds(100))) == nil)
-    #expect(machine.receive(.neutral) == nil)
-    #expect(machine.receive(.activation(at: .milliseconds(200))) == .startRecording)
-  }
-
-  @Test func `escape cancels latch`() {
-    var machine = latchedMachine()
-
-    #expect(machine.receive(.escape) == .cancel)
-    #expect(machine.phase == .blockedUntilRelease)
-  }
-
-  @Test func `repeated escape while blocked does not emit cancellation`() {
-    var machine = HotkeyGestureMachine()
-
-    #expect(machine.receive(.escape) == nil)
-    #expect(machine.receive(.escape) == nil)
-  }
-
-  @Test func `interruption cancels hold and fails closed`() {
-    var machine = HotkeyGestureMachine()
-    _ = machine.receive(.activation(at: .zero))
-
-    #expect(machine.receive(.monitoringInterrupted) == .cancel)
-    #expect(machine.phase == .blockedUntilRelease)
-    #expect(machine.receive(.activation(at: .milliseconds(100))) == nil)
-    #expect(machine.receive(.release(at: .milliseconds(200))) == nil)
-    #expect(machine.phase == .idle)
-  }
-
-  @Test func `interruption cancels latch and fails closed`() {
-    var machine = latchedMachine()
-
-    #expect(machine.receive(.monitoringInterrupted) == .cancel)
-    #expect(machine.phase == .blockedUntilRelease)
-    #expect(machine.receive(.neutral) == nil)
-    #expect(machine.phase == .idle)
-  }
-
-  @Test func `interruption while idle does not invent cancellation`() {
-    var machine = HotkeyGestureMachine()
-
-    #expect(machine.receive(.monitoringInterrupted) == nil)
-    #expect(machine.phase == .blockedUntilRelease)
-  }
-
-  @Test func `early conflicting input cancels and blocks`() {
-    var machine = HotkeyGestureMachine()
-    _ = machine.receive(.activation(at: .zero))
-
-    #expect(machine.receive(.conflict(at: .milliseconds(299))) == .cancel)
-    #expect(machine.phase == .blockedUntilRelease)
-  }
-
-  @Test func `conflicting input at accidental window is ignored`() {
-    var machine = HotkeyGestureMachine()
-    _ = machine.receive(.activation(at: .zero))
-
-    #expect(machine.receive(.conflict(at: .milliseconds(300))) == nil)
-    #expect(machine.phase == .holding(startedAt: .zero))
-  }
-
-  @Test func `early mouse down cancels but mouse down during latch does not`() {
-    var holding = HotkeyGestureMachine()
-    _ = holding.receive(.activation(at: .zero))
-    #expect(holding.receive(.mouseDown(at: .milliseconds(100))) == .cancel)
-
-    var latched = latchedMachine()
-    #expect(latched.receive(.mouseDown(at: .seconds(1))) == nil)
-    #expect(latched.phase == .latched)
-  }
-
-  @Test func `idle mouse down does not block the next activation`() {
-    var machine = HotkeyGestureMachine()
-
-    #expect(machine.receive(.mouseDown(at: .zero)) == nil)
-    #expect(machine.phase == .idle)
-    #expect(machine.receive(.activation(at: .milliseconds(100))) == .startRecording)
   }
 
   // MARK: Private
 
-  private func latchedMachine() -> HotkeyGestureMachine {
+  private func assertCell(
+    _ makeMachine: () -> HotkeyGestureMachine,
+    _ input: GestureInput,
+    _ expectedEvent: GestureEvent?,
+    _ expectedPhase: HotkeyGestureMachine.Phase,
+  ) {
+    var machine = makeMachine()
+    #expect(machine.receive(input) == expectedEvent)
+    #expect(machine.phase == expectedPhase)
+  }
+
+  private func idle() -> HotkeyGestureMachine {
+    HotkeyGestureMachine()
+  }
+
+  private func holding() -> HotkeyGestureMachine {
     var machine = HotkeyGestureMachine()
     _ = machine.receive(.activation(at: .zero))
-    _ = machine.receive(.release(at: .milliseconds(50)))
-    _ = machine.receive(.activation(at: .milliseconds(100)))
-    _ = machine.receive(.release(at: .milliseconds(200)))
+    return machine
+  }
+
+  private func provisional() -> HotkeyGestureMachine {
+    var machine = holding()
+    _ = machine.receive(.release(at: .milliseconds(100)))
+    return machine
+  }
+
+  private func secondPress() -> HotkeyGestureMachine {
+    var machine = provisional()
+    _ = machine.receive(.activation(at: .milliseconds(200)))
+    return machine
+  }
+
+  private func latched() -> HotkeyGestureMachine {
+    var machine = secondPress()
+    _ = machine.receive(.release(at: .milliseconds(300)))
+    return machine
+  }
+
+  private func blocked() -> HotkeyGestureMachine {
+    var machine = HotkeyGestureMachine()
+    _ = machine.receive(.escape)
     return machine
   }
 }

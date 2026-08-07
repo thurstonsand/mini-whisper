@@ -51,6 +51,7 @@ struct PillView: View {
     case transcribing
     case noSpeechDetected
     case copiedToClipboard
+    case cancelledSavedToHistory
     case fieldContextUnavailable
   }
 
@@ -66,6 +67,8 @@ struct PillView: View {
       .noSpeechDetected
     case .notice(.copiedToClipboard):
       .copiedToClipboard
+    case .notice(.cancelledSavedToHistory):
+      .cancelledSavedToHistory
     case .notice(.fieldContextUnavailable):
       .fieldContextUnavailable
     case nil:
@@ -120,6 +123,13 @@ struct PillView: View {
       )
       .font(.system(size: 13, weight: .medium))
       .foregroundStyle(.primary)
+    case .notice(.cancelledSavedToHistory):
+      SemanticText(
+        "Cancelled — saved to History", identifier: AccessibilityID.pillNotice,
+        label: "Dictation notice",
+      )
+      .font(.system(size: 13, weight: .medium))
+      .foregroundStyle(.primary)
     case .notice(.fieldContextUnavailable):
       SemanticText(
         "Pasted — could not collect surrounding context", identifier: AccessibilityID.pillNotice,
@@ -155,6 +165,11 @@ struct PillView: View {
       )
     case .notice(.copiedToClipboard):
       semanticLeaf(identifier: AccessibilityID.pillPhase, label: "Dictation phase", value: "Copied")
+    case .notice(.cancelledSavedToHistory):
+      semanticLeaf(
+        identifier: AccessibilityID.pillPhase, label: "Dictation phase",
+        value: "Cancelled and saved to History",
+      )
     case .notice(.fieldContextUnavailable):
       semanticLeaf(
         identifier: AccessibilityID.pillPhase, label: "Dictation phase",

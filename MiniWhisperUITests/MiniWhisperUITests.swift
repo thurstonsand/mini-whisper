@@ -159,10 +159,6 @@ final class MiniWhisperUITests: XCTestCase {
           isEnabled: true, isActionable: true,
         ),
         contract(
-          .menuItem, "miniwhisper.menu.sounds", "Sounds", "On", isEnabled: true,
-          isActionable: true,
-        ),
-        contract(
           .menuItem, "miniwhisper.menu.launch-at-login", "Launch at Login", "On", isEnabled: true,
           isActionable: true,
         ),
@@ -200,10 +196,6 @@ final class MiniWhisperUITests: XCTestCase {
         contract(
           .menuItem, "miniwhisper.menu.copy-last-transcript", "Copy Last Transcript",
           isEnabled: false,
-        ),
-        contract(
-          .menuItem, "miniwhisper.menu.sounds", "Sounds", "Off", isEnabled: true,
-          isActionable: true,
         ),
         contract(
           .menuItem, "miniwhisper.menu.launch-at-login", "Launch at Login", "Off", isEnabled: true,
@@ -284,6 +276,79 @@ final class MiniWhisperUITests: XCTestCase {
           .popUpButton, "miniwhisper.settings.microphone.picker", "Microphone input",
           "System Default (MacBook Pro Microphone)", isEnabled: true, isActionable: true,
         ),
+        contract(.group, "miniwhisper.settings.sound.activate", "Activate"),
+        contract(
+          .staticText, "miniwhisper.settings.sound.activate.state", "Activate highlight",
+          "Bar off",
+        ),
+        contract(
+          .button, "miniwhisper.settings.sound.activate.preview",
+          "Preview record start sound", "Ring off", isEnabled: true, isActionable: true,
+        ),
+        contract(
+          .popUpButton, "miniwhisper.settings.sound.activate.picker", "Activate sound",
+          "Tink (default)", isEnabled: true, isActionable: true,
+        ),
+        contract(
+          .staticText, "miniwhisper.settings.sound.activate.picker.state",
+          "Record start sound emphasis", "Primary",
+        ),
+        contract(.group, "miniwhisper.settings.sound.complete", "Complete"),
+        contract(
+          .staticText, "miniwhisper.settings.sound.complete.state", "Complete highlight", "Bar off",
+        ),
+        contract(
+          .button, "miniwhisper.settings.sound.complete.preview", "Preview complete sound",
+          "Ring off",
+          isEnabled: true, isActionable: true,
+        ),
+        contract(
+          .popUpButton, "miniwhisper.settings.sound.complete.picker", "Complete sound",
+          "Pop (default)",
+          isEnabled: true, isActionable: true,
+        ),
+        contract(
+          .staticText, "miniwhisper.settings.sound.complete.picker.state",
+          "Complete sound emphasis",
+          "Primary",
+        ),
+        contract(.group, "miniwhisper.settings.sound.cancel", "Cancel"),
+        contract(
+          .staticText, "miniwhisper.settings.sound.cancel.state", "Cancel highlight", "Bar off",
+        ),
+        contract(
+          .button, "miniwhisper.settings.sound.cancel.preview", "Preview cancel sound", "Ring off",
+          isEnabled: true, isActionable: true,
+        ),
+        contract(
+          .popUpButton, "miniwhisper.settings.sound.cancel.picker", "Cancel sound",
+          "Funk (default)",
+          isEnabled: true, isActionable: true,
+        ),
+        contract(
+          .staticText, "miniwhisper.settings.sound.cancel.picker.state", "Cancel sound emphasis",
+          "Primary",
+        ),
+        contract(.group, "miniwhisper.settings.sound.error", "Error"),
+        contract(
+          .staticText, "miniwhisper.settings.sound.error.state", "Error highlight", "Bar off",
+        ),
+        contract(
+          .button, "miniwhisper.settings.sound.error.preview", "Preview error sound", "Ring off",
+          isEnabled: true, isActionable: true,
+        ),
+        contract(
+          .popUpButton, "miniwhisper.settings.sound.error.picker", "Error sound",
+          "Basso (default)",
+          isEnabled: true, isActionable: true,
+        ),
+        contract(
+          .staticText, "miniwhisper.settings.sound.error.picker.state", "Error sound emphasis",
+          "Primary",
+        ),
+        contract(
+          .staticText, "miniwhisper.settings.sound.playback", "Sound playback", "None",
+        ),
       ],
     )
   }
@@ -305,6 +370,67 @@ final class MiniWhisperUITests: XCTestCase {
       app.menuItems["System Default (MacBook Pro Microphone)"].waitForExistence(timeout: 2),
     )
     app.typeKey(.escape, modifierFlags: [])
+  }
+
+  @MainActor func testSettingsSoundRowsJoinTheKeyboardGrammar() {
+    let app = launch("settings")
+    defer { terminate(app) }
+
+    XCTAssertTrue(
+      app.popUpButtons["miniwhisper.settings.sound.error.picker"].waitForExistence(timeout: 5),
+    )
+    app.typeText("l")
+    for cue in ["microphone", "sound.activate", "sound.complete", "sound.cancel", "sound.error"] {
+      app.typeText("j")
+      assertValue("Bar on", of: app.staticTexts["miniwhisper.settings.\(cue).state"])
+    }
+    app.typeText("kkkkk")
+    assertValue(
+      "Bar on", of: app.staticTexts["miniwhisper.settings.shortcut.activate.state"],
+    )
+  }
+
+  @MainActor func testSettingsReturnOpensASoundPopup() {
+    let app = launch("settings")
+    defer { terminate(app) }
+
+    let picker = app.popUpButtons["miniwhisper.settings.sound.activate.picker"]
+    XCTAssertTrue(picker.waitForExistence(timeout: 5))
+    app.typeText("ljj")
+    assertValue(
+      "Bar on", of: app.staticTexts["miniwhisper.settings.sound.activate.state"],
+    )
+    app.typeKey(.return, modifierFlags: [])
+    XCTAssertTrue(app.menuItems["No audio"].waitForExistence(timeout: 2))
+    XCTAssertTrue(app.menuItems["Tink (default)"].exists)
+    app.typeKey(.escape, modifierFlags: [])
+
+    app.typeText("h")
+    assertValue("Focused", of: app.outlines["miniwhisper.settings.sidebar"])
+  }
+
+  @MainActor func testSettingsNoAudioIsSecondaryAndCannotBePreviewed() {
+    let app = launch("settings-sounds-no-audio")
+    defer { terminate(app) }
+
+    let picker = app.popUpButtons["miniwhisper.settings.sound.cancel.picker"]
+    let preview = app.buttons["miniwhisper.settings.sound.cancel.preview"]
+    XCTAssertTrue(picker.waitForExistence(timeout: 5))
+    assertValue("No audio", of: picker)
+    assertValue(
+      "Secondary", of: app.staticTexts["miniwhisper.settings.sound.cancel.picker.state"],
+    )
+    XCTAssertFalse(preview.isEnabled)
+  }
+
+  @MainActor func testSettingsSoundPreviewFiresTheInjectedClient() {
+    let app = launch("settings")
+    defer { terminate(app) }
+
+    let preview = app.buttons["miniwhisper.settings.sound.activate.preview"]
+    XCTAssertTrue(preview.waitForExistence(timeout: 5))
+    preview.click()
+    assertValue("Tink", of: app.staticTexts["miniwhisper.settings.sound.playback"])
   }
 
   @MainActor func testSettingsMicrophoneRowAnswersThePointer() {
@@ -403,6 +529,27 @@ final class MiniWhisperUITests: XCTestCase {
     app.typeText("k")
     assertValue("Bar on", of: rowState)
     assertValue("Ring on", of: binding)
+  }
+
+  @MainActor func testSettingsKeyboardMovementContinuesFromHoveredRow() {
+    let app = launch("settings")
+    defer { terminate(app) }
+
+    app.typeText("l")
+    let errorRow = app.groups["miniwhisper.settings.sound.error"]
+    XCTAssertTrue(errorRow.waitForExistence(timeout: 5))
+    hoverAfterEnteringWindow(errorRow, in: app)
+    assertValue(
+      "Bar on", of: app.staticTexts["miniwhisper.settings.sound.error.state"],
+    )
+
+    app.typeText("k")
+    assertValue(
+      "Bar on", of: app.staticTexts["miniwhisper.settings.sound.cancel.state"],
+    )
+    assertValue(
+      "Ring off", of: app.buttons["miniwhisper.settings.sound.cancel.preview"],
+    )
   }
 
   @MainActor func testHistoryEnteringFromSidebarPaintsFirstCursor() {
@@ -782,8 +929,6 @@ final class MiniWhisperUITests: XCTestCase {
     )
     assert(elements, in: app, file: file, line: line)
     if scene == "menu-healthy" {
-      postAgentMutation("sounds", value: false)
-      assertValue("Off", of: app.menuItems["miniwhisper.menu.sounds"])
       postAgentMutation("launch-at-login", value: false)
       assertValue("Off", of: app.menuItems["miniwhisper.menu.launch-at-login"])
     }

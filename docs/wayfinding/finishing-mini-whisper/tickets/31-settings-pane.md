@@ -61,6 +61,23 @@ Architecture: one `MicrophoneSelection` type (lives in AudioCapture; AppSettings
 
 Remaining: Sounds (3), permissions row (5), Open at login/Version, and the menu slimming (6).
 
+## Built: element 3 — Sounds, and the gesture machine it provoked
+
+The pane's Sounds section: four rows — Activate, Complete, Cancel, Error — each a native popup over the sounds enumerated live from `/System/Library/Sounds` (logged fallback to the classic four), with a trailing play button on one vertical line. Choosing plays once; the play button replays; playback stops-then-restarts on spam. "No audio" sits first and dims only while it is the selection — a dimmed row inside an open menu reads as disabled (and `NSPopUpButtonCell.menuItem` with a detached display item renders blank; the trap is real). Each cue's default is annotated `Name (default)` and injected even if enumeration misses it. `SoundSettings` is four optional names on the shared settings value; absent key means default, explicit null means deliberately silent. The menu bar's Sounds toggle died with the bool that backed it. There is no legacy decode of any kind — `soundsEnabled` and the singular `hotkey` key were purged with the no-users-exist rule; an empty settings file resolves to the defaults.
+
+Touring the cues exposed the double-tap playing the activate cue twice, and the fix cascaded into the largest gesture-machine change since witnessed-keys. Two research passes ground it (cue timing: Hex replays the cue on double-tap — defensible company, left; tap norms: QMK/ZMK's 200 ms tap-hold default, clearing the 116 ms mean typing dwell):
+
+- **One continuous capture per interaction.** Phases `idle → holding → provisional → secondPress → latched`; a release under `tapMaximumDuration` (200 ms) enters provisional with the capture still running and no event emitted — the pill truthfully shows recording across a forming double-tap, the inter-tap audio lands in the transcript, and the old start/stop/start churn (with its mid-tap "no speech" race) is unrepresentable. `doubleTapWindow` (300 ms) is now first-release→second-press, Android's double-tap semantic, and doubles as the provisional deadline. A second press classifies at its own release: short latches, long is tap-then-hold — one dictation from the first press.
+- **The machine stays a pure value type.** Provisional is its first state unstable under silence, so the deadline arrives as an input (`deadlineElapsed`), scheduled by a cancellable reducer clock effect with a generation token against stale deadlines. Machine tests are phase × input tables.
+- **The cue law is structural**: `startRecording` is emitted once per interaction, so "one interaction, one cue, at onset" needs no suppression flag. The gate gained a 500 ms `minimumUtteranceDuration` floor ahead of VAD — speech physics, deliberately not gesture timing — and too-short discards are logged and wordless.
+- **Escape archives instead of destroying**: cancel cue, no delivery, transcript into history with nil delivery, pill notice "Cancelled — saved to History", and Copy Last Transcript serves it — the fastest recovery for an accidental Escape. Escaped silence dismisses quietly. Foreign input early in a press is a silent misfire discard; after 300 ms it passes through and recording continues (no surveyed app aborts an established recording; Apple dictation types while listening). Typing while latched is supported.
+- **The cursor law was amended** while unifying: hover and the keyboard cursor are one row state per surface, and hover carries focus into the detail column (a bare hover must paint); a parked pointer still steals nothing.
+- **Focus returns on window close**: an accessory app that activates itself owes focus back. `ActivationHandback` keeps a rolling last-frontmost-that-wasn't-us (Rectangle's shape — a one-time snapshot goes stale) and gives back via cooperative `yieldActivation` (Ice's mechanism), only if we still hold focus. Settings and About use it; onboarding's `NSApp.hide` already passes focus back; the pill is a nonactivating panel and never takes it.
+
+Decision evidence: cue-timing survey (session 019fdd0f), tap-norm/foreign-key survey (session 019fdd3f), focus-return survey (librarian run 019fddcd).
+
+Remaining: permissions row (5), Open at login/Version, and the rest of the menu slimming (6).
+
 ## Inherited constraints
 
 - The window's input model is already law: the pane participates in the h/j/k/l loop (`h` ascends to the sidebar), and keyboard focus behavior follows the contract recorded in [History](11-history.md).

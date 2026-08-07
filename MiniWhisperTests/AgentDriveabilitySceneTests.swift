@@ -21,6 +21,10 @@ struct AgentDriveabilitySceneTests {
       AgentDriveabilityScene.settingsMicrophoneUnavailable.presentedWindow
         == .settings(.settings, initialFocus: nil),
     )
+    #expect(
+      AgentDriveabilityScene.settingsSoundsNoAudio.presentedWindow
+        == .settings(.settings, initialFocus: nil),
+    )
     #expect(AgentDriveabilityScene.about.presentedWindow == .about)
     #expect(AgentDriveabilityScene.menuHealthy.presentedWindow == nil)
   }
@@ -30,6 +34,10 @@ struct AgentDriveabilitySceneTests {
       AgentDriveabilityScene.settingsMicrophoneUnavailable.initialState.settings.microphone
         == .device(uid: "seeded-disconnected-microphone", lastKnownName: "Studio Microphone"),
     )
+  }
+
+  @Test func `No audio scene seeds state instead of the live settings file`() {
+    #expect(AgentDriveabilityScene.settingsSoundsNoAudio.initialState.settings.sounds.cancel == nil)
   }
 
   @Test func `permission scenes advance one permission at A time`() {

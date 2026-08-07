@@ -25,7 +25,7 @@ If automatic paste is unavailable, MiniWhisper leaves the transcript on the clip
 
 ## Settings
 
-Settings are stored at `~/Library/Application Support/MiniWhisper/settings.json`. The file currently controls the hotkey and sounds.
+Settings are stored at `~/Library/Application Support/MiniWhisper/settings.json`. The file controls the shortcuts, microphone, per-cue sounds, and history retention.
 
 ## Building from source
 

@@ -147,13 +147,10 @@ struct MenuBarDerivationTests {
     #expect(viewState(inputDeviceName: nil).statusText == "Ready · Parakeet v2 · No input device")
   }
 
-  @Test func `the toggle and transcript state are passed through`() {
-    let state = viewState(
-      hasLastTranscript: true, soundsEnabled: false, launchAtLoginRegistered: true,
-    )
+  @Test func `the transcript and login item state are passed through`() {
+    let state = viewState(hasLastTranscript: true, launchAtLoginRegistered: true)
 
     #expect(state.canCopyLastTranscript)
-    #expect(!state.soundsEnabled)
     #expect(state.launchAtLoginRegistered)
   }
 
@@ -163,13 +160,12 @@ struct MenuBarDerivationTests {
     hotkeyTap: HotkeyTapStatus = .active, micStatus: MicPermissionStatus = .granted,
     engineReadiness: EngineReadiness = .ready, accessibilityGranted: Bool = true,
     inputDeviceName: String? = "Shure MV7", hasLastTranscript: Bool = false,
-    soundsEnabled: Bool = true, launchAtLoginRegistered: Bool = false,
+    launchAtLoginRegistered: Bool = false,
   ) -> MenuBarViewState {
     MenuBarViewState(
       hotkeyTap: hotkeyTap, micStatus: micStatus, accessibilityGranted: accessibilityGranted,
       engineReadiness: engineReadiness, inputDeviceName: inputDeviceName,
-      hasLastTranscript: hasLastTranscript, soundsEnabled: soundsEnabled,
-      launchAtLoginRegistered: launchAtLoginRegistered,
+      hasLastTranscript: hasLastTranscript, launchAtLoginRegistered: launchAtLoginRegistered,
     )
   }
 }
@@ -445,17 +441,6 @@ private struct MenuActionFailure: LocalizedError {
 
     #expect(!store.state.menuBar.canCopyLastTranscript)
     await store.send(.copyLastTranscript)
-  }
-
-  @Test func `toggling sounds writes the setting straight through`() async {
-    let state = AppFeature.State()
-    state.$settings.withLock { $0.soundsEnabled = true }
-    let store = TestStore(initialState: state) { AppFeature() }
-
-    await store.send(.toggleSounds) {
-      $0.$settings.withLock { $0.soundsEnabled = false }
-    }
-    #expect(!store.state.menuBar.soundsEnabled)
   }
 
   @Test func `toggling launch at login reads the service back`() async {

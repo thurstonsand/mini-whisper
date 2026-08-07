@@ -73,6 +73,7 @@ import Testing
     let snapshot = AudioInputDeviceSnapshot(devices: [builtIn], defaultDevice: builtIn)
 
     await store.send(.task)
+    await store.receive(.soundNamesLoaded([]))
     continuation.yield(level)
     await store.receive(.inputLevelUpdated(level)) { $0.inputLevel = level }
     snapshotContinuation.yield(snapshot)
@@ -89,6 +90,7 @@ import Testing
     }
 
     await store.send(.task)
+    await store.receive(.soundNamesLoaded([]))
     await store.receive(.inputLevelUpdated(nil))
     await store.finish()
     #expect(store.state.inputLevel == nil)
@@ -172,6 +174,75 @@ import Testing
     await store.receive(.inputLevelUpdated(nil))
   }
 
+  @Test func `sound rows join movement with popup and preview targets`() async {
+    let store = TestStore(initialState: makeState()) { SettingsPaneFeature() }
+
+    await store.send(.rowMoved(.next)) { $0.cursor.row = .microphone }
+    await store.send(.rowMoved(.next)) { $0.cursor.row = .sound(.activate) }
+    #expect(store.state.cursorTarget == .soundPicker(.activate))
+    await store.send(.leftPressed)
+    await store.send(.pressRequested) { $0.soundActivations[.activate] = 1 }
+    await store.send(.rightPressed) { $0.cursor.target = 1 }
+    #expect(store.state.cursorTarget == .soundPreview(.activate))
+    await store.send(.rowMoved(.next)) {
+      $0.cursor.row = .sound(.complete)
+      $0.cursor.target = 0
+    }
+    await store.send(.rowMoved(.next)) { $0.cursor.row = .sound(.cancel) }
+    await store.send(.rowMoved(.next)) { $0.cursor.row = .sound(.error) }
+    await store.send(.rowMoved(.next))
+  }
+
+  @Test func `choosing A sound commits it and plays it once`() async {
+    let sounds = SoundRecorder()
+    let store = TestStore(initialState: makeState()) { SettingsPaneFeature() } withDependencies: {
+      $0.sounds.play = { name in await sounds.record(name) }
+    }
+
+    await store.send(.soundSelected(.complete, "Glass")) {
+      $0.bindings.$settings.withLock { $0.sounds.complete = "Glass" }
+    }
+    await store.receive(.soundPlaybackCompleted("Glass")) { $0.lastPlayedSound = "Glass" }
+    #expect(await sounds.recorded == ["Glass"])
+  }
+
+  @Test func `preview replays the selected sound`() async {
+    let sounds = SoundRecorder()
+    let store = TestStore(initialState: makeState()) { SettingsPaneFeature() } withDependencies: {
+      $0.sounds.play = { name in await sounds.record(name) }
+    }
+
+    await store.send(.soundReplayRequested(.activate))
+    await store.receive(.soundPlaybackCompleted("Tink")) { $0.lastPlayedSound = "Tink" }
+    #expect(await sounds.recorded == ["Tink"])
+  }
+
+  @Test func `replaying the same sound is never deduplicated`() async {
+    let sounds = SoundRecorder()
+    let store = TestStore(initialState: makeState()) { SettingsPaneFeature() } withDependencies: {
+      $0.sounds.play = { name in await sounds.record(name) }
+    }
+
+    await store.send(.soundReplayRequested(.activate))
+    await store.receive(.soundPlaybackCompleted("Tink")) { $0.lastPlayedSound = "Tink" }
+    await store.send(.soundReplayRequested(.activate))
+    await store.receive(.soundPlaybackCompleted("Tink"))
+    #expect(await sounds.recorded == ["Tink", "Tink"])
+  }
+
+  @Test func `choosing No audio commits silence without playback`() async {
+    let sounds = SoundRecorder()
+    let store = TestStore(initialState: makeState()) { SettingsPaneFeature() } withDependencies: {
+      $0.sounds.play = { name in await sounds.record(name) }
+    }
+
+    await store.send(.soundSelected(.cancel, nil)) {
+      $0.bindings.$settings.withLock { $0.sounds.cancel = nil }
+    }
+    await store.send(.soundReplayRequested(.cancel))
+    #expect(await sounds.recorded.isEmpty)
+  }
+
   @Test func `press records the selected binding`() async throws {
     let second = try Hotkey(keyCode: 15, modifiers: [.rightControl])
     var state = makeState(hotkeys: [.rightOption, second])
@@ -191,25 +262,22 @@ import Testing
     await store.receive(.bindings(.delegate(.recordingStarted)))
   }
 
-  @Test func `leaving A row hands the bar back to the focused cursor`() async {
+  @Test func `hover moves the single row cursor and keyboard movement continues from it`() async {
     var state = makeWindowState()
     state.interaction.focus = .detail
     let store = TestStore(initialState: state) { SettingsWindowFeature() }
 
-    await store.send(.settingsPane(.rowHovered(.activate))) {
-      $0.settingsPane.hoveredRow = .activate
+    await store.send(.settingsPane(.cursorHovered(.sound(.complete)))) {
+      $0.settingsPane.cursor.row = .sound(.complete)
     }
-    #expect(store.state.showsSettingsBar(.activate))
+    #expect(store.state.showsSettingsBar(.sound(.complete)))
 
-    await store.send(.settingsPane(.rowExited(.activate))) {
-      $0.settingsPane.hoveredRow = nil
+    await store.send(.keyboardModeEntered) { $0.interaction.mode = .keyboard }
+    await store.send(.settingsPane(.rowMoved(.next))) {
+      $0.settingsPane.cursor.row = .sound(.cancel)
     }
-    // The pointer left, so the focused column falls back to its cursor rather than keeping the
-    // bar parked on a row the pointer has long since abandoned.
-    #expect(store.state.showsSettingsBar(.activate))
-
-    await store.send(.focusChanged(nil)) { $0.interaction.focus = nil }
-    #expect(!store.state.showsSettingsBar(.activate))
+    #expect(store.state.showsSettingsBar(.sound(.cancel)))
+    #expect(store.state.showsSettingsRing(.sound(.cancel), target: .soundPicker(.cancel)))
   }
 
   @Test func `removing the last binding pulls the cursor back onto the empty state`() async throws {

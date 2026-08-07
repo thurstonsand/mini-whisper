@@ -5,6 +5,7 @@ import Foundation
 
 public enum TranscriptionOutcome: Equatable, Sendable {
   case transcript(String)
+  case tooShort
   case noSpeech
   case engineEmpty
 }

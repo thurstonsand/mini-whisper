@@ -18,6 +18,11 @@ import HotkeyListener
   enum Row: CaseIterable, Equatable {
     case activate
     case microphone
+    case sound(SoundCue)
+
+    // MARK: Internal
+
+    static let allCases: [Row] = [.activate, .microphone] + SoundCue.allCases.map(Row.sound)
   }
 
   /// One target is exactly one control the ring can sit on, so no two of these are ever the same
@@ -27,6 +32,8 @@ import HotkeyListener
     case set
     case recording
     case microphone
+    case soundPreview(SoundCue)
+    case soundPicker(SoundCue)
   }
 
   struct Cursor: Equatable {
@@ -45,13 +52,16 @@ import HotkeyListener
 
     var bindings: HotkeyBindingsFeature.State
     var cursor = Cursor()
-    var hoveredRow: Row?
     var inputDevices = AudioInputDeviceSnapshot.empty
     var inputLevel: AudioLevel?
     /// Return on this row has to reach an AppKit pop-up button that only opens when it is clicked,
     /// and a view cannot be told to do something twice by a value that stays the same. The count
     /// is the message; nothing reads it but the button.
     var microphoneActivation = 0
+    var soundNames: [String] = []
+    /// Same message-by-count trick as `microphoneActivation`, one counter per pop-up button.
+    var soundActivations: [SoundCue: Int] = [:]
+    var lastPlayedSound: String?
 
     var microphone: MicrophoneSelection {
       bindings.settings.microphone
@@ -68,6 +78,10 @@ import HotkeyListener
           ? uid
           : inputDevices.defaultDevice?.uid
       }
+    }
+
+    var sounds: SoundSettings {
+      bindings.settings.sounds
     }
 
     var unavailableMicrophoneName: String? {
@@ -90,6 +104,8 @@ import HotkeyListener
         return indices.isEmpty ? [.set] : indices
       case .microphone:
         return [.microphone]
+      case let .sound(cue):
+        return [.soundPicker(cue), .soundPreview(cue)]
       }
     }
 
@@ -108,12 +124,15 @@ import HotkeyListener
     case inputDevicesUpdated(AudioInputDeviceSnapshot)
     case inputLevelUpdated(AudioLevel?)
     case microphoneSelected(MicrophoneSelection)
+    case soundNamesLoaded([String])
+    case soundSelected(SoundCue, String?)
+    case soundReplayRequested(SoundCue)
+    case soundPlaybackCompleted(String)
     case rowMoved(CursorMovement)
     case leftPressed
     case rightPressed
     case pressRequested
-    case rowHovered(Row)
-    case rowExited(Row)
+    case cursorHovered(Row)
   }
 
   enum Delegate: Equatable {
@@ -122,6 +141,7 @@ import HotkeyListener
 
   @Dependency(\.audioInputDevices) var audioInputDevices
   @Dependency(\.audioInputLevels) var audioInputLevels
+  @Dependency(\.sounds) var sounds
 
   var body: some ReducerOf<Self> {
     Scope(state: \.bindings, action: \.bindings) { HotkeyBindingsFeature() }
@@ -139,6 +159,9 @@ import HotkeyListener
             }
           }.cancellable(id: CancelID.deviceObservation, cancelInFlight: true),
           monitorLevels(selection: state.microphone),
+          .run { send in
+            await send(.soundNamesLoaded(sounds.availableNames()))
+          },
         )
       case .paneClosed:
         state.inputLevel = nil
@@ -171,6 +194,17 @@ import HotkeyListener
         }
         state.bindings.$settings.withLock { $0.microphone = selection }
         return microphoneRouteChanged(&state)
+      case let .soundNamesLoaded(names):
+        state.soundNames = names
+        return .none
+      case let .soundSelected(cue, name):
+        state.bindings.$settings.withLock { $0.sounds[cue] = name }
+        return play(name)
+      case let .soundReplayRequested(cue):
+        return play(state.sounds[cue])
+      case let .soundPlaybackCompleted(name):
+        state.lastPlayedSound = name
+        return .none
       case let .rowMoved(movement):
         let rows = Row.allCases
         guard let current = rows.firstIndex(of: state.cursor.row) else {
@@ -198,16 +232,15 @@ import HotkeyListener
         case .microphone:
           state.microphoneActivation += 1
           return .none
+        case let .soundPreview(cue):
+          return .send(.soundReplayRequested(cue))
+        case let .soundPicker(cue):
+          state.soundActivations[cue, default: 0] += 1
+          return .none
         }
-      case let .rowHovered(row):
-        state.hoveredRow = row
-        return .none
-      case let .rowExited(row):
-        // A neighbouring row can report its entry before this one reports its exit, so only the
-        // row that still owns the pointer is allowed to give it up.
-        if state.hoveredRow == row {
-          state.hoveredRow = nil
-        }
+      case let .cursorHovered(row):
+        state.cursor.row = row
+        moveTarget(&state, to: 0)
         return .none
       case .bindings(.delegate(.recordingStopped)),
            .bindings(.delegate(.bindingsChanged)):
@@ -225,6 +258,16 @@ import HotkeyListener
   // MARK: Private
 
   private enum CancelID { case deviceObservation, levelMonitoring }
+
+  private func play(_ name: String?) -> Effect<Action> {
+    guard let name else {
+      return .none
+    }
+    return .run { send in
+      await sounds.play(name)
+      await send(.soundPlaybackCompleted(name))
+    }
+  }
 
   /// The route the selection leads to has moved. The prewarmed engine and the meter both point at
   /// a device, so they are rebound together or not at all.

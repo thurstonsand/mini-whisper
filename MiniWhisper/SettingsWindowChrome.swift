@@ -62,6 +62,12 @@ private struct WindowKeys: ViewModifier {
   }
 }
 
+// MARK: - WindowPointerTracker
+
+@MainActor @Observable final class WindowPointerTracker {
+  var location: CGPoint?
+}
+
 // MARK: - WindowPointerMovement
 
 /// `onContinuousHover` reports global coordinates. Comparing them prevents a parked pointer from
@@ -70,23 +76,25 @@ private struct WindowPointerMovement: ViewModifier {
   // MARK: Internal
 
   let store: StoreOf<SettingsWindowFeature>
+  let onMove: () -> Void
 
   func body(content: Content) -> some View {
     content.onContinuousHover(coordinateSpace: .global) { phase in
       guard case let .active(location) = phase else {
         return
       }
-      defer { pointerLocation = location }
-      guard let pointerLocation, pointerLocation != location else {
+      defer { pointerTracker.location = location }
+      guard let pointerLocation = pointerTracker.location, pointerLocation != location else {
         return
       }
       store.send(.pointerMoved)
+      onMove()
     }
   }
 
   // MARK: Private
 
-  @State private var pointerLocation: CGPoint?
+  @Environment(WindowPointerTracker.self) private var pointerTracker
 }
 
 extension View {
@@ -96,7 +104,20 @@ extension View {
     modifier(WindowKeys(store: store, actions: actions))
   }
 
-  func windowPointerMovement(store: StoreOf<SettingsWindowFeature>) -> some View {
-    modifier(WindowPointerMovement(store: store))
+  func windowPointerMovement(
+    store: StoreOf<SettingsWindowFeature>, onMove: @escaping () -> Void = {},
+  ) -> some View {
+    modifier(WindowPointerMovement(store: store, onMove: onMove))
+  }
+
+  /// The window paints its own ring — every focusable control in it has `focusEffectDisabled` —
+  /// so this is the one place its shape is decided.
+  func focusRing(_ isVisible: Bool) -> some View {
+    overlay {
+      RoundedRectangle(cornerRadius: 6)
+        .strokeBorder(Color(nsColor: .keyboardFocusIndicatorColor), lineWidth: 2)
+        .padding(-1)
+        .opacity(isVisible ? 1 : 0)
+    }
   }
 }

@@ -54,10 +54,12 @@ import SwiftUI
       return
     }
     window = nil
+    handback.giveBack()
   }
 
   // MARK: Private
 
   private let store: StoreOf<SettingsWindowFeature>
   private var window: NSWindow?
+  private let handback = ActivationHandback()
 }

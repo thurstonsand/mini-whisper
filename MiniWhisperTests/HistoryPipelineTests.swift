@@ -49,7 +49,7 @@ import Testing
     store.exhaustivity = .off(showSkippedAssertions: false)
 
     await store.send(
-      .transcriptionCompleted(1, suppressNoSpeechNotice: false, .transcript("dictated text")),
+      .transcriptionCompleted(1, .transcript("dictated text")),
     ) {
       $0.lastTranscript = "dictated text"
       $0.pendingDictation?.original = History.Transcription(
@@ -86,9 +86,30 @@ import Testing
     state.transcriptionGeneration = 1
     state.pill.presentation = .transcribing
     state.pendingDictation = pendingDictation(generation: 1)
+    let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
+      $0.continuousClock = TestClock()
+    }
+
+    await store.send(.transcriptionCompleted(1, .noSpeech)) {
+      $0.pendingDictation = nil
+    }
+    await store.receive(.pill(.noSpeechDetected)) {
+      $0.pill.noticeGeneration = 1
+      $0.pill.presentation = .notice(.noSpeechDetected)
+    }
+    await store.send(.pill(.dismiss)) { $0.pill.presentation = nil }
+    await store.finish()
+    #expect(store.state.history.entries.isEmpty)
+  }
+
+  @Test func `too short creates no history entry`() async {
+    var state = historyState()
+    state.transcriptionGeneration = 1
+    state.pill.presentation = .transcribing
+    state.pendingDictation = pendingDictation(generation: 1)
     let store = TestStore(initialState: state) { AppFeature() }
 
-    await store.send(.transcriptionCompleted(1, suppressNoSpeechNotice: true, .noSpeech)) {
+    await store.send(.transcriptionCompleted(1, .tooShort)) {
       $0.pendingDictation = nil
     }
     await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
@@ -330,10 +351,11 @@ import Testing
         1, AppFeature.DeliveryResult(text: "first", targetApp: nil, outcome: .pasted(.restored)),
       ),
     )
-    await store.send(.hotkeyListenerEvent(.gesture(.startRecording))) {
-      $0.transcriptionGeneration = 2
-      $0.pendingDictation = nil
-    }
+    await store
+      .send(.hotkeyListenerEvent(.gesture(.startRecording))) {
+        $0.transcriptionGeneration = 2
+        $0.pendingDictation = nil
+      }
     openWriteGate.finish()
     let entry = HistoryEntry(
       id: id, createdAt: Date(timeIntervalSince1970: 100), targetApp: nil,
@@ -369,7 +391,7 @@ import Testing
     let state = AppFeature.State(
       history: Shared(value: original),
       settings: Shared(value: MiniWhisperSettings(
-        hotkeys: [.rightOption], microphone: .systemDefault, soundsEnabled: true,
+        hotkeys: [.rightOption], microphone: .systemDefault, sounds: .defaults,
         retention: RetentionPolicy(transcripts: .forever, audio: .oneDay),
       )),
     )

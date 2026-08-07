@@ -20,6 +20,7 @@ import ComposableArchitecture
       enum Notice: Equatable {
         case noSpeechDetected
         case copiedToClipboard
+        case cancelledSavedToHistory
         case fieldContextUnavailable
       }
     }
@@ -40,6 +41,7 @@ import ComposableArchitecture
     case transcribingStarted
     case noSpeechDetected
     case copiedToClipboard
+    case cancelledSavedToHistory
     case fieldContextUnavailable
     case dismiss
     case cancel
@@ -97,6 +99,8 @@ import ComposableArchitecture
         return showNotice(.noSpeechDetected, for: .milliseconds(1500), state: &state)
       case .copiedToClipboard:
         return showNotice(.copiedToClipboard, for: .seconds(3), state: &state)
+      case .cancelledSavedToHistory:
+        return showNotice(.cancelledSavedToHistory, for: .seconds(3), state: &state)
       case .fieldContextUnavailable:
         return showNotice(.fieldContextUnavailable, for: .milliseconds(1500), state: &state)
       case .dismiss,

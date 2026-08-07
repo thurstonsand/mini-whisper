@@ -24,6 +24,7 @@ struct SettingsWindowView: View {
       .scrollBounceBehavior(.basedOnSize)
       .focused($focusedColumn, equals: .sidebar)
       .windowKeys(store: store, sidebarKeys)
+      .windowPointerMovement(store: store)
       .toolbar(removing: .sidebarToggle)
       .accessibilityIdentifier(AccessibilityID.settingsSidebar)
       .accessibilityLabel("Settings sections")
@@ -57,7 +58,11 @@ struct SettingsWindowView: View {
       WindowKeyFocus { applyInitialFocus() }
         .frame(width: 0, height: 0)
     }
+    .environment(pointerTracker)
     .onChange(of: focusedColumn) { _, focus in store.send(.focusChanged(focus)) }
+    // The other half of the mirror: a hover moves focus in the store, and @FocusState is the only
+    // thing that can make it real. Assigning a value it already holds ends the round trip.
+    .onChange(of: store.interaction.focus) { _, focus in focusedColumn = focus }
   }
 
   // MARK: Private
@@ -65,6 +70,7 @@ struct SettingsWindowView: View {
   @FocusState private var focusedColumn: SettingsWindowFocus?
   @FocusState private var isHistorySearchFocused: Bool
   @State private var hasAppliedInitialFocus = false
+  @State private var pointerTracker = WindowPointerTracker()
 
   /// `List` selection is optional and the window's never is, so this is the only place the two
   /// shapes meet: a deselection is simply not a destination change.

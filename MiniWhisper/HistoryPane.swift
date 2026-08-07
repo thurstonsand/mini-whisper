@@ -23,7 +23,6 @@ struct HistoryPane: View {
         }
       }
       .focusEffectDisabled()
-      .windowPointerMovement(store: store)
       .onChange(of: store.history.cursor) { _, cursor in
         guard store.interaction.mode == .keyboard, let cursor else {
           return
@@ -227,7 +226,9 @@ private struct HistoryRow: View {
       store.send(.pointerMoved)
       store.send(.history(.rowTapped(entry.id)))
     }
-    .onHover { isHovered = $0 }
+    .windowPointerMovement(store: store) {
+      store.send(.history(.cursorHovered(entry.id)))
+    }
     .contextMenu { menuItems }
     .accessibilityElement(children: .contain)
     .accessibilityIdentifier(AccessibilityID.historyRow(entry.id))
@@ -241,11 +242,9 @@ private struct HistoryRow: View {
 
   // MARK: Private
 
-  @State private var isHovered = false
-
-  /// Hover only counts while the mouse is the thing driving, so exactly one grey is ever visible.
   private var isPointed: Bool {
-    isHovered && store.interaction.mode == .mouse && store.interaction.focus == .detail
+    store.interaction.mode == .mouse && store.interaction.focus == .detail
+      && store.history.cursor == entry.id
   }
 
   private var showsGrey: Bool {

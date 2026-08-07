@@ -22,9 +22,20 @@ struct SettingsPane: View {
       Section("Microphone") {
         MicrophoneRow(store: store)
       }
+
+      Section("Sounds") {
+        ForEach(SoundCue.allCases, id: \.self) { cue in
+          SoundRow(store: store, cue: cue)
+        }
+      }
     }
     .formStyle(.grouped)
     .focusEffectDisabled()
+    // Playback leaves no mark on screen, so the pane carries one probe saying what was last heard.
+    .accessibilityPaintState(
+      AccessibilityID.settingsSoundPlayback, label: "Sound playback",
+      value: store.settingsPane.lastPlayedSound ?? "None",
+    )
     .task { store.send(.settingsPane(.task)) }
     .onDisappear { store.send(.settingsPane(.paneClosed)) }
   }
@@ -42,19 +53,14 @@ private struct MicrophoneRow: View {
       VStack(alignment: .trailing, spacing: 4) {
         HStack(spacing: 8) {
           MicrophoneLevelMeter(level: store.settingsPane.inputLevel)
-          MicrophonePopUpButton(
+          SettingsPopUpButton(
             options: options,
             selection: store.settingsPane.microphone,
             activation: store.settingsPane.microphoneActivation,
             onSelection: { store.send(.settingsPane(.microphoneSelected($0))) },
           )
           .fixedSize()
-          .overlay {
-            RoundedRectangle(cornerRadius: 6)
-              .strokeBorder(Color(nsColor: .keyboardFocusIndicatorColor), lineWidth: 2)
-              .padding(-1)
-              .opacity(store.state.showsSettingsRing(.microphone, target: .microphone) ? 1 : 0)
-          }
+          .focusRing(store.state.showsSettingsRing(.microphone, target: .microphone))
           .accessibilityIdentifier(AccessibilityID.settingsMicrophonePicker)
           .accessibilityLabel("Microphone input")
         }
@@ -89,22 +95,18 @@ private struct MicrophoneRow: View {
   /// A selection the machine cannot currently offer still gets an entry, carrying the stored
   /// value unchanged, so the popup can show what the user chose instead of quietly showing
   /// something else.
-  private var options: [MicrophonePopUpButton.Option] {
+  private var options: [SettingsPopUpButton<MicrophoneSelection>.Option] {
+    typealias Option = SettingsPopUpButton<MicrophoneSelection>.Option
     var options = [
-      MicrophonePopUpButton.Option(
-        selection: .systemDefault, title: "System Default (\(defaultDeviceName))",
-      ),
+      Option(value: .systemDefault, title: "System Default (\(defaultDeviceName))"),
     ]
     options.append(contentsOf: store.settingsPane.inputDevices.devices.map {
-      MicrophonePopUpButton.Option(
-        selection: .device(uid: $0.uid, lastKnownName: $0.name), title: $0.name,
-      )
+      Option(value: .device(uid: $0.uid, lastKnownName: $0.name), title: $0.name)
     })
     if let unavailableName = store.settingsPane.unavailableMicrophoneName {
       options.append(
-        MicrophonePopUpButton.Option(
-          selection: store.settingsPane.microphone,
-          title: "\(unavailableName) (Unavailable)",
+        Option(
+          value: store.settingsPane.microphone, title: "\(unavailableName) (Unavailable)",
         ),
       )
     }
@@ -137,18 +139,31 @@ private struct MicrophoneLevelMeter: View {
   }
 }
 
-// MARK: - MicrophonePopUpButton
+// MARK: - SettingsPopUpButton
 
-private struct MicrophonePopUpButton: NSViewRepresentable {
+/// The pane's one bridge to `NSPopUpButton`. SwiftUI's `Picker` cannot be opened from the keyboard
+/// or dim an individual row, and both are settings-window grammar, so every pop-up here is this.
+private struct SettingsPopUpButton<Value: Equatable>: NSViewRepresentable {
   struct Option: Equatable {
-    let selection: MicrophoneSelection
+    // MARK: Lifecycle
+
+    init(value: Value, title: String, isSecondary: Bool = false) {
+      self.value = value
+      self.title = title
+      self.isSecondary = isSecondary
+    }
+
+    // MARK: Internal
+
+    let value: Value
     let title: String
+    let isSecondary: Bool
   }
 
   @MainActor final class Coordinator: NSObject {
     // MARK: Lifecycle
 
-    init(activation: Int, onSelection: @escaping (MicrophoneSelection) -> Void) {
+    init(activation: Int, onSelection: @escaping (Value) -> Void) {
       self.activation = activation
       self.onSelection = onSelection
     }
@@ -157,20 +172,20 @@ private struct MicrophonePopUpButton: NSViewRepresentable {
 
     var options: [Option] = []
     var activation: Int
-    var onSelection: (MicrophoneSelection) -> Void
+    var onSelection: (Value) -> Void
 
     @objc func selectionChanged(_ sender: NSPopUpButton) {
       guard options.indices.contains(sender.indexOfSelectedItem) else {
         return
       }
-      onSelection(options[sender.indexOfSelectedItem].selection)
+      onSelection(options[sender.indexOfSelectedItem].value)
     }
   }
 
   let options: [Option]
-  let selection: MicrophoneSelection
+  let selection: Value
   let activation: Int
-  let onSelection: (MicrophoneSelection) -> Void
+  let onSelection: (Value) -> Void
 
   func makeCoordinator() -> Coordinator {
     Coordinator(activation: activation, onSelection: onSelection)
@@ -192,8 +207,23 @@ private struct MicrophonePopUpButton: NSViewRepresentable {
         button.addItem(withTitle: option.title)
       }
     }
-    if let selectedIndex = options.firstIndex(where: { $0.selection == selection }) {
+    if let selectedIndex = options.firstIndex(where: { $0.value == selection }) {
       button.selectItem(at: selectedIndex)
+    }
+    // A secondary choice dims only while it is the selection, so the collapsed control reads
+    // quiet without the open menu ever showing a greyed row that looks disabled.
+    for (index, option) in options.enumerated() where option.isSecondary {
+      guard let item = button.item(at: index) else {
+        continue
+      }
+      let wanted: NSAttributedString? =
+        index == button.indexOfSelectedItem
+          ? NSAttributedString(
+            string: option.title, attributes: [.foregroundColor: NSColor.secondaryLabelColor],
+          ) : nil
+      if item.attributedTitle != wanted {
+        item.attributedTitle = wanted
+      }
     }
     // Only a click opens a pop-up button, so Return on this row arrives as a changed count.
     guard activation != context.coordinator.activation else {
@@ -201,6 +231,85 @@ private struct MicrophonePopUpButton: NSViewRepresentable {
     }
     context.coordinator.activation = activation
     DispatchQueue.main.async { button.performClick(nil) }
+  }
+}
+
+// MARK: - SoundRow
+
+private struct SoundRow: View {
+  // MARK: Internal
+
+  let store: StoreOf<SettingsWindowFeature>
+  let cue: SoundCue
+
+  var body: some View {
+    LabeledContent(cue.label) {
+      HStack(spacing: 8) {
+        SettingsPopUpButton(
+          options: options, selection: selection,
+          activation: store.settingsPane.soundActivations[cue, default: 0],
+          onSelection: { store.send(.settingsPane(.soundSelected(cue, $0))) },
+        )
+        .fixedSize()
+        .focusRing(store.state.showsSettingsRing(row, target: .soundPicker(cue)))
+        .accessibilityIdentifier(AccessibilityID.settingsSound(cue, .picker))
+        .accessibilityLabel("\(cue.label) sound")
+        .accessibilityPaintState(
+          AccessibilityID.settingsSound(cue, .pickerState),
+          label: "\(cue.label) sound emphasis",
+          value: selection == nil ? "Secondary" : "Primary",
+        )
+
+        Button("Play \(cue.label)", systemImage: "play.circle") {
+          store.send(.settingsPane(.soundReplayRequested(cue)))
+        }
+        .labelStyle(.iconOnly)
+        .buttonStyle(.borderless)
+        .disabled(selection == nil)
+        .focusRing(showsPreviewRing)
+        .accessibilityIdentifier(AccessibilityID.settingsSound(cue, .preview))
+        .accessibilityLabel("Preview \(cue.label.lowercased()) sound")
+        .accessibilityValue(showsPreviewRing ? "Ring on" : "Ring off")
+      }
+    }
+    .modifier(SettingsFormRow(store: store, row: row))
+    .accessibilityElement(children: .contain)
+    .accessibilityIdentifier(AccessibilityID.settingsSound(cue, .row))
+    .accessibilityLabel(cue.label)
+    .accessibilityPaintState(
+      AccessibilityID.settingsSound(cue, .rowState), label: "\(cue.label) highlight",
+      value: store.state.showsSettingsBar(row) ? "Bar on" : "Bar off",
+    )
+  }
+
+  // MARK: Private
+
+  private var row: SettingsPaneFeature.Row {
+    .sound(cue)
+  }
+
+  private var selection: String? {
+    store.settingsPane.sounds[cue]
+  }
+
+  private var showsPreviewRing: Bool {
+    store.state.showsSettingsRing(row, target: .soundPreview(cue))
+  }
+
+  /// The inventory is whatever the system reports, but a cue's own default and its current choice
+  /// are always offered: neither returning to default nor seeing where you are may be starved.
+  private var options: [SettingsPopUpButton<String?>.Option] {
+    var names = Set(store.settingsPane.soundNames)
+    names.insert(cue.defaultName)
+    if let selection {
+      names.insert(selection)
+    }
+    let sorted = names.sorted { $0.localizedStandardCompare($1) == .orderedAscending }
+    // Silence leads, dimmed: it is the absence of a choice rather than one more sound.
+    return [.init(value: nil, title: "No audio", isSecondary: true)]
+      + sorted.map {
+        .init(value: $0, title: $0 == cue.defaultName ? "\($0) (default)" : $0)
+      }
   }
 }
 
@@ -270,12 +379,7 @@ private struct ShortcutRow: View {
   @ViewBuilder private var emptyState: some View {
     Text("Not set").foregroundStyle(.secondary)
     Button("Set…") { store.send(.settingsPane(.bindings(.addTapped))) }
-      .overlay {
-        RoundedRectangle(cornerRadius: 6)
-          .strokeBorder(Color(nsColor: .keyboardFocusIndicatorColor), lineWidth: 2)
-          .padding(-1)
-          .opacity(showsRing(.set) ? 1 : 0)
-      }
+      .focusRing(showsRing(.set))
       .accessibilityIdentifier(AccessibilityID.settingsShortcutSet)
       .accessibilityValue(showsRing(.set) ? "Ring on" : "Ring off")
   }
@@ -330,9 +434,8 @@ private struct SettingsFormRow: ViewModifier {
       }
       .listRowInsets(EdgeInsets())
       .contentShape(.rect)
-      .windowPointerMovement(store: store)
-      .onHover { isHovered in
-        store.send(.settingsPane(isHovered ? .rowHovered(row) : .rowExited(row)))
+      .windowPointerMovement(store: store) {
+        store.send(.settingsPane(.cursorHovered(row)))
       }
   }
 }

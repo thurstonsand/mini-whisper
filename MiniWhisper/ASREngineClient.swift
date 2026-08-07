@@ -31,7 +31,9 @@ extension ASREngineClient: DependencyKey {
       installAndPrepare: { engine.installAndPrepare() },
       prepareForActivation: { engine.prepareInstalled() },
       identity: { LocalASREngine.identity },
-      submit: { recording in try await engine.submit(recording.samples) },
+      submit: { recording in
+        try await engine.submit(recording.samples, sampleRate: CanonicalRecording.sampleRate)
+      },
     )
   }()
 }

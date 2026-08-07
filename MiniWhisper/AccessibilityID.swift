@@ -1,11 +1,42 @@
+import AppSettings
 import Foundation
+
+// MARK: - SettingsSoundPart
+
+/// The addressable pieces of one sound row. Naming them keeps the pane from spelling identifier
+/// suffixes by hand, which is how a row and its paint state drift apart.
+enum SettingsSoundPart {
+  case row
+  case rowState
+  case picker
+  case pickerState
+  case preview
+
+  // MARK: Internal
+
+  var suffix: String {
+    switch self {
+    case .row:
+      ""
+    case .rowState:
+      ".state"
+    case .picker:
+      ".picker"
+    case .pickerState:
+      ".picker.state"
+    case .preview:
+      ".preview"
+    }
+  }
+}
+
+// MARK: - AccessibilityID
 
 enum AccessibilityID {
   static let menuStatusItem = "miniwhisper.menu.status-item"
   static let menuStatus = "miniwhisper.menu.status"
   static let menuRepair = "miniwhisper.menu.repair"
   static let menuCopyLastTranscript = "miniwhisper.menu.copy-last-transcript"
-  static let menuSounds = "miniwhisper.menu.sounds"
   static let menuLaunchAtLogin = "miniwhisper.menu.launch-at-login"
   static let menuSettingsFile = "miniwhisper.menu.settings-file"
   static let menuSettings = "miniwhisper.menu.settings"
@@ -31,6 +62,7 @@ enum AccessibilityID {
   static let settingsMicrophonePicker = "miniwhisper.settings.microphone.picker"
   static let settingsMicrophoneLevel = "miniwhisper.settings.microphone.level"
   static let settingsMicrophoneUnavailable = "miniwhisper.settings.microphone.unavailable"
+  static let settingsSoundPlayback = "miniwhisper.settings.sound.playback"
   static let historyCaption = "miniwhisper.history.caption"
   static let historyStorage = "miniwhisper.history.storage"
   static let historyStoragePopover = "miniwhisper.history.storage.popover"
@@ -121,6 +153,10 @@ enum AccessibilityID {
 
   static func settingsShortcutBinding(_ index: Int) -> String {
     "miniwhisper.settings.shortcut.binding.\(index)"
+  }
+
+  static func settingsSound(_ cue: SoundCue, _ part: SettingsSoundPart) -> String {
+    "miniwhisper.settings.sound.\(cue.slug)\(part.suffix)"
   }
 
   static func historyRow(_ id: UUID) -> String {

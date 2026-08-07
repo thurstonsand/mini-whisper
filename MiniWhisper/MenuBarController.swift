@@ -109,14 +109,6 @@ import ComposableArchitecture
       ),
     )
 
-    let soundsValue = state.soundsEnabled ? "On" : "Off"
-    let soundsItem = item(
-      title: "Sounds", identifier: AccessibilityID.menuSounds, label: "Sounds", value: soundsValue,
-      action: #selector(toggleSounds),
-    )
-    soundsItem.state = state.soundsEnabled ? .on : .off
-    menu.addItem(soundsItem)
-
     let launchValue = state.launchAtLoginRegistered ? "On" : "Off"
     let launchItem = item(
       title: "Launch at Login", identifier: AccessibilityID.menuLaunchAtLogin,
@@ -175,10 +167,6 @@ import ComposableArchitecture
 
   @objc private func copyLastTranscript() {
     store.send(.copyLastTranscript)
-  }
-
-  @objc private func toggleSounds() {
-    store.send(.toggleSounds)
   }
 
   @objc private func toggleLaunchAtLogin() {

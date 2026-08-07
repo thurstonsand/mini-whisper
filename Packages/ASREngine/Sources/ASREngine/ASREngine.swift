@@ -1,5 +1,14 @@
 import FluidAudio
 import Foundation
+import OSLog
+
+private let engineLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "engine")
+
+/// Gesture timing is deliberately irrelevant here: 500 ms covers press reaction time plus the
+/// minimum voicing needed for an intended utterance.
+let minimumUtteranceDuration: TimeInterval = 0.5
+
+// MARK: - LocalASREngine
 
 public actor LocalASREngine {
   // MARK: Lifecycle
@@ -33,12 +42,19 @@ public actor LocalASREngine {
     }
   }
 
-  public func submit(_ samples: [Float]) async throws -> TranscriptionOutcome {
+  public func submit(
+    _ samples: [Float], sampleRate: Double,
+  ) async throws -> TranscriptionOutcome {
+    precondition(sampleRate > 0)
+    let duration = Double(samples.count) / sampleRate
+    guard duration >= minimumUtteranceDuration else {
+      engineLogger.notice(
+        "Gate discarded recording below duration floor: duration=\(duration, format: .fixed(precision: 3))s",
+      )
+      return .tooShort
+    }
     guard readiness == .ready, let vadManager, let asrManager, let decoderLayerCount else {
       throw ASREngineError.notReady
-    }
-    guard !samples.isEmpty else {
-      return .noSpeech
     }
 
     let gateSamples = GateFraming.zeroPaddedCopy(of: samples)

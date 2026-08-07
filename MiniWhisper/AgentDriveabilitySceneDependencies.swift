@@ -50,6 +50,11 @@ import Foundation
           continuation.yield(AudioLevel(decibels: -34.8, normalizedPower: 0.42))
         }
       }
+      // Tink is deliberately absent: the scene proves a cue's default remains selectable even
+      // when the system inventory does not report it. What played is read off the pane's own
+      // playback paint state, so the scene only has to keep the machine quiet.
+      dependencies.sounds.availableNames = { ["Basso", "Funk", "Glass", "Pop"] }
+      dependencies.sounds.play = { _ in }
       // No scene may leave the app it is driving. Reporting the refusal is also the only way a
       // test can see that "Open Settings" was the thing that ran.
       dependencies.workspace.open = { _ in throw AgentSceneRefusal.systemSettings }

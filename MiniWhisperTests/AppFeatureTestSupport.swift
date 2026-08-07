@@ -4,10 +4,10 @@ import FieldContext
 // MARK: - SoundRecorder
 
 actor SoundRecorder {
-  private(set) var recorded: [SoundCue] = []
+  private(set) var recorded: [String] = []
 
-  func record(_ cue: SoundCue) {
-    recorded.append(cue)
+  func record(_ name: String) {
+    recorded.append(name)
   }
 }
 

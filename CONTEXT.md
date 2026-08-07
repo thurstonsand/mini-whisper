@@ -6,10 +6,12 @@
 - Transcribe: STT
 - Delivery: placing the transcript where the user was typing.
 - Dictation: one full pass through the vertical — activate, record, transcribe, deliver.
-- Hold: hold the keybind to record, release to transcribe.
-- Latch: double-tap the keybind to keep recording without holding; a single tap ends it and transcribes. A lone tap is a near-no-op (records for a split second, yields nothing).
+- Hold: hold the keybind to record, release to transcribe. A press shorter than 200 ms is a tap, not a hold.
+- Latch: double-tap the keybind to keep recording without holding; a single tap ends it and transcribes. One capture runs continuously from the first press — the taps never stop it. A lone tap records through the 300 ms double-tap window, then discards wordlessly.
+- Cancel: Escape during a recording plays the cancel cue and skips delivery, but the transcript still lands in history — cancel means "do not paste", never "destroy". Escaped silence dismisses quietly.
+- The activate cue plays once per interaction, at its onset — a double-tap or tap-then-hold never replays it.
 - Silence rejection: preprocessing that keeps silence and near-silence from reaching the engine, so empty recordings never produce hallucinated text.
-- The gate: the silence-rejection implementation — one whole-utterance Silero VAD classification at release; accepted audio passes to the engine unchanged.
+- The gate: the silence-rejection implementation — a 500 ms duration floor, then one whole-utterance Silero VAD classification at release; accepted audio passes to the engine unchanged.
 - Engine: an implementation of the transcription protocol in `ASREngine` (pinned FluidAudio + Parakeet TDT v2 for MVP; whisper.cpp Medium.en is the recorded fallback, not shipped).
 - The pill: the bottom-center HUD panel that owns all dictation-time state (recording, latch, transcribing, transient notices). Success is its disappearance.
 - Degraded: a failure state represented in the menu bar — missing Accessibility, blocked microphone, a dead event tap, or an uninstalled/failed model.

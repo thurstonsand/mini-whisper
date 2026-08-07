@@ -7,6 +7,7 @@ import Foundation
 import History
 import HotkeyListener
 @testable import MiniWhisper
+import Sharing
 import Testing
 
 // MARK: - AppFeatureTests
@@ -41,9 +42,10 @@ import Testing
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
 
-    await store.send(.hotkeyListenerEvent(.gesture(.startRecording))) {
-      $0.transcriptionGeneration = 1
-    }
+    await store
+      .send(.hotkeyListenerEvent(.gesture(.startRecording))) {
+        $0.transcriptionGeneration = 1
+      }
     await store.receive(.pill(.recordingStarting(inputDeviceName: "Test Microphone"))) {
       $0.pill.presentation = .recording(
         PillFeature.State.Presentation.Recording(
@@ -81,7 +83,7 @@ import Testing
     }
     await store.receive(.recording(.delegate(.completed(recording))))
     await store.receive(.pill(.transcribingStarted)) { $0.pill.presentation = .transcribing }
-    await store.receive(.transcriptionCompleted(1, suppressNoSpeechNotice: false, .noSpeech))
+    await store.receive(.transcriptionCompleted(1, .noSpeech))
     await store.receive(.pill(.noSpeechDetected)) {
       $0.pill.noticeGeneration = 1
       $0.pill.presentation = .notice(.noSpeechDetected)
@@ -473,13 +475,15 @@ import Testing
     }
   }
 
-  @Test func `latch bounces and escape immediately hides the pill`() async {
+  @Test func `discard recording is silent and leaves no history`() async {
     let sessionID = UUID()
+    let sounds = SoundRecorder()
     var state = AppFeature.State()
     state.recording.captureGeneration = 1
     state.recording.captureSessionID = sessionID
     state.recording.phase = .recording
     state.onboardingCompleted = true
+    state.dictationInFlight = true
     state.pill.presentation = .recording(
       PillFeature.State.Presentation.Recording(
         inputDeviceName: "Test Microphone", level: 0.5, isLive: true,
@@ -489,29 +493,127 @@ import Testing
       AppFeature()
     } withDependencies: {
       $0.audioCapture.cancel = { id in #expect(id == sessionID) }
+      $0.sounds.play = { name in await sounds.record(name) }
     }
 
-    await store.send(.hotkeyListenerEvent(.gesture(.latchEngaged)))
-    await store.receive(.pill(.latchEngaged)) { $0.pill.bounceCount = 1 }
-    await store.send(.hotkeyListenerEvent(.gesture(.cancel)))
+    await store.send(.hotkeyListenerEvent(.gesture(.discardRecording))) {
+      $0.dictationInFlight = false
+    }
     await store.receive(.recording(.cancelRecording)) { $0.recording.phase = .cancelling }
+    await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.receive(.recording(.delegate(.discarded)))
-    await store.receive(.pill(.cancel)) { $0.pill.presentation = nil }
+    await store.receive(.pill(.dismiss))
     await store.receive(.recording(.captureCancelled(1))) {
       $0.recording.captureSessionID = nil
       $0.recording.phase = .idle
       $0.recording.latestLevel = 0
     }
+    await store.finish()
+    #expect(await sounds.recorded.isEmpty)
+    #expect(store.state.history.entries.isEmpty)
+    #expect(store.state.onboarding.failureMessage == nil)
   }
 
-  @Test func `lone tap gate rejection dismisses without A notice`() async {
+  @Test func `provisional deadline quietly discards the active capture`() async {
+    let sessionID = UUID()
+    let sounds = SoundRecorder()
+    let clock = TestClock()
+    var state = AppFeature.State()
+    _ = state.gestureMachine.receive(.activation(at: .zero))
+    state.recording.captureGeneration = 1
+    state.recording.captureSessionID = sessionID
+    state.recording.phase = .recording
+    state.dictationInFlight = true
+    state.pill.presentation = .recording(
+      PillFeature.State.Presentation.Recording(
+        inputDeviceName: "Test Microphone", level: 0.2, isLive: true,
+      ),
+    )
+    let store = TestStore(initialState: state) {
+      AppFeature()
+    } withDependencies: {
+      $0.audioCapture.cancel = { id in #expect(id == sessionID) }
+      $0.continuousClock = clock
+      $0.sounds.play = { name in await sounds.record(name) }
+    }
+
+    await store.send(.hotkeyListenerEvent(.gestureInput(.release(at: .milliseconds(100))))) {
+      _ = $0.gestureMachine.receive(.release(at: .milliseconds(100)))
+      $0.gestureDeadlineGeneration = 1
+    }
+    await clock.advance(by: state.gestureMachine.timing.doubleTapWindow)
+    await store.receive(.gestureDeadlineElapsed(1)) {
+      _ = $0.gestureMachine.receive(.deadlineElapsed)
+    }
+    await store.receive(.hotkeyListenerEvent(.gesture(.discardRecording))) {
+      $0.dictationInFlight = false
+    }
+    await store.receive(.recording(.cancelRecording)) { $0.recording.phase = .cancelling }
+    await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
+    await store.receive(.recording(.delegate(.discarded)))
+    await store.receive(.pill(.dismiss))
+    await store.receive(.recording(.captureCancelled(1))) {
+      $0.recording.captureSessionID = nil
+      $0.recording.phase = .idle
+      $0.recording.latestLevel = 0
+    }
+    await store.finish()
+    #expect(await sounds.recorded.isEmpty)
+  }
+
+  @Test func `too short quietly dismisses without sound notice or onboarding failure`() async {
+    let sounds = SoundRecorder()
     var state = AppFeature.State()
     state.transcriptionGeneration = 1
+    state.dictationInFlight = true
     state.pill.presentation = .transcribing
-    let store = TestStore(initialState: state) { AppFeature() }
+    state.onboarding.isPresented = true
+    state.onboarding.snapshot = OnboardingSnapshot(
+      permissions: OnboardingPermissionStatuses(
+        microphoneStatus: .granted, hasAccessibilityPermission: true,
+      ),
+      engineReadiness: .ready, hasModelDownloadConsent: true, isCompleted: false,
+    )
+    state.onboarding.hasCompletedShortcut = true
+    let store = TestStore(initialState: state) {
+      AppFeature()
+    } withDependencies: {
+      $0.sounds.play = { name in await sounds.record(name) }
+    }
 
-    await store.send(.transcriptionCompleted(1, suppressNoSpeechNotice: true, .noSpeech))
+    await store.send(.transcriptionCompleted(1, .tooShort)) {
+      $0.dictationInFlight = false
+    }
     await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
+    await store.finish()
+    #expect(await sounds.recorded.isEmpty)
+    #expect(store.state.onboarding.failureMessage == nil)
+  }
+
+  @Test func `genuine no speech keeps its notice and cancel cue`() async {
+    let sounds = SoundRecorder()
+    let clock = TestClock()
+    var state = AppFeature.State()
+    state.transcriptionGeneration = 1
+    state.dictationInFlight = true
+    state.pill.presentation = .transcribing
+    let store = TestStore(initialState: state) {
+      AppFeature()
+    } withDependencies: {
+      $0.continuousClock = clock
+      $0.sounds.play = { name in await sounds.record(name) }
+    }
+
+    await store.send(.transcriptionCompleted(1, .noSpeech)) {
+      $0.dictationInFlight = false
+    }
+    await store.receive(.pill(.noSpeechDetected)) {
+      $0.pill.noticeGeneration = 1
+      $0.pill.presentation = .notice(.noSpeechDetected)
+    }
+    await store.send(.pill(.dismiss)) { $0.pill.presentation = nil }
+    await store.finish()
+    #expect(await sounds.recorded == ["Funk"])
   }
 
   @Test func `transcription failure degrades engine and does not claim no speech`() async {
@@ -531,7 +633,6 @@ import Testing
     let sounds = SoundRecorder()
     var state = AppFeature.State()
     state.engineReadiness = .ready
-    state.$settings.withLock { $0.soundsEnabled = true }
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
@@ -545,7 +646,7 @@ import Testing
       $0.engineReadiness = .failed("second failure")
     }
     await store.finish()
-    #expect(await sounds.recorded == [.error])
+    #expect(await sounds.recorded == ["Basso"])
   }
 
   @Test func `stale transcription cannot dismiss A newer recording`() async {
@@ -559,7 +660,7 @@ import Testing
     let store = TestStore(initialState: state) { AppFeature() }
 
     await store.send(
-      .transcriptionCompleted(2, suppressNoSpeechNotice: false, .transcript("stale")),
+      .transcriptionCompleted(2, .transcript("stale")),
     )
   }
 
@@ -569,7 +670,6 @@ import Testing
     let captured = ContextCapture.available(context(before: "We arrived at noon."))
     var state = AppFeature.State()
     state.transcriptionGeneration = 1
-    state.$settings.withLock { $0.soundsEnabled = true }
     state.pill.presentation = .transcribing
     let store = TestStore(initialState: state) {
       AppFeature()
@@ -583,7 +683,7 @@ import Testing
     }
 
     await store.send(
-      .transcriptionCompleted(1, suppressNoSpeechNotice: false, .transcript("delivered text")),
+      .transcriptionCompleted(1, .transcript("delivered text")),
     ) { $0.lastTranscript = "delivered text" }
     await store.receive(.contextCaptured(1, captured)) { $0.currentFocusedContext = captured }
     await store.receive(
@@ -595,7 +695,7 @@ import Testing
     }
     await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
-    #expect(await sounds.recorded == [.commit])
+    #expect(await sounds.recorded == ["Pop"])
   }
 
   @Test func `release warms the field but delivery joins against A fresh read`() async {
@@ -621,7 +721,7 @@ import Testing
 
     await store.send(.hotkeyListenerEvent(.gesture(.stopAndTranscribe)))
     await store.send(
-      .transcriptionCompleted(1, suppressNoSpeechNotice: false, .transcript("delivered text")),
+      .transcriptionCompleted(1, .transcript("delivered text")),
     )
     await store.receive(.contextCaptured(1, .available(context(before: "We were still typing.")))) {
       $0.currentFocusedContext = .available(context(before: "We were still typing."))
@@ -660,7 +760,7 @@ import Testing
     await store.send(.hotkeyListenerEvent(.gesture(.stopAndTranscribe)))
     await store.send(.hotkeyListenerEvent(.gesture(.stopAndTranscribe)))
     await store.send(
-      .transcriptionCompleted(1, suppressNoSpeechNotice: false, .transcript("delivered text")),
+      .transcriptionCompleted(1, .transcript("delivered text")),
     )
     await store.receive(.contextCaptured(1, .available(context(before: "Field text."))))
     await store.receive(
@@ -672,46 +772,122 @@ import Testing
     #expect(await deliveries.count == 1)
   }
 
-  @Test func `cancelling mid flight leaves nothing to deliver`() async {
-    let deliveries = PrewarmCounter()
-    let reads = PrewarmCounter()
-    let (gate, openGate) = AsyncStream.makeStream(of: Void.self)
-    var state = AppFeature.State()
+  @Test func `cancel and archive saves transcript without delivery`() async throws {
+    let sessionID = UUID()
+    let entryID = try #require(UUID(uuidString: "00000000-0000-0000-0000-000000000031"))
+    let recording = CanonicalRecording(samples: Array(repeating: 0.2, count: 16000))
+    let sounds = SoundRecorder()
+    let clock = TestClock()
+    var settings = MiniWhisperSettings.defaults
+    settings.retention.audio = .never
+    var state = AppFeature.State(
+      history: Shared(value: HistoryLog()), settings: Shared(value: settings),
+    )
     state.transcriptionGeneration = 1
     state.onboardingCompleted = true
+    state.dictationInFlight = true
     state.recording.captureGeneration = 1
-    state.recording.captureSessionID = UUID()
+    state.recording.captureSessionID = sessionID
     state.recording.phase = .recording
-    state.currentFocusedContext = .available(context(before: "Left over."))
+    state.currentFocusedContext = .available(context(before: "Never deliver here."))
+    state.pill.presentation = .recording(
+      PillFeature.State.Presentation.Recording(
+        inputDeviceName: "Test Microphone", level: 0.2, isLive: true,
+      ),
+    )
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
-      $0.contextCapture.capture = { source in
-        await reads.record()
-        // The warm-up returns at once; the delivery read is the one left hanging.
-        guard source == .delivery else {
-          return .unavailable(.noFocusedElement)
-        }
-        for await _ in gate {}
-        return .available(context(before: "Read after the escape."))
+      $0.asrEngine.identity = { "parakeet-tdt-0.6b-v2" }
+      $0.asrEngine.submit = { _ in .transcript("recoverable words") }
+      $0.audioCapture.stop = { id in
+        #expect(id == sessionID)
+        return recording
       }
-      $0.audioCapture.cancel = { _ in }
+      $0.contextCapture.capture = { _ in
+        Issue.record("Cancelled dictation must not capture a delivery target")
+        return .unavailable(.noFocusedElement)
+      }
+      $0.continuousClock = clock
+      $0.date.now = Date(timeIntervalSince1970: 31)
       $0.delivery.deliver = { _ in
-        await deliveries.record()
+        Issue.record("Cancelled dictation must not attempt delivery")
         return .pasted(.restored)
       }
+      $0.sounds.play = { name in await sounds.record(name) }
+      $0.uuid = .constant(entryID)
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
 
-    await store.send(.hotkeyListenerEvent(.gesture(.stopAndTranscribe)))
-    await store.send(
-      .transcriptionCompleted(1, suppressNoSpeechNotice: false, .transcript("abandoned")),
+    await store.send(.hotkeyListenerEvent(.gesture(.cancelAndArchive))) {
+      $0.dictationWasCancelled = true
+      $0.currentFocusedContext = nil
+    }
+    await store.receive(.recording(.stopAndRetain)) { $0.recording.phase = .stopping(nil) }
+    await store.receive(.recording(.captureStopped(1, recording))) {
+      $0.recording.captureSessionID = nil
+      $0.recording.phase = .idle
+      $0.recording.latestLevel = 0
+    }
+    await store.receive(.recording(.delegate(.completed(recording)))) {
+      $0.pendingDictation = AppFeature.PendingDictation(
+        generation: 1, recording: recording, createdAt: Date(timeIntervalSince1970: 31),
+        engine: "parakeet-tdt-0.6b-v2", original: nil,
+      )
+    }
+    await store.receive(.pill(.transcribingStarted)) { $0.pill.presentation = .transcribing }
+    await store.receive(.transcriptionCompleted(1, .transcript("recoverable words"))) {
+      $0.lastTranscript = "recoverable words"
+      $0.pendingDictation?.original = History.Transcription(
+        text: "recoverable words", engine: "parakeet-tdt-0.6b-v2",
+        transcribedAt: Date(timeIntervalSince1970: 31),
+      )
+      $0.pendingDictation?.isFinishing = true
+    }
+    await store.receive(.pill(.cancelledSavedToHistory)) {
+      $0.pill.noticeGeneration = 1
+      $0.pill.presentation = .notice(.cancelledSavedToHistory)
+    }
+    let historyEntry = HistoryEntry(
+      id: entryID, createdAt: Date(timeIntervalSince1970: 31), targetApp: nil,
+      original: History.Transcription(
+        text: "recoverable words", engine: "parakeet-tdt-0.6b-v2",
+        transcribedAt: Date(timeIntervalSince1970: 31),
+      ),
+      delivery: nil, audio: nil,
     )
-    await store.send(.hotkeyListenerEvent(.gesture(.cancel))) { $0.currentFocusedContext = nil }
-    openGate.finish()
+    await store.receive(.historyEntryPrepared(1, historyEntry))
+    await store.send(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
-    #expect(await deliveries.isEmpty)
-    #expect(store.state.currentFocusedContext == nil)
+    #expect(await sounds.recorded == ["Funk"])
+    #expect(store.state.history.entries == [historyEntry])
+    #expect(store.state.onboarding.failureMessage == nil)
+  }
+
+  @Test(arguments: [TranscriptionOutcome.noSpeech, .tooShort])
+  func `cancel and archive rejects unusable audio quietly`(_ outcome: TranscriptionOutcome) async {
+    let sounds = SoundRecorder()
+    var state = AppFeature.State()
+    state.transcriptionGeneration = 1
+    state.dictationInFlight = true
+    state.onboardingCompleted = true
+    state.pill.presentation = .transcribing
+    let store = TestStore(initialState: state) {
+      AppFeature()
+    } withDependencies: {
+      $0.sounds.play = { name in await sounds.record(name) }
+    }
+
+    await store.send(.hotkeyListenerEvent(.gesture(.cancelAndArchive))) {
+      $0.dictationWasCancelled = true
+    }
+    await store.receive(.recording(.stopAndRetain))
+    await store.send(.transcriptionCompleted(1, outcome)) { $0.dictationInFlight = false }
+    await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
+    await store.finish()
+    #expect(await sounds.recorded == ["Funk"])
+    #expect(store.state.history.entries.isEmpty)
+    #expect(store.state.onboarding.failureMessage == nil)
   }
 
   @Test func `rejected audio drops A capture still in flight without delivering`() async {
@@ -737,7 +913,7 @@ import Testing
     store.exhaustivity = .off(showSkippedAssertions: false)
 
     await store.send(.hotkeyListenerEvent(.gesture(.stopAndTranscribe)))
-    await store.send(.transcriptionCompleted(1, suppressNoSpeechNotice: false, .noSpeech))
+    await store.send(.transcriptionCompleted(1, .noSpeech))
     openGate.finish()
     await store.send(.pill(.dismiss))
     await store.finish()
@@ -832,7 +1008,7 @@ import Testing
     store.exhaustivity = .off(showSkippedAssertions: false)
 
     await store.send(
-      .transcriptionCompleted(1, suppressNoSpeechNotice: false, .transcript("late arrival")),
+      .transcriptionCompleted(1, .transcript("late arrival")),
     )
     await store.send(.hotkeyListenerEvent(.gesture(.startRecording)))
     openGate.finish()
@@ -846,7 +1022,6 @@ import Testing
     let clock = TestClock()
     var state = AppFeature.State()
     state.transcriptionGeneration = 1
-    state.$settings.withLock { $0.soundsEnabled = true }
     state.pill.presentation = .transcribing
     let unavailable = ContextCapture.unavailable(.gridSemantics(bundleID: "com.mitchellh.ghostty"))
     let store = TestStore(initialState: state) {
@@ -862,7 +1037,7 @@ import Testing
     }
 
     await store.send(
-      .transcriptionCompleted(1, suppressNoSpeechNotice: false, .transcript("delivered text")),
+      .transcriptionCompleted(1, .transcript("delivered text")),
     ) { $0.lastTranscript = "delivered text" }
     await store.receive(.contextCaptured(1, unavailable)) { $0.currentFocusedContext = unavailable }
     await store.receive(
@@ -878,14 +1053,13 @@ import Testing
     }
     await store.send(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
-    #expect(await sounds.recorded == [.commit])
+    #expect(await sounds.recorded == ["Pop"])
   }
 
   @Test func `changed clipboard skips restore without turning paste into failure`() async {
     let sounds = SoundRecorder()
     var state = AppFeature.State()
     state.transcriptionGeneration = 2
-    state.$settings.withLock { $0.soundsEnabled = true }
     state.pill.presentation = .transcribing
     let store = TestStore(initialState: state) {
       AppFeature()
@@ -900,7 +1074,7 @@ import Testing
     )
     await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
-    #expect(await sounds.recorded == [.commit])
+    #expect(await sounds.recorded == ["Pop"])
   }
 
   @Test func `missing accessibility keeps transcript copied and shows fallback`() async {
@@ -908,7 +1082,6 @@ import Testing
     let clock = TestClock()
     var state = AppFeature.State()
     state.transcriptionGeneration = 3
-    state.$settings.withLock { $0.soundsEnabled = true }
     state.pill.presentation = .transcribing
     let store = TestStore(initialState: state) {
       AppFeature()
@@ -920,7 +1093,7 @@ import Testing
     }
 
     await store.send(
-      .transcriptionCompleted(3, suppressNoSpeechNotice: false, .transcript("copy me")),
+      .transcriptionCompleted(3, .transcript("copy me")),
     ) { $0.lastTranscript = "copy me" }
     await store.receive(.contextCaptured(3, .unavailable(.accessibilityPermissionMissing))) {
       $0.currentFocusedContext = .unavailable(.accessibilityPermissionMissing)
@@ -939,14 +1112,13 @@ import Testing
     }
     await store.send(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
-    #expect(await sounds.recorded == [.error])
+    #expect(await sounds.recorded == ["Basso"])
   }
 
-  @Test func `recording start and discard use their distinct cues`() async {
+  @Test func `recording start cues while a later discard stays quiet`() async {
     let sounds = SoundRecorder()
     let prewarms = PrewarmCounter()
     var state = AppFeature.State()
-    state.$settings.withLock { $0.soundsEnabled = true }
     state.recording.phase = .recording
     state.onboardingCompleted = true
     let store = TestStore(initialState: state) {
@@ -958,7 +1130,74 @@ import Testing
       $0.sounds.play = { cue in await sounds.record(cue) }
     }
 
-    await store.send(.hotkeyListenerEvent(.gesture(.startRecording))) {
+    await store
+      .send(.hotkeyListenerEvent(.gesture(.startRecording))) {
+        $0.transcriptionGeneration = 1
+        $0.dictationInFlight = true
+      }
+    await store.receive(.pill(.recordingStarting(inputDeviceName: "Microphone"))) {
+      $0.pill.presentation = .recording(
+        PillFeature.State.Presentation.Recording(
+          inputDeviceName: "Microphone", level: 0, isLive: false,
+        ),
+      )
+    }
+    await store.receive(.recording(.startRecording))
+    await store.send(.recording(.delegate(.discarded))) { $0.dictationInFlight = false }
+    await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
+    await store.finish()
+    #expect(await sounds.recorded == ["Tink"])
+    // Chromium's wake walk belongs to recording start, never to delivery.
+    #expect(await prewarms.count == 1)
+  }
+
+  @Test func `double tap keeps one continuous capture and one onset cue`() async {
+    let (captureEvents, captureContinuation) = AsyncStream.makeStream(of: AudioCaptureEvent.self)
+    let sessionID = UUID()
+    let historyID = UUID()
+    let recording = CanonicalRecording(samples: Array(repeating: 0.314, count: 16000))
+    let starts = PrewarmCounter()
+    let stops = PrewarmCounter()
+    let sounds = SoundRecorder()
+    let clock = TestClock()
+    var state = AppFeature.State()
+    state.$settings.withLock { $0.retention.audio = .never }
+    state.onboardingCompleted = true
+    let store = TestStore(initialState: state) {
+      AppFeature()
+    } withDependencies: {
+      $0.audioCapture.start = { _ in
+        await starts.record()
+        return AudioCaptureSession(
+          id: sessionID, inputDeviceName: "Microphone", events: captureEvents,
+        )
+      }
+      $0.audioCapture.stop = { id in
+        #expect(id == sessionID)
+        await stops.record()
+        return recording
+      }
+      $0.audioCapture.currentInputDeviceName = { _ in "Microphone" }
+      $0.asrEngine.identity = { "test-engine" }
+      $0.asrEngine.prepareForActivation = { AsyncStream { $0.finish() } }
+      $0.asrEngine.submit = { submitted in
+        #expect(submitted == recording)
+        return .transcript("continuous capture")
+      }
+      $0.contextCapture.prewarmFrontmostApp = {}
+      $0.continuousClock = clock
+      $0.date.now = Date(timeIntervalSince1970: 40)
+      $0.delivery.deliver = { _ in .pasted(.restored) }
+      $0.sounds.play = { name in await sounds.record(name) }
+      $0.uuid = .constant(historyID)
+    }
+    store.exhaustivity = .off(showSkippedAssertions: false)
+
+    await store.send(.hotkeyListenerEvent(.gestureInput(.activation(at: .zero)))) {
+      $0.gestureMachine = HotkeyGestureMachine()
+      _ = $0.gestureMachine.receive(.activation(at: .zero))
+    }
+    await store.receive(.hotkeyListenerEvent(.gesture(.startRecording))) {
       $0.transcriptionGeneration = 1
       $0.dictationInFlight = true
     }
@@ -969,16 +1208,82 @@ import Testing
         ),
       )
     }
-    await store.receive(.recording(.startRecording))
-    await store.send(.recording(.delegate(.discarded))) { $0.dictationInFlight = false }
-    await store.receive(.pill(.cancel)) { $0.pill.presentation = nil }
+    await store.receive(.recording(.startRecording)) {
+      $0.recording.captureGeneration = 1
+      $0.recording.phase = .starting(nil)
+    }
+    await store.receive(.recording(.captureSessionStarted(1, sessionID))) {
+      $0.recording.captureSessionID = sessionID
+    }
+    captureContinuation.yield(.captureBecameLive)
+    await store.receive(.recording(.captureBecameLive(1, sessionID, "Microphone"))) {
+      $0.recording.phase = .recording
+    }
+    await store.receive(.recording(.delegate(.recordingStarted(inputDeviceName: "Microphone"))))
+    await store.receive(.pill(.recordingStarted(inputDeviceName: "Microphone"))) {
+      $0.pill.presentation = .recording(
+        PillFeature.State.Presentation.Recording(
+          inputDeviceName: "Microphone", level: 0, isLive: true,
+        ),
+      )
+    }
+
+    await store.send(.hotkeyListenerEvent(.gestureInput(.release(at: .milliseconds(100))))) {
+      $0.gestureMachine = HotkeyGestureMachine()
+      _ = $0.gestureMachine.receive(.activation(at: .zero))
+      _ = $0.gestureMachine.receive(.release(at: .milliseconds(100)))
+      $0.gestureDeadlineGeneration = 1
+    }
+    #expect(
+      store.state.pill.presentation == .recording(
+        PillFeature.State.Presentation.Recording(
+          inputDeviceName: "Microphone", level: 0, isLive: true,
+        ),
+      ),
+    )
+    await store.send(.hotkeyListenerEvent(.gestureInput(.activation(at: .milliseconds(200))))) {
+      _ = $0.gestureMachine.receive(.activation(at: .milliseconds(200)))
+    }
+    await clock.advance(by: store.state.gestureMachine.timing.doubleTapWindow)
+    await store.send(.hotkeyListenerEvent(.gestureInput(.release(at: .milliseconds(300))))) {
+      _ = $0.gestureMachine.receive(.release(at: .milliseconds(300)))
+    }
+    await store.receive(.hotkeyListenerEvent(.gesture(.latchEngaged)))
+    await store.receive(.pill(.latchEngaged)) { $0.pill.bounceCount = 1 }
+    #expect(
+      store.state.pill.presentation == .recording(
+        PillFeature.State.Presentation.Recording(
+          inputDeviceName: "Microphone", level: 0, isLive: true,
+        ),
+      ),
+    )
+
+    await store.send(.hotkeyListenerEvent(.gestureInput(.activation(at: .milliseconds(500))))) {
+      _ = $0.gestureMachine.receive(.activation(at: .milliseconds(500)))
+    }
+    await store.receive(.hotkeyListenerEvent(.gesture(.stopAndTranscribe)))
+    await store.receive(.recording(.stopAndRetain)) { $0.recording.phase = .stopping(nil) }
+    await store.receive(.recording(.captureStopped(1, recording))) {
+      $0.recording.captureSessionID = nil
+      $0.recording.phase = .idle
+      $0.recording.latestLevel = 0
+    }
+    await store.receive(.recording(.delegate(.completed(recording))))
+    await store.receive(.pill(.transcribingStarted)) { $0.pill.presentation = .transcribing }
+    await store.receive(.transcriptionCompleted(1, .transcript("continuous capture"))) {
+      $0.lastTranscript = "continuous capture"
+      $0.pendingDictation?.original = History.Transcription(
+        text: "continuous capture", engine: "test-engine",
+        transcribedAt: Date(timeIntervalSince1970: 40),
+      )
+    }
+    captureContinuation.finish()
     await store.finish()
-    let recorded = await sounds.recorded
-    #expect(recorded.count == 2)
-    #expect(recorded.contains(.recordStart))
-    #expect(recorded.contains(.cancel))
-    // Chromium's wake walk belongs to recording start, never to delivery.
-    #expect(await prewarms.count == 1)
+    #expect(await starts.count == 1)
+    #expect(await stops.count == 1)
+    let recordedSounds = await sounds.recorded
+    #expect(recordedSounds.count(where: { $0 == "Tink" }) == 1)
+    #expect(!recordedSounds.contains("Funk"))
   }
 
   @Test func `secure input uses the copied fallback`() async {
@@ -986,7 +1291,6 @@ import Testing
     let clock = TestClock()
     var state = AppFeature.State()
     state.transcriptionGeneration = 4
-    state.$settings.withLock { $0.soundsEnabled = true }
     state.pill.presentation = .transcribing
     let store = TestStore(initialState: state) {
       AppFeature()
@@ -1006,14 +1310,13 @@ import Testing
     }
     await store.send(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
-    #expect(await sounds.recorded == [.error])
+    #expect(await sounds.recorded == ["Basso"])
   }
 
   @Test func `delivery failure dismisses the pill and plays the error cue`() async {
     let sounds = SoundRecorder()
     var state = AppFeature.State()
     state.transcriptionGeneration = 5
-    state.$settings.withLock { $0.soundsEnabled = true }
     state.pill.presentation = .transcribing
     let store = TestStore(initialState: state) {
       AppFeature()
@@ -1025,7 +1328,7 @@ import Testing
     let message = DeliveryError.pasteboardWriteFailed.localizedDescription
 
     await store.send(
-      .transcriptionCompleted(5, suppressNoSpeechNotice: false, .transcript("undeliverable")),
+      .transcriptionCompleted(5, .transcript("undeliverable")),
     ) { $0.lastTranscript = "undeliverable" }
     await store.receive(.contextCaptured(5, .unavailable(.noFocusedElement))) {
       $0.currentFocusedContext = .unavailable(.noFocusedElement)
@@ -1037,13 +1340,13 @@ import Testing
     ) { $0.currentFocusedContext = nil }
     await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
-    #expect(await sounds.recorded == [.error])
+    #expect(await sounds.recorded == ["Basso"])
   }
 
-  @Test func `disabled sounds suppress every delivery cue`() async {
+  @Test func `a silent commit cue suppresses its delivery sound`() async {
     let sounds = SoundRecorder()
     var state = AppFeature.State()
-    state.$settings.withLock { $0.soundsEnabled = false }
+    state.$settings.withLock { $0.sounds = .silent }
     state.transcriptionGeneration = 4
     state.pill.presentation = .transcribing
     let store = TestStore(initialState: state) {

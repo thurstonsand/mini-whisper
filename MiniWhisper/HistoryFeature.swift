@@ -78,6 +78,7 @@ import SwiftUI
   enum Action: Equatable {
     case searchChanged(String)
     case cursorMoved(CursorMovement)
+    case cursorHovered(UUID)
     case copyRequested
     case rowTapped(UUID)
     case copyFailed(String)
@@ -130,6 +131,12 @@ import SwiftUI
         }
         let offset = movement == .next ? 1 : -1
         state.cursor = entries[min(max(current + offset, 0), entries.count - 1)].id
+        return .none
+      case let .cursorHovered(id):
+        guard state.filteredEntries.contains(where: { $0.id == id }) else {
+          return .none
+        }
+        state.cursor = id
         return .none
       case .copyRequested:
         guard let place = state.cursorEntry else {
@@ -218,6 +225,8 @@ import SwiftUI
         else {
           let message =
             switch outcome {
+            case .tooShort:
+              "The recording is too short to transcribe."
             case .noSpeech:
               "No speech was recognized."
             case .engineEmpty:

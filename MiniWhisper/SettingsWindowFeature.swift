@@ -112,8 +112,9 @@ struct SettingsWindowInteraction: Equatable {
     // MARK: Internal
 
     var selection: SettingsDestination
-    /// Focus is reported by the view's `@FocusState`, never driven from here. `nil` means focus
-    /// is somewhere that is neither column — the search field.
+    /// Which column is focused, mirrored both ways with the view's `@FocusState`: the view reports
+    /// what the system did, and a hover claims focus from here. `nil` means focus is somewhere
+    /// that is neither column — the search field.
     var interaction = SettingsWindowInteraction()
     var settingsPane: SettingsPaneFeature.State
     var history: HistoryFeature.State
@@ -122,19 +123,10 @@ struct SettingsWindowInteraction: Equatable {
       interaction.showsKeyboardCursor(history.cursorEntry?.id == id)
     }
 
-    /// A focused detail column always shows where it is; only keyboard mode says which control
-    /// within the row is the target. The pointer, while it is the thing driving, outranks both.
+    /// A focused detail column always shows where its single row cursor is; input mode only
+    /// decides whether the control within that row also wears its keyboard ring.
     func showsSettingsBar(_ row: SettingsPaneFeature.Row) -> Bool {
-      switch interaction.mode {
-      case .keyboard:
-        interaction.showsKeyboardCursor(settingsPane.cursor.row == row)
-      case .mouse:
-        if let hoveredRow = settingsPane.hoveredRow {
-          hoveredRow == row
-        } else {
-          interaction.focus == .detail && settingsPane.cursor.row == row
-        }
-      }
+      interaction.focus == .detail && settingsPane.cursor.row == row
     }
 
     func showsSettingsRing(
@@ -172,6 +164,12 @@ struct SettingsWindowInteraction: Equatable {
         return .none
       case .pointerMoved:
         state.interaction.mode = .mouse
+        return .none
+      // The pointer landing on a row is the detail column being driven, so it claims focus the
+      // same way an arrow key would. Nobody types and mouses at once, so there is nothing to steal.
+      case .settingsPane(.cursorHovered),
+           .history(.cursorHovered):
+        state.interaction.focus = .detail
         return .none
       case .settingsPane,
            .history:

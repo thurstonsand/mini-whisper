@@ -101,6 +101,18 @@ import Testing
     }
   }
 
+  @Test func `keyboard movement continues from the row last moved by hover`() async throws {
+    let first = makeEntry()
+    let secondID = try #require(UUID(uuidString: "BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB"))
+    let thirdID = try #require(UUID(uuidString: "CCCCCCCC-CCCC-CCCC-CCCC-CCCCCCCCCCCC"))
+    let store = TestStore(
+      initialState: makeState([first, makeEntry(id: secondID), makeEntry(id: thirdID)]),
+    ) { HistoryFeature() }
+
+    await store.send(.cursorHovered(secondID)) { $0.cursor = secondID }
+    await store.send(.cursorMoved(.next)) { $0.cursor = thirdID }
+  }
+
   @Test func `the keyboard cursor needs keyboard input and a focused detail column`() async {
     let entry = makeEntry()
     var state = makeWindowState([entry])
@@ -248,7 +260,7 @@ import Testing
     let settingsURL = root.appending(path: "settings.json")
     let stored = try MiniWhisperSettings(
       hotkeys: [Hotkey(keyCode: 0, modifiers: [.leftCommand])], microphone: .systemDefault,
-      soundsEnabled: false, retention: .defaults,
+      sounds: .silent, retention: .defaults,
     )
     try SettingsCoding.encode(stored).write(to: settingsURL)
 
@@ -275,7 +287,7 @@ import Testing
     let persisted = try SettingsCoding.decode(Data(contentsOf: settingsURL))
     #expect(persisted.retention.audio == .ninetyDays)
     #expect(persisted.hotkeys == stored.hotkeys)
-    #expect(persisted.soundsEnabled == false)
+    #expect(persisted.sounds == .silent)
   }
 
   @Test func `a shortened limit waits for confirmation before it deletes anything`() async {

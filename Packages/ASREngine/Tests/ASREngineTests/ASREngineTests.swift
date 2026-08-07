@@ -51,6 +51,28 @@ struct EngineLifecycleTests {
     #expect(readiness == [.modelMissing])
   }
 
+  @Test func `four hundred ninety nine milliseconds is discarded before engine work`() async throws {
+    let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+    let engine = LocalASREngine(
+      gateConfiguration: .calibrated, modelStore: PinnedModelStore(root: root),
+    )
+    let samples = Array(repeating: Float.zero, count: 7984)
+
+    #expect(try await engine.submit(samples, sampleRate: 16000) == .tooShort)
+  }
+
+  @Test func `five hundred milliseconds proceeds beyond the duration floor`() async {
+    let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+    let engine = LocalASREngine(
+      gateConfiguration: .calibrated, modelStore: PinnedModelStore(root: root),
+    )
+    let samples = Array(repeating: Float.zero, count: 8000)
+
+    await #expect(throws: ASREngineError.notReady) {
+      try await engine.submit(samples, sampleRate: 16000)
+    }
+  }
+
   @Test func `range responses append only when the offset and pinned size match`() {
     #expect(
       ResumeDecision.decide(

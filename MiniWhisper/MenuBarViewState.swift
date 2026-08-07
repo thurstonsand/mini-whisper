@@ -41,7 +41,7 @@ struct MenuBarViewState: Equatable {
   init(
     hotkeyTap: HotkeyTapStatus, micStatus: MicPermissionStatus, accessibilityGranted: Bool,
     engineReadiness: EngineReadiness, inputDeviceName: String?, hasLastTranscript: Bool,
-    soundsEnabled: Bool, launchAtLoginRegistered: Bool,
+    launchAtLoginRegistered: Bool,
   ) {
     let degradation = MenuBarViewState.degradation(
       hotkeyTap: hotkeyTap, micStatus: micStatus, accessibilityGranted: accessibilityGranted,
@@ -56,7 +56,6 @@ struct MenuBarViewState: Equatable {
     repair = degradation.map(MenuBarViewState.repair)
     repairTitle = repair.map(MenuBarViewState.repairTitle)
     canCopyLastTranscript = hasLastTranscript
-    self.soundsEnabled = soundsEnabled
     self.launchAtLoginRegistered = launchAtLoginRegistered
   }
 
@@ -67,7 +66,6 @@ struct MenuBarViewState: Equatable {
   let repair: MenuBarRepair?
   let repairTitle: String?
   let canCopyLastTranscript: Bool
-  let soundsEnabled: Bool
   let launchAtLoginRegistered: Bool
 
   var iconSymbolName: String {

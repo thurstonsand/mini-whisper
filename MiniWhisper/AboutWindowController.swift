@@ -3,7 +3,7 @@ import SwiftUI
 
 // MARK: - AboutWindowController
 
-@MainActor final class AboutWindowController {
+@MainActor final class AboutWindowController: NSObject, NSWindowDelegate {
   // MARK: Internal
 
   func present() {
@@ -29,6 +29,7 @@ import SwiftUI
     window.contentView = NSHostingView(rootView: AboutView { [weak self] in self?.window?.close() })
     window.setContentSize(NSSize(width: 480, height: 440))
     window.center()
+    window.delegate = self
     self.window = window
 
     NSApp.activate(ignoringOtherApps: true)
@@ -39,9 +40,17 @@ import SwiftUI
     window.makeFirstResponder(nil)
   }
 
+  func windowWillClose(_ notification: Notification) {
+    guard notification.object as? NSWindow === window else {
+      return
+    }
+    handback.giveBack()
+  }
+
   // MARK: Private
 
   private var window: NSWindow?
+  private let handback = ActivationHandback()
 }
 
 // MARK: - AboutView

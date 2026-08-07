@@ -4,7 +4,8 @@ public enum GestureEvent: String, Equatable, Sendable {
   case startRecording
   case stopAndTranscribe
   case latchEngaged
-  case cancel
+  case discardRecording
+  case cancelAndArchive
 }
 
 // MARK: - HotkeyGestureMachine
@@ -12,7 +13,7 @@ public enum GestureEvent: String, Equatable, Sendable {
 public struct HotkeyGestureMachine: Equatable, Sendable {
   // MARK: Lifecycle
 
-  public init(timing: Timing = Timing()) {
+  public init(timing: Timing = .standard) {
     self.timing = timing
   }
 
@@ -22,22 +23,32 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
     // MARK: Lifecycle
 
     public init(
+      tapMaximumDuration: Duration = .milliseconds(200),
       doubleTapWindow: Duration = .milliseconds(300),
       accidentalInputWindow: Duration = .milliseconds(300),
     ) {
+      self.tapMaximumDuration = tapMaximumDuration
       self.doubleTapWindow = doubleTapWindow
       self.accidentalInputWindow = accidentalInputWindow
     }
 
     // MARK: Public
 
+    public static let standard = Timing()
+
+    /// Measures one press from down to up; shorter presses are taps, while the boundary is a hold.
+    public let tapMaximumDuration: Duration
+    /// Measures first release to second press, matching the conventional double-tap timeout.
     public let doubleTapWindow: Duration
+    /// Measures how long foreign input can still reveal an activation-chord misfire.
     public let accidentalInputWindow: Duration
   }
 
   public enum Phase: Equatable, Sendable {
     case idle
     case holding(startedAt: Duration)
+    case provisional(releasedAt: Duration)
+    case secondPress(startedAt: Duration)
     case latched
     case blockedUntilRelease
   }
@@ -45,42 +56,56 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
   public private(set) var phase = Phase.idle
   public let timing: Timing
 
+  /// Provisional is the only phase silence can resolve, so it is the only one that owes its owner
+  /// a `deadlineElapsed` after `timing.doubleTapWindow`. The machine keeps no clock of its own.
+  public var awaitsDeadline: Bool {
+    if case .provisional = phase {
+      true
+    } else {
+      false
+    }
+  }
+
   public mutating func receive(_ input: GestureInput) -> GestureEvent? {
     switch input {
     case .escape:
-      return escape()
+      escape()
     case .monitoringInterrupted:
-      return interrupt()
+      interrupt()
+    case .deadlineElapsed:
+      deadlineElapsed()
     case .neutral:
-      if phase == .blockedUntilRelease {
-        phase = .idle
-      }
-      return nil
+      neutral()
     case let .activation(time):
-      return activate(at: time)
+      activate(at: time)
     case let .release(time):
-      return release(at: time)
+      release(at: time)
     case let .conflict(time):
-      return conflict(at: time)
+      foreignInput(at: time, blocksIdle: true)
     case let .mouseDown(time):
-      return mouseDown(at: time)
+      foreignInput(at: time, blocksIdle: false)
     }
   }
 
   // MARK: Private
-
-  private var previousReleaseAt: Duration?
 
   private mutating func activate(at time: Duration) -> GestureEvent? {
     switch phase {
     case .idle:
       phase = .holding(startedAt: time)
       return .startRecording
+    case let .provisional(releasedAt):
+      guard time - releasedAt < timing.doubleTapWindow else {
+        phase = .blockedUntilRelease
+        return .discardRecording
+      }
+      phase = .secondPress(startedAt: time)
+      return nil
     case .latched:
       phase = .blockedUntilRelease
-      previousReleaseAt = nil
       return .stopAndTranscribe
     case .holding,
+         .secondPress,
          .blockedUntilRelease:
       return nil
     }
@@ -88,80 +113,102 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
 
   private mutating func release(at time: Duration) -> GestureEvent? {
     switch phase {
-    case .holding:
-      if let previousReleaseAt, time - previousReleaseAt < timing.doubleTapWindow {
-        phase = .latched
-        self.previousReleaseAt = nil
-        return .latchEngaged
+    case let .holding(startedAt):
+      guard time - startedAt < timing.tapMaximumDuration else {
+        phase = .idle
+        return .stopAndTranscribe
       }
-      phase = .idle
-      previousReleaseAt = time
-      return .stopAndTranscribe
+      phase = .provisional(releasedAt: time)
+      return nil
+    case let .secondPress(startedAt):
+      guard time - startedAt < timing.tapMaximumDuration else {
+        phase = .idle
+        return .stopAndTranscribe
+      }
+      phase = .latched
+      return .latchEngaged
     case .blockedUntilRelease:
       phase = .idle
       return nil
     case .idle,
+         .provisional,
          .latched:
       return nil
     }
   }
 
-  private mutating func conflict(at time: Duration) -> GestureEvent? {
-    guard case let .holding(startedAt) = phase else {
-      if phase == .idle {
+  private mutating func foreignInput(
+    at time: Duration, blocksIdle: Bool,
+  ) -> GestureEvent? {
+    switch phase {
+    case let .holding(startedAt),
+         let .secondPress(startedAt):
+      guard time - startedAt < timing.accidentalInputWindow else {
+        return nil
+      }
+      phase = .blockedUntilRelease
+      return .discardRecording
+    case .provisional:
+      phase = .blockedUntilRelease
+      return .discardRecording
+    case .idle:
+      if blocksIdle {
         phase = .blockedUntilRelease
       }
       return nil
-    }
-    guard time - startedAt < timing.accidentalInputWindow else {
+    case .latched,
+         .blockedUntilRelease:
       return nil
     }
-
-    phase = .blockedUntilRelease
-    previousReleaseAt = nil
-    return .cancel
-  }
-
-  private mutating func mouseDown(at time: Duration) -> GestureEvent? {
-    guard case let .holding(startedAt) = phase, time - startedAt < timing.accidentalInputWindow
-    else {
-      return nil
-    }
-
-    phase = .blockedUntilRelease
-    previousReleaseAt = nil
-    return .cancel
   }
 
   private mutating func escape() -> GestureEvent? {
     switch phase {
-    case .idle:
-      phase = .blockedUntilRelease
-      previousReleaseAt = nil
-      return nil
     case .holding,
+         .secondPress,
          .latched:
       phase = .blockedUntilRelease
-      previousReleaseAt = nil
-      return .cancel
+      return .cancelAndArchive
+    case .provisional:
+      phase = .blockedUntilRelease
+      return .discardRecording
+    case .idle:
+      phase = .blockedUntilRelease
+      return nil
     case .blockedUntilRelease:
       return nil
     }
   }
 
   private mutating func interrupt() -> GestureEvent? {
-    let wasRecording =
+    let event: GestureEvent? =
       switch phase {
       case .holding,
+           .secondPress,
            .latched:
-        true
+        GestureEvent.cancelAndArchive
+      case .provisional:
+        GestureEvent.discardRecording
       case .idle,
            .blockedUntilRelease:
-        false
+        nil
       }
-
     phase = .blockedUntilRelease
-    previousReleaseAt = nil
-    return wasRecording ? .cancel : nil
+    return event
+  }
+
+  private mutating func deadlineElapsed() -> GestureEvent? {
+    guard case .provisional = phase else {
+      return nil
+    }
+    phase = .idle
+    return .discardRecording
+  }
+
+  private mutating func neutral() -> GestureEvent? {
+    if phase == .blockedUntilRelease {
+      phase = .idle
+    }
+    return nil
   }
 }

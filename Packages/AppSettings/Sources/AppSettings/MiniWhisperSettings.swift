@@ -3,6 +3,127 @@ import Foundation
 import History
 import HotkeyListener
 
+// MARK: - SoundCue
+
+/// The four moments a dictation can announce. Each one owns its label, its default sound, and the
+/// identifier slug the settings pane builds its accessibility identifiers from, so adding a cue is
+/// one case rather than an edit in every switch that ever mentioned one.
+public enum SoundCue: String, CaseIterable, Equatable, Sendable {
+  case activate
+  case complete
+  case cancel
+  case error
+
+  // MARK: Public
+
+  public var label: String {
+    switch self {
+    case .activate:
+      "Activate"
+    case .complete:
+      "Complete"
+    case .cancel:
+      "Cancel"
+    case .error:
+      "Error"
+    }
+  }
+
+  public var defaultName: String {
+    switch self {
+    case .activate:
+      "Tink"
+    case .complete:
+      "Pop"
+    case .cancel:
+      "Funk"
+    case .error:
+      "Basso"
+    }
+  }
+
+  public var slug: String {
+    rawValue
+  }
+}
+
+// MARK: - SoundSettings
+
+/// One sound name per cue, where absence is silence rather than a missing value.
+public struct SoundSettings: Equatable, Sendable {
+  // MARK: Lifecycle
+
+  public init(activate: String?, complete: String?, cancel: String?, error: String?) {
+    self.activate = activate
+    self.complete = complete
+    self.cancel = cancel
+    self.error = error
+  }
+
+  // MARK: Public
+
+  public static let defaults = SoundSettings(
+    activate: SoundCue.activate.defaultName, complete: SoundCue.complete.defaultName,
+    cancel: SoundCue.cancel.defaultName, error: SoundCue.error.defaultName,
+  )
+  public static let silent = SoundSettings(
+    activate: nil, complete: nil, cancel: nil, error: nil,
+  )
+
+  public var activate: String?
+  public var complete: String?
+  public var cancel: String?
+  public var error: String?
+
+  public subscript(cue: SoundCue) -> String? {
+    get {
+      switch cue {
+      case .activate:
+        activate
+      case .complete:
+        complete
+      case .cancel:
+        cancel
+      case .error:
+        error
+      }
+    }
+    set {
+      switch cue {
+      case .activate:
+        activate = newValue
+      case .complete:
+        complete = newValue
+      case .cancel:
+        cancel = newValue
+      case .error:
+        error = newValue
+      }
+    }
+  }
+}
+
+// MARK: Codable
+
+extension SoundSettings: Codable {
+  private enum CodingKeys: String, CodingKey {
+    case activate
+    case complete
+    case cancel
+    case error
+  }
+
+  /// Hand-written only so silence is written as an explicit null; the synthesized encoding would
+  /// omit the key, which reads as "never configured" rather than "deliberately off".
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    try container.encode(activate, forKey: .activate)
+    try container.encode(complete, forKey: .complete)
+    try container.encode(cancel, forKey: .cancel)
+    try container.encode(error, forKey: .error)
+  }
+}
+
 // MARK: - MiniWhisperSettings
 
 /// Every configurable setting the app has, as one value. It is stored whole, so a change to one
@@ -11,25 +132,25 @@ public struct MiniWhisperSettings: Equatable, Sendable {
   // MARK: Lifecycle
 
   public init(
-    hotkeys: [Hotkey], microphone: MicrophoneSelection, soundsEnabled: Bool,
+    hotkeys: [Hotkey], microphone: MicrophoneSelection, sounds: SoundSettings,
     retention: RetentionPolicy,
   ) {
     self.hotkeys = hotkeys
     self.microphone = microphone
-    self.soundsEnabled = soundsEnabled
+    self.sounds = sounds
     self.retention = retention
   }
 
   // MARK: Public
 
   public static let defaults = MiniWhisperSettings(
-    hotkeys: [.rightOption], microphone: .systemDefault, soundsEnabled: true,
+    hotkeys: [.rightOption], microphone: .systemDefault, sounds: .defaults,
     retention: .defaults,
   )
 
   public var hotkeys: [Hotkey]
   public var microphone: MicrophoneSelection
-  public var soundsEnabled: Bool
+  public var sounds: SoundSettings
   public var retention: RetentionPolicy
 }
 
@@ -37,38 +158,22 @@ public struct MiniWhisperSettings: Equatable, Sendable {
 
 extension MiniWhisperSettings: Codable {
   private enum CodingKeys: String, CodingKey {
-    case hotkey
     case hotkeys
     case microphone
-    case soundsEnabled
+    case sounds
     case retention
   }
 
+  /// The file is meant to be edited by hand, so an absent key means "never configured" and takes
+  /// the default rather than treating the file as corrupt.
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
-    // `hotkey` is the pre-multi-binding shape. It is still read so an existing file keeps its
-    // shortcut, and never written, so reading one is what retires it.
-    if let hotkeys = try container.decodeIfPresent([Hotkey].self, forKey: .hotkeys) {
-      self.hotkeys = hotkeys
-    } else {
-      hotkeys = try [container.decode(Hotkey.self, forKey: .hotkey)]
-    }
+    hotkeys = try container.decodeIfPresent([Hotkey].self, forKey: .hotkeys) ?? [.rightOption]
     microphone = try container.decodeIfPresent(MicrophoneSelection.self, forKey: .microphone)
       ?? .systemDefault
-    soundsEnabled = try container.decode(Bool.self, forKey: .soundsEnabled)
-    // Absent means the user has never configured retention, so the defaults apply — a file
-    // written before retention existed must not be treated as corrupt and reset the hotkey.
+    sounds = try container.decodeIfPresent(SoundSettings.self, forKey: .sounds) ?? .defaults
     retention = try container.decodeIfPresent(RetentionPolicy.self, forKey: .retention)
       ?? .defaults
-  }
-
-  /// Hand-written only to keep the legacy `hotkey` key out of everything this app writes.
-  public func encode(to encoder: Encoder) throws {
-    var container = encoder.container(keyedBy: CodingKeys.self)
-    try container.encode(hotkeys, forKey: .hotkeys)
-    try container.encode(microphone, forKey: .microphone)
-    try container.encode(soundsEnabled, forKey: .soundsEnabled)
-    try container.encode(retention, forKey: .retention)
   }
 }
 

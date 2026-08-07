@@ -48,6 +48,7 @@ public enum GestureInput: Equatable, Sendable {
   case release(at: Duration)
   case conflict(at: Duration)
   case mouseDown(at: Duration)
+  case deadlineElapsed
   case escape
   case monitoringInterrupted
   case neutral
