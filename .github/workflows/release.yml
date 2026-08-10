@@ -267,7 +267,7 @@ jobs:
             homepage "https://github.com/thurstonsand/mini-whisper"
           ${livecheck}
             depends_on arch: :arm64
-            depends_on macos: ">= :tahoe"
+            depends_on macos: :tahoe
 
             app "${app_name}.app"
 
