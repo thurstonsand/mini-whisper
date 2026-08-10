@@ -4,7 +4,7 @@ hooks {
   ["pre-commit"] {
     steps {
       ["lint"] {
-        check = "mise run lint"
+        check = "mise run --quiet lint"
         exclusive = true
       }
     }

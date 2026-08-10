@@ -70,6 +70,17 @@ import Foundation
         store.send(.engineReadinessUpdated(.downloading(fraction)))
       case "model-ready":
         store.send(.engineReadinessUpdated(.ready))
+      case "scene":
+        guard let scene = AgentDriveabilityScene(rawValue: String(fields[2])) else {
+          return
+        }
+        AgentSceneState.current?.reseed(for: scene)
+        store.send(.agentScenePresented(scene))
+        // The result file is the swap's barrier: a test that just posted a scene cannot tell a
+        // stale window from the new one when both answer to the same identifiers.
+        try? "scene:\(scene.rawValue)".write(
+          to: AgentSceneFiles.result, atomically: true, encoding: .utf8,
+        )
       default:
         return
       }

@@ -134,6 +134,7 @@ struct SettingsWindowView: View {
           isHistorySearchFocused = true
           return .handled
         },
+        escape: dismissStoragePopover,
       )
     case .model,
          .dictionary,
@@ -169,6 +170,14 @@ struct SettingsWindowView: View {
       Image(systemName: destination.symbolName)
     }
     .tag(destination)
+  }
+
+  private func dismissStoragePopover() -> KeyPress.Result {
+    guard store.history.isStoragePresented else {
+      return .ignored
+    }
+    store.send(.history(.storagePresentationChanged(false)))
+    return .handled
   }
 
   private func cancelSettingsRecording() -> KeyPress.Result {

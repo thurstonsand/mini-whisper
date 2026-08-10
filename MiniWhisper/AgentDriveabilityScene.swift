@@ -297,7 +297,9 @@ enum PresentedWindow: Equatable {
   }
 
 #else
-  enum AgentDriveabilityScene {
+  /// Caseless on purpose: `AppFeature.Action.agentScenePresented` carries this type, and a
+  /// payload with no cases makes that action impossible to construct in Release.
+  enum AgentDriveabilityScene: Equatable {
     static var current: Self? {
       precondition(
         ProcessInfo.processInfo.environment["MINIWHISPER_AGENT_SCENE"] == nil,

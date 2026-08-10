@@ -114,8 +114,7 @@ done
 description = "Test all local packages"
 run = """
 for pkg in Packages/*/; do
-    echo "Testing $pkg..."
-    swift test --package-path "$pkg" || exit 1
+    swift test --quiet --package-path "$pkg" || exit 1
 done
 """
 
@@ -139,7 +138,7 @@ run = "swiftformat MiniWhisper/ MiniWhisperTests/ MiniWhisperUITests/ Packages/"
 
 [tasks."format:check"]
 description = "Check formatting"
-run = "swiftformat --lint MiniWhisper/ MiniWhisperTests/ MiniWhisperUITests/ Packages/"
+run = "swiftformat --lint --quiet MiniWhisper/ MiniWhisperTests/ MiniWhisperUITests/ Packages/"
 
 [tasks."lint:markdown"]
 description = "Lint Markdown documentation"
@@ -148,8 +147,8 @@ run = "markdownlint-cli2 \"**/*.md\""
 [tasks."lint:python"]
 description = "Check and lint Python code"
 run = [
-    "ruff format --check .",
-    "ruff check --fix --unsafe-fixes .",
+    "ruff format --check --quiet .",
+    "ruff check --fix --unsafe-fixes --quiet .",
 ]
 
 [tasks."lint:static"]

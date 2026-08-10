@@ -10,12 +10,8 @@ import HotkeyListener
     /// Settings. The grants start wherever the scene's seeded state says they are, so driving a
     /// permission through its Grant button moves the same truth the screen was already showing.
     func configure(_ dependencies: inout DependencyValues) {
-      let seeded = initialState
-      let sceneState = AgentSceneState(
-        microphoneStatus: seeded.health.micStatus,
-        accessibilityGranted: seeded.health.accessibilityGranted,
-        launchAtLoginRegistered: seeded.settingsWindow.settingsPane.launchAtLoginRegistered,
-      )
+      let sceneState = AgentSceneState(scene: self)
+      AgentSceneState.current = sceneState
       dependencies.microphonePermission = MicrophonePermissionClient(
         status: { sceneState.microphoneStatus },
         requestIfNeeded: {
@@ -88,19 +84,23 @@ import HotkeyListener
 
   /// Everything a seeded client both reads and writes outlives the reducer that asked for it: the
   /// clients are plain closures, so the answers have to be kept somewhere all of them can reach.
-  private final class AgentSceneState: @unchecked Sendable {
+  /// When the driver swaps scenes at runtime, the same instance is reseeded so the clients answer
+  /// for the scene now on screen rather than the one the process launched with.
+  final class AgentSceneState: @unchecked Sendable {
     // MARK: Lifecycle
 
-    init(
-      microphoneStatus: MicPermissionStatus, accessibilityGranted: Bool,
-      launchAtLoginRegistered: Bool,
-    ) {
-      _microphoneStatus = microphoneStatus
-      _accessibilityGranted = accessibilityGranted
-      _launchAtLoginRegistered = launchAtLoginRegistered
+    init(scene: AgentDriveabilityScene) {
+      let seeded = scene.initialState
+      _microphoneStatus = seeded.health.micStatus
+      _accessibilityGranted = seeded.health.accessibilityGranted
+      _launchAtLoginRegistered = seeded.settingsWindow.settingsPane.launchAtLoginRegistered
     }
 
     // MARK: Internal
+
+    /// Written once at store creation and rewritten only by the driver's scene swaps, both on
+    /// the main thread; the instance itself locks.
+    nonisolated(unsafe) static var current: AgentSceneState?
 
     var microphoneStatus: MicPermissionStatus {
       get { lock.withLock { _microphoneStatus } }
@@ -115,6 +115,15 @@ import HotkeyListener
     var launchAtLoginRegistered: Bool {
       get { lock.withLock { _launchAtLoginRegistered } }
       set { lock.withLock { _launchAtLoginRegistered = newValue } }
+    }
+
+    func reseed(for scene: AgentDriveabilityScene) {
+      let seeded = scene.initialState
+      lock.withLock {
+        _microphoneStatus = seeded.health.micStatus
+        _accessibilityGranted = seeded.health.accessibilityGranted
+        _launchAtLoginRegistered = seeded.settingsWindow.settingsPane.launchAtLoginRegistered
+      }
     }
 
     // MARK: Private

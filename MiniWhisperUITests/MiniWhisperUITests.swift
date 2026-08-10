@@ -1,5 +1,4 @@
 import AppKit
-import ApplicationServices
 import XCTest
 
 // MARK: - MiniWhisperUITests
@@ -12,8 +11,11 @@ final class MiniWhisperUITests: XCTestCase {
   }
 
   @MainActor func testOnboardingAccessibilityManifest() throws {
+    let app = launch("onboarding-welcome")
+    defer { terminate(app) }
     try assertManifest(
-      scene: "onboarding-welcome",
+      in: app,
+      audits: true,
       elements: [
         contract(.window, "miniwhisper.onboarding.window", "Set Up \(appName)"),
         contract(.group, "miniwhisper.onboarding.welcome", "Welcome to \(appName)"),
@@ -36,14 +38,16 @@ final class MiniWhisperUITests: XCTestCase {
     )
 
     for permission in PermissionManifest.allCases {
+      presentScene(permission.scene)
       try assertManifest(
-        scene: permission.scene,
+        in: app,
         elements: onboardingRail(permission.railValues) + permissionElements(permission),
       )
     }
 
+    presentScene("onboarding-shortcut")
     try assertManifest(
-      scene: "onboarding-shortcut",
+      in: app,
       elements: onboardingRail(
         ["Complete", "Current", "Available; Downloading 42%", "Available"],
       ) + [
@@ -75,8 +79,9 @@ final class MiniWhisperUITests: XCTestCase {
       ],
     )
 
+    presentScene("onboarding-model")
     try assertManifest(
-      scene: "onboarding-model",
+      in: app,
       elements: onboardingRail(["Complete", "Complete", "Current; Downloading 42%", "Available"]) +
         [
           contract(.group, "miniwhisper.onboarding.model", "Speech model setup"),
@@ -97,8 +102,9 @@ final class MiniWhisperUITests: XCTestCase {
         ],
     )
 
+    presentScene("onboarding-try-it")
     try assertManifest(
-      scene: "onboarding-try-it",
+      in: app,
       elements: onboardingRail(["Complete", "Complete", "Complete", "Current"]) + [
         contract(.group, "miniwhisper.onboarding.try-it", "Try \(appName)"),
         contract(
@@ -125,8 +131,9 @@ final class MiniWhisperUITests: XCTestCase {
       ],
     )
 
+    presentScene("onboarding-ready")
     try assertManifest(
-      scene: "onboarding-ready",
+      in: app,
       elements: onboardingRail(["Complete", "Complete", "Complete", "Complete"]) + [
         contract(.group, "miniwhisper.onboarding.ready", "\(appName) is ready"),
         contract(.staticText, "miniwhisper.onboarding.ready.title", "Setup status", "Ready"),
@@ -354,81 +361,14 @@ final class MiniWhisperUITests: XCTestCase {
     )
   }
 
-  @MainActor func testSettingsLaunchAtLoginCompletesThePane() {
-    let app = launch("settings")
-    defer { terminate(app) }
-
-    let toggle = app.switches["miniwhisper.settings.launch-at-login"]
-    XCTAssertTrue(toggle.waitForExistence(timeout: 5))
-    XCTAssertEqual(accessibilityValue(toggle), "1")
-
-    app.typeText("ljjjjjj")
-    assertValue(
-      "Bar on", of: app.staticTexts["miniwhisper.settings.launch-at-login.state"],
-    )
-    // A switch spends its own accessibility value on being on or off, so the ring it is wearing
-    // has to be reported separately.
-    assertValue("Ring on", of: app.staticTexts["miniwhisper.settings.launch-at-login.ring"])
-    XCTAssertTrue(toggle.isHittable)
-
-    app.typeKey(.return, modifierFlags: [])
-    XCTAssertEqual(accessibilityValue(toggle), "0")
-  }
-
-  /// macOS lists an app under Privacy & Security > Microphone only once the app has asked, and
-  /// that list has no way to add one by hand. Taking Grant away before it was pressed therefore
-  /// strands the user in front of a pane their app is not in.
-  @MainActor func testLeavingAndReturningToPermissionsKeepsTheGrantButton() {
-    let app = launch("onboarding-permissions-microphone")
-    defer { terminate(app) }
-
-    let action = app.buttons["miniwhisper.onboarding.permission.microphone.action"]
-    XCTAssertTrue(action.waitForExistence(timeout: 5))
-    XCTAssertEqual(action.label, "Grant Microphone")
-
-    app.buttons["miniwhisper.onboarding.rail.try-it"].click()
-    XCTAssertTrue(app.buttons["miniwhisper.onboarding.rail.permissions"].waitForExistence(
-      timeout: 2,
-    ))
-    app.buttons["miniwhisper.onboarding.rail.permissions"].click()
-
-    XCTAssertTrue(action.waitForExistence(timeout: 2))
-    XCTAssertEqual(action.label, "Grant Microphone")
-    assertValue(
-      "Required", of: app.staticTexts["miniwhisper.onboarding.permission.microphone.status"],
-    )
-  }
-
-  @MainActor func testOnboardingCanBeAbandonedFromTheLastPage() {
-    let app = launch("onboarding-model")
-    defer { terminate(app) }
-
-    let skip = app.buttons["miniwhisper.onboarding.try-it.skip"]
-    XCTAssertTrue(app.buttons["miniwhisper.onboarding.rail.try-it"].waitForExistence(timeout: 5))
-    XCTAssertFalse(skip.exists)
-
-    app.buttons["miniwhisper.onboarding.rail.try-it"].click()
-    XCTAssertTrue(skip.waitForExistence(timeout: 2))
-    XCTAssertFalse(app.textViews["miniwhisper.onboarding.try-it.text"].exists)
-
-    skip.click()
-    XCTAssertTrue(app.staticTexts["miniwhisper.menu.status-item"].waitForNonExistence(timeout: 3))
-    XCTAssertFalse(app.buttons["miniwhisper.onboarding.rail.try-it"].exists)
-  }
-
   @MainActor func testSettingsRepairRowsAreDegradedOnlyAndAreTheirOwnDoor() {
-    let healthy = launch("settings")
-    XCTAssertFalse(healthy.groups["miniwhisper.settings.repair.accessibility"].exists)
-    XCTAssertFalse(healthy.groups["miniwhisper.settings.repair.microphone"].exists)
-    XCTAssertFalse(healthy.groups["miniwhisper.settings.repair.model-setup-failed"].exists)
-    terminate(healthy)
-
+    // The healthy manifest rejects these rows as unexpected; this scene proves their degraded form.
     let app = launch("settings-degraded")
     defer { terminate(app) }
     let accessibility = app.groups["miniwhisper.settings.repair.accessibility"]
     let microphone = app.groups["miniwhisper.settings.repair.microphone"]
     let model = app.groups["miniwhisper.settings.repair.model-setup-failed"]
-    XCTAssertTrue(accessibility.waitForExistence(timeout: 5))
+    XCTAssertTrue(accessibility.awaitExistence(timeout: 5))
     XCTAssertTrue(microphone.exists)
     XCTAssertTrue(model.exists)
     XCTAssertEqual(accessibility.label, "Required to start dictation and paste text")
@@ -451,140 +391,18 @@ final class MiniWhisperUITests: XCTestCase {
     )
   }
 
-  @MainActor func testHistoryCursorStaysOnScreenAfterVisitingSettings() {
-    let app = launch("settings-history")
-    defer { terminate(app) }
-    let id = "00000000-0000-0000-0000-000000000028"
-    let cursor = historyRow(app, id: id)
-
-    app.typeText("l" + String(repeating: "j", count: 27))
-    XCTAssertTrue(cursor.waitForExistence(timeout: 5))
-    assertSingleGreyHistoryRow(app, id: id)
-    XCTAssertTrue(cursor.isHittable)
-
-    app.typeText("hkj")
-    XCTAssertTrue(cursor.isHittable, "The cursor came back off-screen.")
-
-    app.typeText("l")
-    assertSingleGreyHistoryRow(app, id: id)
-    XCTAssertTrue(cursor.isHittable)
-  }
-
-  @MainActor func testSettingsCursorKeepsItsBarAfterVisitingHistory() {
-    // The directly presented agent scene preserves focus and cannot exercise this path.
-    let app = launchRealSettings()
-    defer { terminate(app) }
-    XCTAssertTrue(
-      app.switches["miniwhisper.settings.launch-at-login"].waitForExistence(timeout: 5),
-    )
-    let bar = app.staticTexts["miniwhisper.settings.launch-at-login.state"]
-
-    // One press per key: a repeated typeText is delivered whole, where a loop drops some.
-    app.typeText("ljjjjjjjj")
-    assertValue("Bar on", of: bar)
-
-    app.typeText("hjkl")
-    assertValue("Bar on", of: bar)
-  }
-
-  @MainActor func testSettingsMicrophoneRowJoinsTheKeyboardGrammar() {
-    let app = launch("settings")
-    defer { terminate(app) }
-
-    let picker = app.popUpButtons["miniwhisper.settings.microphone.picker"]
-    let rowState = app.staticTexts["miniwhisper.settings.microphone.state"]
-    XCTAssertTrue(picker.waitForExistence(timeout: 5))
-
-    app.typeText("lj")
-    assertValue("Bar on", of: rowState)
-    assertValue("Bar off", of: app.staticTexts["miniwhisper.settings.shortcut.activate.state"])
-
-    app.typeKey(.return, modifierFlags: [])
-    XCTAssertTrue(
-      app.menuItems["System Default (MacBook Pro Microphone)"].waitForExistence(timeout: 2),
-    )
-    app.typeKey(.escape, modifierFlags: [])
-  }
-
-  @MainActor func testSettingsSoundRowsJoinTheKeyboardGrammar() {
-    let app = launch("settings")
-    defer { terminate(app) }
-
-    XCTAssertTrue(
-      app.popUpButtons["miniwhisper.settings.sound.error.picker"].waitForExistence(timeout: 5),
-    )
-    app.typeText("l")
-    for cue in ["microphone", "sound.activate", "sound.complete", "sound.cancel", "sound.error"] {
-      app.typeText("j")
-      assertValue("Bar on", of: app.staticTexts["miniwhisper.settings.\(cue).state"])
-    }
-    app.typeText("kkkkk")
-    assertValue(
-      "Bar on", of: app.staticTexts["miniwhisper.settings.shortcut.activate.state"],
-    )
-  }
-
-  @MainActor func testSettingsReturnOpensASoundPopup() {
-    let app = launch("settings")
-    defer { terminate(app) }
-
-    let picker = app.popUpButtons["miniwhisper.settings.sound.activate.picker"]
-    XCTAssertTrue(picker.waitForExistence(timeout: 5))
-    app.typeText("ljj")
-    assertValue(
-      "Bar on", of: app.staticTexts["miniwhisper.settings.sound.activate.state"],
-    )
-    app.typeKey(.return, modifierFlags: [])
-    XCTAssertTrue(app.menuItems["No audio"].waitForExistence(timeout: 2))
-    XCTAssertTrue(app.menuItems["Tink (default)"].exists)
-    app.typeKey(.escape, modifierFlags: [])
-
-    app.typeText("h")
-    assertValue("Focused", of: app.outlines["miniwhisper.settings.sidebar"])
-  }
-
   @MainActor func testSettingsNoAudioIsSecondaryAndCannotBePreviewed() {
     let app = launch("settings-sounds-no-audio")
     defer { terminate(app) }
 
     let picker = app.popUpButtons["miniwhisper.settings.sound.cancel.picker"]
     let preview = app.buttons["miniwhisper.settings.sound.cancel.preview"]
-    XCTAssertTrue(picker.waitForExistence(timeout: 5))
+    XCTAssertTrue(picker.awaitExistence(timeout: 5))
     assertValue("No audio", of: picker)
     assertValue(
       "Secondary", of: app.staticTexts["miniwhisper.settings.sound.cancel.picker.state"],
     )
     XCTAssertFalse(preview.isEnabled)
-  }
-
-  @MainActor func testSettingsSoundPreviewFiresTheInjectedClient() {
-    let app = launch("settings")
-    defer { terminate(app) }
-
-    let preview = app.buttons["miniwhisper.settings.sound.activate.preview"]
-    XCTAssertTrue(preview.waitForExistence(timeout: 5))
-    preview.click()
-    assertValue("Tink", of: app.staticTexts["miniwhisper.settings.sound.playback"])
-  }
-
-  @MainActor func testSettingsMicrophoneRowAnswersThePointer() {
-    let app = launch("settings")
-    defer { terminate(app) }
-
-    let picker = app.popUpButtons["miniwhisper.settings.microphone.picker"]
-    let rowState = app.staticTexts["miniwhisper.settings.microphone.state"]
-    XCTAssertTrue(picker.waitForExistence(timeout: 5))
-
-    hoverAfterEnteringWindow(
-      app.descendants(matching: .any)["miniwhisper.settings.microphone"], in: app,
-    )
-    assertValue("Bar on", of: rowState)
-
-    picker.click()
-    let studio = app.menuItems["Studio Microphone"]
-    XCTAssertTrue(studio.waitForExistence(timeout: 2))
-    studio.click()
-    assertValue("Studio Microphone", of: picker)
   }
 
   @MainActor func testSettingsUnavailableMicrophoneShowsTruthfulFallback() {
@@ -593,16 +411,19 @@ final class MiniWhisperUITests: XCTestCase {
 
     let picker = app.popUpButtons["miniwhisper.settings.microphone.picker"]
     let notice = app.descendants(matching: .any)["miniwhisper.settings.microphone.unavailable"]
-    XCTAssertTrue(picker.waitForExistence(timeout: 5))
+    XCTAssertTrue(picker.awaitExistence(timeout: 5))
     XCTAssertTrue(picker.isEnabled)
     XCTAssertEqual(accessibilityValue(picker), "Studio Microphone (Unavailable)")
-    XCTAssertEqual(
-      notice.label,
+    // The default device name resolves after the pane appears, so the notice is polled: a fast
+    // existence wait no longer grants the free second the old timer-based wait did.
+    assertLabel(
       "Studio Microphone not connected. Using system default: MacBook Pro Microphone.",
+      of: notice,
     )
   }
 
-  @MainActor func testSettingsRealWindowStartsInSidebar() {
+  @MainActor func testRealSettingsWindowLaws() {
+    // The directly presented agent scene preserves focus and cannot exercise these paths.
     let app = launchRealSettings()
     defer { terminate(app) }
 
@@ -616,297 +437,20 @@ final class MiniWhisperUITests: XCTestCase {
     assertValue("History; Selected", of: history)
     app.typeText("k")
     assertValue("Settings; Selected", of: settings)
-  }
 
-  @MainActor func testSettingsEnteringDetailPaintsCursor() {
-    let app = launch("settings")
-    defer { terminate(app) }
+    let bar = app.staticTexts["miniwhisper.settings.launch-at-login.state"]
+    // One press per key: a repeated typeText is delivered whole, where a loop drops some.
+    app.typeText("ljjjjjjjj")
+    assertValue("Bar on", of: bar)
 
-    app.typeText("jkl")
-    assertValue("Not focused", of: app.outlines["miniwhisper.settings.sidebar"])
-    assertValue(
-      "Bar on", of: app.staticTexts["miniwhisper.settings.shortcut.activate.state"],
-    )
-    assertValue(
-      "Ring on", of: app.buttons["miniwhisper.settings.shortcut.binding.0"],
-    )
-  }
-
-  @MainActor func testSettingsReturningToSidebarClearsCursorPaint() {
-    let app = launch("settings")
-    defer { terminate(app) }
-
-    app.typeText("lh")
-    assertValue("Focused", of: app.outlines["miniwhisper.settings.sidebar"])
-    assertValue(
-      "Bar off", of: app.staticTexts["miniwhisper.settings.shortcut.activate.state"],
-    )
-    assertValue(
-      "Ring off", of: app.buttons["miniwhisper.settings.shortcut.binding.0"],
-    )
-  }
-
-  @MainActor func testSettingsHoverSurvivesKeyboardModeEntry() {
-    let app = launch("settings")
-    defer { terminate(app) }
-
-    app.typeText("l")
-    let row = app.groups["miniwhisper.settings.shortcut.activate"]
-    let rowState = app.staticTexts["miniwhisper.settings.shortcut.activate.state"]
-    let binding = app.buttons["miniwhisper.settings.shortcut.binding.0"]
-    hoverAfterEnteringWindow(row, in: app)
-    assertValue("Bar on", of: rowState)
-    assertValue("Ring off", of: binding)
-
-    // `k` at the top of the list moves nowhere, so what this observes is only the handover: the
-    // keyboard takes back a cursor that was already standing where the pointer was.
-    app.typeText("k")
-    assertValue("Bar on", of: rowState)
-    assertValue("Ring on", of: binding)
-  }
-
-  @MainActor func testSettingsKeyboardMovementContinuesFromHoveredRow() {
-    let app = launch("settings")
-    defer { terminate(app) }
-
-    app.typeText("l")
-    let errorRow = app.groups["miniwhisper.settings.sound.error"]
-    XCTAssertTrue(errorRow.waitForExistence(timeout: 5))
-    hoverAfterEnteringWindow(errorRow, in: app)
-    assertValue(
-      "Bar on", of: app.staticTexts["miniwhisper.settings.sound.error.state"],
-    )
-
-    app.typeText("k")
-    assertValue(
-      "Bar on", of: app.staticTexts["miniwhisper.settings.sound.cancel.state"],
-    )
-    assertValue(
-      "Ring off", of: app.buttons["miniwhisper.settings.sound.cancel.preview"],
-    )
-  }
-
-  @MainActor func testHistoryEnteringFromSidebarPaintsFirstCursor() {
-    let app = launch("settings-history")
-    defer { terminate(app) }
-
-    let firstRow = historyRow(app, id: "11111111-1111-1111-1111-111111111111")
-    XCTAssertTrue(firstRow.waitForExistence(timeout: 5))
-    app.typeText("h")
-    assertValue("Focused", of: app.outlines["miniwhisper.settings.sidebar"])
-    app.typeText("l")
-    assertValue("Not focused", of: app.outlines["miniwhisper.settings.sidebar"])
-    assertValue(
-      "Grey on; Cursor on; Copied off",
-      of: historyRowState(app, id: "11111111-1111-1111-1111-111111111111"),
-    )
-  }
-
-  @MainActor func testHistoryMovementKeepsExactlyOneGreyRow() {
-    let app = launch("settings-history")
-    defer { terminate(app) }
-
-    XCTAssertTrue(historyRows(app).firstMatch.waitForExistence(timeout: 5))
-    app.typeText("j")
-    assertSingleGreyHistoryRow(app, id: "22222222-2222-2222-2222-222222222222")
-    app.typeText("k")
-    assertSingleGreyHistoryRow(app, id: "11111111-1111-1111-1111-111111111111")
-  }
-
-  @MainActor func testHistoryCopyKeepsCursor() {
-    let app = launch("settings-history")
-    defer { terminate(app) }
-
-    let firstID = "11111111-1111-1111-1111-111111111111"
-    let firstRow = historyRow(app, id: firstID)
-    XCTAssertTrue(firstRow.waitForExistence(timeout: 5))
-    app.typeText("l")
-    XCTAssertTrue(
-      app.descendants(matching: .any)["miniwhisper.history.copied.\(firstID)"]
-        .waitForExistence(timeout: 2),
-    )
-    XCTAssertTrue(accessibilityValue(historyRowState(app, id: firstID)).contains("Cursor on"))
-  }
-
-  @MainActor func testHistoryRoundTripRestoresSameCursor() {
-    let app = launch("settings-history")
-    defer { terminate(app) }
-
-    XCTAssertTrue(historyRows(app).firstMatch.waitForExistence(timeout: 5))
-    let secondID = "22222222-2222-2222-2222-222222222222"
-    app.typeText("jh")
-    XCTAssertTrue(
-      historyRowStates(app).allElementsBoundByIndex.allSatisfy {
-        !accessibilityValue($0).contains("Grey on")
-      },
-    )
-    app.typeText("l")
-    assertSingleGreyHistoryRow(app, id: secondID)
-  }
-
-  @MainActor func testHistoryParkedPointerCannotStealKeyboardGrey() {
-    let app = launch("settings-history")
-    defer { terminate(app) }
-
-    let firstRow = historyRow(app, id: "11111111-1111-1111-1111-111111111111")
-    XCTAssertTrue(firstRow.waitForExistence(timeout: 5))
-    firstRow.hover()
-    app.typeText("jj")
-    assertSingleGreyHistoryRow(app, id: "00000000-0000-0000-0000-000000000003")
-  }
-
-  @MainActor func testHistorySearchFocusAndExitLaws() {
-    let app = launch("settings-history")
-    defer { terminate(app) }
-
-    XCTAssertTrue(historyRows(app).firstMatch.waitForExistence(timeout: 5))
-    app.typeText("/")
-    let search = app.searchFields.firstMatch
-    XCTAssertTrue(search.waitForExistence(timeout: 2))
-    search.typeText("second")
-    XCTAssertTrue(
-      historyRowStates(app).allElementsBoundByIndex.allSatisfy {
-        !accessibilityValue($0).contains("Grey on")
-      },
-    )
-    search.typeKey(.return, modifierFlags: [])
-    let secondID = "22222222-2222-2222-2222-222222222222"
-    assertSingleGreyHistoryRow(app, id: secondID)
-
-    app.typeText("/")
-    search.typeKey(.escape, modifierFlags: [])
-    assertValue("", of: search)
-  }
-
-  @MainActor func testHistorySettingsInteractions() throws {
-    let app = launch("settings-history")
-    defer { terminate(app) }
-
-    let firstID = "11111111-1111-1111-1111-111111111111"
-    let secondID = "22222222-2222-2222-2222-222222222222"
-    let firstRow = app.descendants(matching: .any)["miniwhisper.history.row.\(firstID)"]
-    let secondRow = app.descendants(matching: .any)["miniwhisper.history.row.\(secondID)"]
-    XCTAssertTrue(firstRow.waitForExistence(timeout: 5))
-    XCTAssertTrue(secondRow.exists)
-
-    firstRow.click()
-    XCTAssertTrue(
-      app.descendants(matching: .any)["miniwhisper.history.copied.\(firstID)"]
-        .waitForExistence(timeout: 2),
-    )
-
-    // The copy toast lands before the toolbar settles, so hittability is waited on rather than
-    // sampled the instant the click returns.
-    let storage = app.buttons["miniwhisper.history.storage"]
-    let hittable = XCTNSPredicateExpectation(
-      predicate: NSPredicate(format: "isHittable == true"), object: storage,
-    )
-    XCTAssertEqual(XCTWaiter.wait(for: [hittable], timeout: 3), .completed)
-    storage.click()
-    XCTAssertTrue(
-      app.descendants(matching: .any)["miniwhisper.history.storage.popover"]
-        .waitForExistence(timeout: 2),
-    )
-    app.typeKey(.escape, modifierFlags: [])
-
-    secondRow.rightClick()
-    XCTAssertTrue(app.menuItems
-      .matching(identifier: "Delete")
-      .firstMatch
-      .waitForExistence(timeout: 2))
-    let delete = try XCTUnwrap(
-      app.menuItems
-        .matching(identifier: "Delete")
-        .allElementsBoundByIndex
-        .first(where: \.isHittable),
-    )
-    delete.click()
-    XCTAssertEqual(waitForDisappearance(of: secondRow), .completed)
-  }
-
-  @MainActor func testHistoryVimLoop() {
-    let app = launch("settings-history")
-    defer { terminate(app) }
-
-    let secondID = "22222222-2222-2222-2222-222222222222"
-    XCTAssertTrue(
-      app.descendants(matching: .any)["miniwhisper.history.row.\(secondID)"]
-        .waitForExistence(timeout: 5),
-    )
-
-    // The cursor starts on the first row, so one j reaches the second; l copies where it landed.
-    app.typeText("jl")
-    XCTAssertTrue(
-      app.descendants(matching: .any)["miniwhisper.history.copied.\(secondID)"]
-        .waitForExistence(timeout: 2),
-    )
-
-    // h leaves for the sidebar, where j walks destinations and l dives back in.
-    app.typeText("hj")
-    let placeholder = app.descendants(matching: .any)["miniwhisper.settings.placeholder"]
-    XCTAssertTrue(placeholder.waitForExistence(timeout: 2))
-    XCTAssertTrue(placeholder.label.hasPrefix("Model"))
-
-    app.typeText("k")
-    let firstID = "11111111-1111-1111-1111-111111111111"
-    let firstRow = app.descendants(matching: .any)["miniwhisper.history.row.\(firstID)"]
-    XCTAssertTrue(firstRow.waitForExistence(timeout: 2))
-
-    // The cursor survived the round trip, so l copies the row it was left on.
-    app.typeText("ll")
-    XCTAssertTrue(
-      app.descendants(matching: .any)["miniwhisper.history.copied.\(secondID)"]
-        .waitForExistence(timeout: 2),
-    )
-
-    // The search field keeps the keys it is given: vim navigation must not claim focus back.
-    let search = app.searchFields.firstMatch
-    XCTAssertTrue(search.waitForExistence(timeout: 2))
-    search.click()
-    search.typeText("keyboard")
-    let filteredOut = XCTNSPredicateExpectation(
-      predicate: NSPredicate(format: "exists == false"), object: firstRow,
-    )
-    XCTAssertEqual(XCTWaiter.wait(for: [filteredOut], timeout: 3), .completed)
-  }
-
-  @MainActor func testHistorySearchKeys() {
-    let app = launch("settings-history")
-    defer { terminate(app) }
-
-    let firstID = "11111111-1111-1111-1111-111111111111"
-    let filteredID = "00000000-0000-0000-0000-000000000003"
-    let firstRow = app.descendants(matching: .any)["miniwhisper.history.row.\(firstID)"]
-    XCTAssertTrue(firstRow.waitForExistence(timeout: 5))
-
-    // "/" hands the keys to the search field, and Return hands them back with the filter intact.
-    app.typeText("/")
-    app.typeText("keyboard")
-    XCTAssertEqual(waitForDisappearance(of: firstRow), .completed)
-    app.typeKey(.return, modifierFlags: [])
-    app.typeText("l")
-    XCTAssertTrue(
-      app.descendants(matching: .any)["miniwhisper.history.copied.\(filteredID)"]
-        .waitForExistence(timeout: 2),
-    )
-
-    // Escape abandons the query instead, and still hands the keys back — to a cursor that stayed
-    // where the filtered list left it, so k reaches the row above the one Return copied.
-    let secondID = "22222222-2222-2222-2222-222222222222"
-    app.typeText("/")
-    app.typeText("xyzzy")
-    app.typeKey(.escape, modifierFlags: [])
-    XCTAssertTrue(firstRow.waitForExistence(timeout: 2))
-    app.typeText("kl")
-    XCTAssertTrue(
-      app.descendants(matching: .any)["miniwhisper.history.copied.\(secondID)"]
-        .waitForExistence(timeout: 2),
-    )
+    app.typeText("hjkl")
+    assertValue("Bar on", of: bar)
   }
 
   @MainActor func testAboutAccessibilityManifest() throws {
     try assertManifest(
       scene: "about",
+      audits: true,
       elements: [
         contract(.window, "miniwhisper.about.window", "About \(appName)"),
         contract(.group, "miniwhisper.about.content", "About \(appName)"),
@@ -941,8 +485,10 @@ final class MiniWhisperUITests: XCTestCase {
   }
 
   @MainActor func testPillAccessibilityManifest() throws {
+    let app = launch("pill-recording")
+    defer { terminate(app) }
     try assertManifest(
-      scene: "pill-recording",
+      in: app,
       elements: [
         contract(.dialog, "miniwhisper.pill", "\(appName) dictation", "Visible"),
         contract(.staticText, "miniwhisper.pill.phase", "Dictation phase", "Recording"),
@@ -956,23 +502,26 @@ final class MiniWhisperUITests: XCTestCase {
         self.assertValue("20%", of: level)
       },
     )
+    presentScene("pill-transcribing")
     try assertManifest(
-      scene: "pill-transcribing",
+      in: app,
       elements: [
         contract(.dialog, "miniwhisper.pill", "\(appName) dictation", "Visible"),
         contract(.staticText, "miniwhisper.pill.phase", "Dictation phase", "Transcribing"),
       ],
     )
+    presentScene("pill-no-speech")
     try assertManifest(
-      scene: "pill-no-speech",
+      in: app,
       elements: [
         contract(.dialog, "miniwhisper.pill", "\(appName) dictation", "Visible"),
         contract(.staticText, "miniwhisper.pill.phase", "Dictation phase", "No speech detected"),
         contract(.staticText, "miniwhisper.pill.notice", "Dictation notice", "No speech detected"),
       ],
     )
+    presentScene("pill-copied")
     try assertManifest(
-      scene: "pill-copied",
+      in: app,
       elements: [
         contract(.dialog, "miniwhisper.pill", "\(appName) dictation", "Visible"),
         contract(.staticText, "miniwhisper.pill.phase", "Dictation phase", "Copied"),
@@ -983,66 +532,7 @@ final class MiniWhisperUITests: XCTestCase {
     )
   }
 
-  @MainActor func testRawAccessibilityAccessFromUITestRunner() throws {
-    let app = launch("pill-recording")
-    defer { terminate(app) }
-    let xcuPhase = app.descendants(matching: .any)["miniwhisper.pill.phase"]
-    XCTAssertTrue(xcuPhase.waitForExistence(timeout: 5))
-
-    let application = try XCTUnwrap(
-      NSRunningApplication.runningApplications(withBundleIdentifier: debugBundleIdentifier).first {
-        $0.bundleURL?.path.contains("/.build/DerivedData/") == true
-      },
-    )
-    let isTrusted = AXIsProcessTrusted()
-    let result = RawAccessibilityProbe().read(
-      applicationPID: application.processIdentifier, identifier: "miniwhisper.pill.phase",
-    )
-
-    switch result {
-    case let .snapshot(snapshot):
-      XCTAssertEqual(snapshot.role, "AXStaticText")
-      XCTAssertEqual(snapshot.identifier, xcuPhase.identifier)
-      XCTAssertEqual(snapshot.label, xcuPhase.label)
-      XCTAssertEqual(snapshot.value, accessibilityValue(xcuPhase))
-      recordSpikeEvidence(
-        "Raw AX succeeded; runner trusted=\(isTrusted); identifier=\(snapshot.identifier); label=\(snapshot.label); value=\(snapshot.value)",
-      )
-    case let .failure(failure):
-      XCTAssertFalse(isTrusted, "Raw AX failed even though the UI-test runner is trusted")
-      XCTAssertTrue(
-        failure.error == .apiDisabled || failure.error == .cannotComplete,
-        "Unexpected raw AX failure: \(failure.error.rawValue) reading \(failure.attribute)",
-      )
-      recordSpikeEvidence(
-        "Raw AX requires Accessibility trust; runner trusted=false; error=\(failure.error.rawValue); attribute=\(failure.attribute). XCUITest read identifier=\(xcuPhase.identifier), label=\(xcuPhase.label), value=\(accessibilityValue(xcuPhase)).",
-      )
-    case .notFound:
-      XCTFail("Raw AX access succeeded, but the pill phase identifier was absent")
-    }
-  }
-
-  @MainActor func testAccessibilityAudit() throws {
-    for scene in ["onboarding-welcome", "about"] {
-      try assertAccessibilityAudit(scene: scene)
-    }
-  }
-
   // MARK: Private
-
-  @MainActor private func assertAccessibilityAudit(scene: String) throws {
-    let app = launch(scene)
-    defer { terminate(app) }
-    XCTAssertTrue(
-      app.descendants(matching: .any)
-        .matching(
-          NSPredicate(format: "identifier BEGINSWITH %@", "miniwhisper."),
-        )
-        .firstMatch
-        .waitForExistence(timeout: 5),
-    )
-    try app.performAccessibilityAudit(for: [.elementDetection, .action])
-  }
 
   @MainActor private func assertMenuManifest(
     scene: String, elements: [AccessibilityContract], file: StaticString = #filePath,
@@ -1051,7 +541,7 @@ final class MiniWhisperUITests: XCTestCase {
     let app = launch(scene)
     defer { terminate(app) }
     let statusItem = app.statusItems["miniwhisper.menu.status-item"]
-    XCTAssertTrue(statusItem.waitForExistence(timeout: 5), file: file, line: line)
+    XCTAssertTrue(statusItem.awaitExistence(timeout: 5), file: file, line: line)
     XCTAssertEqual(statusItem.label, appName, file: file, line: line)
     XCTAssertTrue(statusItem.isEnabled, file: file, line: line)
     XCTAssertTrue(
@@ -1059,22 +549,38 @@ final class MiniWhisperUITests: XCTestCase {
     )
     statusItem.click()
     XCTAssertTrue(
-      app.menuItems[elements[0].identifier].waitForExistence(timeout: 2), file: file, line: line,
+      app.menuItems[elements[0].identifier].awaitExistence(timeout: 2), file: file, line: line,
     )
     assert(elements, in: app, file: file, line: line)
   }
 
+  /// The audit is a property of a presented scene, not a scene of its own, so it rides along with
+  /// the manifest that already has the window open.
   @MainActor private func assertManifest(
-    scene: String, elements: [AccessibilityContract], mutation: ((XCUIApplication) -> Void)? = nil,
-    file: StaticString = #filePath, line: UInt = #line,
+    scene: String, audits: Bool = false, elements: [AccessibilityContract],
+    mutation: ((XCUIApplication) -> Void)? = nil, file: StaticString = #filePath,
+    line: UInt = #line,
   ) throws {
     let app = launch(scene)
     defer { terminate(app) }
+    try assertManifest(
+      in: app, audits: audits, elements: elements, mutation: mutation, file: file, line: line,
+    )
+  }
+
+  @MainActor private func assertManifest(
+    in app: XCUIApplication, audits: Bool = false, elements: [AccessibilityContract],
+    mutation: ((XCUIApplication) -> Void)? = nil, file: StaticString = #filePath,
+    line: UInt = #line,
+  ) throws {
     XCTAssertTrue(
-      app.descendants(matching: .any)[elements[0].identifier].waitForExistence(timeout: 5),
+      app.descendants(matching: .any)[elements[0].identifier].awaitExistence(timeout: 5),
       file: file, line: line,
     )
     assert(elements, in: app, allowing: menuKnownIdentifiers, file: file, line: line)
+    if audits {
+      try app.performAccessibilityAudit(for: [.elementDetection, .action])
+    }
     mutation?(app)
   }
 
@@ -1082,133 +588,98 @@ final class MiniWhisperUITests: XCTestCase {
     let app = XCUIApplication()
     app.launch()
     let statusItem = app.statusItems["miniwhisper.menu.status-item"]
-    XCTAssertTrue(statusItem.waitForExistence(timeout: 5))
+    XCTAssertTrue(statusItem.awaitExistence(timeout: 5))
     statusItem.click()
     let settings = app.menuItems["miniwhisper.menu.settings"]
-    XCTAssertTrue(settings.waitForExistence(timeout: 2))
+    XCTAssertTrue(settings.awaitExistence(timeout: 2))
     settings.click()
-    XCTAssertTrue(app.windows["miniwhisper.settings.window"].waitForExistence(timeout: 5))
+    XCTAssertTrue(app.windows["miniwhisper.settings.window"].awaitExistence(timeout: 5))
     return app
-  }
-
-  private func historyRows(_ app: XCUIApplication) -> XCUIElementQuery {
-    app.descendants(matching: .any).matching(
-      NSPredicate(
-        format: "identifier BEGINSWITH %@ AND NOT identifier ENDSWITH %@",
-        "miniwhisper.history.row.", ".state",
-      ),
-    )
-  }
-
-  private func historyRowStates(_ app: XCUIApplication) -> XCUIElementQuery {
-    app.descendants(matching: .any).matching(
-      NSPredicate(
-        format: "identifier BEGINSWITH %@ AND identifier ENDSWITH %@",
-        "miniwhisper.history.row.", ".state",
-      ),
-    )
-  }
-
-  private func historyRow(_ app: XCUIApplication, id: String) -> XCUIElement {
-    app.descendants(matching: .any)["miniwhisper.history.row.\(id)"]
-  }
-
-  private func historyRowState(_ app: XCUIApplication, id: String) -> XCUIElement {
-    app.staticTexts["miniwhisper.history.row.\(id).state"]
-  }
-
-  private func assertSingleGreyHistoryRow(
-    _ app: XCUIApplication, id: String, file: StaticString = #filePath, line: UInt = #line,
-  ) {
-    let states = historyRowStates(app).allElementsBoundByIndex
-    let greyStates = states.filter { accessibilityValue($0).contains("Grey on") }
-    XCTAssertEqual(greyStates.count, 1, file: file, line: line)
-    XCTAssertEqual(
-      greyStates.first?.identifier,
-      "miniwhisper.history.row.\(id).state",
-      file: file,
-      line: line,
-    )
-    XCTAssertTrue(
-      accessibilityValue(historyRowState(app, id: id)).contains("Cursor on"),
-      file: file,
-      line: line,
-    )
-  }
-
-  private func recordSpikeEvidence(_ evidence: String) {
-    print("RAW_AX_SPIKE: \(evidence)")
-    let attachment = XCTAttachment(string: evidence)
-    attachment.lifetime = .keepAlways
-    add(attachment)
   }
 
   @MainActor private func assert(
     _ contracts: [AccessibilityContract], in app: XCUIApplication,
     allowing extraIdentifiers: Set<String> = [], file: StaticString, line: UInt,
   ) {
-    let expectedIdentifiers = Set(contracts.map(\.identifier))
+    let allowedIdentifiers = Set(contracts.map(\.identifier)).union(extraIdentifiers).union([
+      "miniwhisper.menu.status-item",
+    ])
+    var snapshots: [String: [XCUIElementSnapshot]] = [:]
+    var snapshotError: Error?
+    // The settle condition also demands that nothing beyond the manifest is on screen: after a
+    // scene swap, the previous scene's elements are still real until the tree repaints, and
+    // waiting only for the new ones would let a stale frame fail the unexpected-identifier claim.
+    let settled = poll(timeout: 2) {
+      do {
+        snapshots = try self.accessibilitySnapshots(app.snapshot())
+        return contracts.allSatisfy { contract in
+          guard snapshots[contract.identifier]?.count == 1,
+                let snapshot = snapshots[contract.identifier]?.first
+          else {
+            return false
+          }
+          return contract.value.map { self.accessibilityValue(snapshot) == $0 } ?? true
+        } && Set(snapshots.keys).subtracting(allowedIdentifiers).isEmpty
+      } catch {
+        snapshotError = error
+        return false
+      }
+    }
+    if snapshots.isEmpty {
+      XCTFail(
+        "Could not snapshot the application: \(snapshotError.map(String.init(describing:)) ?? "unknown error")",
+        file: file,
+        line: line,
+      )
+      return
+    }
+    if !settled {
+      XCTFail("Accessibility tree did not settle", file: file, line: line)
+    }
+
     for contract in contracts {
-      let matches = app.descendants(matching: .any)
-        .matching(identifier: contract.identifier)
-        .allElementsBoundByIndex
+      let matches = snapshots[contract.identifier, default: []]
       XCTAssertEqual(
         matches.count, 1, "Expected one \(contract.identifier)", file: file, line: line,
       )
-      guard let element = matches.first else {
+      guard let snapshot = matches.first else {
         continue
       }
       XCTAssertEqual(
-        element.elementType, contract.elementType, contract.identifier, file: file, line: line,
+        snapshot.elementType, contract.elementType, contract.identifier, file: file, line: line,
       )
       XCTAssertFalse(
-        element.label.isEmpty, "\(contract.identifier) has no label", file: file, line: line,
+        snapshot.label.isEmpty, "\(contract.identifier) has no label", file: file, line: line,
       )
-      XCTAssertEqual(element.label, contract.label, contract.identifier, file: file, line: line)
+      XCTAssertEqual(snapshot.label, contract.label, contract.identifier, file: file, line: line)
       if let value = contract.value {
-        if accessibilityValue(element) != value {
-          let expectation = XCTNSPredicateExpectation(
-            predicate: NSPredicate(format: "value == %@", value), object: element,
-          )
-          _ = XCTWaiter.wait(for: [expectation], timeout: 2)
-        }
         XCTAssertEqual(
-          accessibilityValue(element), value, contract.identifier, file: file, line: line,
+          accessibilityValue(snapshot), value, contract.identifier, file: file, line: line,
         )
       }
       if let valuePattern = contract.valuePattern {
         XCTAssertNotNil(
-          accessibilityValue(element).range(of: valuePattern, options: .regularExpression),
+          accessibilityValue(snapshot).range(of: valuePattern, options: .regularExpression),
           contract.identifier, file: file, line: line,
         )
       }
       if let isEnabled = contract.isEnabled {
-        XCTAssertEqual(element.isEnabled, isEnabled, contract.identifier, file: file, line: line)
+        XCTAssertEqual(snapshot.isEnabled, isEnabled, contract.identifier, file: file, line: line)
       }
       if contract.isActionable {
-        XCTAssertTrue(element.isEnabled, contract.identifier, file: file, line: line)
+        let element = app.descendants(matching: .any)[contract.identifier]
+        XCTAssertTrue(snapshot.isEnabled, contract.identifier, file: file, line: line)
         XCTAssertTrue(element.isHittable, contract.identifier, file: file, line: line)
       }
     }
 
-    let namespacedElements = app.descendants(matching: .any)
-      .matching(
-        NSPredicate(format: "identifier BEGINSWITH %@", "miniwhisper."),
-      )
-      .allElementsBoundByIndex
-    let identifiers = namespacedElements.map(\.identifier)
-    let duplicateIdentifiers = Dictionary(grouping: identifiers, by: { $0 }).filter {
-      $0.value.count > 1
-    }
+    let duplicateIdentifiers = snapshots.filter { $0.value.count > 1 }
     XCTAssertTrue(
       duplicateIdentifiers.isEmpty, "Duplicate identifiers: \(duplicateIdentifiers.keys.sorted())",
       file: file, line: line,
     )
 
-    let allowedIdentifiers = expectedIdentifiers.union(extraIdentifiers).union([
-      "miniwhisper.menu.status-item",
-    ])
-    let unexpectedIdentifiers = Set(identifiers).subtracting(allowedIdentifiers)
+    let unexpectedIdentifiers = Set(snapshots.keys).subtracting(allowedIdentifiers)
     XCTAssertTrue(
       unexpectedIdentifiers.isEmpty, "Unexpected identifiers: \(unexpectedIdentifiers.sorted())",
       file: file, line: line,

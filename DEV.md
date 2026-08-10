@@ -53,3 +53,16 @@ Design principle: the app target is a thin shell; business logic lives in packag
 ## Accessibility contract
 
 `mise run test:ui` runs the curated XCUITest manifest for onboarding, the menu, About, the settings window, and every pill presentation. It commandeers the screen and focus, so it is deliberately excluded from `mise run test` and the lint gate: run it when you are specifically testing something interactive, or as an end-to-end pass when concluding a unit of work — not habitually. Debug UI-test launches select deterministic production surfaces with `MINIWHISPER_AGENT_SCENE`; the supported scene catalogue and state mutations live in `AgentDriveabilityScene.swift` and `AgentDriveabilitySceneDriver.swift`. This is an internal test seam, not a demo mode, and Release builds fail fast if the variable is set.
+
+### UI testing performance
+
+- UI tests are inherently single-threaded and slow
+- Launching the process takes 2 seconds
+- Every interaction goes through Accessibility APIs
+- XCTest can be conservative
+- So, optimize for minimizing these events:
+  - Launch once and prove multiple claims, reusing the process as is possible
+  - snapshot an entire scene and check multiple aspects of its state
+  - proactively poll for conditions instead of waiting
+  - batch keystrokes on one event
+- Watch out for race conditions: poll for state to settle, then assert

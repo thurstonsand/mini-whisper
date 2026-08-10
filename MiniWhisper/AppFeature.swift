@@ -135,6 +135,9 @@ private let performanceLogger = Logger(
     case modelDownloadConsentRecorded
     case modelDownloadConsentRecordingFailed(String)
     case engineReadinessUpdated(EngineReadiness)
+    /// The agent-driveability seam's scene swap. In Release, `AgentDriveabilityScene` has no
+    /// cases, so this action cannot be constructed there.
+    case agentScenePresented(AgentDriveabilityScene)
     case transcriptionCompleted(Int, TranscriptionOutcome)
     case transcriptionFailed(Int, String)
     case contextCaptured(Int, ContextCapture)
@@ -377,6 +380,9 @@ private let performanceLogger = Logger(
             ? .send(.onboarding(.modelDownloadConsentFailed(failure))) : .none,
           playSound(state.settings.sounds.error),
         )
+      case let .agentScenePresented(scene):
+        state = scene.initialState
+        return scene.initialAction.map { .send($0) } ?? .none
       case let .engineReadinessUpdated(readiness):
         let wasFailed =
           switch state.health.engineReadiness {
