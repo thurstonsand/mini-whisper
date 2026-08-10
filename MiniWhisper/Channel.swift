@@ -15,6 +15,17 @@ enum Channel {
     return name
   }()
 
+  static let version: String = {
+    guard let shortVersion = Bundle.main.object(
+      forInfoDictionaryKey: "CFBundleShortVersionString",
+    ) as? String,
+      let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
+    else {
+      fatalError("The application version is missing from the bundle")
+    }
+    return "\(shortVersion) (\(build))"
+  }()
+
   static let supportDirectory = FileManager.default.urls(
     for: .applicationSupportDirectory, in: .userDomainMask,
   )[0].appending(path: name, directoryHint: .isDirectory)

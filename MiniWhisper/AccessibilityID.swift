@@ -35,10 +35,7 @@ enum SettingsSoundPart {
 enum AccessibilityID {
   static let menuStatusItem = "miniwhisper.menu.status-item"
   static let menuStatus = "miniwhisper.menu.status"
-  static let menuRepair = "miniwhisper.menu.repair"
   static let menuCopyLastTranscript = "miniwhisper.menu.copy-last-transcript"
-  static let menuLaunchAtLogin = "miniwhisper.menu.launch-at-login"
-  static let menuSettingsFile = "miniwhisper.menu.settings-file"
   static let menuSettings = "miniwhisper.menu.settings"
   static let menuAbout = "miniwhisper.menu.about"
   static let menuQuit = "miniwhisper.menu.quit"
@@ -63,6 +60,11 @@ enum AccessibilityID {
   static let settingsMicrophoneLevel = "miniwhisper.settings.microphone.level"
   static let settingsMicrophoneUnavailable = "miniwhisper.settings.microphone.unavailable"
   static let settingsSoundPlayback = "miniwhisper.settings.sound.playback"
+  static let settingsLaunchAtLogin = "miniwhisper.settings.launch-at-login"
+  static let settingsLaunchAtLoginState = "miniwhisper.settings.launch-at-login.state"
+  /// A switch spends its own accessibility value on being on or off, so the one row whose ring
+  /// does not hug its control has to report the ring somewhere else.
+  static let settingsLaunchAtLoginRing = "miniwhisper.settings.launch-at-login.ring"
   static let historyCaption = "miniwhisper.history.caption"
   static let historyStorage = "miniwhisper.history.storage"
   static let historyStoragePopover = "miniwhisper.history.storage.popover"
@@ -150,6 +152,20 @@ enum AccessibilityID {
   static let pillInputDevice = "miniwhisper.pill.input-device"
   static let pillAudioLevel = "miniwhisper.pill.audio-level"
   static let pillNotice = "miniwhisper.pill.notice"
+
+  static let settingsEngineStatus = "miniwhisper.settings.engine-status"
+
+  static func menuRepair(_ degradation: Degradation) -> String {
+    "miniwhisper.menu.repair.\(degradation.rawValue)"
+  }
+
+  static func settingsRepairRow(_ degradation: Degradation) -> String {
+    "miniwhisper.settings.repair.\(degradation.rawValue)"
+  }
+
+  static func settingsRepairAction(_ degradation: Degradation) -> String {
+    "\(settingsRepairRow(degradation)).action"
+  }
 
   static func settingsShortcutBinding(_ index: Int) -> String {
     "miniwhisper.settings.shortcut.binding.\(index)"

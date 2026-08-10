@@ -120,7 +120,7 @@ import Testing
     let id = try #require(UUID(uuidString: "00000000-0000-0000-0000-000000000002"))
     let metadata = AudioMetadata(durationSeconds: 0.5, byteCount: 32044)
     var state = historyState()
-    state.engineReadiness = .ready
+    state.$health.withLock { $0.engineReadiness = .ready }
     state.transcriptionGeneration = 3
     state.pill.presentation = .transcribing
     state.pendingDictation = pendingDictation(generation: 3)
@@ -137,7 +137,7 @@ import Testing
     store.exhaustivity = .off(showSkippedAssertions: false)
 
     await store.send(.transcriptionFailed(3, "engine failed")) {
-      $0.engineReadiness = .failed("engine failed")
+      $0.$health.withLock { $0.engineReadiness = .failed("engine failed") }
       $0.pendingDictation?.isFinishing = true
     }
     await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
@@ -192,7 +192,7 @@ import Testing
 
   @Test func `failed recovery audio write completes without an empty entry`() async {
     var state = historyState()
-    state.engineReadiness = .ready
+    state.$health.withLock { $0.engineReadiness = .ready }
     state.transcriptionGeneration = 3
     state.pill.presentation = .transcribing
     state.pendingDictation = pendingDictation(generation: 3)
@@ -319,6 +319,7 @@ import Testing
     let (writeGate, openWriteGate) = AsyncStream.makeStream(of: Void.self)
     let maintenance = HistoryMaintenanceRecorder()
     var state = historyState()
+    state.$health.withLock { $0 = .healthy }
     state.onboardingCompleted = true
     state.transcriptionGeneration = 1
     state.pendingDictation = pendingDictation(generation: 1, recording: recording)

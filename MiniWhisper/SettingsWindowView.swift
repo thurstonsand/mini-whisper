@@ -23,7 +23,9 @@ struct SettingsWindowView: View {
       .navigationSplitViewColumnWidth(min: 160, ideal: 176, max: 220)
       .scrollBounceBehavior(.basedOnSize)
       .focused($focusedColumn, equals: .sidebar)
-      .windowKeys(store: store, sidebarKeys)
+      .windowKeys(store: store, sidebarKeys) {
+        store.interaction.focus == .sidebar
+      }
       .windowPointerMovement(store: store)
       .toolbar(removing: .sidebarToggle)
       .accessibilityIdentifier(AccessibilityID.settingsSidebar)
@@ -36,7 +38,9 @@ struct SettingsWindowView: View {
       .focusable()
       .focusEffectDisabled()
       .focused($focusedColumn, equals: .detail)
-      .windowKeys(store: store, detailKeys)
+      .windowKeys(store: store, detailKeys) {
+        store.interaction.focus == .detail
+      }
       .modifier(
         HistorySearchFocus(
           store: store, isSearchFocused: $isHistorySearchFocused,
@@ -59,7 +63,7 @@ struct SettingsWindowView: View {
         .frame(width: 0, height: 0)
     }
     .environment(pointerTracker)
-    .onChange(of: focusedColumn) { _, focus in store.send(.focusChanged(focus)) }
+    .onChange(of: focusedColumn) { _, focus in synchronizeFocus(focus) }
     // The other half of the mirror: a hover moves focus in the store, and @FocusState is the only
     // thing that can make it real. Assigning a value it already holds ends the round trip.
     .onChange(of: store.interaction.focus) { _, focus in focusedColumn = focus }
@@ -90,8 +94,8 @@ struct SettingsWindowView: View {
     WindowKeyActions(
       down: { moveDestination(by: 1) },
       up: { moveDestination(by: -1) },
-      right: { focusedColumn = .detail },
-      press: { focusedColumn = .detail },
+      right: { setFocus(.detail) },
+      press: { setFocus(.detail) },
     )
   }
 
@@ -107,7 +111,7 @@ struct SettingsWindowView: View {
           let ascends = store.settingsPane.cursor.target == 0
           store.send(.settingsPane(.leftPressed))
           if ascends {
-            focusedColumn = .sidebar
+            setFocus(.sidebar)
           }
         },
         down: { store.send(.settingsPane(.rowMoved(.next))) },
@@ -118,7 +122,7 @@ struct SettingsWindowView: View {
       )
     case .history:
       WindowKeyActions(
-        left: { focusedColumn = .sidebar },
+        left: { setFocus(.sidebar) },
         down: { store.send(.history(.cursorMoved(.next))) },
         up: { store.send(.history(.cursorMoved(.previous))) },
         right: { store.send(.history(.copyRequested)) },
@@ -134,7 +138,7 @@ struct SettingsWindowView: View {
     case .model,
          .dictionary,
          .cleanup:
-      WindowKeyActions(left: { focusedColumn = .sidebar })
+      WindowKeyActions(left: { setFocus(.sidebar) })
     }
   }
 
@@ -181,6 +185,24 @@ struct SettingsWindowView: View {
     }
     hasAppliedInitialFocus = true
     focusedColumn = initialFocus ?? (store.selection == .history ? .detail : .sidebar)
+  }
+
+  private func setFocus(_ focus: SettingsWindowFocus) {
+    store.send(.focusChanged(focus))
+    focusedColumn = focus
+  }
+
+  private func synchronizeFocus(_ focus: SettingsWindowFocus?) {
+    guard focus == nil, !isHistorySearchFocused, let retainedFocus = store.interaction.focus else {
+      store.send(.focusChanged(focus))
+      return
+    }
+    Task { @MainActor in
+      guard focusedColumn == nil, !isHistorySearchFocused else {
+        return
+      }
+      focusedColumn = retainedFocus
+    }
   }
 
   private func moveDestination(by offset: Int) {

@@ -31,6 +31,7 @@ enum PresentedWindow: Equatable {
     case settingsShortcutsKeyboard = "settings-shortcuts-keyboard"
     case settingsMicrophoneUnavailable = "settings-microphone-unavailable"
     case settingsSoundsNoAudio = "settings-sounds-no-audio"
+    case settingsDegraded = "settings-degraded"
     case settingsHistory = "settings-history"
     case about
     case pillRecording = "pill-recording"
@@ -57,7 +58,8 @@ enum PresentedWindow: Equatable {
       case .settingsShortcutsKeyboard:
         .settings(.settings, initialFocus: .detail)
       case .settingsMicrophoneUnavailable,
-           .settingsSoundsNoAudio:
+           .settingsSoundsNoAudio,
+           .settingsDegraded:
         .settings(.settings, initialFocus: nil)
       case .settingsHistory:
         .settings(.history, initialFocus: nil)
@@ -77,25 +79,27 @@ enum PresentedWindow: Equatable {
         history: Shared(value: seededHistory), settings: Shared(value: seededSettings),
       )
       state.onboardingCompleted = true
-      state.modelDownloadConsented = true
-      state.hotkeyTap = .active
-      state.recording.micStatus = .granted
-      state.accessibilityGranted = true
-      state.engineReadiness = .ready
+      state.$health.withLock {
+        $0 = AppHealth(
+          hotkeyTap: .active, micStatus: .granted, accessibilityGranted: true,
+          engineReadiness: .ready,
+        )
+      }
       state.inputDeviceName = "Test Microphone"
 
       switch self {
       case .menuHealthy:
-        state.launchAtLoginRegistered = true
         state.lastTranscript = "A previous transcript"
       case .menuDegraded:
-        state.hotkeyTap = .accessibilityMissing
-        state.accessibilityGranted = false
+        state.$health.withLock {
+          $0.hotkeyTap = .idle
+          $0.micStatus = .denied
+          $0.accessibilityGranted = false
+        }
       case .onboardingWelcome:
         state.onboardingCompleted = false
-        state.modelDownloadConsented = false
         present(&state.onboarding,
-                permissions: permissions(), readiness: .modelMissing, hasConsent: false,
+                permissions: permissions(), readiness: .ready, hasConsent: false,
                 isShowingWelcome: true)
       case .onboardingPermissionsMicrophone:
         state.onboardingCompleted = false
@@ -141,8 +145,17 @@ enum PresentedWindow: Equatable {
                 tryItText: "MiniWhisper is ready.")
       case .settings,
            .settingsMicrophoneUnavailable,
-           .settingsSoundsNoAudio,
-           .settingsHistory,
+           .settingsSoundsNoAudio:
+        state.settingsWindow.settingsPane.launchAtLoginRegistered = true
+      case .settingsDegraded:
+        state.$health.withLock {
+          $0.hotkeyTap = .idle
+          $0.micStatus = .denied
+          $0.accessibilityGranted = false
+          $0.engineReadiness = .failed("Model setup failed")
+        }
+        state.settingsWindow.settingsPane.launchAtLoginRegistered = true
+      case .settingsHistory,
            .about:
         break
       case .settingsShortcutsKeyboard:
@@ -163,9 +176,11 @@ enum PresentedWindow: Equatable {
       // An onboarding scene's permission truth is its snapshot; the app-level fields follow it, so
       // the seeded state and the seeded clients can never disagree about what has been granted.
       if state.onboarding.isPresented {
-        state.recording.micStatus = state.onboarding.snapshot.permissions.microphoneStatus
-        state.accessibilityGranted =
-          state.onboarding.snapshot.permissions.hasAccessibilityPermission
+        let snapshot = state.onboarding.snapshot.permissions
+        state.$health.withLock {
+          $0.micStatus = snapshot.microphoneStatus
+          $0.accessibilityGranted = snapshot.hasAccessibilityPermission
+        }
       }
       return state
     }
@@ -176,7 +191,8 @@ enum PresentedWindow: Equatable {
       var settings = MiniWhisperSettings.defaults
       switch self {
       case .settings,
-           .settingsShortcutsKeyboard:
+           .settingsShortcutsKeyboard,
+           .settingsDegraded:
         break
       case .settingsMicrophoneUnavailable:
         settings.microphone = .device(
@@ -261,9 +277,9 @@ enum PresentedWindow: Equatable {
     ) {
       state.isPresented = true
       state.snapshot = OnboardingSnapshot(
-        permissions: permissions, engineReadiness: readiness, hasModelDownloadConsent: hasConsent,
-        isCompleted: isCompleted,
+        permissions: permissions, hasModelDownloadConsent: hasConsent, isCompleted: isCompleted,
       )
+      state.$health.withLock { $0.engineReadiness = readiness }
       state.selectedStep = selectedStep
       state.isShowingWelcome = isShowingWelcome
       state.hasCompletedShortcut = hasCompletedShortcut

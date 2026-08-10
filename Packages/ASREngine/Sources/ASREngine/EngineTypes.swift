@@ -81,7 +81,8 @@ public struct GateConfiguration: Equatable, Sendable {
   }
 }
 
-extension EngineReadiness {
+public extension EngineReadiness {
+  /// Setup is already running, so a second request to start one would only race the first.
   var isSetupInProgress: Bool {
     switch self {
     case .downloading,

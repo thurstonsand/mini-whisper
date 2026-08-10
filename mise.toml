@@ -50,7 +50,7 @@ xcodebuild -scheme $SCHEME \
     build | xcbeautify -q --disable-colored-output --disable-logging
 """
 
-[tasks.build-quick]
+[tasks."build:quick"]
 description = "Build without strict checks (faster iteration)"
 run = """
 xcodebuild -scheme $SCHEME \
@@ -70,13 +70,13 @@ description = "Build and run the app"
 depends = ["build"]
 run = 'open "$APP_PATH"'
 
-[tasks.mw-fresh]
+[tasks."mw:fresh"]
 description = "Build and run fresh; set FRESH_MODEL=1 to delete the speech model too"
 depends = ["reset dev", "mw"]
 
 
 [tasks.test]
-description = "Run app unit tests (UI tests live in test-ui)"
+description = "Run app unit tests (UI tests live in test:ui)"
 run = """
 xcodebuild -scheme $SCHEME \
     -destination "$DEST" \
@@ -87,7 +87,7 @@ xcodebuild -scheme $SCHEME \
     test | xcbeautify -q --disable-colored-output --disable-logging
 """
 
-[tasks.test-ui]
+[tasks."test:ui"]
 description = "Run interactive XCUITest suite (takes over the screen; run deliberately)"
 run = """
 xcodebuild -scheme $SCHEME \
@@ -101,7 +101,7 @@ xcodebuild -scheme $SCHEME \
 
 # === Package Targets (fast, no Xcode overhead) ===
 
-[tasks.build-packages]
+[tasks."build:packages"]
 description = "Build all local packages"
 run = """
 for pkg in Packages/*/; do
@@ -110,7 +110,7 @@ for pkg in Packages/*/; do
 done
 """
 
-[tasks.test-packages]
+[tasks."test:packages"]
 description = "Test all local packages"
 run = """
 for pkg in Packages/*/; do
@@ -126,7 +126,7 @@ run = [
     "swift test --package-path Packages/AudioCapture --filter InteractionPerformanceBenchmarkTests",
 ]
 
-[tasks.benchmark-live]
+[tasks."benchmark:live"]
 description = "Run the instrumented app interaction benchmark"
 depends = ["build"]
 run = "./scripts/benchmark_interactions"
@@ -137,36 +137,28 @@ run = "./scripts/benchmark_interactions"
 description = "Format all Swift code"
 run = "swiftformat MiniWhisper/ MiniWhisperTests/ MiniWhisperUITests/ Packages/"
 
-[tasks.format-check]
+[tasks."format:check"]
 description = "Check formatting"
 run = "swiftformat --lint MiniWhisper/ MiniWhisperTests/ MiniWhisperUITests/ Packages/"
 
-[tasks.lint-markdown]
+[tasks."lint:markdown"]
 description = "Lint Markdown documentation"
 run = "markdownlint-cli2 \"**/*.md\""
 
-[tasks.lint-python]
+[tasks."lint:python"]
 description = "Check and lint Python code"
 run = [
     "ruff format --check .",
     "ruff check --fix --unsafe-fixes .",
 ]
 
-[tasks.lint-static]
+[tasks."lint:static"]
 description = "Run the checks that need no compilation"
-run = [
-    "mise run format-check",
-    "mise run lint-markdown",
-    "mise run lint-python",
-]
+depends = ["format:check", "lint:markdown", "lint:python"]
 
 [tasks.lint]
 description = "Run pre-commit checks"
-run = [
-    "mise run lint-static",
-    "mise run build",
-    "mise run test-packages",
-]
+depends = ["lint:static", "build", "test:packages"]
 
 # === Maintenance ===
 
@@ -225,7 +217,7 @@ xcode-build-server config \
     --build_root "$PWD/$DERIVED_DATA"
 """
 
-[tasks.bsp-check]
+[tasks."bsp:check"]
 description = "Validate buildServer.json exists and is current"
 run = """
 if [ ! -f buildServer.json ]; then

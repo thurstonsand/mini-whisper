@@ -17,8 +17,9 @@ private let performanceLogger = Logger(
   @ObservableState struct State: Equatable {
     // MARK: Lifecycle
 
-    init(settings: Shared<MiniWhisperSettings>) {
+    init(settings: Shared<MiniWhisperSettings>, health: Shared<AppHealth>) {
       _settings = settings
+      _health = health
     }
 
     // MARK: Internal
@@ -35,7 +36,7 @@ private let performanceLogger = Logger(
     enum PendingRestart: Equatable { case restart }
 
     @Shared var settings: MiniWhisperSettings
-    var micStatus: MicPermissionStatus = .undetermined
+    @Shared var health: AppHealth
     var phase = Phase.idle
     var latestLevel: Float = 0
     var captureError: AudioCaptureError?
@@ -46,7 +47,6 @@ private let performanceLogger = Logger(
   enum Action: Equatable {
     case task
     case microphoneChanged(MicrophoneSelection)
-    case micStatusUpdated(MicPermissionStatus)
     case capturePreparationFailed(AudioCaptureError)
     case startRecording
     case stopAndRetain
@@ -80,9 +80,6 @@ private let performanceLogger = Logger(
         return prepareCapture(selection: state.settings.microphone)
       case let .microphoneChanged(selection):
         return prepareCapture(selection: selection)
-      case let .micStatusUpdated(status):
-        state.micStatus = status
-        return .none
       case let .capturePreparationFailed(error):
         state.captureError = error
         captureLogger.error(
@@ -210,7 +207,7 @@ private let performanceLogger = Logger(
         state.latestLevel = 0
         state.captureError = error
         if case let .microphonePermission(status) = error {
-          state.micStatus = status
+          state.$health.withLock { $0.micStatus = status }
         }
         captureLogger.error("Audio capture failed: \(error.localizedDescription, privacy: .public)")
 

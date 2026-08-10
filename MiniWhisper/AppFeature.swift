@@ -54,12 +54,17 @@ private let performanceLogger = Logger(
       settings: Shared<MiniWhisperSettings> = Shared(
         wrappedValue: .defaults, .settingsFile,
       ),
+      // Nothing has been read from the system yet, so the app starts as broken as it could be.
+      health: Shared<AppHealth> = Shared(value: AppHealth()),
     ) {
       _history = history
       _settings = settings
-      recording = RecordingFeature.State(settings: settings)
-      onboarding = OnboardingFeature.State(settings: settings)
-      settingsWindow = SettingsWindowFeature.State(history: history, settings: settings)
+      _health = health
+      recording = RecordingFeature.State(settings: settings, health: health)
+      onboarding = OnboardingFeature.State(settings: settings, health: health)
+      settingsWindow = SettingsWindowFeature.State(
+        history: history, settings: settings, health: health,
+      )
     }
 
     // MARK: Internal
@@ -68,16 +73,13 @@ private let performanceLogger = Logger(
     var pill = PillFeature.State()
     var onboarding: OnboardingFeature.State
     var settingsWindow: SettingsWindowFeature.State
-    var engineReadiness: EngineReadiness = .modelMissing
     var transcriptionGeneration = 0
     /// Escape revoked delivery for the dictation now in flight. Only `startRecording` clears it,
     /// so it can never survive into another one, and only a matching generation can read it.
     var dictationWasCancelled = false
     var gestureMachine = HotkeyGestureMachine()
     var gestureDeadlineGeneration = 0
-    var hotkeyTap = HotkeyTapStatus.idle
     var inputDeviceName: String?
-    var launchAtLoginRegistered = false
     var lastTranscript: String?
     var currentFocusedContext: ContextCapture?
     var pendingDictation: PendingDictation?
@@ -85,9 +87,8 @@ private let performanceLogger = Logger(
     var historyMaintenance = HistoryMaintenanceState.idle
     @Shared var history: HistoryLog
     @Shared var settings: MiniWhisperSettings
-    var accessibilityGranted = false
+    @Shared var health: AppHealth
     var onboardingCompleted = false
-    var modelDownloadConsented = false
 
     var storesAudio: Bool {
       settings.retention.audio != .never
@@ -102,10 +103,8 @@ private let performanceLogger = Logger(
 
     var menuBar: MenuBarViewState {
       MenuBarViewState(
-        hotkeyTap: hotkeyTap, micStatus: recording.micStatus,
-        accessibilityGranted: accessibilityGranted, engineReadiness: engineReadiness,
-        inputDeviceName: inputDeviceName, hasLastTranscript: lastTranscript != nil,
-        launchAtLoginRegistered: launchAtLoginRegistered,
+        degradations: health.degradations, engineReadiness: health.engineReadiness,
+        inputDeviceName: inputDeviceName, canCopyLastTranscript: lastTranscript != nil,
       )
     }
   }
@@ -120,7 +119,6 @@ private let performanceLogger = Logger(
     case historyEntryAbandoned(Int)
     case historyPersistenceFailed(String)
     case applicationBecameActive
-    case accessibilityObserved(Bool)
     case recording(RecordingFeature.Action)
     case pill(PillFeature.Action)
     case onboarding(OnboardingFeature.Action)
@@ -130,14 +128,12 @@ private let performanceLogger = Logger(
     case hotkeyListenerFinished
     case gestureDeadlineElapsed(Int)
     case menuWillOpen
-    case repairDegradedState
+    case repairRequested(Degradation)
     case copyLastTranscript
     case copyLastTranscriptFailed(String)
-    case toggleLaunchAtLogin
-    case launchAtLoginUpdated(Bool)
-    case launchAtLoginFailed(String)
-    case openSettingsFile
     case workspaceOpenFailed(String)
+    case modelDownloadConsentRecorded
+    case modelDownloadConsentRecordingFailed(String)
     case engineReadinessUpdated(EngineReadiness)
     case transcriptionCompleted(Int, TranscriptionOutcome)
     case transcriptionFailed(Int, String)
@@ -164,7 +160,6 @@ private let performanceLogger = Logger(
   @Dependency(\.delivery) var delivery
   @Dependency(\.historyClient) var historyClient
   @Dependency(\.hotkeyListener) var hotkeyListener
-  @Dependency(\.launchAtLogin) var launchAtLogin
   @Dependency(\.microphonePermission) var microphonePermission
   @Dependency(\.modelDownloadConsent) var modelDownloadConsent
   @Dependency(\.onboardingCompletion) var onboardingCompletion
@@ -182,8 +177,13 @@ private let performanceLogger = Logger(
       switch action {
       case .settingsWindow(.history(.delegate(.retentionChanged))):
         return .send(.historyMaintenanceRequested)
+      case .settingsWindow(.settingsPane(.task)):
+        state.$health.withLock { $0.micStatus = microphonePermission.status() }
+        return .none
       case let .settingsWindow(.settingsPane(.delegate(.microphoneChanged(selection)))):
         return .send(.recording(.microphoneChanged(selection)))
+      case let .settingsWindow(.settingsPane(.delegate(.repair(repair)))):
+        return .send(.repairRequested(repair))
       case .settingsWindow(.settingsPane(.bindings(.delegate(.recordingStarted)))):
         return beginHotkeyRecording(
           &state, recorderReady: .settingsWindow(.settingsPane(.bindings(.recorderReady))),
@@ -271,21 +271,26 @@ private let performanceLogger = Logger(
         return .none
       case let .startupResolved(facts):
         state.onboardingCompleted = facts.onboardingCompleted
-        state.modelDownloadConsented = facts.modelDownloadConsented
-        state.recording.micStatus = facts.permissions.microphoneStatus
-        state.engineReadiness = facts.engineReadiness
+        state.$health.withLock { $0.micStatus = facts.permissions.microphoneStatus }
+        state.$health.withLock { $0.engineReadiness = facts.engineReadiness }
         logEngineReadiness(facts.engineReadiness)
 
         var effects = [
           reconcileAccessibility(facts.permissions.hasAccessibilityPermission, &state),
         ]
+        // Consent is what makes a download durable, so an interrupted one resumes here rather
+        // than waiting for a user who has finished onboarding to find the menu bar. A failed
+        // setup is left alone: retrying it every launch would be a network loop nobody asked for.
+        if facts.modelDownloadConsented, facts.engineReadiness == .modelMissing {
+          effects.append(setUpModel(&state))
+        }
         if !facts.onboardingCompleted {
           effects.append(
             .send(
               .onboarding(
                 .present(
                   OnboardingSnapshot(
-                    permissions: facts.permissions, engineReadiness: facts.engineReadiness,
+                    permissions: facts.permissions,
                     hasModelDownloadConsent: facts.modelDownloadConsented, isCompleted: false,
                   ),
                 ),
@@ -294,22 +299,22 @@ private let performanceLogger = Logger(
           )
         }
         return .merge(effects)
+      // Returning from System Settings is the moment new grants become visible, and macOS never
+      // tells the app about either permission changing. Read exactly as the menu does.
       case .applicationBecameActive:
-        // Returning from System Settings is the moment a new grant becomes visible, and macOS
-        // never tells the app about it.
-        return .send(.accessibilityObserved(accessibilityPermission.hasPermission()))
-      case let .accessibilityObserved(granted):
-        return reconcileAccessibility(granted, &state)
+        state.$health.withLock { $0.micStatus = microphonePermission.status() }
+        return reconcileAccessibility(accessibilityPermission.hasPermission(), &state)
       case .hotkeyListenerEvent(.accessibilityPermissionMissing):
         gestureLogger.error("Accessibility permission missing — grant in System Settings")
         return reconcileAccessibility(false, &state)
       case .hotkeyListenerEvent(.monitoringStarted):
-        state.hotkeyTap = .active
+        state.$health.withLock { $0.hotkeyTap = .active }
         gestureLogger.notice("Hotkey event tap installed")
         return .none
       case let .hotkeyListenerEvent(.monitoringInterrupted(reason)):
         gestureLogger.error("Hotkey event tap interrupted: \(reason.rawValue, privacy: .public)")
-        // Timeout and user-input disables are re-enabled in place; only invalidation kills the tap.
+        // Timeout and user-input disables are re-enabled in place; only invalidation kills the
+        // tap.
         return reason == .invalidated ? diagnoseTapLoss(&state) : .none
       case let .hotkeyListenerEvent(.gestureInput(input)):
         return receiveGestureInput(input, state: &state)
@@ -323,35 +328,26 @@ private let performanceLogger = Logger(
       // A tap the app deliberately stood down — to record a shortcut, or because none is bound —
       // reports its own ending. Only a tap that was wanted can be said to have been lost.
       case let .hotkeyListenerFailed(error):
-        guard state.hotkeyTap != .idle else {
+        guard state.health.hotkeyTap != .idle else {
           return .none
         }
         gestureLogger.error("Hotkey listener failed: \(error, privacy: .public)")
         return diagnoseTapLoss(&state)
       case .hotkeyListenerFinished:
-        guard state.hotkeyTap != .idle else {
+        guard state.health.hotkeyTap != .idle else {
           return .none
         }
         gestureLogger.error("Hotkey event stream ended; the tap is no longer listening")
         return diagnoseTapLoss(&state)
+      // Everything the menu is about to say is read here, in full, before it is built: the
+      // controller rebuilds on the very next line, and a fact that arrives an effect later
+      // arrives behind the menu the user is already reading.
       case .menuWillOpen:
         state.inputDeviceName = audioCapture.currentInputDeviceName(state.settings.microphone)
-        state.launchAtLoginRegistered = launchAtLogin.isRegistered()
+        state.$health.withLock { $0.micStatus = microphonePermission.status() }
         return reconcileAccessibility(accessibilityPermission.hasPermission(), &state)
-      case .repairDegradedState:
-        switch state.menuBar.repair {
-        case .openMicrophoneSettings:
-          return open(SystemSettingsPane.microphone)
-        case .restartHotkeyListening:
-          return restartHotkeyListener(&state)
-        case .openAccessibilitySettings:
-          return open(SystemSettingsPane.accessibility)
-        case .installModel,
-             .retryModelSetup:
-          return .send(.onboarding(.present(onboardingSnapshot(state))))
-        case nil:
-          return .none
-        }
+      case let .repairRequested(degradation):
+        return repair(degradation, state: &state)
       case .copyLastTranscript:
         guard let transcript = state.lastTranscript else {
           return .none
@@ -364,47 +360,46 @@ private let performanceLogger = Logger(
       case let .copyLastTranscriptFailed(message):
         deliveryLogger.error("Copying the last transcript failed: \(message, privacy: .public)")
         return .none
-      case .toggleLaunchAtLogin:
-        let registered = !state.launchAtLoginRegistered
-        return .run { send in
-          do { try launchAtLogin.setRegistered(registered) } catch {
-            await send(.launchAtLoginFailed(error.localizedDescription))
-          }
-          await send(.launchAtLoginUpdated(launchAtLogin.isRegistered()))
-        }
-      case let .launchAtLoginUpdated(registered):
-        state.launchAtLoginRegistered = registered
-        return .none
-      case let .launchAtLoginFailed(message):
-        menuLogger.error("Launch at login change failed: \(message, privacy: .public)")
-        return .none
-      case .openSettingsFile:
-        return open(Channel.settingsFile)
       case let .workspaceOpenFailed(message):
         menuLogger.error("Opening a menu destination failed: \(message, privacy: .public)")
         return .none
+      case .modelDownloadConsentRecorded:
+        guard state.onboarding.isPresented else {
+          return .none
+        }
+        return .send(.onboarding(.modelDownloadConsented))
+      case let .modelDownloadConsentRecordingFailed(message):
+        let failure = "Could not record download consent: \(message)"
+        state.$health.withLock { $0.engineReadiness = .failed(failure) }
+        logEngineReadiness(.failed(failure))
+        return .merge(
+          state.onboarding.isPresented
+            ? .send(.onboarding(.modelDownloadConsentFailed(failure))) : .none,
+          playSound(state.settings.sounds.error),
+        )
       case let .engineReadinessUpdated(readiness):
         let wasFailed =
-          switch state.engineReadiness {
+          switch state.health.engineReadiness {
           case .failed:
             true
           default:
             false
           }
-        state.engineReadiness = readiness
+        state.$health.withLock { $0.engineReadiness = readiness }
         logEngineReadiness(readiness)
-        let onboardingUpdate =
-          state.onboarding.isPresented
-            ? Effect<Action>.send(.onboarding(.engineReadinessUpdated(readiness))) : .none
+        let onboardingFailure: Effect<Action> =
+          if case let .failed(message) = readiness, state.onboarding.isPresented {
+            .send(.onboarding(.modelSetupFailed(message)))
+          } else {
+            .none
+          }
         let failureSound: Effect<Action> =
           if case .failed = readiness, !wasFailed {
             playSound(state.settings.sounds.error)
           } else {
             .none
           }
-        return .merge(onboardingUpdate, failureSound)
-      case .recording(.micStatusUpdated):
-        return .none
+        return .merge(onboardingFailure, failureSound)
       case let .recording(.delegate(.recordingStarted(inputDeviceName))):
         return .send(.pill(.recordingStarted(inputDeviceName: inputDeviceName)))
       case let .recording(.delegate(.levelChanged(level))):
@@ -478,7 +473,7 @@ private let performanceLogger = Logger(
         guard generation == state.transcriptionGeneration else {
           return .none
         }
-        state.engineReadiness = .failed(message)
+        state.$health.withLock { $0.engineReadiness = .failed(message) }
         engineLogger.error("Transcription failed: \(message, privacy: .public)")
         let history = finishDictation(&state, delivery: nil)
         return .merge(
@@ -559,13 +554,11 @@ private let performanceLogger = Logger(
           .send(.pill(.dismiss)), onboardingTryIt(.failed(failure.message), state),
           playSound(state.settings.sounds.error), history,
         )
-      case let .onboarding(.delegate(.engineReadinessUpdated(readiness))):
-        return .send(.engineReadinessUpdated(readiness))
+      case .onboarding(.delegate(.setupModelRequested)):
+        return setUpModel(&state)
       case let .onboarding(.delegate(.permissionsUpdated(permissions))):
-        return .merge(
-          .send(.recording(.micStatusUpdated(permissions.microphoneStatus))),
-          reconcileAccessibility(permissions.hasAccessibilityPermission, &state),
-        )
+        state.$health.withLock { $0.micStatus = permissions.microphoneStatus }
+        return reconcileAccessibility(permissions.hasAccessibilityPermission, &state)
       case .onboarding(.delegate(.completed)):
         state.onboardingCompleted = true
         return .none
@@ -678,12 +671,12 @@ private let performanceLogger = Logger(
   /// observation of it — startup, onboarding, activation, the menu — lands here so a grant made
   /// after setup starts the listener and a revocation stops it, without a relaunch either way.
   private func reconcileAccessibility(_ granted: Bool, _ state: inout State) -> Effect<Action> {
-    state.accessibilityGranted = granted
+    state.$health.withLock { $0.accessibilityGranted = granted }
     guard granted else {
-      state.hotkeyTap = .accessibilityMissing
+      state.$health.withLock { $0.hotkeyTap = .idle }
       return .cancel(id: CancelID.hotkeyEvents)
     }
-    guard state.hotkeyTap != .active, state.hotkeyTap != .starting else {
+    guard state.health.hotkeyTap != .active, state.health.hotkeyTap != .starting else {
       return .none
     }
     return restartHotkeyListener(&state)
@@ -694,22 +687,18 @@ private let performanceLogger = Logger(
   ) -> Effect<Action> {
     // Stop the activation tap before the recorder installs its owning tap. This ordering makes
     // recording the activation shortcut race-free: no physical event can reach both consumers.
-    state.hotkeyTap = .idle
+    state.$health.withLock { $0.hotkeyTap = .idle }
     return .concatenate(.cancel(id: CancelID.hotkeyEvents), .send(recorderReady))
   }
 
-  /// Every reason for not listening names itself, so the menu bar can tell a missing grant from a
-  /// user who has simply unbound every shortcut.
+  /// Not listening is not a failure by itself: a missing grant and an unbound shortcut both end
+  /// here, and `health` is what tells the menu bar which of the two to say.
   private func restartHotkeyListener(_ state: inout State) -> Effect<Action> {
-    guard state.accessibilityGranted else {
-      state.hotkeyTap = .accessibilityMissing
+    guard state.health.accessibilityGranted, !state.settings.hotkeys.isEmpty else {
+      state.$health.withLock { $0.hotkeyTap = .idle }
       return .cancel(id: CancelID.hotkeyEvents)
     }
-    guard !state.settings.hotkeys.isEmpty else {
-      state.hotkeyTap = .idle
-      return .cancel(id: CancelID.hotkeyEvents)
-    }
-    state.hotkeyTap = .starting
+    state.$health.withLock { $0.hotkeyTap = .starting }
     return listenForHotkeyEvents(hotkeys: state.settings.hotkeys)
   }
 
@@ -717,12 +706,12 @@ private let performanceLogger = Logger(
   /// them apart, and only one of the two has a repair that can work.
   private func diagnoseTapLoss(_ state: inout State) -> Effect<Action> {
     let granted = accessibilityPermission.hasPermission()
-    state.accessibilityGranted = granted
+    state.$health.withLock { $0.accessibilityGranted = granted }
     guard granted else {
-      state.hotkeyTap = .accessibilityMissing
+      state.$health.withLock { $0.hotkeyTap = .idle }
       return .cancel(id: CancelID.hotkeyEvents)
     }
-    state.hotkeyTap = .dead
+    state.$health.withLock { $0.hotkeyTap = .dead }
     return .none
   }
 
@@ -740,10 +729,10 @@ private let performanceLogger = Logger(
     }.cancellable(id: CancelID.hotkeyEvents, cancelInFlight: true)
   }
 
-  /// The menu offers to open `settings.json`, so it has to hold something before the user has
-  /// changed anything. Emptiness rather than absence is the test: file storage creates an empty
-  /// placeholder to watch, and reads it back as nothing stored. A file that failed to load is
-  /// left exactly as it is rather than replaced with defaults.
+  /// Settings are edited by hand as well as by the pane, so the file has to exist and say what
+  /// the defaults are before anyone opens it. Emptiness rather than absence is the test: file
+  /// storage creates an empty placeholder to watch and reads it back as nothing stored. A file
+  /// that failed to load is left exactly as it is rather than replaced with defaults.
   private func seedSettingsFile(_ settings: Shared<MiniWhisperSettings>) -> Effect<Action> {
     let stored = (try? Data(contentsOf: Channel.settingsFile)) ?? Data()
     guard settings.loadError == nil, stored.isEmpty else {
@@ -758,12 +747,58 @@ private let performanceLogger = Logger(
     }
   }
 
+  private func repair(_ degradation: Degradation, state: inout State) -> Effect<Action> {
+    switch degradation {
+    case .microphoneAccessDenied:
+      open(SystemSettingsPane.microphone)
+    case .hotkeyTapDead:
+      restartHotkeyListener(&state)
+    case .accessibilityDenied:
+      open(SystemSettingsPane.accessibility)
+    case .modelMissing,
+         .modelSetupFailed:
+      setUpModel(&state)
+    }
+  }
+
+  private func setUpModel(_ state: inout State) -> Effect<Action> {
+    let recordsConsent = !modelDownloadConsent.isConsented()
+    let acknowledgesConsent =
+      state.onboarding.isPresented && state.onboarding.isRecordingModelDownloadConsent
+    let installsModel = state.health.engineReadiness.isInstallable
+    guard recordsConsent || acknowledgesConsent || installsModel else {
+      return .none
+    }
+    if installsModel {
+      state.$health.withLock { $0.engineReadiness = .downloading(0) }
+    }
+    return .run { send in
+      if recordsConsent {
+        do {
+          try modelDownloadConsent.markConsented()
+        } catch {
+          await send(.modelDownloadConsentRecordingFailed(error.localizedDescription))
+          return
+        }
+      }
+      if acknowledgesConsent {
+        await send(.modelDownloadConsentRecorded)
+      }
+      guard installsModel else {
+        return
+      }
+      for await readiness in asrEngine.installAndPrepare() {
+        await send(.engineReadinessUpdated(readiness))
+      }
+    }
+  }
+
   private func startupEffect() -> Effect<Action> {
     .run { send in
       let onboardingCompleted = onboardingCompletion.isCompleted()
       let modelDownloadConsented = modelDownloadConsent.isConsented()
       let hasAccessibilityPermission = accessibilityPermission.hasPermission()
-      async let microphoneStatus = microphonePermission.status()
+      let microphoneStatus = microphonePermission.status()
 
       var readinessIterator = asrEngine.prepareInstalled().makeAsyncIterator()
       let engineReadiness = await readinessIterator.next() ?? .modelMissing
@@ -784,18 +819,6 @@ private let performanceLogger = Logger(
         await send(.engineReadinessUpdated(readiness))
       }
     }
-  }
-
-  private func onboardingSnapshot(_ state: State) -> OnboardingSnapshot {
-    OnboardingSnapshot(
-      permissions: OnboardingPermissionStatuses(
-        microphoneStatus: state.recording.micStatus,
-        hasAccessibilityPermission: state.accessibilityGranted,
-      ),
-      engineReadiness: state.engineReadiness,
-      hasModelDownloadConsent: state.modelDownloadConsented || state.onboardingCompleted,
-      isCompleted: state.onboardingCompleted,
-    )
   }
 
   private func logEngineReadiness(_ readiness: EngineReadiness) {

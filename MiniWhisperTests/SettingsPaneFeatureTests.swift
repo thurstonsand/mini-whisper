@@ -1,10 +1,14 @@
 import AppSettings
+import ASREngine
 import AudioCapture
 import ComposableArchitecture
+import Foundation
 import History
 import HotkeyListener
 @testable import MiniWhisper
 import Testing
+
+// MARK: - SettingsPaneFeatureTests
 
 @MainActor struct SettingsPaneFeatureTests {
   // MARK: Internal
@@ -67,6 +71,7 @@ import Testing
         #expect(selection == .systemDefault)
         return levels
       }
+      $0.launchAtLogin.isRegistered = { false }
     }
     let level = AudioLevel(decibels: -36, normalizedPower: 0.4)
     let builtIn = AudioInputDevice(uid: "built-in", name: "Built-in Microphone")
@@ -87,6 +92,7 @@ import Testing
     let store = TestStore(initialState: makeState()) { SettingsPaneFeature() } withDependencies: {
       $0.audioInputDevices.snapshots = { AsyncStream { $0.finish() } }
       $0.audioInputLevels.levels = { _ in AsyncStream { $0.finish() } }
+      $0.launchAtLogin.isRegistered = { false }
     }
 
     await store.send(.task)
@@ -110,7 +116,10 @@ import Testing
     var settings = MiniWhisperSettings.defaults
     settings.microphone = .device(uid: "missing", lastKnownName: "Studio Microphone")
     let store = TestStore(
-      initialState: SettingsPaneFeature.State(settings: Shared(value: settings)),
+      initialState: SettingsPaneFeature.State(
+        settings: Shared(value: settings),
+        health: Shared(value: .healthy),
+      ),
     ) { SettingsPaneFeature() }
     let builtIn = AudioInputDevice(uid: "built-in", name: "MacBook Pro Microphone")
     let snapshot = AudioInputDeviceSnapshot(devices: [builtIn], defaultDevice: builtIn)
@@ -154,7 +163,10 @@ import Testing
     var settings = MiniWhisperSettings.defaults
     settings.microphone = .device(uid: "missing", lastKnownName: "Studio Microphone")
     let store = TestStore(
-      initialState: SettingsPaneFeature.State(settings: Shared(value: settings)),
+      initialState: SettingsPaneFeature.State(
+        settings: Shared(value: settings),
+        health: Shared(value: .healthy),
+      ),
     ) { SettingsPaneFeature() }
 
     await store.send(.microphoneSelected(settings.microphone))
@@ -190,7 +202,92 @@ import Testing
     }
     await store.send(.rowMoved(.next)) { $0.cursor.row = .sound(.cancel) }
     await store.send(.rowMoved(.next)) { $0.cursor.row = .sound(.error) }
+    await store.send(.rowMoved(.next)) { $0.cursor.row = .launchAtLogin }
     await store.send(.rowMoved(.next))
+  }
+
+  @Test func `launch at login joins movement and Return flips it`() async {
+    let registered = Collector<Bool>()
+    var state = makeState()
+    state.cursor.row = .sound(.error)
+    let store = TestStore(initialState: state) { SettingsPaneFeature() } withDependencies: {
+      $0.launchAtLogin.setRegistered = { registered.append($0) }
+      $0.launchAtLogin.isRegistered = { registered.last ?? false }
+    }
+
+    await store.send(.rowMoved(.next)) { $0.cursor.row = .launchAtLogin }
+    #expect(store.state.cursorTarget == .launchAtLogin)
+    await store.send(.pressRequested)
+    await store.receive(.launchAtLoginToggled(true))
+    await store.receive(.launchAtLoginUpdated(true)) { $0.launchAtLoginRegistered = true }
+    #expect(registered.values == [true])
+  }
+
+  @Test func `a refused login item registration leaves the toggle where it was`() async {
+    let store = TestStore(initialState: makeState()) { SettingsPaneFeature() } withDependencies: {
+      $0.launchAtLogin.setRegistered = { _ in throw LaunchAtLoginFailure() }
+      $0.launchAtLogin.isRegistered = { false }
+    }
+
+    await store.send(.launchAtLoginToggled(true))
+    await store.receive(
+      SettingsPaneFeature.Action.launchAtLoginFailed("the login item was refused"),
+    )
+    await store.receive(.launchAtLoginUpdated(false))
+    #expect(!store.state.launchAtLoginRegistered)
+  }
+
+  @Test func `opening the pane reads the login item back`() async {
+    let store = TestStore(initialState: makeState()) { SettingsPaneFeature() } withDependencies: {
+      $0.audioInputDevices.snapshots = { AsyncStream { $0.finish() } }
+      $0.audioInputLevels.levels = { _ in AsyncStream { $0.finish() } }
+      $0.launchAtLogin.isRegistered = { true }
+    }
+    store.exhaustivity = .off(showSkippedAssertions: false)
+
+    await store.send(.task) { $0.launchAtLoginRegistered = true }
+  }
+
+  @Test func `repair rows pin to the top and each delegates its own door`() async {
+    let state = makeState(
+      health: AppHealth(micStatus: .denied, engineReadiness: .failed("nope")),
+    )
+    let store = TestStore(initialState: state) { SettingsPaneFeature() }
+
+    #expect(store.state.rows.first == .repair(.accessibilityDenied))
+    #expect(store.state.cursorRow == .repair(.accessibilityDenied))
+    await store.send(.pressRequested)
+    await store.receive(.repairTapped(.accessibilityDenied))
+    await store.receive(.delegate(.repair(.accessibilityDenied)))
+    await store.send(.rowMoved(.next)) { $0.cursor.row = .repair(.microphoneAccessDenied) }
+    await store.send(.rowMoved(.next)) { $0.cursor.row = .repair(.modelSetupFailed) }
+    await store.send(.pressRequested)
+    await store.receive(.repairTapped(.modelSetupFailed))
+    await store.receive(.delegate(.repair(.modelSetupFailed)))
+  }
+
+  @Test func `A healthy app contributes no repair rows`() {
+    #expect(makeState().health.degradations.isEmpty)
+    #expect(!makeState().rows.contains {
+      if case .repair = $0 {
+        true
+      } else {
+        false
+      }
+    })
+  }
+
+  @Test func `a repaired permission moves the cursor off the row that is gone`() {
+    var state = makeState(health: AppHealth(
+      micStatus: .denied, accessibilityGranted: true, engineReadiness: .ready,
+    ))
+    state.cursor = SettingsPaneFeature.Cursor(row: .repair(.microphoneAccessDenied))
+
+    state.$health.withLock { $0.micStatus = .granted }
+
+    #expect(state.health.degradations.isEmpty)
+    #expect(state.cursorRow == .activate)
+    #expect(state.cursorTarget == .binding(0))
   }
 
   @Test func `choosing A sound commits it and plays it once`() async {
@@ -309,15 +406,52 @@ import Testing
 
   // MARK: Private
 
-  private func makeState(hotkeys: [Hotkey] = [.rightOption]) -> SettingsPaneFeature.State {
+  private func makeState(
+    hotkeys: [Hotkey] = [.rightOption],
+    health: AppHealth = .healthy,
+  ) -> SettingsPaneFeature.State {
     var settings = MiniWhisperSettings.defaults
     settings.hotkeys = hotkeys
-    return SettingsPaneFeature.State(settings: Shared(value: settings))
+    return SettingsPaneFeature.State(
+      settings: Shared(value: settings), health: Shared(value: health),
+    )
   }
 
   private func makeWindowState() -> SettingsWindowFeature.State {
     SettingsWindowFeature.State(
       history: Shared(value: HistoryLog()), settings: Shared(value: .defaults),
+      health: Shared(value: .healthy),
     )
   }
+}
+
+// MARK: - LaunchAtLoginFailure
+
+private struct LaunchAtLoginFailure: LocalizedError {
+  var errorDescription: String? {
+    "the login item was refused"
+  }
+}
+
+// MARK: - Collector
+
+private final class Collector<Value: Sendable>: @unchecked Sendable {
+  // MARK: Internal
+
+  var values: [Value] {
+    lock.withLock { storage }
+  }
+
+  var last: Value? {
+    lock.withLock { storage.last }
+  }
+
+  func append(_ value: Value) {
+    lock.withLock { storage.append(value) }
+  }
+
+  // MARK: Private
+
+  private let lock = NSLock()
+  private var storage: [Value] = []
 }

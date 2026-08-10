@@ -1,4 +1,5 @@
 import AppSettings
+import ASREngine
 import AudioCapture
 import ComposableArchitecture
 import HotkeyListener
@@ -11,6 +12,20 @@ struct SettingsPane: View {
 
   var body: some View {
     Form {
+      // Only while there is something to say: an empty Section is still a box on screen, and a
+      // settings window does not need a permanent row reporting that nothing is wrong.
+      let health = store.settingsPane.health
+      if !health.degradations.isEmpty || health.engineReadiness.isSetupInProgress {
+        Section {
+          ForEach(health.degradations, id: \.self) { degradation in
+            RepairRow(store: store, degradation: degradation)
+          }
+          if health.engineReadiness != .ready {
+            EngineStatusRow(store: store)
+          }
+        }
+      }
+
       Section {
         ShortcutRow(store: store)
       } header: {
@@ -28,9 +43,14 @@ struct SettingsPane: View {
           SoundRow(store: store, cue: cue)
         }
       }
+
+      Section {
+        LaunchAtLoginRow(store: store)
+      }
     }
     .formStyle(.grouped)
     .focusEffectDisabled()
+    .keyboardCursorScroll(store: store, cursor: store.settingsPane.cursorRow)
     // Playback leaves no mark on screen, so the pane carries one probe saying what was last heard.
     .accessibilityPaintState(
       AccessibilityID.settingsSoundPlayback, label: "Sound playback",
@@ -38,6 +58,97 @@ struct SettingsPane: View {
     )
     .task { store.send(.settingsPane(.task)) }
     .onDisappear { store.send(.settingsPane(.paneClosed)) }
+  }
+}
+
+// MARK: - EngineStatusRow
+
+private struct EngineStatusRow: View {
+  let store: StoreOf<SettingsWindowFeature>
+
+  var body: some View {
+    LabeledContent("Speech engine") {
+      SemanticText(
+        store.settingsPane.health.engineReadiness.statusText,
+        identifier: AccessibilityID.settingsEngineStatus, label: "Speech engine",
+      )
+      .foregroundStyle(.secondary)
+    }
+  }
+}
+
+// MARK: - RepairRow
+
+private struct RepairRow: View {
+  // MARK: Internal
+
+  let store: StoreOf<SettingsWindowFeature>
+  let degradation: Degradation
+
+  var body: some View {
+    LabeledContent {
+      Button(presentation.title) {
+        store.send(.settingsPane(.repairTapped(degradation)))
+      }
+      .focusRing(store.state.showsSettingsRing(row, target: .repair(degradation)))
+      .accessibilityIdentifier(AccessibilityID.settingsRepairAction(degradation))
+      .accessibilityLabel(presentation.title)
+    } label: {
+      Label {
+        Text(presentation.reason)
+      } icon: {
+        Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
+      }
+    }
+    .modifier(SettingsFormRow(store: store, row: row))
+    .accessibilityElement(children: .contain)
+    .accessibilityIdentifier(AccessibilityID.settingsRepairRow(degradation))
+    .accessibilityLabel(presentation.reason)
+  }
+
+  // MARK: Private
+
+  private var presentation: Degradation.Presentation {
+    degradation.presentation
+  }
+
+  private var row: SettingsPaneFeature.Row {
+    .repair(degradation)
+  }
+}
+
+// MARK: - LaunchAtLoginRow
+
+private struct LaunchAtLoginRow: View {
+  let store: StoreOf<SettingsWindowFeature>
+
+  var body: some View {
+    let showsRing = store.state.showsSettingsRing(.launchAtLogin, target: .launchAtLogin)
+    // A switch owns its label, and in a grouped Form that label is as wide as the row, so the
+    // ring goes around the whole row rather than around the switch. Moving the label onto a
+    // `LabeledContent` and hiding the switch's own fixes the ring and costs the control its
+    // `AXSwitch` subrole — VoiceOver then calls it a checkbox. The ring is the cheaper thing to
+    // be wrong about.
+    Toggle(
+      "Open at login",
+      isOn: Binding(
+        get: { store.settingsPane.launchAtLoginRegistered },
+        set: { store.send(.settingsPane(.launchAtLoginToggled($0))) },
+      ),
+    )
+    .toggleStyle(.switch)
+    .focusRing(showsRing)
+    .accessibilityIdentifier(AccessibilityID.settingsLaunchAtLogin)
+    .accessibilityLabel("Open at login")
+    .modifier(SettingsFormRow(store: store, row: .launchAtLogin))
+    .accessibilityPaintState(
+      AccessibilityID.settingsLaunchAtLoginState, label: "Open at login highlight",
+      value: store.state.showsSettingsBar(.launchAtLogin) ? "Bar on" : "Bar off",
+    )
+    .accessibilityPaintState(
+      AccessibilityID.settingsLaunchAtLoginRing, label: "Open at login ring",
+      value: showsRing ? "Ring on" : "Ring off",
+    )
   }
 }
 
@@ -434,6 +545,7 @@ private struct SettingsFormRow: ViewModifier {
       }
       .listRowInsets(EdgeInsets())
       .contentShape(.rect)
+      .id(row)
       .windowPointerMovement(store: store) {
         store.send(.settingsPane(.cursorHovered(row)))
       }

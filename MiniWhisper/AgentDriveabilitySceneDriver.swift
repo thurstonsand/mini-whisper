@@ -4,16 +4,28 @@ import ComposableArchitecture
 import Foundation
 
 #if DEBUG
-  @MainActor final class AgentDriveabilitySceneDriver {
-    // MARK: Lifecycle
 
-    init(store: StoreOf<AppFeature>, refreshMenu: @escaping @MainActor () -> Void) {
-      self.store = store
-      self.refreshMenu = refreshMenu
+  // MARK: - AgentSceneFiles
+
+  enum AgentSceneFiles {
+    static let command: URL = {
       guard let path = ProcessInfo.processInfo.environment["MINIWHISPER_AGENT_COMMAND_FILE"] else {
         preconditionFailure("Agent scene has no command file")
       }
-      commandFileURL = URL(fileURLWithPath: path)
+      return URL(fileURLWithPath: path)
+    }()
+
+    static let result = URL(fileURLWithPath: "\(command.path).result")
+  }
+
+  // MARK: - AgentDriveabilitySceneDriver
+
+  @MainActor final class AgentDriveabilitySceneDriver {
+    // MARK: Lifecycle
+
+    init(store: StoreOf<AppFeature>) {
+      self.store = store
+      commandFileURL = AgentSceneFiles.command
       commandTask = Task { [weak self] in
         // The sequence prefix makes identical payloads distinct while whole-file comparison rejects
         // partial rewrites.
@@ -38,7 +50,6 @@ import Foundation
 
     private let store: StoreOf<AppFeature>
     private let commandFileURL: URL
-    private let refreshMenu: @MainActor () -> Void
     private var commandTask: Task<Void, Never>?
 
     private func receive(_ command: String) {
@@ -56,12 +67,9 @@ import Foundation
         guard let fraction = Double(fields[2]) else {
           return
         }
-        store.send(.onboarding(.engineReadinessUpdated(.downloading(fraction))))
+        store.send(.engineReadinessUpdated(.downloading(fraction)))
       case "model-ready":
-        store.send(.onboarding(.engineReadinessUpdated(.ready)))
-      case "launch-at-login":
-        store.send(.launchAtLoginUpdated(fields[2] == "true"))
-        refreshMenu()
+        store.send(.engineReadinessUpdated(.ready))
       default:
         return
       }
@@ -69,7 +77,7 @@ import Foundation
   }
 #else
   @MainActor final class AgentDriveabilitySceneDriver {
-    init(store _: StoreOf<AppFeature>, refreshMenu _: @escaping @MainActor () -> Void) {
+    init(store _: StoreOf<AppFeature>) {
       preconditionFailure()
     }
   }

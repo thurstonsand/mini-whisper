@@ -2,6 +2,11 @@ import AppSettings
 import AudioCapture
 import ComposableArchitecture
 import HotkeyListener
+import OSLog
+
+private let launchAtLoginLogger = Logger(
+  subsystem: "com.thurstonsand.MiniWhisper", category: "launch-at-login",
+)
 
 // MARK: - SettingsPaneFeature
 
@@ -15,14 +20,12 @@ import HotkeyListener
     case next
   }
 
-  enum Row: CaseIterable, Equatable {
+  enum Row: Hashable {
+    case repair(Degradation)
     case activate
     case microphone
     case sound(SoundCue)
-
-    // MARK: Internal
-
-    static let allCases: [Row] = [.activate, .microphone] + SoundCue.allCases.map(Row.sound)
+    case launchAtLogin
   }
 
   /// One target is exactly one control the ring can sit on, so no two of these are ever the same
@@ -34,22 +37,29 @@ import HotkeyListener
     case microphone
     case soundPreview(SoundCue)
     case soundPicker(SoundCue)
+    case repair(Degradation)
+    case launchAtLogin
   }
 
   struct Cursor: Equatable {
-    var row = Row.activate
+    /// Unset until something moves it, which is not the same as standing on the first row: a
+    /// repair row appearing above everything should receive the cursor, not be skipped past
+    /// because the pane decided where to stand before the failure existed.
+    var row: Row?
     var target = 0
   }
 
   @ObservableState struct State: Equatable {
     // MARK: Lifecycle
 
-    init(settings: Shared<MiniWhisperSettings>) {
+    init(settings: Shared<MiniWhisperSettings>, health: Shared<AppHealth>) {
       bindings = HotkeyBindingsFeature.State(settings: settings)
+      _health = health
     }
 
     // MARK: Internal
 
+    @Shared var health: AppHealth
     var bindings: HotkeyBindingsFeature.State
     var cursor = Cursor()
     var inputDevices = AudioInputDeviceSnapshot.empty
@@ -62,6 +72,24 @@ import HotkeyListener
     /// Same message-by-count trick as `microphoneActivation`, one counter per pop-up button.
     var soundActivations: [SoundCue: Int] = [:]
     var lastPlayedSound: String?
+    var launchAtLoginRegistered = false
+
+    var rows: [Row] {
+      health.degradations.map(Row.repair)
+        + [.activate, .microphone]
+        + SoundCue.allCases.map(Row.sound)
+        + [.launchAtLogin]
+    }
+
+    /// Resolved on read for the same reason `cursorTarget` is: a repair row vanishes the instant
+    /// the failure is fixed, and the cursor must never be left standing on a row that is no
+    /// longer there.
+    var cursorRow: Row {
+      guard let row = cursor.row, rows.contains(row) else {
+        return rows[0]
+      }
+      return row
+    }
 
     var microphone: MicrophoneSelection {
       bindings.settings.microphone
@@ -95,7 +123,9 @@ import HotkeyListener
 
     /// Never empty, so the cursor always has somewhere to be.
     var targets: [Target] {
-      switch cursor.row {
+      switch cursorRow {
+      case let .repair(degradation):
+        return [.repair(degradation)]
       case .activate:
         let indices = bindings.hotkeys.indices.map(Target.binding)
         if bindings.target == .new {
@@ -106,6 +136,8 @@ import HotkeyListener
         return [.microphone]
       case let .sound(cue):
         return [.soundPicker(cue), .soundPreview(cue)]
+      case .launchAtLogin:
+        return [.launchAtLogin]
       }
     }
 
@@ -128,6 +160,10 @@ import HotkeyListener
     case soundSelected(SoundCue, String?)
     case soundReplayRequested(SoundCue)
     case soundPlaybackCompleted(String)
+    case launchAtLoginToggled(Bool)
+    case launchAtLoginUpdated(Bool)
+    case launchAtLoginFailed(String)
+    case repairTapped(Degradation)
     case rowMoved(CursorMovement)
     case leftPressed
     case rightPressed
@@ -137,10 +173,12 @@ import HotkeyListener
 
   enum Delegate: Equatable {
     case microphoneChanged(MicrophoneSelection)
+    case repair(Degradation)
   }
 
   @Dependency(\.audioInputDevices) var audioInputDevices
   @Dependency(\.audioInputLevels) var audioInputLevels
+  @Dependency(\.launchAtLogin) var launchAtLogin
   @Dependency(\.sounds) var sounds
 
   var body: some ReducerOf<Self> {
@@ -152,6 +190,9 @@ import HotkeyListener
       // CoreAudio client, so neither may outlive it.
       case .task:
         state.inputLevel = nil
+        // The login item can be changed from System Settings, so the pane reads it rather than
+        // trusting what it last wrote.
+        state.launchAtLoginRegistered = launchAtLogin.isRegistered()
         return .merge(
           .run { send in
             for await snapshot in audioInputDevices.snapshots() {
@@ -205,9 +246,26 @@ import HotkeyListener
       case let .soundPlaybackCompleted(name):
         state.lastPlayedSound = name
         return .none
+      case let .launchAtLoginToggled(registered):
+        return .run { send in
+          do { try launchAtLogin.setRegistered(registered) } catch {
+            await send(.launchAtLoginFailed(error.localizedDescription))
+          }
+          await send(.launchAtLoginUpdated(launchAtLogin.isRegistered()))
+        }
+      case let .launchAtLoginUpdated(registered):
+        state.launchAtLoginRegistered = registered
+        return .none
+      case let .launchAtLoginFailed(message):
+        launchAtLoginLogger.error(
+          "Launch at login change failed: \(message, privacy: .public)",
+        )
+        return .none
+      case let .repairTapped(degradation):
+        return .send(.delegate(.repair(degradation)))
       case let .rowMoved(movement):
-        let rows = Row.allCases
-        guard let current = rows.firstIndex(of: state.cursor.row) else {
+        let rows = state.rows
+        guard let current = rows.firstIndex(of: state.cursorRow) else {
           return .none
         }
         let offset = movement == .next ? 1 : -1
@@ -224,6 +282,8 @@ import HotkeyListener
         return .none
       case .pressRequested:
         switch state.cursorTarget {
+        case let .repair(degradation):
+          return .send(.repairTapped(degradation))
         case let .binding(index):
           return .send(.bindings(.bindingTapped(index)))
         case .recording,
@@ -237,6 +297,8 @@ import HotkeyListener
         case let .soundPicker(cue):
           state.soundActivations[cue, default: 0] += 1
           return .none
+        case .launchAtLogin:
+          return .send(.launchAtLoginToggled(!state.launchAtLoginRegistered))
         }
       case let .cursorHovered(row):
         state.cursor.row = row

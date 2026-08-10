@@ -159,14 +159,6 @@ final class MiniWhisperUITests: XCTestCase {
           isEnabled: true, isActionable: true,
         ),
         contract(
-          .menuItem, "miniwhisper.menu.launch-at-login", "Launch at Login", "On", isEnabled: true,
-          isActionable: true,
-        ),
-        contract(
-          .menuItem, "miniwhisper.menu.settings-file", "Open Settings File", isEnabled: true,
-          isActionable: true,
-        ),
-        contract(
           .menuItem, "miniwhisper.menu.settings", "Settings", isEnabled: true,
           isActionable: true,
         ),
@@ -186,24 +178,21 @@ final class MiniWhisperUITests: XCTestCase {
       elements: [
         contract(
           .menuItem, "miniwhisper.menu.status", "Status",
-          "Accessibility is off, so the hotkey and pasting can't work; switch it on",
-          isEnabled: false,
+          "Not ready; Test Microphone", isEnabled: false,
         ),
         contract(
-          .menuItem, "miniwhisper.menu.repair", "Open Accessibility Settings…", isEnabled: true,
-          isActionable: true,
+          .menuItem, "miniwhisper.menu.repair.accessibility", "Grant Accessibility Access…",
+          "Required to start dictation and paste text",
+          isEnabled: true, isActionable: true,
+        ),
+        contract(
+          .menuItem, "miniwhisper.menu.repair.microphone", "Grant Microphone Access…",
+          "Required to record audio",
+          isEnabled: true, isActionable: true,
         ),
         contract(
           .menuItem, "miniwhisper.menu.copy-last-transcript", "Copy Last Transcript",
           isEnabled: false,
-        ),
-        contract(
-          .menuItem, "miniwhisper.menu.launch-at-login", "Launch at Login", "Off", isEnabled: true,
-          isActionable: true,
-        ),
-        contract(
-          .menuItem, "miniwhisper.menu.settings-file", "Open Settings File", isEnabled: true,
-          isActionable: true,
         ),
         contract(
           .menuItem, "miniwhisper.menu.settings", "Settings", isEnabled: true,
@@ -283,7 +272,7 @@ final class MiniWhisperUITests: XCTestCase {
         ),
         contract(
           .button, "miniwhisper.settings.sound.activate.preview",
-          "Preview record start sound", "Ring off", isEnabled: true, isActionable: true,
+          "Preview activate sound", "Ring off", isEnabled: true, isActionable: true,
         ),
         contract(
           .popUpButton, "miniwhisper.settings.sound.activate.picker", "Activate sound",
@@ -291,7 +280,7 @@ final class MiniWhisperUITests: XCTestCase {
         ),
         contract(
           .staticText, "miniwhisper.settings.sound.activate.picker.state",
-          "Record start sound emphasis", "Primary",
+          "Activate sound emphasis", "Primary",
         ),
         contract(.group, "miniwhisper.settings.sound.complete", "Complete"),
         contract(
@@ -349,8 +338,153 @@ final class MiniWhisperUITests: XCTestCase {
         contract(
           .staticText, "miniwhisper.settings.sound.playback", "Sound playback", "None",
         ),
+        contract(
+          .switch, "miniwhisper.settings.launch-at-login", "Open at login", "1",
+          isEnabled: true, isActionable: true,
+        ),
+        contract(
+          .staticText, "miniwhisper.settings.launch-at-login.state",
+          "Open at login highlight", "Bar off",
+        ),
+        contract(
+          .staticText, "miniwhisper.settings.launch-at-login.ring",
+          "Open at login ring", "Ring off",
+        ),
       ],
     )
+  }
+
+  @MainActor func testSettingsLaunchAtLoginCompletesThePane() {
+    let app = launch("settings")
+    defer { terminate(app) }
+
+    let toggle = app.switches["miniwhisper.settings.launch-at-login"]
+    XCTAssertTrue(toggle.waitForExistence(timeout: 5))
+    XCTAssertEqual(accessibilityValue(toggle), "1")
+
+    app.typeText("ljjjjjj")
+    assertValue(
+      "Bar on", of: app.staticTexts["miniwhisper.settings.launch-at-login.state"],
+    )
+    // A switch spends its own accessibility value on being on or off, so the ring it is wearing
+    // has to be reported separately.
+    assertValue("Ring on", of: app.staticTexts["miniwhisper.settings.launch-at-login.ring"])
+    XCTAssertTrue(toggle.isHittable)
+
+    app.typeKey(.return, modifierFlags: [])
+    XCTAssertEqual(accessibilityValue(toggle), "0")
+  }
+
+  /// macOS lists an app under Privacy & Security > Microphone only once the app has asked, and
+  /// that list has no way to add one by hand. Taking Grant away before it was pressed therefore
+  /// strands the user in front of a pane their app is not in.
+  @MainActor func testLeavingAndReturningToPermissionsKeepsTheGrantButton() {
+    let app = launch("onboarding-permissions-microphone")
+    defer { terminate(app) }
+
+    let action = app.buttons["miniwhisper.onboarding.permission.microphone.action"]
+    XCTAssertTrue(action.waitForExistence(timeout: 5))
+    XCTAssertEqual(action.label, "Grant Microphone")
+
+    app.buttons["miniwhisper.onboarding.rail.try-it"].click()
+    XCTAssertTrue(app.buttons["miniwhisper.onboarding.rail.permissions"].waitForExistence(
+      timeout: 2,
+    ))
+    app.buttons["miniwhisper.onboarding.rail.permissions"].click()
+
+    XCTAssertTrue(action.waitForExistence(timeout: 2))
+    XCTAssertEqual(action.label, "Grant Microphone")
+    assertValue(
+      "Required", of: app.staticTexts["miniwhisper.onboarding.permission.microphone.status"],
+    )
+  }
+
+  @MainActor func testOnboardingCanBeAbandonedFromTheLastPage() {
+    let app = launch("onboarding-model")
+    defer { terminate(app) }
+
+    let skip = app.buttons["miniwhisper.onboarding.try-it.skip"]
+    XCTAssertTrue(app.buttons["miniwhisper.onboarding.rail.try-it"].waitForExistence(timeout: 5))
+    XCTAssertFalse(skip.exists)
+
+    app.buttons["miniwhisper.onboarding.rail.try-it"].click()
+    XCTAssertTrue(skip.waitForExistence(timeout: 2))
+    XCTAssertFalse(app.textViews["miniwhisper.onboarding.try-it.text"].exists)
+
+    skip.click()
+    XCTAssertTrue(app.staticTexts["miniwhisper.menu.status-item"].waitForNonExistence(timeout: 3))
+    XCTAssertFalse(app.buttons["miniwhisper.onboarding.rail.try-it"].exists)
+  }
+
+  @MainActor func testSettingsRepairRowsAreDegradedOnlyAndAreTheirOwnDoor() {
+    let healthy = launch("settings")
+    XCTAssertFalse(healthy.groups["miniwhisper.settings.repair.accessibility"].exists)
+    XCTAssertFalse(healthy.groups["miniwhisper.settings.repair.microphone"].exists)
+    XCTAssertFalse(healthy.groups["miniwhisper.settings.repair.model-setup-failed"].exists)
+    terminate(healthy)
+
+    let app = launch("settings-degraded")
+    defer { terminate(app) }
+    let accessibility = app.groups["miniwhisper.settings.repair.accessibility"]
+    let microphone = app.groups["miniwhisper.settings.repair.microphone"]
+    let model = app.groups["miniwhisper.settings.repair.model-setup-failed"]
+    XCTAssertTrue(accessibility.waitForExistence(timeout: 5))
+    XCTAssertTrue(microphone.exists)
+    XCTAssertTrue(model.exists)
+    XCTAssertEqual(accessibility.label, "Required to start dictation and paste text")
+    XCTAssertEqual(
+      app.buttons["miniwhisper.settings.repair.accessibility.action"].label,
+      "Grant Accessibility Access…",
+    )
+    XCTAssertEqual(
+      app.buttons["miniwhisper.settings.repair.model-setup-failed.action"].label,
+      "Retry Parakeet v2 Setup",
+    )
+    assertValue(
+      "Speech model setup failed", of: app.staticTexts["miniwhisper.settings.engine-status"],
+    )
+
+    app.typeText("l")
+    app.typeKey(.return, modifierFlags: [])
+    waitForAgentResult(
+      "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
+    )
+  }
+
+  @MainActor func testHistoryCursorStaysOnScreenAfterVisitingSettings() {
+    let app = launch("settings-history")
+    defer { terminate(app) }
+    let id = "00000000-0000-0000-0000-000000000028"
+    let cursor = historyRow(app, id: id)
+
+    app.typeText("l" + String(repeating: "j", count: 27))
+    XCTAssertTrue(cursor.waitForExistence(timeout: 5))
+    assertSingleGreyHistoryRow(app, id: id)
+    XCTAssertTrue(cursor.isHittable)
+
+    app.typeText("hkj")
+    XCTAssertTrue(cursor.isHittable, "The cursor came back off-screen.")
+
+    app.typeText("l")
+    assertSingleGreyHistoryRow(app, id: id)
+    XCTAssertTrue(cursor.isHittable)
+  }
+
+  @MainActor func testSettingsCursorKeepsItsBarAfterVisitingHistory() {
+    // The directly presented agent scene preserves focus and cannot exercise this path.
+    let app = launchRealSettings()
+    defer { terminate(app) }
+    XCTAssertTrue(
+      app.switches["miniwhisper.settings.launch-at-login"].waitForExistence(timeout: 5),
+    )
+    let bar = app.staticTexts["miniwhisper.settings.launch-at-login.state"]
+
+    // One press per key: a repeated typeText is delivered whole, where a loop drops some.
+    app.typeText("ljjjjjjjj")
+    assertValue("Bar on", of: bar)
+
+    app.typeText("hjkl")
+    assertValue("Bar on", of: bar)
   }
 
   @MainActor func testSettingsMicrophoneRowJoinsTheKeyboardGrammar() {
@@ -928,10 +1062,6 @@ final class MiniWhisperUITests: XCTestCase {
       app.menuItems[elements[0].identifier].waitForExistence(timeout: 2), file: file, line: line,
     )
     assert(elements, in: app, file: file, line: line)
-    if scene == "menu-healthy" {
-      postAgentMutation("launch-at-login", value: false)
-      assertValue("Off", of: app.menuItems["miniwhisper.menu.launch-at-login"])
-    }
   }
 
   @MainActor private func assertManifest(
@@ -1249,7 +1379,7 @@ private enum PermissionManifest: CaseIterable {
 }
 
 private let menuKnownIdentifiers: Set<String> = [
-  "miniwhisper.menu.status", "miniwhisper.menu.repair", "miniwhisper.menu.copy-last-transcript",
-  "miniwhisper.menu.sounds", "miniwhisper.menu.launch-at-login", "miniwhisper.menu.settings-file",
+  "miniwhisper.menu.status", "miniwhisper.menu.repair.accessibility",
+  "miniwhisper.menu.repair.microphone", "miniwhisper.menu.copy-last-transcript",
   "miniwhisper.menu.settings", "miniwhisper.menu.about", "miniwhisper.menu.quit",
 ]

@@ -19,8 +19,11 @@ import Testing
     let sessionID = UUID()
     let clock = TestClock()
     var state = AppFeature.State()
-    state.hotkeyTap = .active
-    state.recording.micStatus = .granted
+    state.$health.withLock {
+      $0.hotkeyTap = .active
+      $0.micStatus = .granted
+      $0.engineReadiness = .ready
+    }
     state.onboardingCompleted = true
     let store = TestStore(initialState: state) {
       AppFeature()
@@ -112,17 +115,44 @@ import Testing
 
     await store.send(.startupResolved(facts)) {
       $0.onboardingCompleted = true
-      $0.modelDownloadConsented = true
-      $0.accessibilityGranted = true
-      $0.recording.micStatus = .granted
-      $0.engineReadiness = .ready
-      $0.hotkeyTap = .starting
+      $0.$health.withLock { $0.accessibilityGranted = true }
+      $0.$health.withLock { $0.micStatus = .granted }
+      $0.$health.withLock { $0.engineReadiness = .ready }
+      $0.$health.withLock { $0.hotkeyTap = .starting }
     }
     #expect(!store.state.onboarding.isPresented)
     continuation.yield(.monitoringStarted)
-    await store.receive(.hotkeyListenerEvent(.monitoringStarted)) { $0.hotkeyTap = .active }
+    await store
+      .receive(.hotkeyListenerEvent(.monitoringStarted)) {
+        $0.$health.withLock { $0.hotkeyTap = .active }
+      }
     continuation.finish()
-    await store.receive(.hotkeyListenerFinished) { $0.hotkeyTap = .dead }
+    await store.receive(.hotkeyListenerFinished) { $0.$health.withLock { $0.hotkeyTap = .dead } }
+  }
+
+  @Test func `opening settings refreshes an out of band microphone denial`() async {
+    var state = AppFeature.State()
+    state.$health.withLock {
+      $0.hotkeyTap = .idle
+      $0.micStatus = .granted
+      $0.engineReadiness = .ready
+    }
+    let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
+      $0.audioInputDevices.snapshots = { AsyncStream { $0.finish() } }
+      $0.audioInputLevels.levels = { _ in AsyncStream { $0.finish() } }
+      $0.launchAtLogin.isRegistered = { false }
+      $0.microphonePermission.status = { .denied }
+      $0.sounds.availableNames = { [] }
+    }
+    store.exhaustivity = .off(showSkippedAssertions: false)
+
+    await store.send(.settingsWindow(.settingsPane(.task))) {
+      $0.$health.withLock { $0.micStatus = .denied }
+    }
+    #expect(
+      store.state.settingsWindow.settingsPane.health.degradations
+        == [.accessibilityDenied, .microphoneAccessDenied],
+    )
   }
 
   @Test func `recording A binding stops activation before capture and restarts with the commit`(
@@ -135,8 +165,11 @@ import Testing
     )
     let replacement = try Hotkey(keyCode: 15, modifiers: [.rightControl])
     var state = AppFeature.State()
-    state.accessibilityGranted = true
-    state.hotkeyTap = .active
+    state.$health.withLock {
+      $0.accessibilityGranted = true
+      $0.hotkeyTap = .active
+      $0.engineReadiness = .ready
+    }
     let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
       $0.accessibilityPermission.hasPermission = { true }
       $0.hotkeyListener.record = { recorderEvents }
@@ -148,26 +181,27 @@ import Testing
 
     await store.send(.settingsWindow(.settingsPane(.bindings(.bindingTapped(0))))) {
       $0.settingsWindow.settingsPane.bindings.target = .existing(0)
+      $0.$health.withLock { $0.hotkeyTap = .idle }
     }
-    await store.receive(.settingsWindow(.settingsPane(.bindings(.delegate(.recordingStarted))))) {
-      $0.hotkeyTap = .idle
-    }
+    await store.receive(.settingsWindow(.settingsPane(.bindings(.delegate(.recordingStarted)))))
     await store.receive(.settingsWindow(.settingsPane(.bindings(.recorderReady))))
     recorderContinuation.yield(.committed(replacement))
     await store
       .receive(.settingsWindow(.settingsPane(.bindings(.recorderEvent(.committed(replacement)))))) {
         $0.$settings.withLock { $0.hotkeys = [replacement] }
         $0.settingsWindow.settingsPane.bindings.target = nil
+        $0.$health.withLock { $0.hotkeyTap = .starting }
       }
-    await store.receive(.settingsWindow(.settingsPane(.bindings(.delegate(.recordingStopped))))) {
-      $0.hotkeyTap = .starting
-    }
+    await store.receive(.settingsWindow(.settingsPane(.bindings(.delegate(.recordingStopped)))))
     listenerContinuation.yield(.monitoringStarted)
-    await store.receive(.hotkeyListenerEvent(.monitoringStarted)) { $0.hotkeyTap = .active }
+    await store
+      .receive(.hotkeyListenerEvent(.monitoringStarted)) {
+        $0.$health.withLock { $0.hotkeyTap = .active }
+      }
     recorderContinuation.finish()
     await store.receive(.settingsWindow(.settingsPane(.bindings(.recorderFinished))))
     listenerContinuation.finish()
-    await store.receive(.hotkeyListenerFinished) { $0.hotkeyTap = .dead }
+    await store.receive(.hotkeyListenerFinished) { $0.$health.withLock { $0.hotkeyTap = .dead } }
   }
 
   @Test func `recording the onboarding shortcut suppresses and restarts activation listening`(
@@ -185,8 +219,11 @@ import Testing
     var state = AppFeature.State(
       history: Shared(value: HistoryLog()), settings: Shared(value: settings),
     )
-    state.accessibilityGranted = true
-    state.hotkeyTap = .active
+    state.$health.withLock {
+      $0.accessibilityGranted = true
+      $0.hotkeyTap = .active
+      $0.engineReadiness = .ready
+    }
     state.onboarding.isPresented = true
     state.onboarding.snapshot.permissions = OnboardingPermissionStatuses(
       microphoneStatus: .granted, hasAccessibilityPermission: true,
@@ -203,10 +240,9 @@ import Testing
 
     await store.send(.onboarding(.shortcutBindings(.primaryBindingTapped))) {
       $0.onboarding.shortcutBindings.target = .existing(0)
+      $0.$health.withLock { $0.hotkeyTap = .idle }
     }
-    await store.receive(.onboarding(.shortcutBindings(.delegate(.recordingStarted)))) {
-      $0.hotkeyTap = .idle
-    }
+    await store.receive(.onboarding(.shortcutBindings(.delegate(.recordingStarted))))
     await store.receive(.onboarding(.shortcutBindings(.recorderReady)))
     recorderContinuation.yield(.committed(replacement))
     await store.receive(
@@ -214,16 +250,18 @@ import Testing
     ) {
       $0.$settings.withLock { $0.hotkeys = [replacement, extra] }
       $0.onboarding.shortcutBindings.target = nil
+      $0.$health.withLock { $0.hotkeyTap = .starting }
     }
-    await store.receive(.onboarding(.shortcutBindings(.delegate(.recordingStopped)))) {
-      $0.hotkeyTap = .starting
-    }
+    await store.receive(.onboarding(.shortcutBindings(.delegate(.recordingStopped))))
     listenerContinuation.yield(.monitoringStarted)
-    await store.receive(.hotkeyListenerEvent(.monitoringStarted)) { $0.hotkeyTap = .active }
+    await store
+      .receive(.hotkeyListenerEvent(.monitoringStarted)) {
+        $0.$health.withLock { $0.hotkeyTap = .active }
+      }
     recorderContinuation.finish()
     await store.receive(.onboarding(.shortcutBindings(.recorderFinished)))
     listenerContinuation.finish()
-    await store.receive(.hotkeyListenerFinished) { $0.hotkeyTap = .dead }
+    await store.receive(.hotkeyListenerFinished) { $0.$health.withLock { $0.hotkeyTap = .dead } }
   }
 
   @Test func `repairing the tap with no bindings settles idle rather than starting forever`(
@@ -233,18 +271,23 @@ import Testing
     var state = AppFeature.State(
       history: Shared(value: HistoryLog()), settings: Shared(value: settings),
     )
-    state.accessibilityGranted = true
-    state.hotkeyTap = .dead
+    state.$health.withLock {
+      $0.accessibilityGranted = true
+      $0.hotkeyTap = .dead
+    }
     let store = TestStore(initialState: state) { AppFeature() }
-    #expect(store.state.menuBar.repair == .restartHotkeyListening)
+    #expect(store.state.health.degradations.first == .hotkeyTapDead)
 
-    await store.send(.repairDegradedState) { $0.hotkeyTap = .idle }
+    await store
+      .send(.repairRequested(.hotkeyTapDead)) { $0.$health.withLock { $0.hotkeyTap = .idle } }
   }
 
   @Test func `A tap the app stood down does not report itself as lost`() async {
     var state = AppFeature.State()
-    state.accessibilityGranted = true
-    state.hotkeyTap = .idle
+    state.$health.withLock {
+      $0.accessibilityGranted = true
+      $0.hotkeyTap = .idle
+    }
     let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
       $0.accessibilityPermission.hasPermission = {
         Issue.record("An intentionally idle tap must not be diagnosed")
@@ -286,12 +329,13 @@ import Testing
     await store.send(.task)
     await store.receive(.startupResolved(facts)) {
       $0.onboardingCompleted = true
-      $0.modelDownloadConsented = true
-      $0.hotkeyTap = .accessibilityMissing
-      $0.recording.micStatus = .granted
-      $0.engineReadiness = .compiling
+      $0.$health.withLock {
+        $0.hotkeyTap = .idle
+        $0.micStatus = .granted
+        $0.engineReadiness = .ready
+      }
     }
-    await store.receive(.engineReadinessUpdated(.ready)) { $0.engineReadiness = .ready }
+    await store.receive(.engineReadinessUpdated(.ready))
     #expect(!store.state.onboarding.isPresented)
     await store.finish()
   }
@@ -325,21 +369,20 @@ import Testing
       engineReadiness: .compiling,
     )
     let snapshot = OnboardingSnapshot(
-      permissions: permissions, engineReadiness: .compiling, hasModelDownloadConsent: false,
-      isCompleted: false,
+      permissions: permissions, hasModelDownloadConsent: false, isCompleted: false,
     )
 
     await store.send(.task)
-    await store.receive(.startupResolved(facts)) { $0.hotkeyTap = .accessibilityMissing }
+    await store.receive(.startupResolved(facts)) { $0.$health.withLock { $0.hotkeyTap = .idle } }
     await store.receive(.onboarding(.present(snapshot))) {
       $0.onboarding.isPresented = true
       $0.onboarding.snapshot = snapshot
       $0.onboarding.isShowingWelcome = true
     }
-    await store.receive(.engineReadinessUpdated(.ready)) { $0.engineReadiness = .ready }
-    await store.receive(.onboarding(.engineReadinessUpdated(.ready))) {
-      $0.onboarding.snapshot.engineReadiness = .ready
-    }
+    await store
+      .receive(.engineReadinessUpdated(.ready)) {
+        $0.$health.withLock { $0.engineReadiness = .ready }
+      }
     #expect(store.state.onboarding.step == .permissions)
 
     let granted = OnboardingPermissionStatuses(
@@ -359,26 +402,28 @@ import Testing
   }
 
   @Test func `first run presents onboarding from resolved system state`() async {
+    let consents = SynchronousCounter()
     let (hotkeyEvents, hotkeyContinuation) = AsyncStream.makeStream(of: HotkeyListenerEvent.self)
     var state = AppFeature.State()
-    state.hotkeyTap = .accessibilityMissing
-    state.recording.micStatus = .undetermined
+    state.$health.withLock {
+      $0.hotkeyTap = .idle
+      $0.micStatus = .undetermined
+    }
     state.onboardingCompleted = false
-    state.modelDownloadConsented = false
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
       $0.accessibilityPermission.hasPermission = { true }
       $0.continuousClock = TestClock()
       $0.hotkeyListener.events = { _ in hotkeyEvents }
-      $0.modelDownloadConsent.markConsented = {}
+      $0.modelDownloadConsent.markConsented = { consents.increment() }
       $0.asrEngine.installAndPrepare = { AsyncStream { $0.finish() } }
     }
     let snapshot = OnboardingSnapshot(
       permissions: OnboardingPermissionStatuses(
         microphoneStatus: .undetermined, hasAccessibilityPermission: false,
       ),
-      engineReadiness: .modelMissing, hasModelDownloadConsent: false, isCompleted: false,
+      hasModelDownloadConsent: false, isCompleted: false,
     )
 
     await store.send(
@@ -396,7 +441,11 @@ import Testing
     }
     await store.send(.onboarding(.downloadModel)) {
       $0.onboarding.isRecordingModelDownloadConsent = true
+      $0.$health.withLock { $0.engineReadiness = .downloading(0) }
     }
+    await store.receive(.onboarding(.delegate(.setupModelRequested)))
+    await store.receive(.modelDownloadConsentRecorded)
+    #expect(consents.value == 1)
     await store.receive(.onboarding(.modelDownloadConsented)) {
       $0.onboarding.snapshot.hasModelDownloadConsent = true
       $0.onboarding.isShowingWelcome = false
@@ -417,20 +466,24 @@ import Testing
           ),
         ),
       ),
-    ) { $0.onboarding.snapshot.permissions = granted }
-    await store.receive(.onboarding(.delegate(.permissionsUpdated(granted)))) {
-      $0.hotkeyTap = .starting
-      $0.accessibilityGranted = true
+    ) {
+      $0.onboarding.snapshot.permissions = granted
+      $0.$health.withLock {
+        $0.hotkeyTap = .starting
+        $0.micStatus = .granted
+        $0.accessibilityGranted = true
+      }
     }
-    await store.receive(.recording(.micStatusUpdated(.granted))) {
-      $0.recording.micStatus = .granted
-    }
+    await store.receive(.onboarding(.delegate(.permissionsUpdated(granted))))
     hotkeyContinuation.yield(.monitoringStarted)
-    await store.receive(.hotkeyListenerEvent(.monitoringStarted)) { $0.hotkeyTap = .active }
+    await store
+      .receive(.hotkeyListenerEvent(.monitoringStarted)) {
+        $0.$health.withLock { $0.hotkeyTap = .active }
+      }
     #expect(store.state.onboarding.step == .shortcut)
 
     hotkeyContinuation.finish()
-    await store.receive(.hotkeyListenerFinished) { $0.hotkeyTap = .dead }
+    await store.receive(.hotkeyListenerFinished) { $0.$health.withLock { $0.hotkeyTap = .dead } }
   }
 
   @Test func `gestures cannot raise permission prompts before the try it step`() async {
@@ -441,7 +494,7 @@ import Testing
       permissions: OnboardingPermissionStatuses(
         microphoneStatus: .undetermined, hasAccessibilityPermission: false,
       ),
-      engineReadiness: .modelMissing, hasModelDownloadConsent: true, isCompleted: false,
+      hasModelDownloadConsent: true, isCompleted: false,
     )
     let store = TestStore(initialState: state) { AppFeature() }
 
@@ -482,6 +535,7 @@ import Testing
     state.recording.captureGeneration = 1
     state.recording.captureSessionID = sessionID
     state.recording.phase = .recording
+    state.$health.withLock { $0 = .healthy }
     state.onboardingCompleted = true
     state.dictationInFlight = true
     state.pill.presentation = .recording(
@@ -572,7 +626,7 @@ import Testing
       permissions: OnboardingPermissionStatuses(
         microphoneStatus: .granted, hasAccessibilityPermission: true,
       ),
-      engineReadiness: .ready, hasModelDownloadConsent: true, isCompleted: false,
+      hasModelDownloadConsent: true, isCompleted: false,
     )
     state.onboarding.hasCompletedShortcut = true
     let store = TestStore(initialState: state) {
@@ -618,13 +672,13 @@ import Testing
 
   @Test func `transcription failure degrades engine and does not claim no speech`() async {
     var state = AppFeature.State()
-    state.engineReadiness = .ready
+    state.$health.withLock { $0.engineReadiness = .ready }
     state.transcriptionGeneration = 2
     state.pill.presentation = .transcribing
     let store = TestStore(initialState: state) { AppFeature() }
 
     await store.send(.transcriptionFailed(2, "model failure")) {
-      $0.engineReadiness = .failed("model failure")
+      $0.$health.withLock { $0.engineReadiness = .failed("model failure") }
     }
     await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
   }
@@ -632,7 +686,7 @@ import Testing
   @Test func `repeated engine failure plays the error cue only once`() async {
     let sounds = SoundRecorder()
     var state = AppFeature.State()
-    state.engineReadiness = .ready
+    state.$health.withLock { $0.engineReadiness = .ready }
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
@@ -640,10 +694,10 @@ import Testing
     }
 
     await store.send(.engineReadinessUpdated(.failed("first failure"))) {
-      $0.engineReadiness = .failed("first failure")
+      $0.$health.withLock { $0.engineReadiness = .failed("first failure") }
     }
     await store.send(.engineReadinessUpdated(.failed("second failure"))) {
-      $0.engineReadiness = .failed("second failure")
+      $0.$health.withLock { $0.engineReadiness = .failed("second failure") }
     }
     await store.finish()
     #expect(await sounds.recorded == ["Basso"])
@@ -706,6 +760,7 @@ import Testing
     ])
     var state = AppFeature.State()
     state.transcriptionGeneration = 1
+    state.$health.withLock { $0 = .healthy }
     state.onboardingCompleted = true
     let store = TestStore(initialState: state) {
       AppFeature()
@@ -744,6 +799,7 @@ import Testing
     ])
     var state = AppFeature.State()
     state.transcriptionGeneration = 1
+    state.$health.withLock { $0 = .healthy }
     state.onboardingCompleted = true
     let store = TestStore(initialState: state) {
       AppFeature()
@@ -784,6 +840,7 @@ import Testing
       history: Shared(value: HistoryLog()), settings: Shared(value: settings),
     )
     state.transcriptionGeneration = 1
+    state.$health.withLock { $0 = .healthy }
     state.onboardingCompleted = true
     state.dictationInFlight = true
     state.recording.captureGeneration = 1
@@ -895,6 +952,7 @@ import Testing
     let (gate, openGate) = AsyncStream.makeStream(of: Void.self)
     var state = AppFeature.State()
     state.transcriptionGeneration = 1
+    state.$health.withLock { $0 = .healthy }
     state.onboardingCompleted = true
     state.pill.presentation = .transcribing
     let store = TestStore(initialState: state) {
@@ -926,6 +984,7 @@ import Testing
     let (gate, openGate) = AsyncStream.makeStream(of: Void.self)
     var state = AppFeature.State()
     state.transcriptionGeneration = 1
+    state.$health.withLock { $0 = .healthy }
     state.onboardingCompleted = true
     state.pill.presentation = .transcribing
     let store = TestStore(initialState: state) {
@@ -954,6 +1013,7 @@ import Testing
     let (gate, openGate) = AsyncStream.makeStream(of: Void.self)
     var state = AppFeature.State()
     state.transcriptionGeneration = 1
+    state.$health.withLock { $0 = .healthy }
     state.onboardingCompleted = true
     let store = TestStore(initialState: state) {
       AppFeature()
@@ -981,6 +1041,7 @@ import Testing
     let deliveries = PrewarmCounter()
     var state = AppFeature.State()
     state.transcriptionGeneration = 1
+    state.$health.withLock { $0 = .healthy }
     state.onboardingCompleted = true
     state.pill.presentation = .transcribing
     let store = TestStore(initialState: state) {
@@ -1120,6 +1181,7 @@ import Testing
     let prewarms = PrewarmCounter()
     var state = AppFeature.State()
     state.recording.phase = .recording
+    state.$health.withLock { $0 = .healthy }
     state.onboardingCompleted = true
     let store = TestStore(initialState: state) {
       AppFeature()
@@ -1162,6 +1224,7 @@ import Testing
     let clock = TestClock()
     var state = AppFeature.State()
     state.$settings.withLock { $0.retention.audio = .never }
+    state.$health.withLock { $0 = .healthy }
     state.onboardingCompleted = true
     let store = TestStore(initialState: state) {
       AppFeature()

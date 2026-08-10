@@ -61,6 +61,12 @@ struct OnboardingView: View {
     .frame(width: 720, height: 500)
     .background(.background)
     .background { WindowTabKeys(onTab: handleTab) }
+    .onExitCommand {
+      guard store.isRecordingShortcut else {
+        return
+      }
+      store.send(.shortcutBindings(.cancelRecording))
+    }
   }
 
   // MARK: Private
@@ -78,6 +84,10 @@ struct OnboardingView: View {
       [.shortcutKeycap, .shortcutContinue]
     case .tryIt where tryItIsLive:
       [.tryItEditor, .tryItSkip]
+    // Nothing to dictate into yet, so Skip is the page's only control — and still a Tab stop,
+    // because a button the keyboard cannot reach is not a way out.
+    case .tryIt:
+      [.tryItSkip]
     default:
       []
     }
@@ -164,9 +174,11 @@ struct OnboardingView: View {
         .keyboardShortcut(.defaultAction)
         .accessibilityIdentifier(AccessibilityID.onboardingShortcutContinue)
     case .model:
-      if !store.modelSetupIsInProgress, store.snapshot.engineReadiness != .ready {
+      if !store.engineReadiness.isSetupInProgress,
+         store.engineReadiness != .ready
+      {
         Button(
-          store.snapshot.engineReadiness.isFailure ? "Retry Model Setup" : "Download & Prepare",
+          store.engineReadiness.isFailure ? "Retry Model Setup" : "Download & Prepare",
         ) { store.send(.setupModel) }
           .buttonStyle(.borderedProminent)
           .keyboardShortcut(.defaultAction)

@@ -257,7 +257,7 @@ import Testing
     }
     await store.receive(.captureFailed(1, .microphonePermission(.denied))) {
       $0.phase = .cancelling
-      $0.micStatus = .denied
+      $0.$health.withLock { $0.micStatus = .denied }
       $0.captureError = .microphonePermission(.denied)
     }
     await store.receive(.delegate(.failed))
@@ -267,7 +267,7 @@ import Testing
   @Test func `runtime permission error updates structural status`() async {
     let sessionID = UUID()
     var state = recordingState()
-    state.micStatus = .granted
+    state.$health.withLock { $0.micStatus = .granted }
     state.captureGeneration = 1
     state.captureSessionID = sessionID
     state.phase = .recording
@@ -279,7 +279,7 @@ import Testing
 
     await store.send(.captureFailed(1, .microphonePermission(.denied))) {
       $0.phase = .cancelling
-      $0.micStatus = .denied
+      $0.$health.withLock { $0.micStatus = .denied }
       $0.captureError = .microphonePermission(.denied)
     }
     await store.receive(.delegate(.failed))
@@ -292,7 +292,7 @@ import Testing
   @Test func `cancellation does not infer permission changes`() async {
     let sessionID = UUID()
     var state = recordingState()
-    state.micStatus = .granted
+    state.$health.withLock { $0.micStatus = .granted }
     state.captureGeneration = 1
     state.captureSessionID = sessionID
     state.phase = .recording
@@ -374,7 +374,10 @@ import Testing
 private func recordingState(
   _ settings: MiniWhisperSettings = .defaults,
 ) -> RecordingFeature.State {
-  RecordingFeature.State(settings: Shared(value: settings))
+  RecordingFeature.State(
+    settings: Shared(value: settings),
+    health: Shared(value: AppHealth()),
+  )
 }
 
 // MARK: - MicrophoneSelectionRecorder

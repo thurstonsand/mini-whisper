@@ -327,7 +327,7 @@ private func makeState(_ entries: [HistoryEntry]) -> HistoryFeature.State {
 private func makeWindowState(_ entries: [HistoryEntry]) -> SettingsWindowFeature.State {
   SettingsWindowFeature.State(
     selection: .history, history: Shared(value: HistoryLog(entries: entries)),
-    settings: Shared(value: .defaults),
+    settings: Shared(value: .defaults), health: Shared(value: AppHealth()),
   )
 }
 

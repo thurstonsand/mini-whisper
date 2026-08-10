@@ -26,6 +26,7 @@ private struct WindowKeys: ViewModifier {
 
   let store: StoreOf<SettingsWindowFeature>
   let actions: WindowKeyActions
+  let isActive: () -> Bool
 
   func body(content: Content) -> some View {
     content
@@ -35,20 +36,29 @@ private struct WindowKeys: ViewModifier {
         store.send(.keyboardModeEntered)
         return .ignored
       }
-      .onKeyPress(characters: .init(charactersIn: "hjkl/")) { keyPress in
-        switch keyPress.characters {
-        case "h":
-          press(actions.left)
-        case "j":
-          press(actions.down)
-        case "k":
-          press(actions.up)
-        case "l":
-          press(actions.right)
-        case "/":
-          actions.search()
-        default:
-          .ignored
+      .background {
+        WindowCharacterKeys { characters in
+          guard isActive() else {
+            return false
+          }
+          switch characters {
+          case "h":
+            _ = press(actions.left)
+            return true
+          case "j":
+            _ = press(actions.down)
+            return true
+          case "k":
+            _ = press(actions.up)
+            return true
+          case "l":
+            _ = press(actions.right)
+            return true
+          case "/":
+            return actions.search() == .handled
+          default:
+            return false
+          }
         }
       }
   }
@@ -97,11 +107,58 @@ private struct WindowPointerMovement: ViewModifier {
   @Environment(WindowPointerTracker.self) private var pointerTracker
 }
 
+// MARK: - KeyboardCursorScroll
+
+private struct KeyboardCursorScroll<Cursor: Hashable>: ViewModifier {
+  // MARK: Internal
+
+  let store: StoreOf<SettingsWindowFeature>
+  let cursor: Cursor?
+
+  func body(content: Content) -> some View {
+    ScrollViewReader { proxy in
+      content
+        // Only the keyboard moves the viewport. A hover already happened somewhere visible, and
+        // scrolling under the pointer would move the row out from under it.
+        .onChange(of: cursor) { _, cursor in
+          guard store.interaction.mode == .keyboard else {
+            return
+          }
+          scroll(proxy, to: cursor)
+        }
+        .onChange(of: store.interaction.focus) { _, focus in
+          guard focus == .detail, store.interaction.mode == .keyboard else {
+            return
+          }
+          scroll(proxy, to: cursor)
+        }
+        .onAppear { Task { @MainActor in scroll(proxy, to: cursor) } }
+    }
+  }
+
+  // MARK: Private
+
+  private func scroll(_ proxy: ScrollViewProxy, to cursor: Cursor?) {
+    guard let cursor else {
+      return
+    }
+    proxy.scrollTo(cursor, anchor: .center)
+  }
+}
+
 extension View {
   func windowKeys(
     store: StoreOf<SettingsWindowFeature>, _ actions: WindowKeyActions,
+    isActive: @escaping () -> Bool,
   ) -> some View {
-    modifier(WindowKeys(store: store, actions: actions))
+    modifier(WindowKeys(store: store, actions: actions, isActive: isActive))
+  }
+
+  /// Apply to the scrolling container itself; every row it holds must carry `.id(cursor)`.
+  func keyboardCursorScroll(
+    store: StoreOf<SettingsWindowFeature>, cursor: (some Hashable)?,
+  ) -> some View {
+    modifier(KeyboardCursorScroll(store: store, cursor: cursor))
   }
 
   func windowPointerMovement(

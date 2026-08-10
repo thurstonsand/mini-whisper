@@ -8,14 +8,14 @@
 - Dictation: one full pass through the vertical — activate, record, transcribe, deliver.
 - Hold: hold the keybind to record, release to transcribe. A press shorter than 200 ms is a tap, not a hold.
 - Latch: double-tap the keybind to keep recording without holding; a single tap ends it and transcribes. One capture runs continuously from the first press — the taps never stop it. A lone tap records through the 300 ms double-tap window, then discards wordlessly.
-- Cancel: Escape during a recording plays the cancel cue and skips delivery, but the transcript still lands in history — cancel means "do not paste", never "destroy". Escaped silence dismisses quietly.
+- Cancel: Escape during a recording plays the cancel cue and skips delivery, but the transcript still lands in history.
 - The activate cue plays once per interaction, at its onset — a double-tap or tap-then-hold never replays it.
 - Silence rejection: preprocessing that keeps silence and near-silence from reaching the engine, so empty recordings never produce hallucinated text.
 - The gate: the silence-rejection implementation — a 500 ms duration floor, then one whole-utterance Silero VAD classification at release; accepted audio passes to the engine unchanged.
 - Engine: an implementation of the transcription protocol in `ASREngine` (pinned FluidAudio + Parakeet TDT v2 for MVP; whisper.cpp Medium.en is the recorded fallback, not shipped).
 - The pill: the bottom-center HUD panel that owns all dictation-time state (recording, latch, transcribing, transient notices). Success is its disappearance.
-- Degraded: a failure state represented in the menu bar — missing Accessibility, blocked microphone, a dead event tap, or an uninstalled/failed model.
-- Onboarding: the app's only modal flow — welcome, sequential permissions, activation-shortcut choice, model download/compile/prewarm, and one real try-it dictation; the welcome button records bandwidth consent and starts a durable background download that resumes across relaunches.
+- Degraded: a failure state — missing Accessibility, blocked microphone, a dead event tap, or an uninstalled/failed model. Shown in the menu bar and settings pane.
+- Onboarding: the app's only modal flow, run once — welcome, sequential permissions, activation-shortcut choice, model download/compile/prewarm, and one real try-it dictation; the welcome button records bandwidth consent and starts a durable background download that resumes across relaunches.
 - Channel: one of the three apps this project builds — dev, nightly, release. Each is its own bundle identifier, its own name in System Settings, and its own application support directory, so grants and state never cross.
 - Settings file: `settings.json` in the running channel's application support directory. Every setting is backed by that file.
 - The settings window: the app's only non-modal window, and its one home for everything that is not a dictation: configurable settings, history, dictionary, cleanup.

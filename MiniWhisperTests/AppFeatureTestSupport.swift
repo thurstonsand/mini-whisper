@@ -1,4 +1,7 @@
+import ASREngine
+import AudioCapture
 import FieldContext
+import Foundation
 @testable import MiniWhisper
 
 // MARK: - SoundRecorder
@@ -48,4 +51,32 @@ actor PrewarmCounter {
   func record() {
     count += 1
   }
+}
+
+// MARK: - SynchronousCounter
+
+/// Counts calls made from inside a dependency closure, which cannot await an actor.
+final class SynchronousCounter: @unchecked Sendable {
+  // MARK: Internal
+
+  var value: Int {
+    lock.withLock { count }
+  }
+
+  func increment() {
+    lock.withLock { count += 1 }
+  }
+
+  // MARK: Private
+
+  private let lock = NSLock()
+  private var count = 0
+}
+
+// MARK: - AppHealth.healthy
+
+extension AppHealth {
+  static let healthy = AppHealth(
+    hotkeyTap: .active, micStatus: .granted, accessibilityGranted: true, engineReadiness: .ready,
+  )
 }

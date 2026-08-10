@@ -1,4 +1,5 @@
 import AppSettings
+import ASREngine
 import ComposableArchitecture
 import HotkeyListener
 import OSLog
@@ -55,6 +56,16 @@ extension AppFeature {
       guard state.canBeginDictation else {
         gestureLogger.notice("Dictation ignored until setup reaches its try-it step")
         return .none
+      }
+      // A cached read of state the engine already reported, so refusing costs the hot path a
+      // comparison rather than a round trip to an actor that is busy or absent.
+      let readiness = state.health.engineReadiness
+      guard readiness == .ready else {
+        gestureLogger.notice("Dictation refused: \(readiness.statusText, privacy: .public)")
+        return .merge(
+          .send(.pill(.speechModelUnavailable(readiness.statusText))),
+          playSound(state.settings.sounds.error),
+        )
       }
       performanceLogger.notice("benchmark app-activation-received")
       state.transcriptionGeneration += 1

@@ -103,9 +103,10 @@ struct SettingsWindowInteraction: Equatable {
       selection: SettingsDestination = .settings,
       history: Shared<HistoryLog>,
       settings: Shared<MiniWhisperSettings>,
+      health: Shared<AppHealth>,
     ) {
       self.selection = selection
-      settingsPane = SettingsPaneFeature.State(settings: settings)
+      settingsPane = SettingsPaneFeature.State(settings: settings, health: health)
       self.history = HistoryFeature.State(log: history, retention: settings.retention)
     }
 
@@ -126,14 +127,14 @@ struct SettingsWindowInteraction: Equatable {
     /// A focused detail column always shows where its single row cursor is; input mode only
     /// decides whether the control within that row also wears its keyboard ring.
     func showsSettingsBar(_ row: SettingsPaneFeature.Row) -> Bool {
-      interaction.focus == .detail && settingsPane.cursor.row == row
+      interaction.focus == .detail && settingsPane.cursorRow == row
     }
 
     func showsSettingsRing(
       _ row: SettingsPaneFeature.Row, target: SettingsPaneFeature.Target,
     ) -> Bool {
       interaction.showsKeyboardCursor(
-        settingsPane.cursor.row == row && settingsPane.cursorTarget == target,
+        settingsPane.cursorRow == row && settingsPane.cursorTarget == target,
       )
     }
   }

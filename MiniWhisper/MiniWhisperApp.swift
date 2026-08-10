@@ -44,10 +44,7 @@ import SwiftUI
     )
 
     if let agentScene {
-      agentSceneDriver = AgentDriveabilitySceneDriver(
-        store: store,
-        refreshMenu: { [weak menuBarController] in menuBarController?.refreshAgentScene() },
-      )
+      agentSceneDriver = AgentDriveabilitySceneDriver(store: store)
       if let initialAction = agentScene.initialAction {
         store.send(initialAction)
       }

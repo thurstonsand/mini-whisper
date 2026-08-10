@@ -2,18 +2,14 @@ import AppKit
 import Carbon.HIToolbox
 import SwiftUI
 
-// MARK: - WindowTabKeys
+// MARK: - WindowKeyMonitor
 
-/// SwiftUI's `.onKeyPress` is deaf until a SwiftUI view owns focus: on entry the AppKit window is
-/// still the responder, so native traversal would pick its own first stop before any page could
-/// object. A window-scoped monitor gives a page that opens unfocused somewhere to put the very
-/// first Tab. Modified Tab passes through untouched, and a page that declines returns `false`.
-struct WindowTabKeys: NSViewRepresentable {
+private struct WindowKeyMonitor: NSViewRepresentable {
   final class MonitorView: NSView {
     // MARK: Lifecycle
 
-    init(onTab: @escaping () -> Bool) {
-      self.onTab = onTab
+    init(handles: @escaping (NSEvent) -> Bool) {
+      self.handles = handles
       super.init(frame: .zero)
     }
 
@@ -30,7 +26,7 @@ struct WindowTabKeys: NSViewRepresentable {
 
     // MARK: Internal
 
-    var onTab: () -> Bool
+    var handles: (NSEvent) -> Bool
 
     override func viewDidMoveToWindow() {
       super.viewDidMoveToWindow()
@@ -41,15 +37,9 @@ struct WindowTabKeys: NSViewRepresentable {
       guard let window else {
         return
       }
-      monitor = NSEvent.addLocalMonitorForEvents(
-        matching: .keyDown,
-      ) { [weak self, weak window] event in
-        let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
-        guard event.window === window,
-              event.keyCode == UInt16(kVK_Tab),
-              modifiers.subtracting([.shift, .capsLock]).isEmpty,
-              self?.onTab() == true
-        else {
+      monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) {
+        [weak self, weak window] event in
+        guard event.window === window, self?.handles(event) == true else {
           return event
         }
         return nil
@@ -61,14 +51,50 @@ struct WindowTabKeys: NSViewRepresentable {
     private nonisolated(unsafe) var monitor: Any?
   }
 
-  let onTab: () -> Bool
+  let handles: (NSEvent) -> Bool
 
   func makeNSView(context _: Context) -> MonitorView {
-    MonitorView(onTab: onTab)
+    MonitorView(handles: handles)
   }
 
   func updateNSView(_ view: MonitorView, context _: Context) {
-    view.onTab = onTab
+    view.handles = handles
+  }
+}
+
+// MARK: - WindowTabKeys
+
+/// SwiftUI's `.onKeyPress` is deaf until a SwiftUI view owns focus: on entry the AppKit window is
+/// still the responder, so native traversal would pick its own first stop before any page could
+/// object. A window-scoped monitor gives a page that opens unfocused somewhere to put the very
+/// first Tab. Modified Tab passes through untouched, and a page that declines returns `false`.
+struct WindowTabKeys: View {
+  let onTab: () -> Bool
+
+  var body: some View {
+    WindowKeyMonitor { event in
+      let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+      return event.keyCode == UInt16(kVK_Tab)
+        && modifiers.subtracting([.shift, .capsLock]).isEmpty
+        && onTab()
+    }
+  }
+}
+
+// MARK: - WindowCharacterKeys
+
+/// Pane replacement can briefly clear SwiftUI focus between consecutive key events. Window-level
+/// commands still belong to the column that initiated the navigation, so they cannot depend on a
+/// focused descendant surviving the replacement.
+struct WindowCharacterKeys: View {
+  let onKey: (String) -> Bool
+
+  var body: some View {
+    WindowKeyMonitor { event in
+      let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+      return modifiers.subtracting(.capsLock).isEmpty
+        && event.characters.map(onKey) == true
+    }
   }
 }
 

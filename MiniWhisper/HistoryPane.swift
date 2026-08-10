@@ -12,25 +12,17 @@ struct HistoryPane: View {
   var searchFocus: FocusState<Bool>.Binding
 
   var body: some View {
-    ScrollViewReader { proxy in
-      List {
-        ForEach(sections) { section in
-          Section(section.title) {
-            ForEach(section.entries) { entry in
-              HistoryRow(store: store, entry: entry).id(entry.id)
-            }
+    List {
+      ForEach(sections) { section in
+        Section(section.title) {
+          ForEach(section.entries) { entry in
+            HistoryRow(store: store, entry: entry).id(entry.id)
           }
         }
       }
-      .focusEffectDisabled()
-      .onChange(of: store.history.cursor) { _, cursor in
-        guard store.interaction.mode == .keyboard, let cursor else {
-          return
-        }
-        proxy.scrollTo(cursor, anchor: .center)
-      }
-      .onAppear { scrollToCursor(using: proxy) }
     }
+    .focusEffectDisabled()
+    .keyboardCursorScroll(store: store, cursor: visibleCursor)
     .overlay {
       if store.history.log.entries.isEmpty {
         ContentUnavailableView(
@@ -78,6 +70,16 @@ struct HistoryPane: View {
     }
   }
 
+  /// A cursor filtered out by the search is not on screen to scroll to.
+  private var visibleCursor: UUID? {
+    guard let cursor = store.history.cursor,
+          store.history.filteredEntries.contains(where: { $0.id == cursor })
+    else {
+      return nil
+    }
+    return cursor
+  }
+
   private func dayTitle(_ date: Date, calendar: Calendar) -> String {
     if calendar.isDateInToday(date) {
       return "Today"
@@ -86,15 +88,6 @@ struct HistoryPane: View {
       return "Yesterday"
     }
     return date.formatted(.dateTime.month(.wide).day().year())
-  }
-
-  private func scrollToCursor(using proxy: ScrollViewProxy) {
-    guard let cursor = store.history.cursor,
-          store.history.filteredEntries.contains(where: { $0.id == cursor })
-    else {
-      return
-    }
-    proxy.scrollTo(cursor, anchor: .center)
   }
 }
 

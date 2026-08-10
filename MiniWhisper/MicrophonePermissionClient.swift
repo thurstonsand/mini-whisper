@@ -4,7 +4,10 @@ import ComposableArchitecture
 // MARK: - MicrophonePermissionClient
 
 @DependencyClient struct MicrophonePermissionClient {
-  var status: @Sendable () async -> MicPermissionStatus = { .undetermined }
+  /// Synchronous, because `AVCaptureDevice.authorizationStatus` is. The menu is rebuilt in the
+  /// same breath as the read that refreshes it, so a status arriving one hop later arrives after
+  /// the menu the user is already looking at.
+  var status: @Sendable () -> MicPermissionStatus = { .undetermined }
   var requestIfNeeded: @Sendable () async -> MicPermissionStatus = { .undetermined }
 }
 

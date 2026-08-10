@@ -20,7 +20,7 @@ import ComposableArchitecture
     menu.delegate = self
     statusItem.menu = menu
     observeIcon()
-    renderIcon(store.state.menuBar.iconSymbolName)
+    renderIcon(store.state.health.isDegraded)
   }
 
   // MARK: Internal
@@ -29,10 +29,6 @@ import ComposableArchitecture
     if refreshesStateOnOpen {
       store.send(.menuWillOpen)
     }
-    rebuild(menu, state: store.state.menuBar)
-  }
-
-  func refreshAgentScene() {
     rebuild(menu, state: store.state.menuBar)
   }
 
@@ -48,6 +44,15 @@ import ComposableArchitecture
 
   // MARK: Private
 
+  /// Tinted rather than templated: the orange is the warning, so the menu must not recolour it.
+  private static let warningImage: NSImage? = {
+    let image = NSImage(
+      systemSymbolName: "exclamationmark.triangle.fill", accessibilityDescription: "Warning",
+    )?.withSymbolConfiguration(NSImage.SymbolConfiguration(paletteColors: [.systemOrange]))
+    image?.isTemplate = false
+    return image
+  }()
+
   private let store: StoreOf<AppFeature>
   private let statusItem: NSStatusItem
   private let refreshesStateOnOpen: Bool
@@ -56,21 +61,25 @@ import ComposableArchitecture
   private let settingsWindowController: SettingsWindowController
   private var renderedIconSymbolName: String?
 
+  /// Only whether the app is broken is watched, and `renderIcon` drops a repeat of the symbol it
+  /// already drew — a download's progress does retrigger this, but it cannot repaint anything.
+  /// Reading the menu's wording here would instead rebuild every string in a closed menu.
   private func observeIcon() {
     withObservationTracking {
-      _ = self.store.state.menuBar.iconSymbolName
+      _ = self.store.state.health.isDegraded
     } onChange: { [weak self] in
       Task { @MainActor [weak self] in
         guard let self else {
           return
         }
         observeIcon()
-        renderIcon(store.state.menuBar.iconSymbolName)
+        renderIcon(store.state.health.isDegraded)
       }
     }
   }
 
-  private func renderIcon(_ symbolName: String) {
+  private func renderIcon(_ isDegraded: Bool) {
+    let symbolName = isDegraded ? "mic.slash" : "mic"
     guard symbolName != renderedIconSymbolName else {
       return
     }
@@ -90,14 +99,16 @@ import ComposableArchitecture
       ),
     )
 
-    if let repairTitle = state.repairTitle {
-      menu.addItem(.separator())
-      menu.addItem(
-        item(
-          title: repairTitle, identifier: AccessibilityID.menuRepair, label: repairTitle,
-          action: #selector(repairDegradedState),
-        ),
+    for degradation in state.degradations {
+      let presentation = degradation.presentation
+      let repair = item(
+        title: presentation.title, identifier: AccessibilityID.menuRepair(degradation),
+        label: presentation.title, value: presentation.reason,
+        action: #selector(repairDegradation),
       )
+      repair.representedObject = degradation
+      repair.image = MenuBarController.warningImage
+      menu.addItem(repair)
     }
 
     menu.addItem(.separator())
@@ -106,21 +117,6 @@ import ComposableArchitecture
         title: "Copy Last Transcript", identifier: AccessibilityID.menuCopyLastTranscript,
         label: "Copy Last Transcript", action: #selector(copyLastTranscript),
         isEnabled: state.canCopyLastTranscript,
-      ),
-    )
-
-    let launchValue = state.launchAtLoginRegistered ? "On" : "Off"
-    let launchItem = item(
-      title: "Launch at Login", identifier: AccessibilityID.menuLaunchAtLogin,
-      label: "Launch at Login", value: launchValue, action: #selector(toggleLaunchAtLogin),
-    )
-    launchItem.state = state.launchAtLoginRegistered ? .on : .off
-    menu.addItem(launchItem)
-
-    menu.addItem(
-      item(
-        title: "Settings File…", identifier: AccessibilityID.menuSettingsFile,
-        label: "Open Settings File", action: #selector(openSettingsFile),
       ),
     )
 
@@ -161,20 +157,15 @@ import ComposableArchitecture
     return item
   }
 
-  @objc private func repairDegradedState() {
-    store.send(.repairDegradedState)
+  @objc private func repairDegradation(_ sender: NSMenuItem) {
+    guard let degradation = sender.representedObject as? Degradation else {
+      preconditionFailure("A repair row was built without the failure it repairs")
+    }
+    store.send(.repairRequested(degradation))
   }
 
   @objc private func copyLastTranscript() {
     store.send(.copyLastTranscript)
-  }
-
-  @objc private func toggleLaunchAtLogin() {
-    store.send(.toggleLaunchAtLogin)
-  }
-
-  @objc private func openSettingsFile() {
-    store.send(.openSettingsFile)
   }
 
   @objc private func showSettings() {

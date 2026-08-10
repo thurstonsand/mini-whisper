@@ -52,7 +52,6 @@ struct OnboardingPermissionStatuses: Equatable {
 
 struct OnboardingSnapshot: Equatable {
   var permissions: OnboardingPermissionStatuses
-  var engineReadiness: EngineReadiness
   var hasModelDownloadConsent: Bool
   var isCompleted: Bool
 }
@@ -68,14 +67,17 @@ enum OnboardingStep: Int, Equatable {
 
   // MARK: Internal
 
-  static func derive(from snapshot: OnboardingSnapshot, hasCompletedShortcut: Bool) -> Self {
+  static func derive(
+    from snapshot: OnboardingSnapshot, engineReadiness: EngineReadiness,
+    hasCompletedShortcut: Bool,
+  ) -> Self {
     guard snapshot.permissions.allGranted else {
       return .permissions
     }
     guard hasCompletedShortcut else {
       return .shortcut
     }
-    guard snapshot.engineReadiness == .ready else {
+    guard engineReadiness == .ready else {
       return .model
     }
     return snapshot.isCompleted ? .ready : .tryIt
@@ -94,8 +96,10 @@ enum OnboardingStep: Int, Equatable {
       settings: Shared<MiniWhisperSettings> = Shared(
         wrappedValue: .defaults, .settingsFile,
       ),
+      health: Shared<AppHealth> = Shared(value: AppHealth()),
     ) {
       shortcutBindings = HotkeyBindingsFeature.State(settings: settings)
+      _health = health
     }
 
     // MARK: Internal
@@ -105,13 +109,14 @@ enum OnboardingStep: Int, Equatable {
       case skip
     }
 
+    @Shared var health: AppHealth
     var shortcutBindings: HotkeyBindingsFeature.State
     var isPresented = false
     var snapshot = OnboardingSnapshot(
       permissions: OnboardingPermissionStatuses(
         microphoneStatus: .undetermined, hasAccessibilityPermission: false,
       ),
-      engineReadiness: .modelMissing, hasModelDownloadConsent: false, isCompleted: false,
+      hasModelDownloadConsent: false, isCompleted: false,
     )
     var selectedStep: OnboardingStep?
     var isShowingWelcome = false
@@ -125,7 +130,14 @@ enum OnboardingStep: Int, Equatable {
     var failureMessage: String?
 
     var step: OnboardingStep {
-      OnboardingStep.derive(from: snapshot, hasCompletedShortcut: hasCompletedShortcut)
+      OnboardingStep.derive(
+        from: snapshot, engineReadiness: health.engineReadiness,
+        hasCompletedShortcut: hasCompletedShortcut,
+      )
+    }
+
+    var engineReadiness: EngineReadiness {
+      health.engineReadiness
     }
 
     var hotkeys: [Hotkey] {
@@ -144,8 +156,11 @@ enum OnboardingStep: Int, Equatable {
       selectedStep == .permissions
     }
 
+    /// The last page always offers the way out, even when the steps before it are unfinished.
+    /// Almost nobody should leave here with a permission missing, but the app says plainly what
+    /// is broken once they do, and refusing to let them out says nothing at all.
     var canSkip: Bool {
-      isPresented && step == .tryIt && visibleStep == .tryIt
+      isPresented && visibleStep == .tryIt
     }
 
     var isMarkingCompletion: Bool {
@@ -158,19 +173,6 @@ enum OnboardingStep: Int, Equatable {
 
     var activePermission: OnboardingPermission? {
       OnboardingPermission.allCases.first { !snapshot.permissions.isGranted($0) }
-    }
-
-    var modelSetupIsInProgress: Bool {
-      switch snapshot.engineReadiness {
-      case .downloading,
-           .compiling,
-           .prewarming:
-        true
-      case .modelMissing,
-           .ready,
-           .failed:
-        false
-      }
     }
 
     /// macOS prompts at most once per permission, so an unfulfilled request means the rest of the
@@ -207,7 +209,7 @@ enum OnboardingStep: Int, Equatable {
     case openSystemSettings(OnboardingPermission)
     case workspaceOpenFailed(String)
     case setupModel
-    case engineReadinessUpdated(EngineReadiness)
+    case modelSetupFailed(String)
     case tryItTextChanged(String)
     case tryItFailed(String)
     case dictationDelivered(String)
@@ -221,7 +223,7 @@ enum OnboardingStep: Int, Equatable {
 
     enum Delegate: Equatable {
       case dismissed
-      case engineReadinessUpdated(EngineReadiness)
+      case setupModelRequested
       case permissionsUpdated(OnboardingPermissionStatuses)
       case completed
     }
@@ -230,10 +232,8 @@ enum OnboardingStep: Int, Equatable {
   static let permissionPollInterval = Duration.seconds(1)
 
   @Dependency(\.accessibilityPermission) var accessibilityPermission
-  @Dependency(\.asrEngine) var asrEngine
   @Dependency(\.continuousClock) var clock
   @Dependency(\.microphonePermission) var microphonePermission
-  @Dependency(\.modelDownloadConsent) var modelDownloadConsent
   @Dependency(\.onboardingCompletion) var onboardingCompletion
   @Dependency(\.workspace) var workspace
 
@@ -264,12 +264,7 @@ enum OnboardingStep: Int, Equatable {
         }
         state.isRecordingModelDownloadConsent = true
         state.failureMessage = nil
-        return .run { send in
-          do {
-            try modelDownloadConsent.markConsented()
-            await send(.modelDownloadConsented)
-          } catch { await send(.modelDownloadConsentFailed(error.localizedDescription)) }
-        }
+        return .send(.delegate(.setupModelRequested))
       case .modelDownloadConsented:
         state.snapshot.hasModelDownloadConsent = true
         state.isShowingWelcome = false
@@ -361,11 +356,8 @@ enum OnboardingStep: Int, Equatable {
         return .none
       case .setupModel:
         return modelSetupEffect(for: &state)
-      case let .engineReadinessUpdated(readiness):
-        state.snapshot.engineReadiness = readiness
-        if case let .failed(message) = readiness {
-          state.failureMessage = message
-        }
+      case let .modelSetupFailed(message):
+        state.failureMessage = message
         return .none
       case let .tryItTextChanged(text):
         state.tryItText = text
@@ -402,8 +394,10 @@ enum OnboardingStep: Int, Equatable {
         state.completionIntent = nil
         state.failureMessage = message
         return .none
+      // Onboarding being over is what permits the window to close — not the flow having been
+      // walked to its end. A skip from an unfinished step is over just as surely.
       case .finish:
-        guard state.step == .ready else {
+        guard state.snapshot.isCompleted else {
           return .none
         }
         state.isPresented = false
@@ -432,8 +426,8 @@ enum OnboardingStep: Int, Equatable {
       ? .merge(update, .cancel(id: CancelID.permissionPolling)) : update
   }
 
-  private func observePermissionStatuses() async -> OnboardingPermissionStatuses {
-    await OnboardingPermissionStatuses(
+  private func observePermissionStatuses() -> OnboardingPermissionStatuses {
+    OnboardingPermissionStatuses(
       microphoneStatus: microphonePermission.status(),
       hasAccessibilityPermission: accessibilityPermission.hasPermission(),
     )
@@ -472,24 +466,13 @@ enum OnboardingStep: Int, Equatable {
   }
 
   private func modelSetupEffect(for state: inout State) -> Effect<Action> {
-    guard state.snapshot.hasModelDownloadConsent, !state.modelSetupIsInProgress else {
-      return .none
-    }
-    switch state.snapshot.engineReadiness {
-    case .modelMissing,
-         .failed:
-      break
-    case .downloading,
-         .compiling,
-         .prewarming,
-         .ready:
+    guard state.snapshot.hasModelDownloadConsent,
+          !state.engineReadiness.isSetupInProgress,
+          state.engineReadiness != .ready
+    else {
       return .none
     }
     state.failureMessage = nil
-    return .run { send in
-      for await readiness in asrEngine.installAndPrepare() {
-        await send(.delegate(.engineReadinessUpdated(readiness)))
-      }
-    }
+    return .send(.delegate(.setupModelRequested))
   }
 }

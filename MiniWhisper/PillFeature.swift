@@ -22,6 +22,46 @@ import ComposableArchitecture
         case copiedToClipboard
         case cancelledSavedToHistory
         case fieldContextUnavailable
+        case speechModelUnavailable(String)
+
+        // MARK: Internal
+
+        struct Content: Equatable {
+          let text: String
+          let phase: String
+          let isSubdued: Bool
+          let duration: Duration
+        }
+
+        var content: Content {
+          switch self {
+          case .noSpeechDetected:
+            Content(
+              text: "No speech detected", phase: "No speech detected", isSubdued: true,
+              duration: .milliseconds(1500),
+            )
+          case .copiedToClipboard:
+            Content(
+              text: "Copied — ⌘V to paste", phase: "Copied", isSubdued: false,
+              duration: .seconds(3),
+            )
+          case .cancelledSavedToHistory:
+            Content(
+              text: "Cancelled — saved to History", phase: "Cancelled and saved to History",
+              isSubdued: false, duration: .seconds(3),
+            )
+          case .fieldContextUnavailable:
+            Content(
+              text: "Pasted — could not collect surrounding context",
+              phase: "Pasted without field context", isSubdued: true,
+              duration: .milliseconds(1500),
+            )
+          case let .speechModelUnavailable(status):
+            Content(
+              text: status, phase: status, isSubdued: true, duration: .seconds(3),
+            )
+          }
+        }
       }
     }
 
@@ -43,6 +83,7 @@ import ComposableArchitecture
     case copiedToClipboard
     case cancelledSavedToHistory
     case fieldContextUnavailable
+    case speechModelUnavailable(String)
     case dismiss
     case cancel
     case noticeDisplayElapsed(Int)
@@ -96,13 +137,15 @@ import ComposableArchitecture
         state.isLatchBouncePending = false
         return .cancel(id: CancelID.notice)
       case .noSpeechDetected:
-        return showNotice(.noSpeechDetected, for: .milliseconds(1500), state: &state)
+        return showNotice(.noSpeechDetected, state: &state)
       case .copiedToClipboard:
-        return showNotice(.copiedToClipboard, for: .seconds(3), state: &state)
+        return showNotice(.copiedToClipboard, state: &state)
       case .cancelledSavedToHistory:
-        return showNotice(.cancelledSavedToHistory, for: .seconds(3), state: &state)
+        return showNotice(.cancelledSavedToHistory, state: &state)
       case .fieldContextUnavailable:
-        return showNotice(.fieldContextUnavailable, for: .milliseconds(1500), state: &state)
+        return showNotice(.fieldContextUnavailable, state: &state)
+      case let .speechModelUnavailable(status):
+        return showNotice(.speechModelUnavailable(status), state: &state)
       case .dismiss,
            .cancel:
         state.presentation = nil
@@ -138,13 +181,14 @@ import ComposableArchitecture
   }
 
   private func showNotice(
-    _ notice: State.Presentation.Notice, for duration: Duration, state: inout State,
+    _ notice: State.Presentation.Notice, state: inout State,
   ) -> Effect<Action> {
     state.noticeGeneration += 1
     let generation = state.noticeGeneration
     state.presentation = .notice(notice)
     state.isFadingOut = false
     state.isLatchBouncePending = false
+    let duration = notice.content.duration
     return .run { send in
       try await clock.sleep(for: duration)
       await send(.noticeDisplayElapsed(generation))

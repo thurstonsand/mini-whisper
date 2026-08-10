@@ -16,10 +16,15 @@ extension XCTestCase {
     )
   }
 
+  var agentResultFileURL: URL {
+    URL(fileURLWithPath: "\(agentCommandFileURL.path).result")
+  }
+
   @MainActor func launch(_ scene: String) -> XCUIApplication {
     let app = XCUIApplication()
     parkPointer()
     try? FileManager.default.removeItem(at: agentCommandFileURL)
+    try? FileManager.default.removeItem(at: agentResultFileURL)
     app.launchEnvironment["MINIWHISPER_AGENT_SCENE"] = scene
     app.launchEnvironment["MINIWHISPER_AGENT_COMMAND_FILE"] = agentCommandFileURL.path
     app.launch()
@@ -67,6 +72,17 @@ extension XCTestCase {
       ],
       timeout: timeout,
     )
+  }
+
+  func waitForAgentResult(_ expected: String, timeout: TimeInterval = 3) {
+    let deadline = Date().addingTimeInterval(timeout)
+    while Date() < deadline {
+      if (try? String(contentsOf: agentResultFileURL, encoding: .utf8)) == expected {
+        return
+      }
+      RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+    }
+    XCTFail("Agent result was not \(expected)")
   }
 
   func accessibilityValue(_ element: XCUIElement) -> String {

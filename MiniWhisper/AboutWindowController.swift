@@ -56,8 +56,6 @@ import SwiftUI
 // MARK: - AboutView
 
 private struct AboutView: View {
-  // MARK: Internal
-
   let close: () -> Void
 
   var body: some View {
@@ -73,13 +71,13 @@ private struct AboutView: View {
         .accessibilityIdentifier(AccessibilityID.aboutAppName)
         .accessibilityLabel("Application")
         .accessibilityValue(Channel.name)
-      Text(version)
+      Text("Version \(Channel.version)")
         .font(.system(size: 12))
         .foregroundStyle(.secondary)
         .padding(.top, 4)
         .accessibilityIdentifier(AccessibilityID.aboutVersion)
         .accessibilityLabel("Version")
-        .accessibilityValue(version)
+        .accessibilityValue("Version \(Channel.version)")
 
       VStack(alignment: .leading, spacing: 8) {
         Text("Speech recognition uses NVIDIA Parakeet TDT 0.6B v2, licensed under CC BY 4.0.")
@@ -139,14 +137,5 @@ private struct AboutView: View {
     .padding(.vertical, 32)
     .frame(width: 480, height: 440)
     .background(.background)
-  }
-
-  // MARK: Private
-
-  private var version: String {
-    let shortVersion =
-      Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as! String
-    let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as! String
-    return "Version \(shortVersion) (\(build))"
   }
 }

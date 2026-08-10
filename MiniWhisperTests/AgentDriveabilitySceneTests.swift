@@ -25,6 +25,10 @@ struct AgentDriveabilitySceneTests {
       AgentDriveabilityScene.settingsSoundsNoAudio.presentedWindow
         == .settings(.settings, initialFocus: nil),
     )
+    #expect(
+      AgentDriveabilityScene.settingsDegraded.presentedWindow
+        == .settings(.settings, initialFocus: nil),
+    )
     #expect(AgentDriveabilityScene.about.presentedWindow == .about)
     #expect(AgentDriveabilityScene.menuHealthy.presentedWindow == nil)
   }
@@ -34,6 +38,16 @@ struct AgentDriveabilitySceneTests {
       AgentDriveabilityScene.settingsMicrophoneUnavailable.initialState.settings.microphone
         == .device(uid: "seeded-disconnected-microphone", lastKnownName: "Studio Microphone"),
     )
+  }
+
+  @Test func `degraded settings scene seeds every kind of repair row`() {
+    let state = AgentDriveabilityScene.settingsDegraded.initialState
+
+    #expect(
+      state.settingsWindow.settingsPane.health.degradations
+        == [.accessibilityDenied, .microphoneAccessDenied, .modelSetupFailed],
+    )
+    #expect(state.settingsWindow.settingsPane.cursorRow == .repair(.accessibilityDenied))
   }
 
   @Test func `No audio scene seeds state instead of the live settings file`() {

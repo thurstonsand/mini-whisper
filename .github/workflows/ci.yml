@@ -34,7 +34,7 @@ jobs:
             ci-swift-${{ runner.os }}-
 
       - name: Lint
-        run: mise run lint-static
+        run: mise run lint:static
 
       # `test` builds the app and its test targets, so a separate build step would
       # only recompile what the test run already covers.
@@ -42,4 +42,4 @@ jobs:
         run: mise run test
 
       - name: Test packages
-        run: mise run test-packages
+        run: mise run test:packages

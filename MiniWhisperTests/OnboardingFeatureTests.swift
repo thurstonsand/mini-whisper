@@ -15,22 +15,47 @@ struct OnboardingStepDerivationTests {
       permissions: OnboardingPermissionStatuses(
         microphoneStatus: .undetermined, hasAccessibilityPermission: false,
       ),
-      engineReadiness: .modelMissing, hasModelDownloadConsent: false, isCompleted: false,
+      hasModelDownloadConsent: false, isCompleted: false,
     )
-    #expect(OnboardingStep.derive(from: snapshot, hasCompletedShortcut: false) == .permissions)
+    var readiness = EngineReadiness.modelMissing
+    #expect(
+      OnboardingStep.derive(
+        from: snapshot, engineReadiness: readiness, hasCompletedShortcut: false,
+      ) == .permissions,
+    )
 
     snapshot.permissions.microphoneStatus = .granted
-    #expect(OnboardingStep.derive(from: snapshot, hasCompletedShortcut: false) == .permissions)
+    #expect(
+      OnboardingStep.derive(
+        from: snapshot, engineReadiness: readiness, hasCompletedShortcut: false,
+      ) == .permissions,
+    )
 
     snapshot.permissions.hasAccessibilityPermission = true
-    #expect(OnboardingStep.derive(from: snapshot, hasCompletedShortcut: false) == .shortcut)
-    #expect(OnboardingStep.derive(from: snapshot, hasCompletedShortcut: true) == .model)
+    #expect(
+      OnboardingStep.derive(
+        from: snapshot, engineReadiness: readiness, hasCompletedShortcut: false,
+      ) == .shortcut,
+    )
+    #expect(
+      OnboardingStep.derive(
+        from: snapshot, engineReadiness: readiness, hasCompletedShortcut: true,
+      ) == .model,
+    )
 
-    snapshot.engineReadiness = .ready
-    #expect(OnboardingStep.derive(from: snapshot, hasCompletedShortcut: true) == .tryIt)
+    readiness = .ready
+    #expect(
+      OnboardingStep.derive(
+        from: snapshot, engineReadiness: readiness, hasCompletedShortcut: true,
+      ) == .tryIt,
+    )
 
     snapshot.isCompleted = true
-    #expect(OnboardingStep.derive(from: snapshot, hasCompletedShortcut: true) == .ready)
+    #expect(
+      OnboardingStep.derive(
+        from: snapshot, engineReadiness: readiness, hasCompletedShortcut: true,
+      ) == .ready,
+    )
   }
 
   @Test func `only the first ungranted permission owns the action`() {
@@ -53,10 +78,14 @@ struct OnboardingStepDerivationTests {
       permissions: OnboardingPermissionStatuses(
         microphoneStatus: status, hasAccessibilityPermission: true,
       ),
-      engineReadiness: .ready, hasModelDownloadConsent: true, isCompleted: true,
+      hasModelDownloadConsent: true, isCompleted: true,
     )
 
-    #expect(OnboardingStep.derive(from: snapshot, hasCompletedShortcut: true) == .permissions)
+    #expect(
+      OnboardingStep.derive(
+        from: snapshot, engineReadiness: .ready, hasCompletedShortcut: true,
+      ) == .permissions,
+    )
     #expect(!snapshot.permissions.isGranted(.microphone))
   }
 }
@@ -67,24 +96,16 @@ struct OnboardingStepDerivationTests {
   // MARK: Internal
 
   @Test func `untouched first run waits for download consent`() async {
-    let (readiness, continuation) = AsyncStream.makeStream(of: EngineReadiness.self)
-    let installs = SynchronousCounter()
-    let consents = SynchronousCounter()
     let snapshot = OnboardingSnapshot(
       permissions: OnboardingPermissionStatuses(
         microphoneStatus: .undetermined, hasAccessibilityPermission: false,
       ),
-      engineReadiness: .modelMissing, hasModelDownloadConsent: false, isCompleted: false,
+      hasModelDownloadConsent: false, isCompleted: false,
     )
     let store = TestStore(initialState: OnboardingFeature.State()) {
       OnboardingFeature()
     } withDependencies: {
       $0.continuousClock = TestClock()
-      $0.modelDownloadConsent.markConsented = { consents.increment() }
-      $0.asrEngine.installAndPrepare = {
-        installs.increment()
-        return readiness
-      }
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
 
@@ -93,40 +114,30 @@ struct OnboardingStepDerivationTests {
       $0.snapshot = snapshot
       $0.isShowingWelcome = true
     }
-    #expect(installs.value == 0)
 
     await store.send(.downloadModel) { $0.isRecordingModelDownloadConsent = true }
-    await store.receive(.modelDownloadConsented) {
+    await store.receive(.delegate(.setupModelRequested))
+    await store.send(.modelDownloadConsented) {
       $0.snapshot.hasModelDownloadConsent = true
       $0.isShowingWelcome = false
       $0.isRecordingModelDownloadConsent = false
     }
-    #expect(consents.value == 1)
-    #expect(installs.value == 1)
 
-    continuation.yield(.downloading(0.25))
-    await store.receive(.delegate(.engineReadinessUpdated(.downloading(0.25))))
-    await store.send(.engineReadinessUpdated(.downloading(0.25))) {
-      $0.snapshot.engineReadiness = .downloading(0.25)
-    }
-    continuation.finish()
     await store.send(.permissionStatusesObserved(grantedPermissionStatuses))
     await store.finish()
   }
 
   @Test func `consented relaunch skips welcome and resumes model setup`() async {
-    let (readiness, continuation) = AsyncStream.makeStream(of: EngineReadiness.self)
     let snapshot = OnboardingSnapshot(
       permissions: OnboardingPermissionStatuses(
         microphoneStatus: .undetermined, hasAccessibilityPermission: false,
       ),
-      engineReadiness: .modelMissing, hasModelDownloadConsent: true, isCompleted: false,
+      hasModelDownloadConsent: true, isCompleted: false,
     )
     let store = TestStore(initialState: OnboardingFeature.State()) {
       OnboardingFeature()
     } withDependencies: {
       $0.continuousClock = TestClock()
-      $0.asrEngine.installAndPrepare = { readiness }
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
 
@@ -135,12 +146,7 @@ struct OnboardingStepDerivationTests {
       $0.snapshot = snapshot
     }
     #expect(!store.state.isShowingWelcome)
-    continuation.yield(.downloading(0.25))
-    await store.receive(.delegate(.engineReadinessUpdated(.downloading(0.25))))
-    await store.send(.engineReadinessUpdated(.downloading(0.25))) {
-      $0.snapshot.engineReadiness = .downloading(0.25)
-    }
-    continuation.finish()
+    await store.receive(.delegate(.setupModelRequested))
     await store.send(.permissionStatusesObserved(grantedPermissionStatuses))
     await store.finish()
   }
@@ -161,12 +167,13 @@ struct OnboardingStepDerivationTests {
       permissions: OnboardingPermissionStatuses(
         microphoneStatus: .undetermined, hasAccessibilityPermission: false,
       ),
-      engineReadiness: .modelMissing, hasModelDownloadConsent: true, isCompleted: false,
+      hasModelDownloadConsent: true, isCompleted: false,
     )
     await store.send(.present(initialSnapshot)) {
       $0.isPresented = true
       $0.snapshot = initialSnapshot
     }
+    await store.receive(.delegate(.setupModelRequested))
 
     statuses.withValue { $0.microphoneStatus = .granted }
     await clock.advance(by: .seconds(1))
@@ -308,7 +315,7 @@ struct OnboardingStepDerivationTests {
 
   @Test func `sidebar navigation overrides the view without changing truth`() async {
     let clock = TestClock()
-    let snapshot = modelSnapshot(readiness: .modelMissing)
+    let snapshot = modelSnapshot()
     var state = OnboardingFeature.State()
     state.isPresented = true
     state.snapshot = snapshot
@@ -363,7 +370,7 @@ struct OnboardingStepDerivationTests {
   @Test func `shortcut continue advances to the model step`() async {
     var state = OnboardingFeature.State()
     state.isPresented = true
-    state.snapshot = modelSnapshot(readiness: .downloading(0.42))
+    state.snapshot = modelSnapshot()
     let store = TestStore(initialState: state) { OnboardingFeature() }
 
     #expect(store.state.step == .shortcut)
@@ -376,7 +383,7 @@ struct OnboardingStepDerivationTests {
 
   @Test func `shortcut continue skips a model that became ready in the background`() async {
     var state = shortcutState()
-    state.snapshot.engineReadiness = .ready
+    state.$health.withLock { $0.engineReadiness = .ready }
     let store = TestStore(initialState: state) { OnboardingFeature() }
 
     #expect(store.state.visibleStep == .shortcut)
@@ -444,70 +451,53 @@ struct OnboardingStepDerivationTests {
     #expect(store.state.hotkeys == [replacement])
   }
 
-  @Test func `model setup reports download compile prewarm and ready`() async {
-    let readiness = [EngineReadiness.downloading(0.4), .compiling, .prewarming, .ready]
-    var state = OnboardingFeature.State()
+  @Test func `model setup is delegated upward and observes shared progress`() async {
+    let health = Shared(value: AppHealth())
+    var state = OnboardingFeature.State(health: health)
     state.isPresented = true
-    state.snapshot = modelSnapshot(readiness: .modelMissing)
+    state.snapshot = modelSnapshot()
     state.hasCompletedShortcut = true
-    let store = TestStore(initialState: state) {
-      OnboardingFeature()
-    } withDependencies: {
-      $0.asrEngine.installAndPrepare = {
-        AsyncStream { continuation in
-          for value in readiness {
-            continuation.yield(value)
-          }
-          continuation.finish()
-        }
-      }
-    }
+    let store = TestStore(initialState: state) { OnboardingFeature() }
 
     await store.send(.setupModel)
-    for value in readiness {
-      await store.receive(.delegate(.engineReadinessUpdated(value)))
-    }
-    for value in readiness {
-      await store.send(.engineReadinessUpdated(value)) { $0.snapshot.engineReadiness = value }
+    await store.receive(.delegate(.setupModelRequested))
+    for readiness in [EngineReadiness.downloading(0.4), .compiling, .prewarming, .ready] {
+      health.withLock { $0.engineReadiness = readiness }
+      #expect(store.state.engineReadiness == readiness)
     }
     #expect(store.state.step == .tryIt)
   }
 
   @Test func `failed model setup can retry without keeping the old failure`() async {
-    let readiness = [EngineReadiness.downloading(0), .compiling, .prewarming, .ready]
     var state = OnboardingFeature.State()
     state.isPresented = true
-    state.snapshot = modelSnapshot(readiness: .failed("network unavailable"))
+    state.snapshot = modelSnapshot()
+    state.$health.withLock { $0.engineReadiness = .failed("network unavailable") }
     state.hasCompletedShortcut = true
     state.failureMessage = "network unavailable"
-    let store = TestStore(initialState: state) {
-      OnboardingFeature()
-    } withDependencies: {
-      $0.asrEngine.installAndPrepare = {
-        AsyncStream { continuation in
-          for value in readiness {
-            continuation.yield(value)
-          }
-          continuation.finish()
-        }
-      }
-    }
+    let store = TestStore(initialState: state) { OnboardingFeature() }
 
     await store.send(.setupModel) { $0.failureMessage = nil }
-    for value in readiness {
-      await store.receive(.delegate(.engineReadinessUpdated(value)))
-    }
-    for value in readiness {
-      await store.send(.engineReadinessUpdated(value)) { $0.snapshot.engineReadiness = value }
-    }
-    #expect(store.state.step == .tryIt)
+    await store.receive(.delegate(.setupModelRequested))
+  }
+
+  @Test func `a setup already running is not asked for twice`() async {
+    var state = OnboardingFeature.State()
+    state.isPresented = true
+    state.snapshot = modelSnapshot()
+    state.$health.withLock { $0.engineReadiness = .downloading(0.5) }
+    state.hasCompletedShortcut = true
+    let store = TestStore(initialState: state) { OnboardingFeature() }
+
+    await store.send(.setupModel)
   }
 
   @Test func `a real delivered dictation marks onboarding complete`() async {
     let completions = SynchronousCounter()
     var state = OnboardingFeature.State()
     state.isPresented = true
-    state.snapshot = modelSnapshot(readiness: .ready)
+    state.snapshot = modelSnapshot()
+    state.$health.withLock { $0.engineReadiness = .ready }
     state.hasCompletedShortcut = true
     state.selectedStep = .tryIt
     let store = TestStore(initialState: state) {
@@ -537,7 +527,8 @@ struct OnboardingStepDerivationTests {
     let completions = SynchronousCounter()
     var state = OnboardingFeature.State()
     state.isPresented = true
-    state.snapshot = modelSnapshot(readiness: .ready)
+    state.snapshot = modelSnapshot()
+    state.$health.withLock { $0.engineReadiness = .ready }
     state.hasCompletedShortcut = true
     let store = TestStore(initialState: state) {
       OnboardingFeature()
@@ -557,21 +548,22 @@ struct OnboardingStepDerivationTests {
     #expect(completions.value == 1)
   }
 
-  @Test func `skip is unavailable outside the active try it step`() async {
+  @Test func `skip is unavailable on every page but the last`() async {
     let completions = SynchronousCounter()
     var permissions = OnboardingFeature.State()
     permissions.isPresented = true
-    var model = permissions
-    model.snapshot = modelSnapshot(readiness: .modelMissing)
+    var model = OnboardingFeature.State()
+    model.isPresented = true
+    model.snapshot = modelSnapshot()
     model.hasCompletedShortcut = true
-    var revisitingTryIt = model
-    revisitingTryIt.selectedStep = .tryIt
-    var ready = permissions
-    ready.snapshot = modelSnapshot(readiness: .ready)
+    var ready = OnboardingFeature.State()
+    ready.isPresented = true
+    ready.snapshot = modelSnapshot()
+    ready.$health.withLock { $0.engineReadiness = .ready }
     ready.hasCompletedShortcut = true
     ready.snapshot.isCompleted = true
 
-    for state in [permissions, model, revisitingTryIt, ready] {
+    for state in [permissions, model, ready] {
       let store = TestStore(initialState: state) {
         OnboardingFeature()
       } withDependencies: {
@@ -582,6 +574,34 @@ struct OnboardingStepDerivationTests {
       await store.send(.skip)
     }
     #expect(completions.value == 0)
+  }
+
+  @Test func `the last page can be skipped with the flow unfinished`() async {
+    let completions = SynchronousCounter()
+    var state = OnboardingFeature.State()
+    state.isPresented = true
+    state.snapshot = modelSnapshot()
+    state.hasCompletedShortcut = true
+    state.selectedStep = .tryIt
+    let store = TestStore(initialState: state) {
+      OnboardingFeature()
+    } withDependencies: {
+      $0.onboardingCompletion.markCompleted = { completions.increment() }
+    }
+
+    #expect(store.state.step == .model)
+    #expect(store.state.canSkip)
+
+    await store.send(.skip) { $0.completionIntent = .skip }
+    await store.receive(.completionMarked) {
+      $0.snapshot.isCompleted = true
+      $0.selectedStep = nil
+      $0.completionIntent = nil
+    }
+    await store.receive(.delegate(.completed))
+    await store.receive(.finish) { $0.isPresented = false }
+    await store.receive(.delegate(.dismissed))
+    #expect(completions.value == 1)
   }
 
   // MARK: Private
@@ -597,16 +617,16 @@ struct OnboardingStepDerivationTests {
     settings.hotkeys = hotkeys
     var state = OnboardingFeature.State(settings: Shared(value: settings))
     state.isPresented = true
-    state.snapshot = modelSnapshot(readiness: .downloading(0.42))
+    state.snapshot = modelSnapshot()
     return state
   }
 
-  private func modelSnapshot(readiness: EngineReadiness) -> OnboardingSnapshot {
+  private func modelSnapshot() -> OnboardingSnapshot {
     OnboardingSnapshot(
       permissions: OnboardingPermissionStatuses(
         microphoneStatus: .granted, hasAccessibilityPermission: true,
       ),
-      engineReadiness: readiness, hasModelDownloadConsent: true, isCompleted: false,
+      hasModelDownloadConsent: true, isCompleted: false,
     )
   }
 }
@@ -614,25 +634,6 @@ struct OnboardingStepDerivationTests {
 private let grantedPermissionStatuses = OnboardingPermissionStatuses(
   microphoneStatus: .granted, hasAccessibilityPermission: true,
 )
-
-// MARK: - SynchronousCounter
-
-private final class SynchronousCounter: @unchecked Sendable {
-  // MARK: Internal
-
-  var value: Int {
-    lock.withLock { count }
-  }
-
-  func increment() {
-    lock.withLock { count += 1 }
-  }
-
-  // MARK: Private
-
-  private let lock = NSLock()
-  private var count = 0
-}
 
 // MARK: - SynchronousStatuses
 

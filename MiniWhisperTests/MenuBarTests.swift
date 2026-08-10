@@ -8,164 +8,61 @@ import HotkeyListener
 import ServiceManagement
 import Testing
 
-// MARK: - MenuBarDerivationTests
+// MARK: - MenuBarViewStateTests
 
-struct MenuBarDerivationTests {
+struct MenuBarViewStateTests {
   // MARK: Internal
 
-  @Test func `healthy shows the static mic and the passive status line`() {
+  @Test func `a healthy menu says what the app is doing`() {
     let state = viewState()
 
-    #expect(state.degradation == nil)
-    #expect(state.iconSymbolName == "mic")
+    #expect(state.degradations.isEmpty)
     #expect(state.statusText == "Ready · Parakeet v2 · Shure MV7")
     #expect(state.accessibilityStatusText == "Ready; Parakeet v2; Shure MV7")
-    #expect(state.repair == nil)
-    #expect(state.repairTitle == nil)
   }
 
-  @Test func `model setup progress is not degraded`() {
-    for readiness in [EngineReadiness.downloading(0.42), .compiling, .prewarming] {
-      let state = viewState(engineReadiness: readiness)
-      #expect(state.degradation == nil)
-      #expect(state.iconSymbolName == "mic")
-    }
+  @Test func `model setup progress is reported in the status line`() {
     let downloading = viewState(engineReadiness: .downloading(0.42))
+
     #expect(downloading.statusText == "Downloading Parakeet v2 · 42% · Shure MV7")
     #expect(downloading.accessibilityStatusText == "Downloading Parakeet v2; 42%; Shure MV7")
   }
 
-  @Test func `a tap without accessibility degrades to the settings deep link`() {
-    let state = viewState(hotkeyTap: .accessibilityMissing, accessibilityGranted: false)
+  @Test func `a degraded menu withdraws the claim that the app is ready`() {
+    let denied = viewState(degradations: [.microphoneAccessDenied])
 
-    #expect(state.degradation == .accessibilityDenied)
-    #expect(state.iconSymbolName == "mic.slash")
-    #expect(
-      state
-        .statusText == "Accessibility is off, so the hotkey and pasting can't work · switch it on",
+    #expect(denied.statusText == "Not ready · Shure MV7")
+    #expect(denied.accessibilityStatusText == "Not ready; Shure MV7")
+  }
+
+  /// The engine's own failures keep their wording: they are the only ones with progress to report,
+  /// and a download that says only "Not ready" is a menu the user has no reason to keep watching.
+  @Test func `a download reports itself even while something else is wrong`() {
+    let downloading = viewState(
+      degradations: [.microphoneAccessDenied],
+      engineReadiness: .downloading(0.42),
     )
-    #expect(
-      state.accessibilityStatusText
-        == "Accessibility is off, so the hotkey and pasting can't work; switch it on",
-    )
-    #expect(state.repair == .openAccessibilitySettings)
-    #expect(state.repairTitle == "Open Accessibility Settings…")
-  }
 
-  @Test func `dead event tap degrades to A restart`() {
-    let state = viewState(hotkeyTap: .dead)
-
-    #expect(state.degradation == .hotkeyTapDead)
-    #expect(state.statusText == "Hotkey listening stopped")
-    #expect(state.repair == .restartHotkeyListening)
-  }
-
-  @Test(arguments: [MicPermissionStatus.denied, .restricted, .unknown])
-  func `blocked microphone degrades to the settings deep link`(status: MicPermissionStatus) {
-    let state = viewState(micStatus: status)
-
-    #expect(state.degradation == .microphoneAccessDenied)
-    #expect(state.statusText == "Microphone access is off, so nothing can be recorded")
-    #expect(state.repair == .openMicrophoneSettings)
-  }
-
-  @Test func `an unrequested microphone is left to onboarding`() {
-    #expect(viewState(micStatus: .undetermined).degradation == nil)
-  }
-
-  @Test func `a revoked accessibility grant degrades even while the tap still runs`() {
-    let state = viewState(accessibilityGranted: false)
-
-    #expect(state.degradation == .accessibilityDenied)
-    #expect(state.repair == .openAccessibilitySettings)
-  }
-
-  @Test func `a revoked grant outranks the dead tap it caused`() {
-    let revoked = viewState(hotkeyTap: .dead, accessibilityGranted: false)
-    #expect(revoked.degradation == .accessibilityDenied)
-    #expect(revoked.repair == .openAccessibilitySettings)
-
-    let died = viewState(hotkeyTap: .dead)
-    #expect(died.degradation == .hotkeyTapDead)
-    #expect(died.repair == .restartHotkeyListening)
-  }
-
-  @Test func `missing model degrades to setup`() {
-    let state = viewState(engineReadiness: .modelMissing)
-
-    #expect(state.degradation == .modelMissing)
-    #expect(state.statusText == "Parakeet v2 isn't installed yet")
-    #expect(state.repair == .installModel)
-    #expect(state.repairTitle == "Download & Prepare Parakeet v2…")
-  }
-
-  @Test func `failed model setup degrades to A retry`() {
-    let state = viewState(engineReadiness: .failed("compile crashed"))
-
-    #expect(state.degradation == .modelSetupFailed)
-    #expect(state.repair == .retryModelSetup)
-    #expect(state.repairTitle == "Retry Parakeet v2 Setup…")
-  }
-
-  @Test func `the hotkey pipeline outranks the microphone and the model`() {
-    #expect(
-      viewState(
-        hotkeyTap: .accessibilityMissing, micStatus: .denied, engineReadiness: .modelMissing,
-        accessibilityGranted: false,
-      ).degradation == .accessibilityDenied,
-    )
-    #expect(
-      viewState(hotkeyTap: .dead, micStatus: .denied, engineReadiness: .failed("boom")).degradation
-        == .hotkeyTapDead,
-    )
-    #expect(
-      viewState(micStatus: .denied, engineReadiness: .modelMissing).degradation
-        == .microphoneAccessDenied,
-    )
-  }
-
-  @Test func `repairing every failure returns the healthy icon`() {
-    var state = viewState(
-      hotkeyTap: .accessibilityMissing, micStatus: .denied, engineReadiness: .modelMissing,
-      accessibilityGranted: false,
-    )
-    #expect(state.degradation == .accessibilityDenied)
-
-    state = viewState(hotkeyTap: .active, micStatus: .denied, engineReadiness: .modelMissing)
-    #expect(state.degradation == .microphoneAccessDenied)
-
-    state = viewState(hotkeyTap: .active, micStatus: .granted, engineReadiness: .modelMissing)
-    #expect(state.degradation == .modelMissing)
-
-    state = viewState(hotkeyTap: .active, micStatus: .granted, engineReadiness: .ready)
-    #expect(state.degradation == nil)
-    #expect(state.iconSymbolName == "mic")
-    #expect(state.statusText == "Ready · Parakeet v2 · Shure MV7")
+    #expect(downloading.statusText == "Downloading Parakeet v2 · 42% · Shure MV7")
   }
 
   @Test func `a missing input device is named in the status line`() {
     #expect(viewState(inputDeviceName: nil).statusText == "Ready · Parakeet v2 · No input device")
   }
 
-  @Test func `the transcript and login item state are passed through`() {
-    let state = viewState(hasLastTranscript: true, launchAtLoginRegistered: true)
-
-    #expect(state.canCopyLastTranscript)
-    #expect(state.launchAtLoginRegistered)
+  @Test func `the transcript state is passed through`() {
+    #expect(viewState(hasLastTranscript: true).canCopyLastTranscript)
   }
 
   // MARK: Private
 
   private func viewState(
-    hotkeyTap: HotkeyTapStatus = .active, micStatus: MicPermissionStatus = .granted,
-    engineReadiness: EngineReadiness = .ready, accessibilityGranted: Bool = true,
+    degradations: [Degradation] = [], engineReadiness: EngineReadiness = .ready,
     inputDeviceName: String? = "Shure MV7", hasLastTranscript: Bool = false,
-    launchAtLoginRegistered: Bool = false,
   ) -> MenuBarViewState {
     MenuBarViewState(
-      hotkeyTap: hotkeyTap, micStatus: micStatus, accessibilityGranted: accessibilityGranted,
-      engineReadiness: engineReadiness, inputDeviceName: inputDeviceName,
-      hasLastTranscript: hasLastTranscript, launchAtLoginRegistered: launchAtLoginRegistered,
+      degradations: degradations, engineReadiness: engineReadiness,
+      inputDeviceName: inputDeviceName, canCopyLastTranscript: hasLastTranscript,
     )
   }
 }
@@ -193,41 +90,55 @@ private final class Collector<Value: Sendable>: @unchecked Sendable {
   private var storage: [Value] = []
 }
 
-// MARK: - MenuActionFailure
-
-private struct MenuActionFailure: LocalizedError {
-  var errorDescription: String? {
-    "menu action failed"
-  }
-}
-
 // MARK: - MenuBarActionTests
 
 @MainActor struct MenuBarActionTests {
-  @Test func `opening the menu refreshes the device and the login item`() async {
+  @Test func `opening the menu refreshes the device`() async {
     var state = AppFeature.State()
     state.onboardingCompleted = true
-    state.hotkeyTap = .active
+    state.$health.withLock { $0.hotkeyTap = .active }
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
       $0.audioCapture.currentInputDeviceName = { _ in "Shure MV7" }
       $0.accessibilityPermission.hasPermission = { true }
-      $0.launchAtLogin.isRegistered = { true }
+      $0.microphonePermission.status = { .undetermined }
     }
 
     await store.send(.menuWillOpen) {
       $0.inputDeviceName = "Shure MV7"
-      $0.launchAtLoginRegistered = true
-      $0.accessibilityGranted = true
+      $0.$health.withLock { $0.accessibilityGranted = true }
     }
+  }
+
+  /// The controller rebuilds the menu on the line after this action returns, so a status that
+  /// arrives an effect later arrives behind the menu the user is already looking at.
+  @Test func `opening the menu refreshes A changed microphone permission`() async {
+    var state = AppFeature.State()
+    state.$health.withLock {
+      $0.hotkeyTap = .active
+      $0.accessibilityGranted = true
+      $0.micStatus = .granted
+      $0.engineReadiness = .ready
+    }
+    let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
+      $0.accessibilityPermission.hasPermission = { true }
+      $0.audioCapture.currentInputDeviceName = { _ in "Shure MV7" }
+      $0.microphonePermission.status = { .denied }
+    }
+
+    await store.send(.menuWillOpen) {
+      $0.inputDeviceName = "Shure MV7"
+      $0.$health.withLock { $0.micStatus = .denied }
+    }
+    #expect(store.state.menuBar.degradations == [.microphoneAccessDenied])
   }
 
   @Test func `opening the menu recovers A grant made while the app ran`() async {
     let (events, continuation) = AsyncStream.makeStream(of: HotkeyListenerEvent.self)
     var state = AppFeature.State()
     state.onboardingCompleted = true
-    state.hotkeyTap = .accessibilityMissing
+    state.$health.withLock { $0.hotkeyTap = .idle }
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
@@ -235,99 +146,83 @@ private struct MenuActionFailure: LocalizedError {
       $0.audioCapture.currentInputDeviceName = { _ in "Shure MV7" }
       $0.hotkeyListener.events = { _ in events }
       $0.launchAtLogin.isRegistered = { false }
+      $0.microphonePermission.status = { .undetermined }
     }
 
     await store.send(.menuWillOpen) {
       $0.inputDeviceName = "Shure MV7"
-      $0.accessibilityGranted = true
-      $0.hotkeyTap = .starting
+      $0.$health.withLock { $0.accessibilityGranted = true }
+      $0.$health.withLock { $0.hotkeyTap = .starting }
     }
     continuation.yield(.monitoringStarted)
-    await store.receive(.hotkeyListenerEvent(.monitoringStarted)) { $0.hotkeyTap = .active }
+    await store
+      .receive(.hotkeyListenerEvent(.monitoringStarted)) {
+        $0.$health.withLock { $0.hotkeyTap = .active }
+      }
 
     continuation.finish()
-    await store.receive(.hotkeyListenerFinished) { $0.hotkeyTap = .dead }
+    await store.receive(.hotkeyListenerFinished) { $0.$health.withLock { $0.hotkeyTap = .dead } }
   }
 
   @Test func `a tap without accessibility opens accessibility settings`() async {
     let opened = Collector<URL>()
     var state = AppFeature.State()
-    state.hotkeyTap = .accessibilityMissing
+    state.$health.withLock { $0.hotkeyTap = .idle }
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
       $0.workspace.open = { opened.append($0) }
     }
 
-    await store.send(.repairDegradedState)
+    await store.send(.repairRequested(.accessibilityDenied))
     #expect(opened.values == [SystemSettingsPane.accessibility])
   }
 
   @Test func `denied microphone opens its settings pane`() async {
     let opened = Collector<URL>()
     var state = AppFeature.State()
-    state.engineReadiness = .ready
-    state.hotkeyTap = .active
-    state.recording.micStatus = .denied
-    state.accessibilityGranted = true
+    state.$health.withLock {
+      $0.engineReadiness = .ready
+      $0.hotkeyTap = .active
+      $0.micStatus = .denied
+      $0.accessibilityGranted = true
+    }
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
       $0.workspace.open = { opened.append($0) }
     }
 
-    await store.send(.repairDegradedState)
+    await store.send(.repairRequested(.microphoneAccessDenied))
     #expect(opened.values == [SystemSettingsPane.microphone])
   }
 
   @Test func `a revoked accessibility grant opens accessibility settings`() async {
     let opened = Collector<URL>()
     var state = AppFeature.State()
-    state.hotkeyTap = .active
-    state.recording.micStatus = .granted
-    state.accessibilityGranted = false
+    state.$health.withLock {
+      $0.hotkeyTap = .active
+      $0.micStatus = .granted
+      $0.accessibilityGranted = false
+      $0.engineReadiness = .ready
+    }
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
       $0.workspace.open = { opened.append($0) }
     }
 
-    await store.send(.repairDegradedState)
+    await store.send(.repairRequested(.accessibilityDenied))
     #expect(opened.values == [SystemSettingsPane.accessibility])
-  }
-
-  @Test func `an incomplete setup reenters onboarding at shortcut setup`() async {
-    var state = AppFeature.State()
-    state.hotkeyTap = .active
-    state.recording.micStatus = .granted
-    state.accessibilityGranted = true
-    state.onboardingCompleted = false
-    state.modelDownloadConsented = true
-    let store = TestStore(initialState: state) {
-      AppFeature()
-    } withDependencies: {
-      $0.asrEngine.installAndPrepare = { AsyncStream { $0.finish() } }
-    }
-    let snapshot = OnboardingSnapshot(
-      permissions: OnboardingPermissionStatuses(
-        microphoneStatus: .granted, hasAccessibilityPermission: true,
-      ),
-      engineReadiness: .modelMissing, hasModelDownloadConsent: true, isCompleted: false,
-    )
-
-    await store.send(.repairDegradedState)
-    await store.receive(.onboarding(.present(snapshot))) {
-      $0.onboarding.isPresented = true
-      $0.onboarding.snapshot = snapshot
-    }
-    #expect(store.state.onboarding.step == .shortcut)
   }
 
   @Test func `a dead tap is repaired by restarting the listener without prompting`() async {
     let (events, continuation) = AsyncStream.makeStream(of: HotkeyListenerEvent.self)
     var state = AppFeature.State()
-    state.hotkeyTap = .dead
-    state.accessibilityGranted = true
+    state.$health.withLock {
+      $0.hotkeyTap = .dead
+      $0.accessibilityGranted = true
+    }
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
@@ -335,19 +230,25 @@ private struct MenuActionFailure: LocalizedError {
       $0.hotkeyListener.events = { _ in events }
     }
 
-    await store.send(.repairDegradedState) {
-      $0.hotkeyTap = .starting
+    await store.send(.repairRequested(.hotkeyTapDead)) {
+      $0.$health.withLock { $0.hotkeyTap = .starting }
     }
     continuation.yield(.monitoringStarted)
-    await store.receive(.hotkeyListenerEvent(.monitoringStarted)) { $0.hotkeyTap = .active }
+    await store
+      .receive(.hotkeyListenerEvent(.monitoringStarted)) {
+        $0.$health.withLock { $0.hotkeyTap = .active }
+      }
     continuation.finish()
-    await store.receive(.hotkeyListenerFinished) { $0.hotkeyTap = .dead }
+    await store.receive(.hotkeyListenerFinished) { $0.$health.withLock { $0.hotkeyTap = .dead } }
   }
 
   @Test func `a reenabled tap interruption is not degraded`() async {
     var state = AppFeature.State()
-    state.hotkeyTap = .active
-    state.accessibilityGranted = true
+    state.$health.withLock {
+      $0.hotkeyTap = .active
+      $0.accessibilityGranted = true
+      $0.engineReadiness = .ready
+    }
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
@@ -356,17 +257,20 @@ private struct MenuActionFailure: LocalizedError {
 
     await store.send(.hotkeyListenerEvent(.monitoringInterrupted(.timeout)))
     await store.send(.hotkeyListenerEvent(.monitoringInterrupted(.userInput)))
-    #expect(store.state.hotkeyTap == .active)
+    #expect(store.state.health.hotkeyTap == .active)
     await store.send(.hotkeyListenerEvent(.monitoringInterrupted(.invalidated))) {
-      $0.hotkeyTap = .dead
+      $0.$health.withLock { $0.hotkeyTap = .dead }
     }
-    #expect(store.state.menuBar.repair == .restartHotkeyListening)
+    #expect(store.state.health.degradations.first == .hotkeyTapDead)
   }
 
   @Test func `a tap invalidated by A revoked grant asks for the grant back`() async {
     var state = AppFeature.State()
-    state.hotkeyTap = .active
-    state.accessibilityGranted = true
+    state.$health.withLock {
+      $0.hotkeyTap = .active
+      $0.accessibilityGranted = true
+      $0.engineReadiness = .ready
+    }
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
@@ -374,44 +278,48 @@ private struct MenuActionFailure: LocalizedError {
     }
 
     await store.send(.hotkeyListenerEvent(.monitoringInterrupted(.invalidated))) {
-      $0.hotkeyTap = .accessibilityMissing
-      $0.accessibilityGranted = false
+      $0.$health.withLock { $0.hotkeyTap = .idle }
+      $0.$health.withLock { $0.accessibilityGranted = false }
     }
-    #expect(store.state.menuBar.degradation == .accessibilityDenied)
-    #expect(store.state.menuBar.repair == .openAccessibilitySettings)
+    #expect(store.state.health.degradations.first == .accessibilityDenied)
   }
 
   @Test func `a later accessibility grant starts the listener without A relaunch`() async {
     let (events, continuation) = AsyncStream.makeStream(of: HotkeyListenerEvent.self)
     var state = AppFeature.State()
     state.onboardingCompleted = true
-    state.hotkeyTap = .accessibilityMissing
-    state.recording.micStatus = .granted
-    state.engineReadiness = .ready
+    state.$health.withLock {
+      $0.hotkeyTap = .idle
+      $0.micStatus = .granted
+      $0.engineReadiness = .ready
+    }
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
       $0.accessibilityPermission.hasPermission = { true }
       $0.hotkeyListener.events = { _ in events }
+      $0.microphonePermission.status = { .granted }
     }
-    #expect(store.state.menuBar.degradation == .accessibilityDenied)
+    #expect(store.state.health.degradations.first == .accessibilityDenied)
 
-    await store.send(.applicationBecameActive)
-    await store.receive(.accessibilityObserved(true)) {
-      $0.accessibilityGranted = true
-      $0.hotkeyTap = .starting
+    await store.send(.applicationBecameActive) {
+      $0.$health.withLock { $0.accessibilityGranted = true }
+      $0.$health.withLock { $0.hotkeyTap = .starting }
     }
     continuation.yield(.monitoringStarted)
-    await store.receive(.hotkeyListenerEvent(.monitoringStarted)) { $0.hotkeyTap = .active }
-    #expect(store.state.menuBar.degradation == nil)
+    await store
+      .receive(.hotkeyListenerEvent(.monitoringStarted)) {
+        $0.$health.withLock { $0.hotkeyTap = .active }
+      }
+    #expect(!store.state.health.isDegraded)
 
     continuation.finish()
-    await store.receive(.hotkeyListenerFinished) { $0.hotkeyTap = .dead }
+    await store.receive(.hotkeyListenerFinished) { $0.$health.withLock { $0.hotkeyTap = .dead } }
   }
 
   @Test func `a finished stream keeps the permission diagnosis`() async {
     var state = AppFeature.State()
-    state.hotkeyTap = .accessibilityMissing
+    state.$health.withLock { $0.hotkeyTap = .idle }
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
@@ -419,7 +327,7 @@ private struct MenuActionFailure: LocalizedError {
     }
 
     await store.send(.hotkeyListenerFinished)
-    #expect(store.state.menuBar.degradation == .accessibilityDenied)
+    #expect(store.state.health.degradations.first == .accessibilityDenied)
   }
 
   @Test func `copy last transcript writes the last successful transcript`() async {
@@ -443,44 +351,17 @@ private struct MenuActionFailure: LocalizedError {
     await store.send(.copyLastTranscript)
   }
 
-  @Test func `toggling launch at login reads the service back`() async {
-    let registered = Collector<Bool>()
-    let store = TestStore(initialState: AppFeature.State()) {
-      AppFeature()
-    } withDependencies: {
-      $0.launchAtLogin.setRegistered = { registered.append($0) }
-      $0.launchAtLogin.isRegistered = { registered.last ?? false }
-    }
-
-    await store.send(.toggleLaunchAtLogin)
-    await store.receive(.launchAtLoginUpdated(true)) { $0.launchAtLoginRegistered = true }
-  }
-
-  @Test func `a failed launch at login registration leaves the toggle off`() async {
-    let store = TestStore(initialState: AppFeature.State()) {
-      AppFeature()
-    } withDependencies: {
-      $0.launchAtLogin.setRegistered = { _ in throw MenuActionFailure() }
-      $0.launchAtLogin.isRegistered = { false }
-    }
-
-    await store.send(.toggleLaunchAtLogin)
-    await store.receive(.launchAtLoginFailed("menu action failed"))
-    await store.receive(.launchAtLoginUpdated(false))
-    #expect(!store.state.launchAtLoginRegistered)
-  }
-
   @Test func `a missing accessibility grant survives A restart attempt`() async {
     var state = AppFeature.State()
-    state.hotkeyTap = .accessibilityMissing
+    state.$health.withLock { $0.hotkeyTap = .idle }
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
       $0.workspace.open = { _ in }
     }
 
-    await store.send(.repairDegradedState)
-    #expect(store.state.menuBar.repair == .openAccessibilitySettings)
+    await store.send(.repairRequested(.accessibilityDenied))
+    #expect(store.state.health.degradations == [.accessibilityDenied, .modelMissing])
   }
 
   @Test func `a failed open is reported rather than swallowed`() async {
@@ -490,10 +371,10 @@ private struct MenuActionFailure: LocalizedError {
       $0.workspace.open = { url in throw WorkspaceError.openFailed(url) }
     }
 
-    await store.send(.openSettingsFile)
+    await store.send(.repairRequested(.microphoneAccessDenied))
     await store.receive(
       .workspaceOpenFailed(
-        WorkspaceError.openFailed(Channel.settingsFile).localizedDescription,
+        WorkspaceError.openFailed(SystemSettingsPane.microphone).localizedDescription,
       ),
     )
   }
@@ -503,17 +384,5 @@ private struct MenuActionFailure: LocalizedError {
     #expect(LaunchAtLoginClient.isRegistered(.requiresApproval))
     #expect(!LaunchAtLoginClient.isRegistered(.notRegistered))
     #expect(!LaunchAtLoginClient.isRegistered(.notFound))
-  }
-
-  @Test func `settings file opens in the default editor`() async {
-    let opened = Collector<URL>()
-    let store = TestStore(initialState: AppFeature.State()) {
-      AppFeature()
-    } withDependencies: {
-      $0.workspace.open = { opened.append($0) }
-    }
-
-    await store.send(.openSettingsFile)
-    #expect(opened.values == [Channel.settingsFile])
   }
 }

@@ -45,14 +45,13 @@ struct PillView: View {
 
   // MARK: Private
 
+  /// What is on screen, with the live data left out: a recording's level changes many times a
+  /// second, and animating on it would restart the transition every frame.
   private enum PresentationKind: Equatable {
     case hidden
     case recording
     case transcribing
-    case noSpeechDetected
-    case copiedToClipboard
-    case cancelledSavedToHistory
-    case fieldContextUnavailable
+    case notice(PillFeature.State.Presentation.Notice)
   }
 
   @State private var bounceScale = 1.0
@@ -63,14 +62,8 @@ struct PillView: View {
       .recording
     case .transcribing:
       .transcribing
-    case .notice(.noSpeechDetected):
-      .noSpeechDetected
-    case .notice(.copiedToClipboard):
-      .copiedToClipboard
-    case .notice(.cancelledSavedToHistory):
-      .cancelledSavedToHistory
-    case .notice(.fieldContextUnavailable):
-      .fieldContextUnavailable
+    case let .notice(notice):
+      .notice(notice)
     case nil:
       .hidden
     }
@@ -111,32 +104,14 @@ struct PillView: View {
         .font(.system(size: 13, weight: .medium))
         .foregroundStyle(.primary)
       }
-    case .notice(.noSpeechDetected):
+    case let .notice(notice):
       SemanticText(
-        "No speech detected", identifier: AccessibilityID.pillNotice, label: "Dictation notice",
-      )
-      .font(.system(size: 13, weight: .medium))
-      .foregroundStyle(.secondary)
-    case .notice(.copiedToClipboard):
-      SemanticText(
-        "Copied — ⌘V to paste", identifier: AccessibilityID.pillNotice, label: "Dictation notice",
-      )
-      .font(.system(size: 13, weight: .medium))
-      .foregroundStyle(.primary)
-    case .notice(.cancelledSavedToHistory):
-      SemanticText(
-        "Cancelled — saved to History", identifier: AccessibilityID.pillNotice,
+        notice.content.text, identifier: AccessibilityID.pillNotice,
         label: "Dictation notice",
       )
       .font(.system(size: 13, weight: .medium))
-      .foregroundStyle(.primary)
-    case .notice(.fieldContextUnavailable):
-      SemanticText(
-        "Pasted — could not collect surrounding context", identifier: AccessibilityID.pillNotice,
-        label: "Dictation notice",
-      )
-      .font(.system(size: 13, weight: .medium))
-      .foregroundStyle(.secondary)
+      .foregroundStyle(notice.content
+        .isSubdued ? AnyShapeStyle(.secondary) : AnyShapeStyle(.primary))
     }
   }
 
@@ -158,22 +133,10 @@ struct PillView: View {
       )
     case .transcribing:
       EmptyView()
-    case .notice(.noSpeechDetected):
+    case let .notice(notice):
       semanticLeaf(
         identifier: AccessibilityID.pillPhase, label: "Dictation phase",
-        value: "No speech detected",
-      )
-    case .notice(.copiedToClipboard):
-      semanticLeaf(identifier: AccessibilityID.pillPhase, label: "Dictation phase", value: "Copied")
-    case .notice(.cancelledSavedToHistory):
-      semanticLeaf(
-        identifier: AccessibilityID.pillPhase, label: "Dictation phase",
-        value: "Cancelled and saved to History",
-      )
-    case .notice(.fieldContextUnavailable):
-      semanticLeaf(
-        identifier: AccessibilityID.pillPhase, label: "Dictation phase",
-        value: "Pasted without field context",
+        value: notice.content.phase,
       )
     }
   }

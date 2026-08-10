@@ -171,7 +171,7 @@ struct OnboardingStepRail: View {
   // MARK: Private
 
   @ViewBuilder private var compactModelProgress: some View {
-    switch store.snapshot.engineReadiness {
+    switch store.engineReadiness {
     case let .downloading(fraction):
       Text("\(Int(fraction * 100))%").font(.system(size: 10)).monospacedDigit().foregroundStyle(
         .secondary,
@@ -195,7 +195,7 @@ struct OnboardingStepRail: View {
       case .shortcut:
         store.hasCompletedShortcut
       case .model:
-        store.snapshot.engineReadiness == .ready
+        store.engineReadiness == .ready
       case .tryIt,
            .ready:
         store.snapshot.isCompleted
@@ -227,7 +227,7 @@ struct OnboardingStepRail: View {
     .accessibilityLabel(title)
     .accessibilityValue(
       OnboardingAccessibility.railValue(
-        step: step, readiness: store.snapshot.engineReadiness, isComplete: isComplete,
+        step: step, readiness: store.engineReadiness, isComplete: isComplete,
         isCurrent: isCurrent,
       ),
     )
@@ -296,8 +296,10 @@ struct OnboardingPermissionsPage: View {
       .accessibilityLabel(title)
       .accessibilityValue(explanation)
       Spacer(minLength: 12)
-      let showsSettings =
-        store.isRevisitingPermissions || store.state.needsSystemSettings(for: permission)
+      // Only an unfulfilled request sends the user to System Settings. Merely coming back to this
+      // page is not that: macOS still has a prompt to give, and offering the pane instead strands
+      // the user in front of a list the app has not yet earned a row in.
+      let showsSettings = store.state.needsSystemSettings(for: permission)
       SemanticText(
         OnboardingAccessibility.permissionStatus(
           isGranted: isGranted, isRequesting: store.requestingPermission == permission,
@@ -369,7 +371,7 @@ struct OnboardingModelPage: View {
   // MARK: Private
 
   @ViewBuilder private var cardContent: some View {
-    switch store.snapshot.engineReadiness {
+    switch store.engineReadiness {
     case let .downloading(fraction):
       VStack(alignment: .leading, spacing: 8) {
         HStack {
