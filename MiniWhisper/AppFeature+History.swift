@@ -152,3 +152,18 @@ extension DeliveryFallback {
     }
   }
 }
+
+extension NoReceiverReason {
+  var historyDetail: String {
+    switch self {
+    case .noFocusedElement:
+      "noFocusedElement"
+    case let .nonTextElement(role):
+      if let role {
+        "nonTextElement role=\(role)"
+      } else {
+        "nonTextElement"
+      }
+    }
+  }
+}

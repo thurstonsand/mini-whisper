@@ -2,7 +2,17 @@ import ASREngine
 import AudioCapture
 import FieldContext
 import Foundation
+import HotkeyListener
 @testable import MiniWhisper
+
+// MARK: - Test hotkeys
+
+extension Hotkey {
+  static let testRightOption = try! Hotkey(modifiers: [.rightOption])
+  static let testPasteLastTranscript = try! Hotkey(
+    keyCode: 9, modifiers: [.leftOption, .leftCommand],
+  )
+}
 
 // MARK: - SoundRecorder
 
@@ -11,6 +21,16 @@ actor SoundRecorder {
 
   func record(_ name: String) {
     recorded.append(name)
+  }
+}
+
+// MARK: - StringRecorder
+
+actor StringRecorder {
+  private(set) var values: [String] = []
+
+  func record(_ value: String) {
+    values.append(value)
   }
 }
 

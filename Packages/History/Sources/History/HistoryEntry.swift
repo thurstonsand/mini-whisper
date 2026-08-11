@@ -152,6 +152,7 @@ public struct Delivery: Equatable, Codable, Sendable {
   public enum Method: String, Codable, Sendable {
     case pasted
     case copied
+    case noReceiver
     case failed
   }
 

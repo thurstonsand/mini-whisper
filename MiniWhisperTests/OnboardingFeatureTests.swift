@@ -410,7 +410,7 @@ struct OnboardingStepDerivationTests {
   @Test func `the hero keycap records into the primary binding and keeps the rest`() async throws {
     let extra = try Hotkey(keyCode: 15, modifiers: [.rightControl])
     let replacement = try Hotkey(keyCode: 0, modifiers: [.leftCommand])
-    let store = TestStore(initialState: shortcutState(hotkeys: [.rightOption, extra])) {
+    let store = TestStore(initialState: shortcutState(hotkeys: [.testRightOption, extra])) {
       OnboardingFeature()
     }
 
@@ -419,7 +419,7 @@ struct OnboardingStepDerivationTests {
     }
     await store.receive(.shortcutBindings(.delegate(.recordingStarted)))
     await store.send(.shortcutBindings(.recorderEvent(.committed(replacement)))) {
-      $0.shortcutBindings.$settings.withLock { $0.hotkeys = [replacement, extra] }
+      $0.shortcutBindings.$settings.withLock { $0.bindings.activate = [replacement, extra] }
       $0.shortcutBindings.target = nil
     }
     await store.receive(.shortcutBindings(.delegate(.recordingStopped)))
@@ -435,7 +435,7 @@ struct OnboardingStepDerivationTests {
     }
     await store.receive(.shortcutBindings(.delegate(.recordingStarted)))
     await store.send(.shortcutBindings(.recorderEvent(.committed(replacement)))) {
-      $0.shortcutBindings.$settings.withLock { $0.hotkeys = [replacement] }
+      $0.shortcutBindings.$settings.withLock { $0.bindings.activate = [replacement] }
       $0.shortcutBindings.target = nil
     }
     await store.receive(.shortcutBindings(.delegate(.recordingStopped)))
@@ -612,9 +612,9 @@ struct OnboardingStepDerivationTests {
     return state
   }
 
-  private func shortcutState(hotkeys: [Hotkey] = [.rightOption]) -> OnboardingFeature.State {
+  private func shortcutState(hotkeys: [Hotkey] = [.testRightOption]) -> OnboardingFeature.State {
     var settings = MiniWhisperSettings.defaults
-    settings.hotkeys = hotkeys
+    settings.bindings.activate = hotkeys
     var state = OnboardingFeature.State(settings: Shared(value: settings))
     state.isPresented = true
     state.snapshot = modelSnapshot()

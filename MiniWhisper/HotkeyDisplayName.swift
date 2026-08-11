@@ -8,6 +8,13 @@ extension Hotkey {
   var displayName: String {
     displayComponents.joined(separator: " ")
   }
+
+  var compactDisplayName: String {
+    HotkeyDisplayName.compactComponents(
+      keyCodes: keyCode.map { [$0] } ?? [], modifiers: modifiers,
+    )
+    .joined()
+  }
 }
 
 extension HotkeyRecordingChord {
@@ -27,6 +34,13 @@ enum HotkeyDisplayName {
 
   static func components(keyCodes: [UInt16], modifiers: Set<ModifierKey>) -> [String] {
     modifiers.sorted { modifierRank($0) < modifierRank($1) }.map(modifierName)
+      + keyCodes.map(keyName)
+  }
+
+  static func compactComponents(
+    keyCodes: [UInt16], modifiers: Set<ModifierKey>,
+  ) -> [String] {
+    modifiers.sorted { modifierRank($0) < modifierRank($1) }.map(modifierGlyph)
       + keyCodes.map(keyName)
   }
 
@@ -66,6 +80,25 @@ enum HotkeyDisplayName {
       3
     case .function:
       4
+    }
+  }
+
+  private static func modifierGlyph(_ modifier: ModifierKey) -> String {
+    switch modifier {
+    case .leftControl,
+         .rightControl:
+      "⌃"
+    case .leftOption,
+         .rightOption:
+      "⌥"
+    case .leftShift,
+         .rightShift:
+      "⇧"
+    case .leftCommand,
+         .rightCommand:
+      "⌘"
+    case .function:
+      "fn"
     }
   }
 

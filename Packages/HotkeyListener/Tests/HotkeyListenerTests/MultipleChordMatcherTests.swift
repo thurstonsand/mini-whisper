@@ -6,7 +6,7 @@ struct MultipleChordMatcherTests {
 
   @Test func `either binding activates`() throws {
     let controlR = try Hotkey(keyCode: 15, modifiers: [.rightControl])
-    var matcher = MultipleChordMatcher(hotkeys: [.rightOption, controlR])
+    var matcher = MultipleChordMatcher(hotkeys: [.testRightOption, controlR])
 
     let option = matcher.receive(
       transition(.modifier(.rightOption), .down, [.modifier(.rightOption)]),
@@ -28,7 +28,7 @@ struct MultipleChordMatcherTests {
 
   @Test func `another binding is ignored until the active binding releases`() throws {
     let controlR = try Hotkey(keyCode: 15, modifiers: [.rightControl])
-    var matcher = MultipleChordMatcher(hotkeys: [.rightOption, controlR])
+    var matcher = MultipleChordMatcher(hotkeys: [.testRightOption, controlR])
     _ = matcher.receive(
       transition(.modifier(.rightOption), .down, [.modifier(.rightOption)]),
     )
@@ -59,7 +59,7 @@ struct MultipleChordMatcherTests {
   }
 
   @Test func `duplicate bindings emit one activation per press`() {
-    var matcher = MultipleChordMatcher(hotkeys: [.rightOption, .rightOption])
+    var matcher = MultipleChordMatcher(hotkeys: [.testRightOption, .testRightOption])
     var inputs: [GestureInput] = []
 
     for time in [Duration.zero, .milliseconds(100)] {
@@ -87,9 +87,64 @@ struct MultipleChordMatcherTests {
     ])
   }
 
+  @Test func `action binding fires without entering the activation gesture`() throws {
+    let paste = try Hotkey(keyCode: 9, modifiers: [.leftOption, .leftCommand])
+    var matcher = MultipleChordMatcher(bindings: [
+      HotkeyBinding(hotkey: .testRightOption, action: .activate),
+      HotkeyBinding(hotkey: paste, action: .pasteLastTranscript),
+    ])
+
+    _ = matcher.receive(
+      transition(.modifier(.leftOption), .down, [.modifier(.leftOption)]),
+    )
+    _ = matcher.receive(
+      transition(
+        .modifier(.leftCommand), .down,
+        [.modifier(.leftOption), .modifier(.leftCommand)],
+      ),
+    )
+    let completion = matcher.receive(
+      transition(
+        .keyCode(9), .down,
+        [.modifier(.leftOption), .modifier(.leftCommand), .keyCode(9)],
+      ),
+    )
+    let release = matcher.receive(
+      transition(
+        .keyCode(9), .up, [.modifier(.leftOption), .modifier(.leftCommand)],
+      ),
+    )
+
+    #expect(completion.action == .pasteLastTranscript)
+    #expect(completion.input == nil)
+    #expect(completion.disposition == .suppress)
+    #expect(release.action == nil)
+    #expect(release.input == nil)
+    #expect(release.disposition == .suppress)
+  }
+
+  @Test func `activation alternatives still route gestures beside an action binding`() {
+    var matcher = MultipleChordMatcher(bindings: [
+      HotkeyBinding(hotkey: .testRightOption, action: .activate),
+      HotkeyBinding(hotkey: .testPasteLastTranscript, action: .pasteLastTranscript),
+    ])
+
+    let activation = matcher.receive(
+      transition(.modifier(.rightOption), .down, [.modifier(.rightOption)]),
+    )
+    let release = matcher.receive(
+      transition(.modifier(.rightOption), .up, []),
+    )
+
+    #expect(activation.input == .activation(at: .zero))
+    #expect(activation.action == nil)
+    #expect(release.input == .release(at: .zero))
+    #expect(release.action == nil)
+  }
+
   @Test func `building one alternative does not conflict with another`() throws {
     let controlR = try Hotkey(keyCode: 15, modifiers: [.rightControl])
-    var matcher = MultipleChordMatcher(hotkeys: [.rightOption, controlR])
+    var matcher = MultipleChordMatcher(hotkeys: [.testRightOption, controlR])
 
     let partial = matcher.receive(
       transition(.modifier(.rightControl), .down, [.modifier(.rightControl)]),

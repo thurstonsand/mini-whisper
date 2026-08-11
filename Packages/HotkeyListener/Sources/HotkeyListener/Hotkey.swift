@@ -104,8 +104,6 @@ public struct Hotkey: Equatable, Codable, Sendable {
 
   // MARK: Public
 
-  public static let rightOption = Hotkey(validatedKeyCode: nil, modifiers: [.rightOption])
-
   public let keyCode: UInt16?
   public let modifiers: Set<ModifierKey>
 
@@ -139,4 +137,27 @@ public struct Hotkey: Equatable, Codable, Sendable {
       throw HotkeyValidationError.modifierKeyCode(keyCode)
     }
   }
+}
+
+// MARK: - HotkeyBinding
+
+public struct HotkeyBinding: Equatable, Sendable {
+  // MARK: Lifecycle
+
+  public init(hotkey: Hotkey, action: HotkeyBindingAction) {
+    self.hotkey = hotkey
+    self.action = action
+  }
+
+  // MARK: Public
+
+  public let hotkey: Hotkey
+  public let action: HotkeyBindingAction
+}
+
+// MARK: - HotkeyBindingAction
+
+public enum HotkeyBindingAction: Equatable, Sendable {
+  case activate
+  case pasteLastTranscript
 }

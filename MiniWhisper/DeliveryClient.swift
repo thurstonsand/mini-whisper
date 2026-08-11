@@ -21,11 +21,19 @@ enum DeliveryFallback: Equatable {
   case eventCreationFailed
 }
 
+// MARK: - NoReceiverReason
+
+enum NoReceiverReason: Equatable {
+  case noFocusedElement
+  case nonTextElement(role: String?)
+}
+
 // MARK: - DeliveryOutcome
 
 enum DeliveryOutcome: Equatable {
   case pasted(ClipboardRestoration)
   case copied(DeliveryFallback)
+  case noReceiver(NoReceiverReason)
 }
 
 // MARK: - DeliveryError

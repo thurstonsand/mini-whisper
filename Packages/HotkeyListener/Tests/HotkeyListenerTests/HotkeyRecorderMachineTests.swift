@@ -46,7 +46,7 @@ struct HotkeyRecorderMachineTests {
     )
     let option = PhysicalKey.modifier(.rightOption)
     _ = machine.receive(transition(option, .down, [option]))
-    #expect(machine.receive(transition(option, .up, [])) == .committed(.rightOption))
+    #expect(machine.receive(transition(option, .up, [])) == .committed(.testRightOption))
   }
 
   @Test func `an up for A key never witnessed down is ignored`() {
@@ -59,7 +59,7 @@ struct HotkeyRecorderMachineTests {
       machine.receive(transition(option, .down, [option]))
         == .chordChanged(HotkeyRecordingChord(modifiers: [.rightOption])),
     )
-    #expect(machine.receive(transition(option, .up, [])) == .committed(.rightOption))
+    #expect(machine.receive(transition(option, .up, [])) == .committed(.testRightOption))
   }
 
   // MARK: Private

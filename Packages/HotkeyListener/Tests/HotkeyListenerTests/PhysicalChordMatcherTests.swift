@@ -28,7 +28,7 @@ struct PhysicalChordMatcherTests {
   }
 
   @Test func `configured physical side is matched`() {
-    var matcher = PhysicalChordMatcher(hotkey: .rightOption)
+    var matcher = PhysicalChordMatcher(hotkey: .testRightOption)
 
     let leftOption = matcher.receive(
       transition(.modifier(.leftOption), .down, pressedAfter: [.modifier(.leftOption)]),
@@ -48,7 +48,7 @@ struct PhysicalChordMatcherTests {
   }
 
   @Test func `an unseen held key does not prevent later activation`() {
-    var matcher = PhysicalChordMatcher(hotkey: .rightOption)
+    var matcher = PhysicalChordMatcher(hotkey: .testRightOption)
 
     let staleRelease = matcher.receive(transition(.keyCode(127), .up, pressedAfter: []))
     #expect(staleRelease.input == .neutral)
@@ -64,7 +64,7 @@ struct PhysicalChordMatcherTests {
   }
 
   @Test func `modifier only release is matched and passed through`() {
-    var matcher = PhysicalChordMatcher(hotkey: .rightOption)
+    var matcher = PhysicalChordMatcher(hotkey: .testRightOption)
     _ = matcher.receive(
       transition(.modifier(.rightOption), .down, pressedAfter: [.modifier(.rightOption)]),
     )
@@ -77,7 +77,7 @@ struct PhysicalChordMatcherTests {
   }
 
   @Test func `modifier only chord never consumes unrelated keys`() {
-    var matcher = PhysicalChordMatcher(hotkey: .rightOption)
+    var matcher = PhysicalChordMatcher(hotkey: .testRightOption)
     _ = matcher.receive(
       transition(.modifier(.rightOption), .down, pressedAfter: [.modifier(.rightOption)]),
     )
@@ -111,7 +111,7 @@ struct PhysicalChordMatcherTests {
   }
 
   @Test func `adding an extra modifier conflicts without releasing active chord`() {
-    var matcher = PhysicalChordMatcher(hotkey: .rightOption)
+    var matcher = PhysicalChordMatcher(hotkey: .testRightOption)
     _ = matcher.receive(
       transition(.modifier(.rightOption), .down, pressedAfter: [.modifier(.rightOption)]),
     )
@@ -134,7 +134,7 @@ struct PhysicalChordMatcherTests {
   }
 
   @Test func `escape is recognized and passed through`() {
-    var matcher = PhysicalChordMatcher(hotkey: .rightOption)
+    var matcher = PhysicalChordMatcher(hotkey: .testRightOption)
 
     let escape = matcher.receive(
       transition(

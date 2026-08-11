@@ -6,8 +6,13 @@ public struct MultipleChordMatcher: Equatable, Sendable {
   // MARK: Lifecycle
 
   public init(hotkeys: [Hotkey]) {
-    matchers = hotkeys.map(PhysicalChordMatcher.init(hotkey:))
-    bindingKeys = hotkeys.map(\.physicalKeys)
+    self.init(bindings: hotkeys.map { HotkeyBinding(hotkey: $0, action: .activate) })
+  }
+
+  public init(bindings: [HotkeyBinding]) {
+    matchers = bindings.map { PhysicalChordMatcher(hotkey: $0.hotkey) }
+    bindingKeys = bindings.map(\.hotkey.physicalKeys)
+    actions = bindings.map(\.action)
   }
 
   // MARK: Public
@@ -22,7 +27,7 @@ public struct MultipleChordMatcher: Equatable, Sendable {
     }
     if let winner = matches.first(where: { $0.match.input?.isActivation == true }) {
       activate(winner.index)
-      return winner.match
+      return routed(winner.match, for: winner.index)
     }
 
     // Every binding judged the same transition, so one that has nothing to say about it speaks
@@ -47,6 +52,7 @@ public struct MultipleChordMatcher: Equatable, Sendable {
 
   private var matchers: [PhysicalChordMatcher]
   private let bindingKeys: [Set<PhysicalKey>]
+  private let actions: [HotkeyBindingAction]
   private var activeIndex: Int?
 
   private mutating func forward(_ transition: KeyTransition, to index: Int) -> ChordMatch {
@@ -61,7 +67,19 @@ public struct MultipleChordMatcher: Equatable, Sendable {
     if match.input?.isRelease == true {
       activeIndex = nil
     }
-    return match
+    return routed(match, for: index)
+  }
+
+  private func routed(_ match: ChordMatch, for index: Int) -> ChordMatch {
+    switch actions[index] {
+    case .activate:
+      match
+    case .pasteLastTranscript:
+      ChordMatch(
+        input: nil, action: match.input?.isActivation == true ? .pasteLastTranscript : nil,
+        disposition: match.disposition,
+      )
+    }
   }
 
   private mutating func activate(_ index: Int) {

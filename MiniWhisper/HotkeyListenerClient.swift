@@ -4,7 +4,7 @@ import HotkeyListener
 // MARK: - HotkeyListenerClient
 
 @DependencyClient struct HotkeyListenerClient {
-  var events: @Sendable ([Hotkey]) async throws -> AsyncStream<HotkeyListenerEvent>
+  var events: @Sendable ([HotkeyBinding]) async throws -> AsyncStream<HotkeyListenerEvent>
   var record: @Sendable () async throws -> AsyncStream<HotkeyRecorderEvent>
 }
 
@@ -12,7 +12,7 @@ import HotkeyListener
 
 extension HotkeyListenerClient: DependencyKey {
   static let liveValue = Self(
-    events: { hotkeys in try await HotkeyListener.events(hotkeys: hotkeys) },
+    events: { bindings in try await HotkeyListener.events(bindings: bindings) },
     record: { try await HotkeyRecorder.events() },
   )
 }

@@ -19,7 +19,9 @@ import ComposableArchitecture
 
       enum Notice: Equatable {
         case noSpeechDetected
+        case noTranscriptToPaste
         case copiedToClipboard
+        case noReceiver(pasteShortcut: String?)
         case cancelledSavedToHistory
         case fieldContextUnavailable
         case speechModelUnavailable(String)
@@ -40,10 +42,20 @@ import ComposableArchitecture
               text: "No speech detected", phase: "No speech detected", isSubdued: true,
               duration: .milliseconds(1500),
             )
+          case .noTranscriptToPaste:
+            Content(
+              text: "No transcript to paste yet", phase: "No transcript to paste yet",
+              isSubdued: true, duration: .milliseconds(1500),
+            )
           case .copiedToClipboard:
             Content(
               text: "Copied — ⌘V to paste", phase: "Copied", isSubdued: false,
               duration: .seconds(3),
+            )
+          case let .noReceiver(pasteShortcut):
+            Content(
+              text: Self.noReceiverText(pasteShortcut: pasteShortcut), phase: "Nowhere to paste",
+              isSubdued: false, duration: .seconds(3),
             )
           case .cancelledSavedToHistory:
             Content(
@@ -61,6 +73,13 @@ import ComposableArchitecture
               text: status, phase: status, isSubdued: true, duration: .seconds(3),
             )
           }
+        }
+
+        // MARK: Private
+
+        private static func noReceiverText(pasteShortcut: String?) -> String {
+          pasteShortcut.map { "Nowhere to paste — \($0) to retry" }
+            ?? "Nowhere to paste — transcript saved to History"
         }
       }
     }
@@ -80,7 +99,9 @@ import ComposableArchitecture
     case latchEngaged
     case transcribingStarted
     case noSpeechDetected
+    case noTranscriptToPaste
     case copiedToClipboard
+    case noReceiver(pasteShortcut: String?)
     case cancelledSavedToHistory
     case fieldContextUnavailable
     case speechModelUnavailable(String)
@@ -138,12 +159,22 @@ import ComposableArchitecture
         return .cancel(id: CancelID.notice)
       case .noSpeechDetected:
         return showNotice(.noSpeechDetected, state: &state)
+      case .noTranscriptToPaste:
+        return showNotice(.noTranscriptToPaste, state: &state)
       case .copiedToClipboard:
         return showNotice(.copiedToClipboard, state: &state)
+      case let .noReceiver(pasteShortcut):
+        return showNotice(.noReceiver(pasteShortcut: pasteShortcut), state: &state)
       case .cancelledSavedToHistory:
         return showNotice(.cancelledSavedToHistory, state: &state)
       case .fieldContextUnavailable:
-        return showNotice(.fieldContextUnavailable, state: &state)
+        switch state.presentation {
+        case .notice(.copiedToClipboard),
+             .notice(.noReceiver):
+          return .none
+        default:
+          return showNotice(.fieldContextUnavailable, state: &state)
+        }
       case let .speechModelUnavailable(status):
         return showNotice(.speechModelUnavailable(status), state: &state)
       case .dismiss,

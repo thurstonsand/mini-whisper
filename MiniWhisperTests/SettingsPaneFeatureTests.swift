@@ -36,7 +36,7 @@ import Testing
 
   @Test func `target movement clamps and left ascends past the first target`() async throws {
     let second = try Hotkey(keyCode: 15, modifiers: [.rightControl])
-    let store = TestStore(initialState: makeState(hotkeys: [.rightOption, second])) {
+    let store = TestStore(initialState: makeState(hotkeys: [.testRightOption, second])) {
       SettingsPaneFeature()
     }
 
@@ -48,7 +48,7 @@ import Testing
 
   @Test func `row movement resets the target to the first control`() async throws {
     let second = try Hotkey(keyCode: 15, modifiers: [.rightControl])
-    var state = makeState(hotkeys: [.rightOption, second])
+    var state = makeState(hotkeys: [.testRightOption, second])
     state.cursor.target = 1
     let store = TestStore(initialState: state) { SettingsPaneFeature() }
 
@@ -342,7 +342,7 @@ import Testing
 
   @Test func `press records the selected binding`() async throws {
     let second = try Hotkey(keyCode: 15, modifiers: [.rightControl])
-    var state = makeState(hotkeys: [.rightOption, second])
+    var state = makeState(hotkeys: [.testRightOption, second])
     state.cursor.target = 1
     let store = TestStore(initialState: state) { SettingsPaneFeature() }
 
@@ -379,18 +379,18 @@ import Testing
 
   @Test func `removing the last binding pulls the cursor back onto the empty state`() async throws {
     let second = try Hotkey(keyCode: 15, modifiers: [.rightControl])
-    var state = makeState(hotkeys: [.rightOption, second])
+    var state = makeState(hotkeys: [.testRightOption, second])
     state.cursor.target = 1
     let store = TestStore(initialState: state) { SettingsPaneFeature() }
 
     await store.send(.bindings(.removeTapped(1))) {
-      $0.bindings.$settings.withLock { $0.hotkeys = [.rightOption] }
+      $0.bindings.$settings.withLock { $0.bindings.activate = [.testRightOption] }
     }
     await store.receive(.bindings(.delegate(.bindingsChanged))) { $0.cursor.target = 0 }
     #expect(store.state.cursorTarget == .binding(0))
 
     await store.send(.bindings(.removeTapped(0))) {
-      $0.bindings.$settings.withLock { $0.hotkeys = [] }
+      $0.bindings.$settings.withLock { $0.bindings.activate = [] }
     }
     await store.receive(.bindings(.delegate(.bindingsChanged)))
     #expect(store.state.cursorTarget == .set)
@@ -407,11 +407,11 @@ import Testing
   // MARK: Private
 
   private func makeState(
-    hotkeys: [Hotkey] = [.rightOption],
+    hotkeys: [Hotkey] = [.testRightOption],
     health: AppHealth = .healthy,
   ) -> SettingsPaneFeature.State {
     var settings = MiniWhisperSettings.defaults
-    settings.hotkeys = hotkeys
+    settings.bindings.activate = hotkeys
     return SettingsPaneFeature.State(
       settings: Shared(value: settings), health: Shared(value: health),
     )

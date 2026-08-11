@@ -204,7 +204,7 @@ enum PresentedWindow: Equatable {
         return settings
       }
       do {
-        try settings.hotkeys.append(Hotkey(keyCode: 15, modifiers: [.rightControl]))
+        try settings.bindings.activate.append(Hotkey(keyCode: 15, modifiers: [.rightControl]))
       } catch {
         preconditionFailure("The seeded settings hotkey is invalid: \(error)")
       }

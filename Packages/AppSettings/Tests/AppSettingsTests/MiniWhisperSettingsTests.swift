@@ -10,21 +10,27 @@ struct MiniWhisperSettingsTests {
     let data = try SettingsCoding.encode(.defaults)
 
     let object = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
-    #expect(Set(object.keys) == ["hotkeys", "microphone", "retention", "sounds"])
+    #expect(Set(object.keys) == ["bindings", "microphone", "retention", "sounds"])
+    let bindings = try #require(object["bindings"] as? [String: Any])
+    #expect(Set(bindings.keys) == ["activate", "pasteLastTranscript"])
     #expect(try SettingsCoding.decode(data) == .defaults)
     let text = try #require(String(data: data, encoding: .utf8))
     #expect(text.hasSuffix("}\n"))
-    #expect(text.contains("\n  \"hotkeys\""))
+    #expect(text.contains("\n  \"bindings\""))
   }
 
   @Test func `a hand-edited file with absent keys takes the defaults for them`() throws {
     let data = Data(
-      #"{"hotkeys":[{"keyCode":0,"modifiers":["leftCommand"]}]}"#.utf8,
+      #"{"bindings":{"activate":[{"keyCode":0,"modifiers":["leftCommand"]}]}}"#.utf8,
     )
 
     let settings = try SettingsCoding.decode(data)
 
-    #expect(try settings.hotkeys == [Hotkey(keyCode: 0, modifiers: [.leftCommand])])
+    #expect(try settings.bindings.activate == [Hotkey(keyCode: 0, modifiers: [.leftCommand])])
+    #expect(
+      settings.bindings.pasteLastTranscript
+        == HotkeyBindingsSettings.defaults.pasteLastTranscript,
+    )
     #expect(settings.retention == .defaults)
     #expect(settings.microphone == .systemDefault)
     #expect(settings.sounds == .defaults)
@@ -34,18 +40,18 @@ struct MiniWhisperSettingsTests {
     #expect(try SettingsCoding.decode(Data("{}".utf8)) == .defaults)
   }
 
-  @Test func `unknown keys and duplicate modifiers do not destroy valid settings`() throws {
+  @Test func `old and unknown keys are ignored`() throws {
     let data = Data(
-      #"{"hotkeys":[{"modifiers":["rightOption","rightOption"],"typo":1}],"extra":1}"#.utf8,
+      #"{"hotkeys":[{"modifiers":[]}],"pasteLastTranscriptHotkey":{},"extra":1}"#.utf8,
     )
 
     let settings = try SettingsCoding.decode(data)
 
-    #expect(settings.hotkeys == [.rightOption])
+    #expect(settings.bindings == .defaults)
     #expect(settings.sounds == .defaults)
   }
 
-  @Test(arguments: ["not json", #"{"hotkeys":[{"modifiers":[]}]}"#])
+  @Test(arguments: ["not json", #"{"bindings":{"activate":[{"modifiers":[]}]}}"#])
   func `settings that cannot be understood fail rather than resolve to something`(
     contents: String,
   ) {
@@ -54,7 +60,13 @@ struct MiniWhisperSettingsTests {
 
   @Test func `every setting survives a round trip`() throws {
     let settings = try MiniWhisperSettings(
-      hotkeys: [Hotkey(keyCode: 0, modifiers: [.leftCommand])],
+      bindings: HotkeyBindingsSettings(
+        activate: [Hotkey(keyCode: 0, modifiers: [.leftCommand])],
+        pasteLastTranscript: [
+          Hotkey(keyCode: 9, modifiers: [.rightCommand]),
+          Hotkey(keyCode: 8, modifiers: [.leftControl]),
+        ],
+      ),
       microphone: .device(uid: "studio-mic", lastKnownName: "Studio Microphone"),
       sounds: SoundSettings(
         activate: "Glass", complete: nil, cancel: "Frog", error: "Submarine",

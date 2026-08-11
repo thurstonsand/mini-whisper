@@ -124,6 +124,57 @@ extension SoundSettings: Codable {
   }
 }
 
+// MARK: - HotkeyBindingsSettings
+
+public struct HotkeyBindingsSettings: Equatable, Sendable {
+  // MARK: Lifecycle
+
+  public init(activate: [Hotkey], pasteLastTranscript: [Hotkey]) {
+    self.activate = activate
+    self.pasteLastTranscript = pasteLastTranscript
+  }
+
+  // MARK: Public
+
+  public static let defaults = HotkeyBindingsSettings(
+    activate: [makeHotkey(modifiers: [.rightOption])],
+    pasteLastTranscript: [makeHotkey(keyCode: 9, modifiers: [.leftOption, .leftCommand])],
+  )
+
+  public var activate: [Hotkey]
+  public var pasteLastTranscript: [Hotkey]
+
+  // MARK: Private
+
+  private static func makeHotkey(
+    keyCode: UInt16? = nil, modifiers: Set<ModifierKey>,
+  ) -> Hotkey {
+    do {
+      return try Hotkey(keyCode: keyCode, modifiers: modifiers)
+    } catch {
+      preconditionFailure("Invalid built-in hotkey: \(error)")
+    }
+  }
+}
+
+// MARK: Codable
+
+extension HotkeyBindingsSettings: Codable {
+  private enum CodingKeys: String, CodingKey {
+    case activate
+    case pasteLastTranscript
+  }
+
+  public init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    activate = try container.decodeIfPresent([Hotkey].self, forKey: .activate)
+      ?? Self.defaults.activate
+    pasteLastTranscript = try container.decodeIfPresent(
+      [Hotkey].self, forKey: .pasteLastTranscript,
+    ) ?? Self.defaults.pasteLastTranscript
+  }
+}
+
 // MARK: - MiniWhisperSettings
 
 /// Every configurable setting the app has, as one value. It is stored whole, so a change to one
@@ -132,10 +183,10 @@ public struct MiniWhisperSettings: Equatable, Sendable {
   // MARK: Lifecycle
 
   public init(
-    hotkeys: [Hotkey], microphone: MicrophoneSelection, sounds: SoundSettings,
+    bindings: HotkeyBindingsSettings, microphone: MicrophoneSelection, sounds: SoundSettings,
     retention: RetentionPolicy,
   ) {
-    self.hotkeys = hotkeys
+    self.bindings = bindings
     self.microphone = microphone
     self.sounds = sounds
     self.retention = retention
@@ -144,11 +195,10 @@ public struct MiniWhisperSettings: Equatable, Sendable {
   // MARK: Public
 
   public static let defaults = MiniWhisperSettings(
-    hotkeys: [.rightOption], microphone: .systemDefault, sounds: .defaults,
-    retention: .defaults,
+    bindings: .defaults, microphone: .systemDefault, sounds: .defaults, retention: .defaults,
   )
 
-  public var hotkeys: [Hotkey]
+  public var bindings: HotkeyBindingsSettings
   public var microphone: MicrophoneSelection
   public var sounds: SoundSettings
   public var retention: RetentionPolicy
@@ -158,7 +208,7 @@ public struct MiniWhisperSettings: Equatable, Sendable {
 
 extension MiniWhisperSettings: Codable {
   private enum CodingKeys: String, CodingKey {
-    case hotkeys
+    case bindings
     case microphone
     case sounds
     case retention
@@ -168,7 +218,8 @@ extension MiniWhisperSettings: Codable {
   /// the default rather than treating the file as corrupt.
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
-    hotkeys = try container.decodeIfPresent([Hotkey].self, forKey: .hotkeys) ?? [.rightOption]
+    bindings = try container.decodeIfPresent(HotkeyBindingsSettings.self, forKey: .bindings)
+      ?? .defaults
     microphone = try container.decodeIfPresent(MicrophoneSelection.self, forKey: .microphone)
       ?? .systemDefault
     sounds = try container.decodeIfPresent(SoundSettings.self, forKey: .sounds) ?? .defaults

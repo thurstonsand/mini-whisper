@@ -129,6 +129,52 @@ import Testing
     }
   }
 
+  @Test func `no transcript notice uses the recovery message`() async {
+    let store = TestStore(initialState: PillFeature.State()) {
+      PillFeature()
+    } withDependencies: {
+      $0.continuousClock = TestClock()
+    }
+
+    await store.send(.noTranscriptToPaste) {
+      $0.noticeGeneration = 1
+      $0.presentation = .notice(.noTranscriptToPaste)
+    }
+    #expect(
+      store.state.presentation
+        == .notice(.noTranscriptToPaste),
+    )
+    #expect(
+      PillFeature.State.Presentation.Notice.noTranscriptToPaste.content.text
+        == "No transcript to paste yet",
+    )
+    await store.send(.dismiss) { $0.presentation = nil }
+  }
+
+  @Test func `withheld placement failure names recovery and outranks field context failure`() async {
+    let store = TestStore(initialState: PillFeature.State()) {
+      PillFeature()
+    } withDependencies: {
+      $0.continuousClock = TestClock()
+    }
+
+    await store.send(.noReceiver(pasteShortcut: "⌥⌘V")) {
+      $0.noticeGeneration = 1
+      $0.presentation = .notice(.noReceiver(pasteShortcut: "⌥⌘V"))
+    }
+    await store.send(.fieldContextUnavailable)
+
+    #expect(store.state.presentation == .notice(.noReceiver(pasteShortcut: "⌥⌘V")))
+    let bound = PillFeature.State.Presentation.Notice.noReceiver(pasteShortcut: "⌥⌘V").content
+    #expect(bound.text == "Nowhere to paste — ⌥⌘V to retry")
+    #expect(bound.phase == "Nowhere to paste")
+    #expect(
+      PillFeature.State.Presentation.Notice.noReceiver(pasteShortcut: nil).content.text
+        == "Nowhere to paste — transcript saved to History",
+    )
+    await store.send(.dismiss) { $0.presentation = nil }
+  }
+
   @Test func `copied notice lingers for three seconds`() async {
     let clock = TestClock()
     let store = TestStore(initialState: PillFeature.State()) {

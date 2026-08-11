@@ -124,6 +124,9 @@ private let performanceLogger = Logger(
     case onboarding(OnboardingFeature.Action)
     case settingsWindow(SettingsWindowFeature.Action)
     case hotkeyListenerEvent(HotkeyListenerEvent)
+    case pasteLastTranscript
+    case recoveryDeliveryCompleted(DeliveryResult)
+    case recoveryDeliveryFailed(DeliveryFailure)
     case hotkeyListenerFailed(String)
     case hotkeyListenerFinished
     case gestureDeadlineElapsed(Int)
@@ -321,6 +324,10 @@ private let performanceLogger = Logger(
         return reason == .invalidated ? diagnoseTapLoss(&state) : .none
       case let .hotkeyListenerEvent(.gestureInput(input)):
         return receiveGestureInput(input, state: &state)
+      case .hotkeyListenerEvent(.bindingAction(.pasteLastTranscript)):
+        return .send(.pasteLastTranscript)
+      case .hotkeyListenerEvent(.bindingAction(.activate)):
+        preconditionFailure("Activation bindings must emit gesture input")
       case let .gestureDeadlineElapsed(generation):
         guard generation == state.gestureDeadlineGeneration else {
           return .none
@@ -351,6 +358,40 @@ private let performanceLogger = Logger(
         return reconcileAccessibility(accessibilityPermission.hasPermission(), &state)
       case let .repairRequested(degradation):
         return repair(degradation, state: &state)
+      case .pasteLastTranscript:
+        guard !state.dictationInFlight else {
+          return .none
+        }
+        guard let transcript = state.lastTranscript ?? state.history.entries.first?.currentText
+        else {
+          return .send(.pill(.noTranscriptToPaste))
+        }
+        return deliveryEffect(route: .recovery, transcript: transcript)
+      case let .recoveryDeliveryCompleted(result):
+        switch result.outcome {
+        case let .pasted(restoration):
+          logSuccessfulPaste(restoration)
+          return .merge(
+            .send(.pill(.dismiss)), playSound(state.settings.sounds.complete),
+          )
+        case let .copied(fallback):
+          logDeliveryFallback(fallback)
+          return .merge(
+            .send(.pill(.copiedToClipboard)), playSound(state.settings.sounds.error),
+          )
+        case .noReceiver:
+          return .merge(
+            .send(.pill(noReceiverNotice(settings: state.settings.bindings))),
+            playSound(state.settings.sounds.error),
+          )
+        }
+      case let .recoveryDeliveryFailed(failure):
+        deliveryLogger.error(
+          "Recovery delivery failed: \(failure.message, privacy: .public)",
+        )
+        return .merge(
+          .send(.pill(.dismiss)), playSound(state.settings.sounds.error),
+        )
       case .copyLastTranscript:
         guard let transcript = state.lastTranscript else {
           return .none
@@ -455,7 +496,7 @@ private let performanceLogger = Logger(
           // fastest recovery route for an accidental Escape.
           state.lastTranscript = transcript
           guard state.dictationWasCancelled else {
-            return deliveryEffect(generation: generation, transcript: transcript)
+            return deliveryEffect(route: .dictation(generation), transcript: transcript)
           }
           return .merge(
             .send(.pill(.cancelledSavedToHistory)), finishDictation(&state, delivery: nil),
@@ -467,7 +508,8 @@ private let performanceLogger = Logger(
         case .noSpeech:
           engineLogger.notice("Gate rejected recording: no speech")
           return abandonDictation(
-            &state, retryMessage: Self.noSpeechRetryMessage(hotkeys: state.settings.hotkeys),
+            &state,
+            retryMessage: Self.noSpeechRetryMessage(hotkeys: state.settings.bindings.activate),
           )
         case .engineEmpty:
           engineLogger.notice("Engine accepted speech but returned an empty transcript")
@@ -499,14 +541,7 @@ private let performanceLogger = Logger(
         }
         switch result.outcome {
         case let .pasted(restoration):
-          switch restoration {
-          case .restored:
-            deliveryLogger.notice("Transcript pasted; prior clipboard restored")
-          case .skipped:
-            deliveryLogger.notice("Transcript pasted; clipboard changed, so restore was skipped")
-          case .failed:
-            deliveryLogger.error("Transcript pasted; prior clipboard restore failed")
-          }
+          logSuccessfulPaste(restoration)
           let onboardingSuccess =
             state.lastTranscript.map { onboardingTryIt(.delivered($0), state) } ?? .none
           let pill: PillFeature.Action =
@@ -524,27 +559,25 @@ private let performanceLogger = Logger(
             history,
           )
         case let .copied(fallback):
-          switch fallback {
-          case .accessibilityPermissionMissing:
-            deliveryLogger.error(
-              "Accessibility permission missing — grant \(Channel.name) in System Settings > Privacy & Security > Accessibility",
-            )
-          case .secureInput:
-            deliveryLogger.notice("Secure input is active; transcript kept on clipboard")
-          case .eventCreationFailed:
-            deliveryLogger.error("Paste command creation failed; transcript kept on clipboard")
-          }
+          logDeliveryFallback(fallback)
           state.currentFocusedContext = nil
           let history = finishDeliveredDictation(
             &state, result: result, method: .copied, detail: fallback.historyDetail,
           )
           return .merge(
             .send(.pill(.copiedToClipboard)), history,
-            onboardingTryIt(
-              .failed(
-                "The transcript was copied, but macOS did not allow it to be pasted. Check Accessibility and try again.",
-              ), state,
-            ), playSound(state.settings.sounds.error),
+            onboardingTryIt(.failed(onboardingFailureMessage), state),
+            playSound(state.settings.sounds.error),
+          )
+        case let .noReceiver(reason):
+          state.currentFocusedContext = nil
+          let history = finishDeliveredDictation(
+            &state, result: result, method: .noReceiver, detail: reason.historyDetail,
+          )
+          return .merge(
+            .send(.pill(noReceiverNotice(settings: state.settings.bindings))), history,
+            onboardingTryIt(.failed(noReceiverOnboardingMessage(for: reason)), state),
+            playSound(state.settings.sounds.error),
           )
         }
       case let .deliveryFailed(generation, failure):
@@ -613,6 +646,15 @@ private let performanceLogger = Logger(
     case failed(String)
   }
 
+  private enum DeliveryRoute {
+    case dictation(Int)
+    case recovery
+  }
+
+  private var onboardingFailureMessage: String {
+    "The transcript was copied, but macOS did not allow it to be pasted. Check Accessibility and try again."
+  }
+
   /// Every way a dictation ends without words. Nothing is delivered and nothing reaches History;
   /// a retry message is the only thing that separates them, and an Escape suppresses even that —
   /// the cancel cue has already played and said what happened.
@@ -634,7 +676,7 @@ private let performanceLogger = Logger(
   /// field rather than a guarantee — nothing stops a third application from taking the front
   /// between this read and the synthetic ⌘V — but the window is now microseconds wide instead of
   /// as long as a transcription.
-  private func deliveryEffect(generation: Int, transcript: String) -> Effect<Action> {
+  private func deliveryEffect(route: DeliveryRoute, transcript: String) -> Effect<Action> {
     .run { send in
       async let targetApplication = workspace.frontmostApplication()
       let capture = await contextCapture.capture(.delivery)
@@ -642,14 +684,20 @@ private let performanceLogger = Logger(
       guard !Task.isCancelled else {
         return
       }
-      await send(.contextCaptured(generation, capture))
+      if case let .dictation(generation) = route {
+        await send(.contextCaptured(generation, capture))
+      }
       let adjusted = capture.adjusted(transcript)
       guard !Task.isCancelled else {
         return
       }
       let attempt: DeliveryAttempt
       do {
-        attempt = try await .delivered(delivery.deliver(adjusted))
+        if let noReceiver = capture.noReceiverReason {
+          attempt = .delivered(.noReceiver(noReceiver))
+        } else {
+          attempt = try await .delivered(delivery.deliver(adjusted))
+        }
       } catch {
         attempt = .failed(error.localizedDescription)
       }
@@ -658,17 +706,21 @@ private let performanceLogger = Logger(
       }
       switch attempt {
       case let .delivered(outcome):
-        await send(
-          .deliveryCompleted(
-            generation, DeliveryResult(text: adjusted, targetApp: targetApp, outcome: outcome),
-          ),
-        )
+        let result = DeliveryResult(text: adjusted, targetApp: targetApp, outcome: outcome)
+        switch route {
+        case let .dictation(generation):
+          await send(.deliveryCompleted(generation, result))
+        case .recovery:
+          await send(.recoveryDeliveryCompleted(result))
+        }
       case let .failed(message):
-        await send(
-          .deliveryFailed(
-            generation, DeliveryFailure(text: adjusted, targetApp: targetApp, message: message),
-          ),
-        )
+        let failure = DeliveryFailure(text: adjusted, targetApp: targetApp, message: message)
+        switch route {
+        case let .dictation(generation):
+          await send(.deliveryFailed(generation, failure))
+        case .recovery:
+          await send(.recoveryDeliveryFailed(failure))
+        }
       }
     }.cancellable(id: CancelID.delivery, cancelInFlight: true)
   }
@@ -697,15 +749,20 @@ private let performanceLogger = Logger(
     return .concatenate(.cancel(id: CancelID.hotkeyEvents), .send(recorderReady))
   }
 
-  /// Not listening is not a failure by itself: a missing grant and an unbound shortcut both end
-  /// here, and `health` is what tells the menu bar which of the two to say.
+  /// Not listening is not a failure by itself: a missing grant ends here, and `health` tells the
+  /// menu bar why the tap is idle.
   private func restartHotkeyListener(_ state: inout State) -> Effect<Action> {
-    guard state.health.accessibilityGranted, !state.settings.hotkeys.isEmpty else {
+    guard state.health.accessibilityGranted else {
       state.$health.withLock { $0.hotkeyTap = .idle }
       return .cancel(id: CancelID.hotkeyEvents)
     }
     state.$health.withLock { $0.hotkeyTap = .starting }
-    return listenForHotkeyEvents(hotkeys: state.settings.hotkeys)
+    let bindings = state.settings.bindings.activate.map {
+      HotkeyBinding(hotkey: $0, action: .activate)
+    } + state.settings.bindings.pasteLastTranscript.map {
+      HotkeyBinding(hotkey: $0, action: .pasteLastTranscript)
+    }
+    return listenForHotkeyEvents(bindings: bindings)
   }
 
   /// A revoked grant kills the tap exactly the way a genuine failure does. Only a live read tells
@@ -721,10 +778,10 @@ private let performanceLogger = Logger(
     return .none
   }
 
-  private func listenForHotkeyEvents(hotkeys: [Hotkey]) -> Effect<Action> {
+  private func listenForHotkeyEvents(bindings: [HotkeyBinding]) -> Effect<Action> {
     .run { send in
       do {
-        let events = try await hotkeyListener.events(hotkeys)
+        let events = try await hotkeyListener.events(bindings)
         for await event in events {
           await send(.hotkeyListenerEvent(event))
         }
@@ -827,6 +884,43 @@ private let performanceLogger = Logger(
     }
   }
 
+  private func logSuccessfulPaste(_ restoration: ClipboardRestoration) {
+    switch restoration {
+    case .restored:
+      deliveryLogger.notice("Transcript pasted; prior clipboard restored")
+    case .skipped:
+      deliveryLogger.notice("Transcript pasted; clipboard changed, so restore was skipped")
+    case .failed:
+      deliveryLogger.error("Transcript pasted; prior clipboard restore failed")
+    }
+  }
+
+  private func logDeliveryFallback(_ fallback: DeliveryFallback) {
+    switch fallback {
+    case .accessibilityPermissionMissing:
+      deliveryLogger.error(
+        "Accessibility permission missing — grant \(Channel.name) in System Settings > Privacy & Security > Accessibility",
+      )
+    case .secureInput:
+      deliveryLogger.notice("Secure input is active; transcript kept on clipboard")
+    case .eventCreationFailed:
+      deliveryLogger.error("Paste command creation failed; transcript kept on clipboard")
+    }
+  }
+
+  private func noReceiverNotice(settings: HotkeyBindingsSettings) -> PillFeature.Action {
+    .noReceiver(pasteShortcut: settings.pasteLastTranscript.first?.compactDisplayName)
+  }
+
+  private func noReceiverOnboardingMessage(for reason: NoReceiverReason) -> String {
+    switch reason {
+    case .noFocusedElement:
+      "No text field was focused. Focus one and try again."
+    case .nonTextElement:
+      "The focused element was not a text field. Focus one and try again."
+    }
+  }
+
   private func logEngineReadiness(_ readiness: EngineReadiness) {
     switch readiness {
     case .modelMissing:
@@ -861,6 +955,20 @@ private let performanceLogger = Logger(
       do { try await workspace.open(url) } catch {
         await send(.workspaceOpenFailed(error.localizedDescription))
       }
+    }
+  }
+}
+
+private extension ContextCapture {
+  var noReceiverReason: NoReceiverReason? {
+    switch self {
+    case .unavailable(.noFocusedElement):
+      .noFocusedElement
+    case let .unavailable(.nonTextElement(role)):
+      .nonTextElement(role: role)
+    case .available,
+         .unavailable:
+      nil
     }
   }
 }

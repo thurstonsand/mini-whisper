@@ -21,6 +21,7 @@ public enum HotkeyListenerEvent: Equatable, Sendable {
   case accessibilityPermissionMissing
   case monitoringStarted
   case gestureInput(GestureInput)
+  case bindingAction(HotkeyBindingAction)
   case gesture(GestureEvent)
   case monitoringInterrupted(TapDisableReason)
 }
@@ -34,7 +35,9 @@ public enum HotkeyListenerError: Error, Equatable, Sendable { case eventTapCreat
 public enum HotkeyListener {
   /// Starts listening without raising a permission dialog. A missing grant is reported as
   /// `.accessibilityPermissionMissing` so the caller can send the user to System Settings.
-  public static func events(hotkeys: [Hotkey]) async throws -> AsyncStream<HotkeyListenerEvent> {
+  public static func events(
+    bindings: [HotkeyBinding],
+  ) async throws -> AsyncStream<HotkeyListenerEvent> {
     let (stream, continuation) = AsyncStream.makeStream(of: HotkeyListenerEvent.self)
     // The last-mile guard: an Accessibility grant is what lets the session tap actually receive
     // keyboard events, and `AXIsProcessTrusted` answers live rather than caching a launch-time
@@ -45,7 +48,7 @@ public enum HotkeyListener {
       return stream
     }
 
-    let session = EventTapSession(hotkeys: hotkeys, continuation: continuation)
+    let session = EventTapSession(bindings: bindings, continuation: continuation)
     continuation.onTermination = { @Sendable _ in session.stop() }
 
     do {
@@ -63,9 +66,9 @@ public enum HotkeyListener {
 private final class EventTapSession: @unchecked Sendable {
   // MARK: Lifecycle
 
-  init(hotkeys: [Hotkey], continuation: AsyncStream<HotkeyListenerEvent>.Continuation) {
+  init(bindings: [HotkeyBinding], continuation: AsyncStream<HotkeyListenerEvent>.Continuation) {
     self.continuation = continuation
-    matcher = MultipleChordMatcher(hotkeys: hotkeys)
+    matcher = MultipleChordMatcher(bindings: bindings)
   }
 
   // MARK: Internal
@@ -181,6 +184,9 @@ private final class EventTapSession: @unchecked Sendable {
     let match = matcher.receive(transition)
     if let input = match.input {
       emit(input)
+    }
+    if let action = match.action {
+      yield(.bindingAction(action))
     }
     return match.disposition == .suppress ? nil : Unmanaged.passUnretained(event)
   }

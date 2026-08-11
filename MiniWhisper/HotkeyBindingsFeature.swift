@@ -35,7 +35,7 @@ private let shortcutLogger = Logger(
     var validationMessage: String?
 
     var hotkeys: [Hotkey] {
-      settings.hotkeys
+      settings.bindings.activate
     }
 
     var isRecording: Bool {
@@ -76,7 +76,7 @@ private let shortcutLogger = Logger(
     Reduce { state, action in
       switch action {
       case let .bindingTapped(index):
-        guard state.settings.hotkeys.indices.contains(index) else {
+        guard state.settings.bindings.activate.indices.contains(index) else {
           return .none
         }
         return beginRecording(.existing(index), state: &state)
@@ -86,15 +86,18 @@ private let shortcutLogger = Logger(
         guard !state.isRecording else {
           return .none
         }
-        return beginRecording(state.settings.hotkeys.isEmpty ? .new : .existing(0), state: &state)
+        return beginRecording(
+          state.settings.bindings.activate.isEmpty ? .new : .existing(0),
+          state: &state,
+        )
       case .addTapped:
         return beginRecording(.new, state: &state)
       case let .removeTapped(index):
-        guard state.settings.hotkeys.indices.contains(index) else {
+        guard state.settings.bindings.activate.indices.contains(index) else {
           return .none
         }
         state.$settings.withLock { settings in
-          _ = settings.hotkeys.remove(at: index)
+          _ = settings.bindings.activate.remove(at: index)
         }
         return .send(.delegate(.bindingsChanged))
       case .recorderReady:
@@ -159,21 +162,21 @@ private let shortcutLogger = Logger(
   private func commit(_ hotkey: Hotkey, to target: Target, state: inout State) {
     switch target {
     case let .existing(index):
-      guard state.settings.hotkeys.indices.contains(index) else {
+      guard state.settings.bindings.activate.indices.contains(index) else {
         shortcutLogger.error(
           "Dropping a recorded hotkey because binding index \(index) no longer exists",
         )
         return
       }
-      guard !state.settings.hotkeys.contains(hotkey) else {
+      guard !state.settings.bindings.activate.contains(hotkey) else {
         return
       }
-      state.$settings.withLock { $0.hotkeys[index] = hotkey }
+      state.$settings.withLock { $0.bindings.activate[index] = hotkey }
     case .new:
-      guard !state.settings.hotkeys.contains(hotkey) else {
+      guard !state.settings.bindings.activate.contains(hotkey) else {
         return
       }
-      state.$settings.withLock { $0.hotkeys.append(hotkey) }
+      state.$settings.withLock { $0.bindings.activate.append(hotkey) }
     }
   }
 

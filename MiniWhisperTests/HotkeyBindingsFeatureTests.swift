@@ -31,7 +31,7 @@ import Testing
     }
     continuation.yield(.committed(replacement))
     await store.receive(.recorderEvent(.committed(replacement))) {
-      $0.$settings.withLock { $0.hotkeys = [replacement] }
+      $0.$settings.withLock { $0.bindings.activate = [replacement] }
       $0.target = nil
       $0.liveChord = nil
     }
@@ -44,14 +44,14 @@ import Testing
   ) async throws {
     let extra = try Hotkey(keyCode: 15, modifiers: [.rightControl])
     let replacement = try Hotkey(keyCode: 0, modifiers: [.leftCommand])
-    let store = TestStore(initialState: makeState(hotkeys: [.rightOption, extra])) {
+    let store = TestStore(initialState: makeState(hotkeys: [.testRightOption, extra])) {
       HotkeyBindingsFeature()
     }
 
     await store.send(.primaryBindingTapped) { $0.target = .existing(0) }
     await store.receive(.delegate(.recordingStarted))
     await store.send(.recorderEvent(.committed(replacement))) {
-      $0.$settings.withLock { $0.hotkeys = [replacement, extra] }
+      $0.$settings.withLock { $0.bindings.activate = [replacement, extra] }
       $0.target = nil
     }
     await store.receive(.delegate(.recordingStopped))
@@ -65,7 +65,7 @@ import Testing
     await store.send(.primaryBindingTapped) { $0.target = .new }
     await store.receive(.delegate(.recordingStarted))
     await store.send(.recorderEvent(.committed(recorded))) {
-      $0.$settings.withLock { $0.hotkeys = [recorded] }
+      $0.$settings.withLock { $0.bindings.activate = [recorded] }
       $0.target = nil
     }
     await store.receive(.delegate(.recordingStopped))
@@ -87,12 +87,12 @@ import Testing
     await store.send(.addTapped) { $0.target = .new }
     await store.receive(.delegate(.recordingStarted))
     await store.send(.recorderEvent(.committed(added))) {
-      $0.$settings.withLock { $0.hotkeys.append(added) }
+      $0.$settings.withLock { $0.bindings.activate.append(added) }
       $0.target = nil
     }
     await store.receive(.delegate(.recordingStopped))
     await store.send(.removeTapped(0)) {
-      $0.$settings.withLock { _ = $0.hotkeys.remove(at: 0) }
+      $0.$settings.withLock { _ = $0.bindings.activate.remove(at: 0) }
     }
     await store.receive(.delegate(.bindingsChanged))
     #expect(store.state.hotkeys == [added])
@@ -100,14 +100,14 @@ import Testing
 
   @Test func `A chord already bound anywhere commits as A silent no-op`() async throws {
     let extra = try Hotkey(keyCode: 15, modifiers: [.rightControl])
-    let store = TestStore(initialState: makeState(hotkeys: [.rightOption, extra])) {
+    let store = TestStore(initialState: makeState(hotkeys: [.testRightOption, extra])) {
       HotkeyBindingsFeature()
     }
 
     // The binding it is already on…
     await store.send(.bindingTapped(0)) { $0.target = .existing(0) }
     await store.receive(.delegate(.recordingStarted))
-    await store.send(.recorderEvent(.committed(.rightOption))) { $0.target = nil }
+    await store.send(.recorderEvent(.committed(.testRightOption))) { $0.target = nil }
     await store.receive(.delegate(.recordingStopped))
 
     // …a sibling's binding…
@@ -119,10 +119,10 @@ import Testing
     // …and a new binding that duplicates an old one.
     await store.send(.addTapped) { $0.target = .new }
     await store.receive(.delegate(.recordingStarted))
-    await store.send(.recorderEvent(.committed(.rightOption))) { $0.target = nil }
+    await store.send(.recorderEvent(.committed(.testRightOption))) { $0.target = nil }
     await store.receive(.delegate(.recordingStopped))
 
-    #expect(store.state.hotkeys == [.rightOption, extra])
+    #expect(store.state.hotkeys == [.testRightOption, extra])
   }
 
   @Test func `A missing replacement target drops the commit safely`() async throws {
@@ -133,7 +133,7 @@ import Testing
 
     await store.send(.recorderEvent(.committed(replacement))) { $0.target = nil }
     await store.receive(.delegate(.recordingStopped))
-    #expect(store.state.hotkeys == [.rightOption])
+    #expect(store.state.hotkeys == [.testRightOption])
   }
 
   @Test func `escape cancellation preserves bindings`() async {
@@ -143,7 +143,7 @@ import Testing
     await store.receive(.delegate(.recordingStarted))
     await store.send(.cancelRecording) { $0.target = nil }
     await store.receive(.delegate(.recordingStopped))
-    #expect(store.state.hotkeys == [.rightOption])
+    #expect(store.state.hotkeys == [.testRightOption])
   }
 
   @Test func `invalid chords show why and remain recording`() async {
@@ -159,9 +159,9 @@ import Testing
 
   // MARK: Private
 
-  private func makeState(hotkeys: [Hotkey] = [.rightOption]) -> HotkeyBindingsFeature.State {
+  private func makeState(hotkeys: [Hotkey] = [.testRightOption]) -> HotkeyBindingsFeature.State {
     var settings = MiniWhisperSettings.defaults
-    settings.hotkeys = hotkeys
+    settings.bindings.activate = hotkeys
     return HotkeyBindingsFeature.State(settings: Shared(value: settings))
   }
 }

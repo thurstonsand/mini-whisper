@@ -4,7 +4,7 @@ import Testing
 
 struct HotkeyDisplayNameTests {
   @Test(arguments: try [
-    (Hotkey.rightOption, "⌥ Opt →"),
+    (Hotkey.testRightOption, "⌥ Opt →"),
     (Hotkey(modifiers: [.leftOption]), "⌥ Opt ←"),
     (Hotkey(modifiers: [.rightCommand]), "⌘ Cmd →"),
     (Hotkey(modifiers: [.leftShift]), "⇧ Shift ←"),
@@ -22,6 +22,16 @@ struct HotkeyDisplayNameTests {
     #expect(hotkey.displayName == expected)
   }
 
+  @Test func `compact names use bare glyphs in canonical order`() throws {
+    let paste = try Hotkey(keyCode: 9, modifiers: [.leftOption, .leftCommand])
+    let mixed = try Hotkey(
+      keyCode: 0, modifiers: [.rightCommand, .leftShift, .rightOption, .leftControl],
+    )
+
+    #expect(paste.compactDisplayName == "⌥⌘V")
+    #expect(mixed.compactDisplayName == "⌃⌥⇧⌘A")
+  }
+
   @Test func `each modifier and key is A separate display component`() throws {
     let hotkey = try Hotkey(keyCode: 15, modifiers: [.rightControl])
 
@@ -33,7 +43,7 @@ struct HotkeyDisplayNameTests {
   }
 
   @Test func `onboarding copy uses the customized first binding`() throws {
-    let hotkeys = try [Hotkey(keyCode: 15, modifiers: [.rightControl]), .rightOption]
+    let hotkeys = try [Hotkey(keyCode: 15, modifiers: [.rightControl]), .testRightOption]
 
     #expect(
       OnboardingCopy.tryItInstructions(hotkeys: hotkeys)
@@ -62,7 +72,7 @@ struct HotkeyDisplayNameTests {
     let hotkey = try Hotkey(keyCode: 15, modifiers: [.rightControl])
 
     #expect(
-      AppFeature.noSpeechRetryMessage(hotkeys: [hotkey, .rightOption])
+      AppFeature.noSpeechRetryMessage(hotkeys: [hotkey, .testRightOption])
         == "No speech was detected. Hold ⌃ Ctrl → R and try again.",
     )
   }

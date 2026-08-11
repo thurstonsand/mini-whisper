@@ -173,8 +173,11 @@ import Testing
     let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
       $0.accessibilityPermission.hasPermission = { true }
       $0.hotkeyListener.record = { recorderEvents }
-      $0.hotkeyListener.events = { hotkeys in
-        #expect(hotkeys == [replacement])
+      $0.hotkeyListener.events = { bindings in
+        #expect(bindings == [
+          HotkeyBinding(hotkey: replacement, action: .activate),
+          HotkeyBinding(hotkey: .testPasteLastTranscript, action: .pasteLastTranscript),
+        ])
         return listenerEvents
       }
     }
@@ -188,7 +191,7 @@ import Testing
     recorderContinuation.yield(.committed(replacement))
     await store
       .receive(.settingsWindow(.settingsPane(.bindings(.recorderEvent(.committed(replacement)))))) {
-        $0.$settings.withLock { $0.hotkeys = [replacement] }
+        $0.$settings.withLock { $0.bindings.activate = [replacement] }
         $0.settingsWindow.settingsPane.bindings.target = nil
         $0.$health.withLock { $0.hotkeyTap = .starting }
       }
@@ -215,7 +218,7 @@ import Testing
     let extra = try Hotkey(keyCode: 15, modifiers: [.rightControl])
     let replacement = try Hotkey(keyCode: 0, modifiers: [.leftCommand])
     var settings = MiniWhisperSettings.defaults
-    settings.hotkeys = [.rightOption, extra]
+    settings.bindings.activate = [.testRightOption, extra]
     var state = AppFeature.State(
       history: Shared(value: HistoryLog()), settings: Shared(value: settings),
     )
@@ -232,8 +235,12 @@ import Testing
     let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
       $0.accessibilityPermission.hasPermission = { true }
       $0.hotkeyListener.record = { recorderEvents }
-      $0.hotkeyListener.events = { hotkeys in
-        #expect(hotkeys == [replacement, extra])
+      $0.hotkeyListener.events = { bindings in
+        #expect(bindings == [
+          HotkeyBinding(hotkey: replacement, action: .activate),
+          HotkeyBinding(hotkey: extra, action: .activate),
+          HotkeyBinding(hotkey: .testPasteLastTranscript, action: .pasteLastTranscript),
+        ])
         return listenerEvents
       }
     }
@@ -248,7 +255,7 @@ import Testing
     await store.receive(
       .onboarding(.shortcutBindings(.recorderEvent(.committed(replacement)))),
     ) {
-      $0.$settings.withLock { $0.hotkeys = [replacement, extra] }
+      $0.$settings.withLock { $0.bindings.activate = [replacement, extra] }
       $0.onboarding.shortcutBindings.target = nil
       $0.$health.withLock { $0.hotkeyTap = .starting }
     }
@@ -264,10 +271,9 @@ import Testing
     await store.receive(.hotkeyListenerFinished) { $0.$health.withLock { $0.hotkeyTap = .dead } }
   }
 
-  @Test func `repairing the tap with no bindings settles idle rather than starting forever`(
-  ) async {
+  @Test func `recovery binding keeps the tap active without activation bindings`() async {
     var settings = MiniWhisperSettings.defaults
-    settings.hotkeys = []
+    settings.bindings.activate = []
     var state = AppFeature.State(
       history: Shared(value: HistoryLog()), settings: Shared(value: settings),
     )
@@ -275,11 +281,29 @@ import Testing
       $0.accessibilityGranted = true
       $0.hotkeyTap = .dead
     }
-    let store = TestStore(initialState: state) { AppFeature() }
+    let (events, continuation) = AsyncStream.makeStream(of: HotkeyListenerEvent.self)
+    let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
+      $0.accessibilityPermission.hasPermission = { true }
+      $0.hotkeyListener.events = { bindings in
+        #expect(bindings == [
+          HotkeyBinding(hotkey: .testPasteLastTranscript, action: .pasteLastTranscript),
+        ])
+        return events
+      }
+    }
     #expect(store.state.health.degradations.first == .hotkeyTapDead)
 
-    await store
-      .send(.repairRequested(.hotkeyTapDead)) { $0.$health.withLock { $0.hotkeyTap = .idle } }
+    await store.send(.repairRequested(.hotkeyTapDead)) {
+      $0.$health.withLock { $0.hotkeyTap = .starting }
+    }
+    continuation.yield(.monitoringStarted)
+    await store.receive(.hotkeyListenerEvent(.monitoringStarted)) {
+      $0.$health.withLock { $0.hotkeyTap = .active }
+    }
+    continuation.finish()
+    await store.receive(.hotkeyListenerFinished) {
+      $0.$health.withLock { $0.hotkeyTap = .dead }
+    }
   }
 
   @Test func `A tap the app stood down does not report itself as lost`() async {
@@ -1117,6 +1141,242 @@ import Testing
     #expect(await sounds.recorded == ["Pop"])
   }
 
+  @Test(arguments: [
+    ContextUnavailable.noFocusedElement,
+    .nonTextElement(role: "AXButton"),
+  ])
+  func `delivery is withheld when context proves there is no receiver`(
+    _ reason: ContextUnavailable,
+  ) async {
+    let clock = TestClock()
+    var state = AppFeature.State()
+    state.transcriptionGeneration = 1
+    state.pill.presentation = .transcribing
+    let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
+      $0.contextCapture.capture = { _ in .unavailable(reason) }
+      $0.continuousClock = clock
+      $0.delivery.copy = { _ in
+        Issue.record("A delivery with no receiver must not change the clipboard")
+      }
+      $0.delivery.deliver = { _ in
+        Issue.record("A delivery with no receiver must not synthesize paste")
+        return .pasted(.restored)
+      }
+    }
+
+    await store.send(.transcriptionCompleted(1, .transcript("copy me"))) {
+      $0.lastTranscript = "copy me"
+    }
+    await store.receive(.contextCaptured(1, .unavailable(reason))) {
+      $0.currentFocusedContext = .unavailable(reason)
+    }
+    let receiverReason: NoReceiverReason =
+      switch reason {
+      case .noFocusedElement:
+        .noFocusedElement
+      case let .nonTextElement(role):
+        .nonTextElement(role: role)
+      default:
+        preconditionFailure()
+      }
+    await store.receive(
+      .deliveryCompleted(
+        1, deliveryResult("copy me", .noReceiver(receiverReason)),
+      ),
+    ) {
+      $0.currentFocusedContext = nil
+    }
+    let pasteShortcut = HotkeyBindingsSettings.defaults.pasteLastTranscript.first?
+      .compactDisplayName
+    await store.receive(.pill(.noReceiver(pasteShortcut: pasteShortcut))) {
+      $0.pill.noticeGeneration = 1
+      $0.pill.presentation = .notice(.noReceiver(pasteShortcut: pasteShortcut))
+    }
+    await store.send(.pill(.dismiss)) { $0.pill.presentation = nil }
+    await store.finish()
+  }
+
+  @Test func `a no receiver first delivery is observable in history`() async throws {
+    let entryID = try #require(UUID(uuidString: "00000000-0000-0000-0000-000000000032"))
+    let recording = CanonicalRecording(samples: Array(repeating: 0.2, count: 16000))
+    var settings = MiniWhisperSettings.defaults
+    settings.retention.audio = .never
+    var state = AppFeature.State(
+      history: Shared(value: HistoryLog()), settings: Shared(value: settings),
+    )
+    state.transcriptionGeneration = 1
+    state.dictationInFlight = true
+    state.pendingDictation = AppFeature.PendingDictation(
+      generation: 1, recording: recording, createdAt: Date(timeIntervalSince1970: 32),
+      engine: "test-engine", original: nil,
+    )
+    let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
+      $0.contextCapture.capture = { _ in .unavailable(.noFocusedElement) }
+      $0.continuousClock = TestClock()
+      $0.date.now = Date(timeIntervalSince1970: 32)
+      $0.delivery.copy = { _ in
+        Issue.record("A delivery with no receiver must not change the clipboard")
+      }
+      $0.delivery.deliver = { _ in
+        Issue.record("A delivery with no receiver must not synthesize paste")
+        return .pasted(.restored)
+      }
+      $0.uuid = .constant(entryID)
+    }
+    store.exhaustivity = .off(showSkippedAssertions: false)
+
+    await store.send(.transcriptionCompleted(1, .transcript("recoverable")))
+    await store.receive(
+      .pill(
+        .noReceiver(
+          pasteShortcut: HotkeyBindingsSettings.defaults.pasteLastTranscript.first?
+            .compactDisplayName,
+        ),
+      ),
+    )
+    await store.send(.pill(.dismiss))
+    await store.finish()
+
+    let entry = try #require(store.state.history.entries.first)
+    #expect(entry.delivery == Delivery(
+      text: "recoverable", method: .noReceiver, detail: "noFocusedElement",
+    ))
+  }
+
+  @Test func `recovery prefers memory and runs the full delivery pipeline`() async {
+    let deliveries = StringRecorder()
+    let historyEntry = HistoryEntry(
+      id: UUID(), createdAt: Date(timeIntervalSince1970: 1), targetApp: nil,
+      original: History.Transcription(
+        text: "persisted text", engine: "test-engine",
+        transcribedAt: Date(timeIntervalSince1970: 1),
+      ),
+      delivery: nil, audio: nil,
+    )
+    var state = AppFeature.State(history: Shared(value: HistoryLog(entries: [historyEntry])))
+    state.lastTranscript = "memory text"
+    let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
+      $0.contextCapture.capture = { _ in .available(context(before: "Finished.")) }
+      $0.delivery.deliver = { transcript in
+        await deliveries.record(transcript)
+        return .pasted(.restored)
+      }
+    }
+    store.exhaustivity = .off(showSkippedAssertions: false)
+
+    await store.send(.hotkeyListenerEvent(.bindingAction(.pasteLastTranscript)))
+    await store.finish()
+
+    #expect(await deliveries.values == [" Memory text"])
+    #expect(store.state.history.entries == [historyEntry])
+    #expect(store.state.pill.presentation == nil)
+  }
+
+  @Test func `recovery with no receiver withholds and names the configured chord`() async throws {
+    let pasteHotkey = try Hotkey(keyCode: 15, modifiers: [.leftControl, .rightCommand])
+    let sounds = SoundRecorder()
+    var settings = MiniWhisperSettings.defaults
+    settings.bindings.pasteLastTranscript = [pasteHotkey]
+    var state = AppFeature.State(settings: Shared(value: settings))
+    state.lastTranscript = "withhold me"
+    let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
+      $0.contextCapture.capture = { _ in .unavailable(.noFocusedElement) }
+      $0.continuousClock = TestClock()
+      $0.delivery.copy = { _ in
+        Issue.record("Recovery with no receiver must not change the clipboard")
+      }
+      $0.delivery.deliver = { _ in
+        Issue.record("Recovery with no receiver must not synthesize paste")
+        return .pasted(.restored)
+      }
+      $0.sounds.play = { cue in await sounds.record(cue) }
+    }
+
+    await store.send(.hotkeyListenerEvent(.bindingAction(.pasteLastTranscript)))
+    await store.receive(.pasteLastTranscript)
+    await store.receive(
+      .recoveryDeliveryCompleted(
+        deliveryResult("withhold me", .noReceiver(.noFocusedElement)),
+      ),
+    )
+    await store.receive(
+      .pill(.noReceiver(pasteShortcut: pasteHotkey.compactDisplayName)),
+    ) {
+      $0.pill.noticeGeneration = 1
+      $0.pill.presentation = .notice(
+        .noReceiver(pasteShortcut: pasteHotkey.compactDisplayName),
+      )
+    }
+    await store.send(.pill(.dismiss)) { $0.pill.presentation = nil }
+    await store.finish()
+
+    #expect(await sounds.recorded == ["Basso"])
+    #expect(store.state.history.entries.isEmpty)
+  }
+
+  @Test func `recovery falls back to history after relaunch`() async {
+    let deliveries = StringRecorder()
+    let historyEntry = HistoryEntry(
+      id: UUID(), createdAt: Date(timeIntervalSince1970: 1), targetApp: nil,
+      original: History.Transcription(
+        text: "persisted text", engine: "test-engine",
+        transcribedAt: Date(timeIntervalSince1970: 1),
+      ),
+      delivery: nil, audio: nil,
+    )
+    let state = AppFeature.State(history: Shared(value: HistoryLog(entries: [historyEntry])))
+    let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
+      $0.contextCapture.capture = { _ in .unavailable(.noTextRange(role: "AXTextArea")) }
+      $0.delivery.deliver = { transcript in
+        await deliveries.record(transcript)
+        return .pasted(.restored)
+      }
+    }
+    store.exhaustivity = .off(showSkippedAssertions: false)
+
+    await store.send(.hotkeyListenerEvent(.bindingAction(.pasteLastTranscript)))
+    await store.finish()
+
+    #expect(await deliveries.values == ["persisted text"])
+    #expect(store.state.history.entries == [historyEntry])
+  }
+
+  @Test func `recovery with no source shows its empty notice`() async {
+    let store = TestStore(initialState: AppFeature.State()) {
+      AppFeature()
+    } withDependencies: {
+      $0.continuousClock = TestClock()
+    }
+
+    await store.send(.hotkeyListenerEvent(.bindingAction(.pasteLastTranscript)))
+    await store.receive(.pasteLastTranscript)
+    await store.receive(.pill(.noTranscriptToPaste)) {
+      $0.pill.noticeGeneration = 1
+      $0.pill.presentation = .notice(.noTranscriptToPaste)
+    }
+    await store.send(.pill(.dismiss)) { $0.pill.presentation = nil }
+    await store.finish()
+  }
+
+  @Test func `recovery is ignored while dictation is in flight`() async {
+    let deliveries = StringRecorder()
+    var state = AppFeature.State()
+    state.lastTranscript = "do not deliver"
+    state.dictationInFlight = true
+    let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
+      $0.delivery.deliver = { transcript in
+        await deliveries.record(transcript)
+        return .pasted(.restored)
+      }
+    }
+    store.exhaustivity = .off(showSkippedAssertions: false)
+
+    await store.send(.hotkeyListenerEvent(.bindingAction(.pasteLastTranscript)))
+    await store.finish()
+
+    #expect(await deliveries.values.isEmpty)
+  }
+
   @Test func `changed clipboard skips restore without turning paste into failure`() async {
     let sounds = SoundRecorder()
     var state = AppFeature.State()
@@ -1384,7 +1644,7 @@ import Testing
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
-      $0.contextCapture.capture = { _ in .unavailable(.noFocusedElement) }
+      $0.contextCapture.capture = { _ in .unavailable(.noTextRange(role: "AXTextArea")) }
       $0.delivery.deliver = { _ in throw DeliveryError.pasteboardWriteFailed }
       $0.sounds.play = { cue in await sounds.record(cue) }
     }
@@ -1393,8 +1653,8 @@ import Testing
     await store.send(
       .transcriptionCompleted(5, .transcript("undeliverable")),
     ) { $0.lastTranscript = "undeliverable" }
-    await store.receive(.contextCaptured(5, .unavailable(.noFocusedElement))) {
-      $0.currentFocusedContext = .unavailable(.noFocusedElement)
+    await store.receive(.contextCaptured(5, .unavailable(.noTextRange(role: "AXTextArea")))) {
+      $0.currentFocusedContext = .unavailable(.noTextRange(role: "AXTextArea"))
     }
     await store.receive(
       .deliveryFailed(

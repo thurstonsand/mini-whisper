@@ -259,8 +259,11 @@ import Testing
     try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
     let settingsURL = root.appending(path: "settings.json")
     let stored = try MiniWhisperSettings(
-      hotkeys: [Hotkey(keyCode: 0, modifiers: [.leftCommand])], microphone: .systemDefault,
-      sounds: .silent, retention: .defaults,
+      bindings: HotkeyBindingsSettings(
+        activate: [Hotkey(keyCode: 0, modifiers: [.leftCommand])],
+        pasteLastTranscript: HotkeyBindingsSettings.defaults.pasteLastTranscript,
+      ),
+      microphone: .systemDefault, sounds: .silent, retention: .defaults,
     )
     try SettingsCoding.encode(stored).write(to: settingsURL)
 
@@ -286,7 +289,7 @@ import Testing
 
     let persisted = try SettingsCoding.decode(Data(contentsOf: settingsURL))
     #expect(persisted.retention.audio == .ninetyDays)
-    #expect(persisted.hotkeys == stored.hotkeys)
+    #expect(persisted.bindings == stored.bindings)
     #expect(persisted.sounds == .silent)
   }
 
