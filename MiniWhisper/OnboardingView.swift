@@ -28,10 +28,14 @@ enum OnboardingCopy {
 /// Every control in the window that focus can rest on. Pages are never focused as such: a page's
 /// keyboard path is whichever of these it lists in `tabCycle`.
 enum OnboardingFocus: Hashable {
+  case welcomeAction
+  case permissionsAction
   case shortcutKeycap
   case shortcutContinue
+  case modelAction
   case tryItEditor
   case tryItSkip
+  case readyAction
 }
 
 // MARK: - OnboardingView
@@ -44,7 +48,7 @@ struct OnboardingView: View {
   var body: some View {
     Group {
       if store.isShowingWelcome {
-        OnboardingWelcomePage(store: store)
+        OnboardingWelcomePage(store: store, focus: $focus)
       } else {
         HStack(spacing: 0) {
           OnboardingStepRail(store: store)
@@ -76,20 +80,26 @@ struct OnboardingView: View {
   /// page's other control is waiting for. Focus of a view that goes away goes away with it.
   @FocusState private var focus: OnboardingFocus?
 
-  /// A page's whole keyboard path, in order. Two targets means Shift-Tab is Tab — a 2-cycle is its
-  /// own reverse — and an empty cycle declines the key back to the system.
+  /// A page's whole rendered keyboard path, in order. A 1-cycle parks on its only stop; a 2-cycle
+  /// is its own reverse; and an empty cycle declines the key back to the system. Shortcut recording
+  /// is the exception because it owns the keyboard outright.
   private var tabCycle: [OnboardingFocus] {
-    switch store.visibleStep {
-    case .shortcut where !store.isRecordingShortcut:
-      [.shortcutKeycap, .shortcutContinue]
-    case .tryIt where tryItIsLive:
-      [.tryItEditor, .tryItSkip]
+    guard !store.isShowingWelcome else {
+      return [.welcomeAction]
+    }
+    return switch store.visibleStep {
+    case .permissions:
+      store.activePermission == nil ? [] : [.permissionsAction]
+    case .shortcut:
+      store.isRecordingShortcut ? [] : [.shortcutKeycap, .shortcutContinue]
+    case .model:
+      store.needsModelSetup ? [.modelAction] : []
     // Nothing to dictate into yet, so Skip is the page's only control — and still a Tab stop,
     // because a button the keyboard cannot reach is not a way out.
     case .tryIt:
-      [.tryItSkip]
-    default:
-      []
+      tryItIsLive ? [.tryItEditor, .tryItSkip] : [.tryItSkip]
+    case .ready:
+      [.readyAction]
     }
   }
 
@@ -100,7 +110,7 @@ struct OnboardingView: View {
   @ViewBuilder private var stepContent: some View {
     switch store.visibleStep {
     case .permissions:
-      OnboardingPermissionsPage(store: store)
+      OnboardingPermissionsPage(store: store, focus: $focus)
     case .shortcut:
       OnboardingShortcutPage(store: store, focus: $focus)
     case .model:
@@ -174,13 +184,12 @@ struct OnboardingView: View {
         .keyboardShortcut(.defaultAction)
         .accessibilityIdentifier(AccessibilityID.onboardingShortcutContinue)
     case .model:
-      if !store.engineReadiness.isSetupInProgress,
-         store.engineReadiness != .ready
-      {
+      if store.needsModelSetup {
         Button(
           store.engineReadiness.isFailure ? "Retry Model Setup" : "Download & Prepare",
         ) { store.send(.setupModel) }
           .buttonStyle(.borderedProminent)
+          .focused($focus, equals: .modelAction)
           .keyboardShortcut(.defaultAction)
           .accessibilityIdentifier(AccessibilityID.onboardingModelRetry)
       }
@@ -203,6 +212,7 @@ struct OnboardingView: View {
     case .ready:
       Button("Start Dictating") { store.send(.finish) }
         .buttonStyle(.borderedProminent)
+        .focused($focus, equals: .readyAction)
         .keyboardShortcut(.defaultAction)
         .accessibilityIdentifier(AccessibilityID.onboardingReadyFinish)
         .accessibilityLabel("Start Dictating")
@@ -211,10 +221,10 @@ struct OnboardingView: View {
 
   private func handleTab() -> Bool {
     let cycle = tabCycle
-    guard let first = cycle.first, let second = cycle.last else {
+    guard !cycle.isEmpty else {
       return false
     }
-    focus = focus == first ? second : first
+    focus = focus == cycle.first ? cycle.last : cycle.first
     return true
   }
 }

@@ -63,6 +63,7 @@ struct OnboardingStepPage<Card: View>: View {
 
 struct OnboardingWelcomePage: View {
   let store: StoreOf<OnboardingFeature>
+  var focus: FocusState<OnboardingFocus?>.Binding
 
   var body: some View {
     VStack(spacing: 0) {
@@ -99,6 +100,7 @@ struct OnboardingWelcomePage: View {
         .buttonStyle(.borderedProminent)
         .controlSize(.large)
         .disabled(store.isRecordingModelDownloadConsent)
+        .focused(focus, equals: .welcomeAction)
         .keyboardShortcut(.defaultAction)
         .padding(.top, 30)
         .accessibilityIdentifier(AccessibilityID.onboardingDownloadModel)
@@ -240,6 +242,7 @@ struct OnboardingPermissionsPage: View {
   // MARK: Internal
 
   let store: StoreOf<OnboardingFeature>
+  var focus: FocusState<OnboardingFocus?>.Binding
 
   var body: some View {
     OnboardingStepPage(
@@ -310,11 +313,12 @@ struct OnboardingPermissionsPage: View {
       )
       .font(.system(size: 12, weight: .medium))
       .foregroundStyle(isGranted ? Color.green : Color.secondary)
-      if ownsAction, !isGranted {
+      if ownsAction {
         // The default action follows the row that still needs the user, so Return always means
         // "do the one thing this page is asking for".
         if showsSettings {
           Button("Open Settings") { store.send(.openSystemSettings(permission)) }
+            .focused(focus, equals: .permissionsAction)
             .keyboardShortcut(.defaultAction)
             .accessibilityIdentifier(
               OnboardingAccessibility.permissionActionIdentifier(permission),
@@ -324,6 +328,7 @@ struct OnboardingPermissionsPage: View {
           Button("Grant") { store.send(.requestPermission(permission)) }
             .buttonStyle(.borderedProminent)
             .disabled(store.requestingPermission != nil)
+            .focused(focus, equals: .permissionsAction)
             .keyboardShortcut(.defaultAction)
             .accessibilityIdentifier(
               OnboardingAccessibility.permissionActionIdentifier(permission),

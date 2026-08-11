@@ -112,6 +112,13 @@ final class OnboardingKeyboardUITests: XCTestCase {
       assertOnlyWindowHasKeyboardFocus(in: app)
     }
 
+    app.buttons["miniwhisper.onboarding.rail.permissions"].click()
+    XCTAssertTrue(app.groups["miniwhisper.onboarding.permissions"].awaitExistence(timeout: 2))
+    for modifiers: XCUIElement.KeyModifierFlags in [[], [.shift]] {
+      app.typeKey(.tab, modifierFlags: modifiers)
+      assertOnlyWindowHasKeyboardFocus(in: app)
+    }
+
     let skip = app.buttons["miniwhisper.onboarding.try-it.skip"]
     app.buttons["miniwhisper.onboarding.rail.try-it"].click()
     XCTAssertTrue(skip.awaitExistence(timeout: 2))

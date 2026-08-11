@@ -163,6 +163,10 @@ enum OnboardingStep: Int, Equatable {
       isPresented && visibleStep == .tryIt
     }
 
+    var needsModelSetup: Bool {
+      !engineReadiness.isSetupInProgress && engineReadiness != .ready
+    }
+
     var isMarkingCompletion: Bool {
       completionIntent != nil
     }
@@ -466,10 +470,7 @@ enum OnboardingStep: Int, Equatable {
   }
 
   private func modelSetupEffect(for state: inout State) -> Effect<Action> {
-    guard state.snapshot.hasModelDownloadConsent,
-          !state.engineReadiness.isSetupInProgress,
-          state.engineReadiness != .ready
-    else {
+    guard state.snapshot.hasModelDownloadConsent, state.needsModelSetup else {
       return .none
     }
     state.failureMessage = nil
