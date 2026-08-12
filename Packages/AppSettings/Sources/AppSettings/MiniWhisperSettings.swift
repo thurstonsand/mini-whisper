@@ -124,27 +124,92 @@ extension SoundSettings: Codable {
   }
 }
 
+// MARK: - HotkeyCommand
+
+public enum HotkeyCommand: String, CaseIterable, Codable, Equatable, Hashable, Sendable {
+  case activate
+  case pasteLastTranscript
+}
+
 // MARK: - HotkeyBindingsSettings
 
 public struct HotkeyBindingsSettings: Equatable, Sendable {
   // MARK: Lifecycle
 
   public init(activate: [Hotkey], pasteLastTranscript: [Hotkey]) {
+    precondition(
+      Self.hasUniqueHotkeys(activate + pasteLastTranscript),
+      "A hotkey can only belong to one command",
+    )
     self.activate = activate
     self.pasteLastTranscript = pasteLastTranscript
   }
 
   // MARK: Public
 
+  public enum UpdateResult: Equatable, Sendable {
+    case updated
+    case duplicate
+    case missingIndex
+  }
+
   public static let defaults = HotkeyBindingsSettings(
     activate: [makeHotkey(modifiers: [.rightOption])],
     pasteLastTranscript: [makeHotkey(keyCode: 9, modifiers: [.leftOption, .leftCommand])],
   )
 
-  public var activate: [Hotkey]
-  public var pasteLastTranscript: [Hotkey]
+  public func hotkeys(for command: HotkeyCommand) -> [Hotkey] {
+    switch command {
+    case .activate:
+      activate
+    case .pasteLastTranscript:
+      pasteLastTranscript
+    }
+  }
+
+  @discardableResult public mutating func append(
+    _ hotkey: Hotkey, for command: HotkeyCommand,
+  ) -> UpdateResult {
+    guard !contains(hotkey) else {
+      return .duplicate
+    }
+    update(command) { $0.append(hotkey) }
+    return .updated
+  }
+
+  @discardableResult public mutating func replace(
+    at index: Int, with hotkey: Hotkey, for command: HotkeyCommand,
+  ) -> UpdateResult {
+    guard hotkeys(for: command).indices.contains(index) else {
+      return .missingIndex
+    }
+    guard !contains(hotkey) else {
+      return .duplicate
+    }
+    update(command) { $0[index] = hotkey }
+    return .updated
+  }
+
+  @discardableResult public mutating func remove(
+    at index: Int, for command: HotkeyCommand,
+  ) -> UpdateResult {
+    guard hotkeys(for: command).indices.contains(index) else {
+      return .missingIndex
+    }
+    update(command) { $0.remove(at: index) }
+    return .updated
+  }
 
   // MARK: Private
+
+  private var activate: [Hotkey]
+  private var pasteLastTranscript: [Hotkey]
+
+  private static func hasUniqueHotkeys(_ hotkeys: [Hotkey]) -> Bool {
+    hotkeys.indices.allSatisfy { index in
+      !hotkeys[..<index].contains(hotkeys[index])
+    }
+  }
 
   private static func makeHotkey(
     keyCode: UInt16? = nil, modifiers: Set<ModifierKey>,
@@ -153,6 +218,21 @@ public struct HotkeyBindingsSettings: Equatable, Sendable {
       return try Hotkey(keyCode: keyCode, modifiers: modifiers)
     } catch {
       preconditionFailure("Invalid built-in hotkey: \(error)")
+    }
+  }
+
+  private func contains(_ hotkey: Hotkey) -> Bool {
+    HotkeyCommand.allCases.contains { hotkeys(for: $0).contains(hotkey) }
+  }
+
+  private mutating func update(
+    _ command: HotkeyCommand, _ operation: (inout [Hotkey]) -> Void,
+  ) {
+    switch command {
+    case .activate:
+      operation(&activate)
+    case .pasteLastTranscript:
+      operation(&pasteLastTranscript)
     }
   }
 }
@@ -167,11 +247,21 @@ extension HotkeyBindingsSettings: Codable {
 
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
-    activate = try container.decodeIfPresent([Hotkey].self, forKey: .activate)
-      ?? Self.defaults.activate
-    pasteLastTranscript = try container.decodeIfPresent(
+    let activate = try container.decodeIfPresent([Hotkey].self, forKey: .activate)
+      ?? Self.defaults.hotkeys(for: .activate)
+    let pasteLastTranscript = try container.decodeIfPresent(
       [Hotkey].self, forKey: .pasteLastTranscript,
-    ) ?? Self.defaults.pasteLastTranscript
+    ) ?? Self.defaults.hotkeys(for: .pasteLastTranscript)
+    guard Self.hasUniqueHotkeys(activate + pasteLastTranscript) else {
+      throw DecodingError.dataCorrupted(
+        .init(
+          codingPath: decoder.codingPath,
+          debugDescription: "A hotkey can only belong to one command",
+        ),
+      )
+    }
+    self.activate = activate
+    self.pasteLastTranscript = pasteLastTranscript
   }
 }
 

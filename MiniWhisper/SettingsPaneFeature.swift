@@ -22,7 +22,7 @@ private let launchAtLoginLogger = Logger(
 
   enum Row: Hashable {
     case repair(Degradation)
-    case activate
+    case shortcut(HotkeyCommand)
     case microphone
     case sound(SoundCue)
     case launchAtLogin
@@ -31,9 +31,9 @@ private let launchAtLoginLogger = Logger(
   /// One target is exactly one control the ring can sit on, so no two of these are ever the same
   /// widget: `set` is the empty state's button, `recording` the chip a new binding is captured in.
   enum Target: Equatable {
-    case binding(Int)
-    case set
-    case recording
+    case binding(HotkeyCommand, Int)
+    case set(HotkeyCommand)
+    case recording(HotkeyCommand)
     case microphone
     case soundPreview(SoundCue)
     case soundPicker(SoundCue)
@@ -53,14 +53,23 @@ private let launchAtLoginLogger = Logger(
     // MARK: Lifecycle
 
     init(settings: Shared<MiniWhisperSettings>, health: Shared<AppHealth>) {
-      bindings = HotkeyBindingsFeature.State(settings: settings)
+      let recordingCommand = Shared<HotkeyCommand?>(value: nil)
+      bindingEditors = IdentifiedArray(
+        uniqueElements: HotkeyCommand.allCases.map {
+          HotkeyBindingsFeature.State(
+            settings: settings, command: $0, recordingCommand: recordingCommand,
+          )
+        },
+      )
+      _settings = settings
       _health = health
     }
 
     // MARK: Internal
 
+    @Shared var settings: MiniWhisperSettings
     @Shared var health: AppHealth
-    var bindings: HotkeyBindingsFeature.State
+    var bindingEditors: IdentifiedArrayOf<HotkeyBindingsFeature.State>
     var cursor = Cursor()
     var inputDevices = AudioInputDeviceSnapshot.empty
     var inputLevel: AudioLevel?
@@ -74,9 +83,14 @@ private let launchAtLoginLogger = Logger(
     var lastPlayedSound: String?
     var launchAtLoginRegistered = false
 
+    var recordingCommand: HotkeyCommand? {
+      bindingEditors.first?.recordingCommand
+    }
+
     var rows: [Row] {
       health.degradations.map(Row.repair)
-        + [.activate, .microphone]
+        + HotkeyCommand.allCases.map(Row.shortcut)
+        + [.microphone]
         + SoundCue.allCases.map(Row.sound)
         + [.launchAtLogin]
     }
@@ -92,7 +106,7 @@ private let launchAtLoginLogger = Logger(
     }
 
     var microphone: MicrophoneSelection {
-      bindings.settings.microphone
+      settings.microphone
     }
 
     /// Which device the selection actually leads to right now, so the pane can tell a route change
@@ -109,7 +123,7 @@ private let launchAtLoginLogger = Logger(
     }
 
     var sounds: SoundSettings {
-      bindings.settings.sounds
+      settings.sounds
     }
 
     var unavailableMicrophoneName: String? {
@@ -125,19 +139,15 @@ private let launchAtLoginLogger = Logger(
     var targets: [Target] {
       switch cursorRow {
       case let .repair(degradation):
-        return [.repair(degradation)]
-      case .activate:
-        let indices = bindings.hotkeys.indices.map(Target.binding)
-        if bindings.target == .new {
-          return indices + [.recording]
-        }
-        return indices.isEmpty ? [.set] : indices
+        [.repair(degradation)]
+      case let .shortcut(command):
+        bindingTargets(for: bindingEditor(command))
       case .microphone:
-        return [.microphone]
+        [.microphone]
       case let .sound(cue):
-        return [.soundPicker(cue), .soundPreview(cue)]
+        [.soundPicker(cue), .soundPreview(cue)]
       case .launchAtLogin:
-        return [.launchAtLogin]
+        [.launchAtLogin]
       }
     }
 
@@ -146,10 +156,28 @@ private let launchAtLoginLogger = Logger(
     var cursorTarget: Target {
       targets[min(cursor.target, targets.count - 1)]
     }
+
+    func bindingEditor(_ command: HotkeyCommand) -> HotkeyBindingsFeature.State {
+      guard let editor = bindingEditors[id: command] else {
+        preconditionFailure("Every hotkey command must have an editor")
+      }
+      return editor
+    }
+
+    // MARK: Private
+
+    private func bindingTargets(for bindings: HotkeyBindingsFeature.State) -> [Target] {
+      let command = bindings.command
+      let indices = bindings.hotkeys.indices.map { Target.binding(command, $0) }
+      if bindings.target == .new {
+        return indices + [.recording(command)]
+      }
+      return indices.isEmpty ? [.set(command)] : indices
+    }
   }
 
   enum Action: Equatable {
-    case bindings(HotkeyBindingsFeature.Action)
+    case bindingEditors(IdentifiedActionOf<HotkeyBindingsFeature>)
     case delegate(Delegate)
     case task
     case paneClosed
@@ -182,8 +210,6 @@ private let launchAtLoginLogger = Logger(
   @Dependency(\.sounds) var sounds
 
   var body: some ReducerOf<Self> {
-    Scope(state: \.bindings, action: \.bindings) { HotkeyBindingsFeature() }
-
     Reduce { state, action in
       switch action {
       // Both listeners run for exactly as long as the pane is on screen, and both cost a live
@@ -219,7 +245,7 @@ private let launchAtLoginLogger = Logger(
            let device = snapshot.devices.first(where: { $0.uid == uid }),
            device.name != lastKnownName
         {
-          state.bindings.$settings.withLock {
+          state.$settings.withLock {
             $0.microphone = .device(uid: uid, lastKnownName: device.name)
           }
         }
@@ -233,13 +259,13 @@ private let launchAtLoginLogger = Logger(
         guard selection != state.microphone else {
           return .none
         }
-        state.bindings.$settings.withLock { $0.microphone = selection }
+        state.$settings.withLock { $0.microphone = selection }
         return microphoneRouteChanged(&state)
       case let .soundNamesLoaded(names):
         state.soundNames = names
         return .none
       case let .soundSelected(cue, name):
-        state.bindings.$settings.withLock { $0.sounds[cue] = name }
+        state.$settings.withLock { $0.sounds[cue] = name }
         return play(name)
       case let .soundReplayRequested(cue):
         return play(state.sounds[cue])
@@ -284,11 +310,11 @@ private let launchAtLoginLogger = Logger(
         switch state.cursorTarget {
         case let .repair(degradation):
           return .send(.repairTapped(degradation))
-        case let .binding(index):
-          return .send(.bindings(.bindingTapped(index)))
-        case .recording,
-             .set:
-          return .send(.bindings(.addTapped))
+        case let .binding(command, index):
+          return send(.bindingTapped(index), to: command)
+        case let .recording(command),
+             let .set(command):
+          return send(.addTapped, to: command)
         case .microphone:
           state.microphoneActivation += 1
           return .none
@@ -304,22 +330,33 @@ private let launchAtLoginLogger = Logger(
         state.cursor.row = row
         moveTarget(&state, to: 0)
         return .none
-      case .bindings(.delegate(.recordingStopped)),
-           .bindings(.delegate(.bindingsChanged)):
+      case .bindingEditors(
+        .element(id: _, action: .delegate(.recordingStopped)),
+      ),
+      .bindingEditors(.element(id: _, action: .delegate(.bindingsChanged))):
         // The target list shrinks when a recording chip disappears or a binding is removed, so the
         // cursor is re-clamped against the list it now has.
         moveTarget(&state, to: state.cursor.target)
         return .none
-      case .bindings,
+      case .bindingEditors,
            .delegate:
         return .none
       }
+    }
+    .forEach(\.bindingEditors, action: \.bindingEditors) {
+      HotkeyBindingsFeature()
     }
   }
 
   // MARK: Private
 
   private enum CancelID { case deviceObservation, levelMonitoring }
+
+  private func send(
+    _ action: HotkeyBindingsFeature.Action, to command: HotkeyCommand,
+  ) -> Effect<Action> {
+    .send(.bindingEditors(.element(id: command, action: action)))
+  }
 
   private func play(_ name: String?) -> Effect<Action> {
     guard let name else {

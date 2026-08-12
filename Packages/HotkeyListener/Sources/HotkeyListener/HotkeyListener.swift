@@ -7,6 +7,43 @@ private let performanceLogger = Logger(
   subsystem: "com.thurstonsand.MiniWhisper", category: "performance",
 )
 
+// MARK: - EventTapCallbackBox
+
+/// Core Graphics requires a non-capturing C callback, so this concrete box carries calls across
+/// that boundary while command identity remains generic in the owning session.
+private final class EventTapCallbackBox {
+  // MARK: Lifecycle
+
+  init(
+    receive: @escaping (CGEventType, CGEvent) -> Unmanaged<CGEvent>?,
+    invalidated: @escaping () -> Void,
+  ) {
+    self.receive = receive
+    self.invalidated = invalidated
+  }
+
+  // MARK: Internal
+
+  let receive: (CGEventType, CGEvent) -> Unmanaged<CGEvent>?
+  let invalidated: () -> Void
+}
+
+private let eventTapCallback: CGEventTapCallBack = { _, type, event, userInfo in
+  guard let userInfo else {
+    return Unmanaged.passUnretained(event)
+  }
+  let callbacks = Unmanaged<EventTapCallbackBox>.fromOpaque(userInfo).takeUnretainedValue()
+  return callbacks.receive(type, event)
+}
+
+private let eventTapInvalidationCallback: CFMachPortInvalidationCallBack = { _, userInfo in
+  guard let userInfo else {
+    return
+  }
+  let callbacks = Unmanaged<EventTapCallbackBox>.fromOpaque(userInfo).takeUnretainedValue()
+  callbacks.invalidated()
+}
+
 // MARK: - TapDisableReason
 
 public enum TapDisableReason: String, Equatable, Sendable {
@@ -17,11 +54,11 @@ public enum TapDisableReason: String, Equatable, Sendable {
 
 // MARK: - HotkeyListenerEvent
 
-public enum HotkeyListenerEvent: Equatable, Sendable {
+public enum HotkeyListenerEvent<Action: Equatable & Sendable>: Equatable, Sendable {
   case accessibilityPermissionMissing
   case monitoringStarted
   case gestureInput(GestureInput)
-  case bindingAction(HotkeyBindingAction)
+  case action(Action)
   case gesture(GestureEvent)
   case monitoringInterrupted(TapDisableReason)
 }
@@ -35,10 +72,10 @@ public enum HotkeyListenerError: Error, Equatable, Sendable { case eventTapCreat
 public enum HotkeyListener {
   /// Starts listening without raising a permission dialog. A missing grant is reported as
   /// `.accessibilityPermissionMissing` so the caller can send the user to System Settings.
-  public static func events(
-    bindings: [HotkeyBinding],
-  ) async throws -> AsyncStream<HotkeyListenerEvent> {
-    let (stream, continuation) = AsyncStream.makeStream(of: HotkeyListenerEvent.self)
+  public static func events<Action: Equatable & Sendable>(
+    bindings: [HotkeyBinding<Action>],
+  ) async throws -> AsyncStream<HotkeyListenerEvent<Action>> {
+    let (stream, continuation) = AsyncStream.makeStream(of: HotkeyListenerEvent<Action>.self)
     // The last-mile guard: an Accessibility grant is what lets the session tap actually receive
     // keyboard events, and `AXIsProcessTrusted` answers live rather than caching a launch-time
     // value. Without it the tap creates and then hears nothing, which is worse than not starting.
@@ -63,10 +100,13 @@ public enum HotkeyListener {
 
 // MARK: - EventTapSession
 
-private final class EventTapSession: @unchecked Sendable {
+private final class EventTapSession<Action: Equatable & Sendable>: @unchecked Sendable {
   // MARK: Lifecycle
 
-  init(bindings: [HotkeyBinding], continuation: AsyncStream<HotkeyListenerEvent>.Continuation) {
+  init(
+    bindings: [HotkeyBinding<Action>],
+    continuation: AsyncStream<HotkeyListenerEvent<Action>>.Continuation,
+  ) {
     self.continuation = continuation
     matcher = MultipleChordMatcher(bindings: bindings)
   }
@@ -98,12 +138,51 @@ private final class EventTapSession: @unchecked Sendable {
 
   private let lock = NSLock()
 
-  private var continuation: AsyncStream<HotkeyListenerEvent>.Continuation?
+  private lazy var callbackBox = EventTapCallbackBox(
+    receive: { [unowned self] in receive(type: $0, event: $1) },
+    invalidated: { [unowned self] in stopAfterInvalidation() },
+  )
+  private var continuation: AsyncStream<HotkeyListenerEvent<Action>>.Continuation?
   private var runLoop: CFRunLoop?
   private var eventTap: CFMachPort?
   private var stopWasRequested = false
   private var pressedKeys: Set<PhysicalKey> = []
-  private var matcher: MultipleChordMatcher
+  private var matcher: MultipleChordMatcher<Action>
+
+  private func receive(type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
+    if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
+      interrupt(reason: type == .tapDisabledByTimeout ? .timeout : .userInput, reenable: true)
+      return Unmanaged.passUnretained(event)
+    }
+
+    let time = Duration.nanoseconds(Int64(clamping: event.timestamp))
+    if type == .leftMouseDown || type == .rightMouseDown || type == .otherMouseDown {
+      emit(.mouseDown(at: time))
+      return Unmanaged.passUnretained(event)
+    }
+
+    guard let transition = normalize(type: type, event: event, time: time) else {
+      return Unmanaged.passUnretained(event)
+    }
+    let match = matcher.receive(transition)
+    switch match.output {
+    case let .gesture(input),
+         let .global(input):
+      emit(input)
+    case let .action(action):
+      yield(.action(action))
+    case nil:
+      break
+    }
+    return match.disposition == .suppress ? nil : Unmanaged.passUnretained(event)
+  }
+
+  private func stopAfterInvalidation() {
+    let runLoop = lock.withLock { self.runLoop }
+    if let runLoop {
+      CFRunLoopStop(runLoop)
+    }
+  }
 
   private func run(startup: CheckedContinuation<Void, any Error>) {
     let mask = [
@@ -120,26 +199,15 @@ private final class EventTapSession: @unchecked Sendable {
       let eventTap = CGEvent.tapCreate(
         tap: .cgSessionEventTap, place: .headInsertEventTap, options: options,
         eventsOfInterest: mask,
-        callback: { _, type, event, userInfo in
-          guard let userInfo else {
-            return Unmanaged.passUnretained(event)
-          }
-          let session = Unmanaged<EventTapSession>.fromOpaque(userInfo).takeUnretainedValue()
-          return session.receive(type: type, event: event)
-        }, userInfo: Unmanaged.passUnretained(self).toOpaque(),
+        callback: eventTapCallback,
+        userInfo: Unmanaged.passUnretained(callbackBox).toOpaque(),
       )
     else {
       startup.resume(throwing: HotkeyListenerError.eventTapCreationFailed)
       return
     }
 
-    CFMachPortSetInvalidationCallBack(eventTap) { _, userInfo in
-      guard let userInfo else {
-        return
-      }
-      let session = Unmanaged<EventTapSession>.fromOpaque(userInfo).takeUnretainedValue()
-      session.stopAfterInvalidation()
-    }
+    CFMachPortSetInvalidationCallBack(eventTap, eventTapInvalidationCallback)
 
     let runLoop = CFRunLoopGetCurrent()
     let source = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, eventTap, 0)
@@ -164,31 +232,6 @@ private final class EventTapSession: @unchecked Sendable {
       self.runLoop = nil
     }
     finishStream()
-  }
-
-  private func receive(type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
-    if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
-      interrupt(reason: type == .tapDisabledByTimeout ? .timeout : .userInput, reenable: true)
-      return Unmanaged.passUnretained(event)
-    }
-
-    let time = Duration.nanoseconds(Int64(clamping: event.timestamp))
-    if type == .leftMouseDown || type == .rightMouseDown || type == .otherMouseDown {
-      emit(.mouseDown(at: time))
-      return Unmanaged.passUnretained(event)
-    }
-
-    guard let transition = normalize(type: type, event: event, time: time) else {
-      return Unmanaged.passUnretained(event)
-    }
-    let match = matcher.receive(transition)
-    if let input = match.input {
-      emit(input)
-    }
-    if let action = match.action {
-      yield(.bindingAction(action))
-    }
-    return match.disposition == .suppress ? nil : Unmanaged.passUnretained(event)
   }
 
   private func normalize(type: CGEventType, event: CGEvent, time: Duration) -> KeyTransition? {
@@ -242,13 +285,6 @@ private final class EventTapSession: @unchecked Sendable {
     }
   }
 
-  private func stopAfterInvalidation() {
-    let runLoop = lock.withLock { self.runLoop }
-    if let runLoop {
-      CFRunLoopStop(runLoop)
-    }
-  }
-
   private func emit(_ input: GestureInput) {
     if input.isActivation {
       performanceLogger.notice("benchmark hotkey-press")
@@ -256,7 +292,7 @@ private final class EventTapSession: @unchecked Sendable {
     yield(.gestureInput(input))
   }
 
-  private func yield(_ event: HotkeyListenerEvent) {
+  private func yield(_ event: HotkeyListenerEvent<Action>) {
     let continuation = lock.withLock { self.continuation }
     continuation?.yield(event)
   }

@@ -27,11 +27,13 @@ struct SettingsPane: View {
       }
 
       Section {
-        ShortcutRow(store: store)
+        ForEach(HotkeyCommand.allCases, id: \.self) { command in
+          ShortcutRow(store: store, command: command)
+        }
       } header: {
         Text("Shortcuts")
       } footer: {
-        Text("Hold to dictate, or double-tap to keep recording hands free.")
+        Text("Activation shortcuts: hold to dictate, or double-tap to keep recording hands free.")
       }
 
       Section("Microphone") {
@@ -430,76 +432,117 @@ private struct ShortcutRow: View {
   // MARK: Internal
 
   let store: StoreOf<SettingsWindowFeature>
+  let command: HotkeyCommand
 
   var body: some View {
-    LabeledContent("Activate") {
+    LabeledContent(label) {
       VStack(alignment: .trailing, spacing: 4) {
         HStack {
           ForEach(Array(hotkeys.enumerated()), id: \.offset) { index, hotkey in
             bindingButton(index: index, hotkey: hotkey)
           }
-          if store.settingsPane.bindings.target == .new {
+          if bindings.target == .new {
             recordingChip
           }
-          if hotkeys.isEmpty, !store.settingsPane.bindings.isRecording {
+          if hotkeys.isEmpty, !bindings.isRecording {
             emptyState
           }
-          ShortcutMoreMenu(store: store)
+          ShortcutMoreMenu(store: store, command: command)
         }
-        if let message = store.settingsPane.bindings.validationMessage {
+        if let message = bindings.validationMessage {
           Text(message)
             .font(.caption)
             .foregroundStyle(.orange)
-            .accessibilityIdentifier(AccessibilityID.settingsShortcutRecordingError)
+            .accessibilityIdentifier(recordingErrorAccessibilityID)
         }
       }
     }
-    .modifier(SettingsFormRow(store: store, row: .activate))
+    .modifier(SettingsFormRow(store: store, row: row))
+    .disabled(
+      store.settingsPane.recordingCommand != nil
+        && store.settingsPane.recordingCommand != command,
+    )
     .accessibilityElement(children: .contain)
-    .accessibilityIdentifier(AccessibilityID.settingsShortcutRow)
-    .accessibilityLabel("Activate shortcut")
+    .accessibilityIdentifier(rowAccessibilityID)
+    .accessibilityLabel("\(label) shortcut")
     .accessibilityPaintState(
-      AccessibilityID.settingsShortcutRowState, label: "Activate shortcut highlight",
-      value: store.state.showsSettingsBar(.activate) ? "Bar on" : "Bar off",
+      rowStateAccessibilityID, label: "\(label) shortcut highlight",
+      value: store.state.showsSettingsBar(row) ? "Bar on" : "Bar off",
     )
   }
 
   // MARK: Private
 
+  private var bindings: HotkeyBindingsFeature.State {
+    store.settingsPane.bindingEditor(command)
+  }
+
   private var hotkeys: [Hotkey] {
-    store.settingsPane.bindings.hotkeys
+    bindings.hotkeys
+  }
+
+  private var presentation: ShortcutPresentation {
+    command.settingsPresentation
+  }
+
+  private var label: String {
+    presentation.label
+  }
+
+  private var row: SettingsPaneFeature.Row {
+    .shortcut(command)
+  }
+
+  private var rowAccessibilityID: String {
+    presentation.rowAccessibilityID
+  }
+
+  private var rowStateAccessibilityID: String {
+    presentation.rowStateAccessibilityID
+  }
+
+  private var recordingAccessibilityID: String {
+    presentation.recordingAccessibilityID
+  }
+
+  private var recordingErrorAccessibilityID: String {
+    presentation.recordingErrorAccessibilityID
+  }
+
+  private var setAccessibilityID: String {
+    presentation.setAccessibilityID
   }
 
   /// A recording in flight shows the chord as it is built, and says so before there is one.
   private var recordingComponents: [String] {
-    store.settingsPane.bindings.liveChord?.displayComponents ?? ["Recording…"]
+    bindings.liveChord?.displayComponents ?? ["Recording…"]
   }
 
   private var recordingTitle: String {
-    store.settingsPane.bindings.liveChord?.displayName ?? "Recording…"
+    bindings.liveChord?.displayName ?? "Recording…"
   }
 
   private var recordingChip: some View {
-    HotkeyKeycaps(components: recordingComponents, ringed: showsRing(.recording))
+    HotkeyKeycaps(components: recordingComponents, ringed: showsRing(.recording(command)))
       .accessibilityElement()
-      .accessibilityIdentifier(AccessibilityID.settingsShortcutRecording)
+      .accessibilityIdentifier(recordingAccessibilityID)
       .accessibilityLabel(recordingTitle)
-      .accessibilityValue(showsRing(.recording) ? "Ring on" : "Ring off")
+      .accessibilityValue(showsRing(.recording(command)) ? "Ring on" : "Ring off")
   }
 
   @ViewBuilder private var emptyState: some View {
     Text("Not set").foregroundStyle(.secondary)
-    Button("Set…") { store.send(.settingsPane(.bindings(.addTapped))) }
-      .focusRing(showsRing(.set))
-      .accessibilityIdentifier(AccessibilityID.settingsShortcutSet)
-      .accessibilityValue(showsRing(.set) ? "Ring on" : "Ring off")
+    Button("Set…") { send(.addTapped) }
+      .focusRing(showsRing(.set(command)))
+      .accessibilityIdentifier(setAccessibilityID)
+      .accessibilityValue(showsRing(.set(command)) ? "Ring on" : "Ring off")
   }
 
   private func bindingButton(index: Int, hotkey: Hotkey) -> some View {
-    let isRecording = store.settingsPane.bindings.isRecording(index)
-    let target = SettingsPaneFeature.Target.binding(index)
+    let isRecording = bindings.isRecording(index)
+    let target = SettingsPaneFeature.Target.binding(command, index)
     return Button {
-      store.send(.settingsPane(.bindings(.bindingTapped(index))))
+      send(.bindingTapped(index))
     } label: {
       HotkeyKeycaps(
         components: isRecording ? recordingComponents : hotkey.displayComponents,
@@ -510,14 +553,24 @@ private struct ShortcutRow: View {
     .accessibilityLabel(isRecording ? recordingTitle : hotkey.displayName)
     .accessibilityIdentifier(
       isRecording
-        ? AccessibilityID.settingsShortcutRecording
-        : AccessibilityID.settingsShortcutBinding(index),
+        ? recordingAccessibilityID
+        : bindingAccessibilityID(index),
     )
     .accessibilityValue(showsRing(target) ? "Ring on" : "Ring off")
   }
 
+  private func bindingAccessibilityID(_ index: Int) -> String {
+    presentation.bindingAccessibilityID(index)
+  }
+
+  private func send(_ action: HotkeyBindingsFeature.Action) {
+    store.send(
+      .settingsPane(.bindingEditors(.element(id: command, action: action))),
+    )
+  }
+
   private func showsRing(_ target: SettingsPaneFeature.Target) -> Bool {
-    store.state.showsSettingsRing(.activate, target: target)
+    store.state.showsSettingsRing(row, target: target)
   }
 }
 
@@ -558,18 +611,19 @@ private struct ShortcutMoreMenu: View {
   // MARK: Internal
 
   let store: StoreOf<SettingsWindowFeature>
+  let command: HotkeyCommand
 
   var body: some View {
     Menu {
       Button("Add Another…", systemImage: "plus") {
-        store.send(.settingsPane(.bindings(.addTapped)))
+        send(.addTapped)
       }
       if !hotkeys.isEmpty {
         Divider()
         ForEach(Array(hotkeys.enumerated()), id: \.offset) {
           index, hotkey in
           Button("Remove \(hotkey.displayName)", systemImage: "xmark", role: .destructive) {
-            store.send(.settingsPane(.bindings(.removeTapped(index))))
+            send(.removeTapped(index))
           }
         }
       }
@@ -579,15 +633,71 @@ private struct ShortcutMoreMenu: View {
     .menuStyle(.borderlessButton)
     .menuIndicator(.hidden)
     .fixedSize()
-    .disabled(store.settingsPane.bindings.isRecording)
+    .disabled(bindings.isRecording)
     .focusable(false)
-    .accessibilityIdentifier(AccessibilityID.settingsShortcutMenu)
+    .accessibilityIdentifier(menuAccessibilityID)
     .accessibilityLabel("Shortcut actions")
   }
 
   // MARK: Private
 
+  private var bindings: HotkeyBindingsFeature.State {
+    store.settingsPane.bindingEditor(command)
+  }
+
   private var hotkeys: [Hotkey] {
-    store.settingsPane.bindings.hotkeys
+    bindings.hotkeys
+  }
+
+  private var menuAccessibilityID: String {
+    command.settingsPresentation.menuAccessibilityID
+  }
+
+  private func send(_ action: HotkeyBindingsFeature.Action) {
+    store.send(
+      .settingsPane(.bindingEditors(.element(id: command, action: action))),
+    )
+  }
+}
+
+// MARK: - ShortcutPresentation
+
+private struct ShortcutPresentation {
+  let label: String
+  let rowAccessibilityID: String
+  let rowStateAccessibilityID: String
+  let recordingAccessibilityID: String
+  let recordingErrorAccessibilityID: String
+  let setAccessibilityID: String
+  let menuAccessibilityID: String
+  let bindingAccessibilityID: (Int) -> String
+}
+
+private extension HotkeyCommand {
+  var settingsPresentation: ShortcutPresentation {
+    switch self {
+    case .activate:
+      ShortcutPresentation(
+        label: "Activate",
+        rowAccessibilityID: AccessibilityID.settingsShortcutRow,
+        rowStateAccessibilityID: AccessibilityID.settingsShortcutRowState,
+        recordingAccessibilityID: AccessibilityID.settingsShortcutRecording,
+        recordingErrorAccessibilityID: AccessibilityID.settingsShortcutRecordingError,
+        setAccessibilityID: AccessibilityID.settingsShortcutSet,
+        menuAccessibilityID: AccessibilityID.settingsShortcutMenu,
+        bindingAccessibilityID: AccessibilityID.settingsShortcutBinding,
+      )
+    case .pasteLastTranscript:
+      ShortcutPresentation(
+        label: "Paste last transcript",
+        rowAccessibilityID: AccessibilityID.settingsPasteLastShortcutRow,
+        rowStateAccessibilityID: AccessibilityID.settingsPasteLastShortcutRowState,
+        recordingAccessibilityID: AccessibilityID.settingsPasteLastShortcutRecording,
+        recordingErrorAccessibilityID: AccessibilityID.settingsPasteLastShortcutRecordingError,
+        setAccessibilityID: AccessibilityID.settingsPasteLastShortcutSet,
+        menuAccessibilityID: AccessibilityID.settingsPasteLastShortcutMenu,
+        bindingAccessibilityID: AccessibilityID.settingsPasteLastShortcutBinding,
+      )
+    }
   }
 }

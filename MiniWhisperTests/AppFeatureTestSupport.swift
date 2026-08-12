@@ -1,3 +1,4 @@
+import AppSettings
 import ASREngine
 import AudioCapture
 import FieldContext
@@ -6,6 +7,16 @@ import HotkeyListener
 @testable import MiniWhisper
 
 // MARK: - Test hotkeys
+
+extension HotkeyBindingsSettings {
+  mutating func set(_ hotkeys: [Hotkey], for command: HotkeyCommand) {
+    self = HotkeyBindingsSettings(
+      activate: command == .activate ? hotkeys : self.hotkeys(for: .activate),
+      pasteLastTranscript: command == .pasteLastTranscript
+        ? hotkeys : self.hotkeys(for: .pasteLastTranscript),
+    )
+  }
+}
 
 extension Hotkey {
   static let testRightOption = try! Hotkey(modifiers: [.rightOption])

@@ -415,11 +415,15 @@ struct OnboardingStepDerivationTests {
     }
 
     await store.send(.shortcutBindings(.primaryBindingTapped)) {
+      $0.shortcutBindings.$recordingCommand.withLock { $0 = .activate }
       $0.shortcutBindings.target = .existing(0)
     }
     await store.receive(.shortcutBindings(.delegate(.recordingStarted)))
     await store.send(.shortcutBindings(.recorderEvent(.committed(replacement)))) {
-      $0.shortcutBindings.$settings.withLock { $0.bindings.activate = [replacement, extra] }
+      $0.shortcutBindings.$settings.withLock {
+        $0.bindings.set([replacement, extra], for: .activate)
+      }
+      $0.shortcutBindings.$recordingCommand.withLock { $0 = nil }
       $0.shortcutBindings.target = nil
     }
     await store.receive(.shortcutBindings(.delegate(.recordingStopped)))
@@ -431,20 +435,26 @@ struct OnboardingStepDerivationTests {
     let store = TestStore(initialState: shortcutState()) { OnboardingFeature() }
 
     await store.send(.shortcutBindings(.primaryBindingTapped)) {
+      $0.shortcutBindings.$recordingCommand.withLock { $0 = .activate }
       $0.shortcutBindings.target = .existing(0)
     }
     await store.receive(.shortcutBindings(.delegate(.recordingStarted)))
     await store.send(.shortcutBindings(.recorderEvent(.committed(replacement)))) {
-      $0.shortcutBindings.$settings.withLock { $0.bindings.activate = [replacement] }
+      $0.shortcutBindings.$settings.withLock {
+        $0.bindings.set([replacement], for: .activate)
+      }
+      $0.shortcutBindings.$recordingCommand.withLock { $0 = nil }
       $0.shortcutBindings.target = nil
     }
     await store.receive(.shortcutBindings(.delegate(.recordingStopped)))
 
     await store.send(.shortcutBindings(.primaryBindingTapped)) {
+      $0.shortcutBindings.$recordingCommand.withLock { $0 = .activate }
       $0.shortcutBindings.target = .existing(0)
     }
     await store.receive(.shortcutBindings(.delegate(.recordingStarted)))
     await store.send(.shortcutBindings(.recorderEvent(.cancelled))) {
+      $0.shortcutBindings.$recordingCommand.withLock { $0 = nil }
       $0.shortcutBindings.target = nil
     }
     await store.receive(.shortcutBindings(.delegate(.recordingStopped)))
@@ -614,7 +624,7 @@ struct OnboardingStepDerivationTests {
 
   private func shortcutState(hotkeys: [Hotkey] = [.testRightOption]) -> OnboardingFeature.State {
     var settings = MiniWhisperSettings.defaults
-    settings.bindings.activate = hotkeys
+    settings.bindings.set(hotkeys, for: .activate)
     var state = OnboardingFeature.State(settings: Shared(value: settings))
     state.isPresented = true
     state.snapshot = modelSnapshot()

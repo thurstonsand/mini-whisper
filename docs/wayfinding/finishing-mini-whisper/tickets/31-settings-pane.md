@@ -78,6 +78,14 @@ Decision evidence: cue-timing survey (session 019fdd0f), tap-norm/foreign-key su
 
 Remaining: permissions row (5), Open at login/Version, and the rest of the menu slimming (6).
 
+## Built: the paste-last rebind row
+
+[Paste-last recovery](12-paste-last-recovery.md) brought a second action into the Shortcuts section, and the section absorbed it as a sibling rather than a special case: one `ShortcutRow` view parameterized by command renders both rows with the same keycap/chip/recorder presentation, and `HotkeyBindingsFeature` edits whichever command's array it is constructed for. What the second action forced structural:
+
+- **The model became per-action.** `HotkeyBindingsSettings` holds `activate` and `pasteLastTranscript` arrays; the flat `hotkeys` key is gone with the no-users-exist rule. A chord belongs to at most one command — enforced at construction and in decode (a hand-edited duplicate fails fast), so ambiguous matcher routing is unrepresentable rather than checked.
+- **One recording at a time, one guard.** A shared `recordingCommand` coordinator spans the editor children; `beginRecording` is the single gate for every input path, and commit/cancel/clear releases it. The row `.disabled` state is cosmetic.
+- **Unbound is legitimate for paste-last.** Its last binding can be removed; the pill narrates the state ("Nowhere to paste — transcript saved to History"). The Shortcuts footer now scopes hold/double-tap guidance to activation.
+
 ## Inherited constraints
 
 - The window's input model is already law: the pane participates in the h/j/k/l loop (`h` ascends to the sidebar), and keyboard focus behavior follows the contract recorded in [History](11-history.md).

@@ -40,7 +40,7 @@ import SwiftUI
     window.contentView = NSHostingView(
       rootView: SettingsWindowView(store: store, initialFocus: initialFocus),
     )
-    window.setContentSize(NSSize(width: 860, height: 620))
+    window.setContentSize(NSSize(width: 860, height: 680))
     window.center()
     window.delegate = self
     self.window = window

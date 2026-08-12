@@ -26,10 +26,13 @@ struct MiniWhisperSettingsTests {
 
     let settings = try SettingsCoding.decode(data)
 
-    #expect(try settings.bindings.activate == [Hotkey(keyCode: 0, modifiers: [.leftCommand])])
     #expect(
-      settings.bindings.pasteLastTranscript
-        == HotkeyBindingsSettings.defaults.pasteLastTranscript,
+      try settings.bindings.hotkeys(for: .activate)
+        == [Hotkey(keyCode: 0, modifiers: [.leftCommand])],
+    )
+    #expect(
+      settings.bindings.hotkeys(for: .pasteLastTranscript)
+        == HotkeyBindingsSettings.defaults.hotkeys(for: .pasteLastTranscript),
     )
     #expect(settings.retention == .defaults)
     #expect(settings.microphone == .systemDefault)
@@ -56,6 +59,23 @@ struct MiniWhisperSettingsTests {
     contents: String,
   ) {
     #expect(throws: (any Error).self) { try SettingsCoding.decode(Data(contents.utf8)) }
+  }
+
+  @Test func `duplicate hotkeys fail at the settings boundary`() {
+    let duplicate = #"{"bindings":{"activate":[{"modifiers":["rightOption"]}],"pasteLastTranscript":[{"modifiers":["rightOption"]}]}}"#
+
+    #expect(throws: (any Error).self) {
+      try SettingsCoding.decode(Data(duplicate.utf8))
+    }
+  }
+
+  @Test func `binding mutations preserve ownership across commands`() {
+    var bindings = HotkeyBindingsSettings.defaults
+    let paste = bindings.hotkeys(for: .pasteLastTranscript)[0]
+
+    #expect(bindings.append(paste, for: .activate) == .duplicate)
+    #expect(bindings.replace(at: 0, with: paste, for: .activate) == .duplicate)
+    #expect(bindings == .defaults)
   }
 
   @Test func `every setting survives a round trip`() throws {

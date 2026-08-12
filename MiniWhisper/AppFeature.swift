@@ -123,7 +123,7 @@ private let performanceLogger = Logger(
     case pill(PillFeature.Action)
     case onboarding(OnboardingFeature.Action)
     case settingsWindow(SettingsWindowFeature.Action)
-    case hotkeyListenerEvent(HotkeyListenerEvent)
+    case hotkeyListenerEvent(HotkeyListenerEvent<HotkeyAction>)
     case pasteLastTranscript
     case recoveryDeliveryCompleted(DeliveryResult)
     case recoveryDeliveryFailed(DeliveryFailure)
@@ -190,18 +190,27 @@ private let performanceLogger = Logger(
         return .send(.recording(.microphoneChanged(selection)))
       case let .settingsWindow(.settingsPane(.delegate(.repair(repair)))):
         return .send(.repairRequested(repair))
-      case .settingsWindow(.settingsPane(.bindings(.delegate(.recordingStarted)))):
+      case let .settingsWindow(
+        .settingsPane(.bindingEditors(.element(id: command, action: .delegate(.recordingStarted)))),
+      ):
         return beginHotkeyRecording(
-          &state, recorderReady: .settingsWindow(.settingsPane(.bindings(.recorderReady))),
+          &state,
+          recorderReady: .settingsWindow(
+            .settingsPane(.bindingEditors(.element(id: command, action: .recorderReady))),
+          ),
         )
       case .onboarding(.shortcutBindings(.delegate(.recordingStarted))):
         return beginHotkeyRecording(
           &state, recorderReady: .onboarding(.shortcutBindings(.recorderReady)),
         )
-      case .settingsWindow(.settingsPane(.bindings(.delegate(.recordingStopped)))),
-           .settingsWindow(.settingsPane(.bindings(.delegate(.bindingsChanged)))),
-           .onboarding(.shortcutBindings(.delegate(.recordingStopped))),
-           .onboarding(.shortcutBindings(.delegate(.bindingsChanged))):
+      case .settingsWindow(
+        .settingsPane(.bindingEditors(.element(id: _, action: .delegate(.recordingStopped)))),
+      ),
+      .settingsWindow(
+        .settingsPane(.bindingEditors(.element(id: _, action: .delegate(.bindingsChanged)))),
+      ),
+      .onboarding(.shortcutBindings(.delegate(.recordingStopped))),
+      .onboarding(.shortcutBindings(.delegate(.bindingsChanged))):
         return restartHotkeyListener(&state)
       case .settingsWindow:
         return .none
@@ -324,10 +333,8 @@ private let performanceLogger = Logger(
         return reason == .invalidated ? diagnoseTapLoss(&state) : .none
       case let .hotkeyListenerEvent(.gestureInput(input)):
         return receiveGestureInput(input, state: &state)
-      case .hotkeyListenerEvent(.bindingAction(.pasteLastTranscript)):
+      case .hotkeyListenerEvent(.action(.pasteLastTranscript)):
         return .send(.pasteLastTranscript)
-      case .hotkeyListenerEvent(.bindingAction(.activate)):
-        preconditionFailure("Activation bindings must emit gesture input")
       case let .gestureDeadlineElapsed(generation):
         guard generation == state.gestureDeadlineGeneration else {
           return .none
@@ -509,7 +516,9 @@ private let performanceLogger = Logger(
           engineLogger.notice("Gate rejected recording: no speech")
           return abandonDictation(
             &state,
-            retryMessage: Self.noSpeechRetryMessage(hotkeys: state.settings.bindings.activate),
+            retryMessage: Self.noSpeechRetryMessage(
+              hotkeys: state.settings.bindings.hotkeys(for: .activate),
+            ),
           )
         case .engineEmpty:
           engineLogger.notice("Engine accepted speech but returned an empty transcript")
@@ -725,73 +734,6 @@ private let performanceLogger = Logger(
     }.cancellable(id: CancelID.delivery, cancelInFlight: true)
   }
 
-  /// The single place the Accessibility grant is turned into hotkey-listening state: every
-  /// observation of it — startup, onboarding, activation, the menu — lands here so a grant made
-  /// after setup starts the listener and a revocation stops it, without a relaunch either way.
-  private func reconcileAccessibility(_ granted: Bool, _ state: inout State) -> Effect<Action> {
-    state.$health.withLock { $0.accessibilityGranted = granted }
-    guard granted else {
-      state.$health.withLock { $0.hotkeyTap = .idle }
-      return .cancel(id: CancelID.hotkeyEvents)
-    }
-    guard state.health.hotkeyTap != .active, state.health.hotkeyTap != .starting else {
-      return .none
-    }
-    return restartHotkeyListener(&state)
-  }
-
-  private func beginHotkeyRecording(
-    _ state: inout State, recorderReady: Action,
-  ) -> Effect<Action> {
-    // Stop the activation tap before the recorder installs its owning tap. This ordering makes
-    // recording the activation shortcut race-free: no physical event can reach both consumers.
-    state.$health.withLock { $0.hotkeyTap = .idle }
-    return .concatenate(.cancel(id: CancelID.hotkeyEvents), .send(recorderReady))
-  }
-
-  /// Not listening is not a failure by itself: a missing grant ends here, and `health` tells the
-  /// menu bar why the tap is idle.
-  private func restartHotkeyListener(_ state: inout State) -> Effect<Action> {
-    guard state.health.accessibilityGranted else {
-      state.$health.withLock { $0.hotkeyTap = .idle }
-      return .cancel(id: CancelID.hotkeyEvents)
-    }
-    state.$health.withLock { $0.hotkeyTap = .starting }
-    let bindings = state.settings.bindings.activate.map {
-      HotkeyBinding(hotkey: $0, action: .activate)
-    } + state.settings.bindings.pasteLastTranscript.map {
-      HotkeyBinding(hotkey: $0, action: .pasteLastTranscript)
-    }
-    return listenForHotkeyEvents(bindings: bindings)
-  }
-
-  /// A revoked grant kills the tap exactly the way a genuine failure does. Only a live read tells
-  /// them apart, and only one of the two has a repair that can work.
-  private func diagnoseTapLoss(_ state: inout State) -> Effect<Action> {
-    let granted = accessibilityPermission.hasPermission()
-    state.$health.withLock { $0.accessibilityGranted = granted }
-    guard granted else {
-      state.$health.withLock { $0.hotkeyTap = .idle }
-      return .cancel(id: CancelID.hotkeyEvents)
-    }
-    state.$health.withLock { $0.hotkeyTap = .dead }
-    return .none
-  }
-
-  private func listenForHotkeyEvents(bindings: [HotkeyBinding]) -> Effect<Action> {
-    .run { send in
-      do {
-        let events = try await hotkeyListener.events(bindings)
-        for await event in events {
-          await send(.hotkeyListenerEvent(event))
-        }
-        await send(.hotkeyListenerFinished)
-      } catch {
-        await send(.hotkeyListenerFailed(String(describing: error)))
-      }
-    }.cancellable(id: CancelID.hotkeyEvents, cancelInFlight: true)
-  }
-
   /// Settings are edited by hand as well as by the pane, so the file has to exist and say what
   /// the defaults are before anyone opens it. Emptiness rather than absence is the test: file
   /// storage creates an empty placeholder to watch and reads it back as nothing stored. A file
@@ -909,7 +851,9 @@ private let performanceLogger = Logger(
   }
 
   private func noReceiverNotice(settings: HotkeyBindingsSettings) -> PillFeature.Action {
-    .noReceiver(pasteShortcut: settings.pasteLastTranscript.first?.compactDisplayName)
+    .noReceiver(
+      pasteShortcut: settings.hotkeys(for: .pasteLastTranscript).first?.compactDisplayName,
+    )
   }
 
   private func noReceiverOnboardingMessage(for reason: NoReceiverReason) -> String {

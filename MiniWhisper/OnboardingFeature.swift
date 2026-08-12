@@ -98,7 +98,7 @@ enum OnboardingStep: Int, Equatable {
       ),
       health: Shared<AppHealth> = Shared(value: AppHealth()),
     ) {
-      shortcutBindings = HotkeyBindingsFeature.State(settings: settings)
+      shortcutBindings = HotkeyBindingsFeature.State(settings: settings, command: .activate)
       _health = health
     }
 

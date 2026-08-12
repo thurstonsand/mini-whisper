@@ -10,9 +10,11 @@
 		A04F74413B6111F8F74AD5FD /* Perception in Frameworks */ = {isa = PBXBuildFile; productRef = 3132E7DAFCD7ABE9B86883F2 /* Perception */; };
 		A84001CE09DCA5531385D839 /* PerceptionCore in Frameworks */ = {isa = PBXBuildFile; productRef = 11E518D517DF3ABD712C5290 /* PerceptionCore */; };
 		30C033FE6CC083FF51D1B069 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 2E2B8F4DE4D58CBFA00AF799 /* ComposableArchitecture */; };
+		60B60001000000000000B601 /* IdentifiedCollections in Frameworks */ = {isa = PBXBuildFile; productRef = 60B60002000000000000B602 /* IdentifiedCollections */; };
 		66D4643EA45AD83DE4BE5C98 /* Dependencies in Frameworks */ = {isa = PBXBuildFile; productRef = 1DB54F283E5449FDB8816ED8 /* Dependencies */; };
 		7A41C09355D0421B8E60A1F2 /* CasePaths in Frameworks */ = {isa = PBXBuildFile; productRef = 8B52D1E4A7F3462C9D0B3E51 /* CasePaths */; };
 		0C6990419A1EC8BA8CD5EE19 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = A65123A7D2DB4374D0DDE628 /* ComposableArchitecture */; };
+		60B60004000000000000B604 /* IdentifiedCollections in Frameworks */ = {isa = PBXBuildFile; productRef = 60B60005000000000000B605 /* IdentifiedCollections */; };
 		A11111111111111111111111 /* Dependencies in Frameworks */ = {isa = PBXBuildFile; productRef = A11333333333333333333333 /* Dependencies */; };
 		A12222222222222222222222 /* Clocks in Frameworks */ = {isa = PBXBuildFile; productRef = A14444444444444444444444 /* Clocks */; };
 		60292D072EF609BE009AD5D1 /* ASREngine in Frameworks */ = {isa = PBXBuildFile; productRef = 60292D062EF609BE009AD5D1 /* ASREngine */; };
@@ -105,6 +107,7 @@
 				A04F74413B6111F8F74AD5FD /* Perception in Frameworks */,
 				A84001CE09DCA5531385D839 /* PerceptionCore in Frameworks */,
 				30C033FE6CC083FF51D1B069 /* ComposableArchitecture in Frameworks */,
+				60B60001000000000000B601 /* IdentifiedCollections in Frameworks */,
 				66D4643EA45AD83DE4BE5C98 /* Dependencies in Frameworks */,
 				7A41C09355D0421B8E60A1F2 /* CasePaths in Frameworks */,
 				60292D0F2EF609C9009AD5D1 /* DependenciesMacros in Frameworks */,
@@ -125,6 +128,7 @@
 			files = (
 				A12222222222222222222222 /* Clocks in Frameworks */,
 				0C6990419A1EC8BA8CD5EE19 /* ComposableArchitecture in Frameworks */,
+				60B60004000000000000B604 /* IdentifiedCollections in Frameworks */,
 				A11111111111111111111111 /* Dependencies in Frameworks */,
 				60A50008000000000000A508 /* History in Frameworks */,
 				60A5000C000000000000A50C /* Sharing in Frameworks */,
@@ -239,6 +243,7 @@
 				3132E7DAFCD7ABE9B86883F2 /* Perception */,
 				11E518D517DF3ABD712C5290 /* PerceptionCore */,
 				2E2B8F4DE4D58CBFA00AF799 /* ComposableArchitecture */,
+				60B60002000000000000B602 /* IdentifiedCollections */,
 				1DB54F283E5449FDB8816ED8 /* Dependencies */,
 				8B52D1E4A7F3462C9D0B3E51 /* CasePaths */,
 				60292D0E2EF609C9009AD5D1 /* DependenciesMacros */,
@@ -275,6 +280,7 @@
 			packageProductDependencies = (
 				A14444444444444444444444 /* Clocks */,
 				A65123A7D2DB4374D0DDE628 /* ComposableArchitecture */,
+				60B60005000000000000B605 /* IdentifiedCollections */,
 				A11333333333333333333333 /* Dependencies */,
 				60A50009000000000000A509 /* History */,
 				60A5000D000000000000A50D /* Sharing */,
@@ -344,6 +350,7 @@
 				6EBDD87AF2355A54F1CA5FE9 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
 				4103BDA94D7D538967F7C421 /* XCRemoteSwiftPackageReference "swift-dependencies" */,
 				3F7E2A186C4B4D95A1E80D62 /* XCRemoteSwiftPackageReference "swift-case-paths" */,
+				60B60003000000000000B603 /* XCRemoteSwiftPackageReference "swift-identified-collections" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 60292CD62EF603C8009AD5D1 /* Products */;
@@ -937,6 +944,14 @@
 				minimumVersion = 1.7.0;
 			};
 		};
+		60B60003000000000000B603 /* XCRemoteSwiftPackageReference "swift-identified-collections" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-identified-collections";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.1.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -954,6 +969,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 6EBDD87AF2355A54F1CA5FE9 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
 			productName = ComposableArchitecture;
+		};
+		60B60002000000000000B602 /* IdentifiedCollections */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 60B60003000000000000B603 /* XCRemoteSwiftPackageReference "swift-identified-collections" */;
+			productName = IdentifiedCollections;
 		};
 		1DB54F283E5449FDB8816ED8 /* Dependencies */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -974,6 +994,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 6EBDD87AF2355A54F1CA5FE9 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
 			productName = ComposableArchitecture;
+		};
+		60B60005000000000000B605 /* IdentifiedCollections */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 60B60003000000000000B603 /* XCRemoteSwiftPackageReference "swift-identified-collections" */;
+			productName = IdentifiedCollections;
 		};
 		A11333333333333333333333 /* Dependencies */ = {
 			isa = XCSwiftPackageProductDependency;

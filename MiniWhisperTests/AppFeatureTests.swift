@@ -98,7 +98,7 @@ import Testing
   }
 
   @Test func `completed startup starts the listener without presenting onboarding`() async {
-    let (events, continuation) = AsyncStream.makeStream(of: HotkeyListenerEvent.self)
+    let (events, continuation) = AsyncStream.makeStream(of: HotkeyListenerEvent<HotkeyAction>.self)
     let permissions = OnboardingPermissionStatuses(
       microphoneStatus: .granted, hasAccessibilityPermission: true,
     )
@@ -155,13 +155,25 @@ import Testing
     )
   }
 
+  @Test func `settings build the listener routes in the application layer`() {
+    let defaults = HotkeyBindingsSettings.defaults
+
+    #expect(defaults.listenerBindings == [
+      HotkeyBinding(hotkey: defaults.hotkeys(for: .activate)[0], route: .gesture),
+      HotkeyBinding(
+        hotkey: defaults.hotkeys(for: .pasteLastTranscript)[0],
+        route: .action(.pasteLastTranscript),
+      ),
+    ])
+  }
+
   @Test func `recording A binding stops activation before capture and restarts with the commit`(
   ) async throws {
     let (recorderEvents, recorderContinuation) = AsyncStream.makeStream(
       of: HotkeyRecorderEvent.self,
     )
     let (listenerEvents, listenerContinuation) = AsyncStream.makeStream(
-      of: HotkeyListenerEvent.self,
+      of: HotkeyListenerEvent<HotkeyAction>.self,
     )
     let replacement = try Hotkey(keyCode: 15, modifiers: [.rightControl])
     var state = AppFeature.State()
@@ -175,36 +187,119 @@ import Testing
       $0.hotkeyListener.record = { recorderEvents }
       $0.hotkeyListener.events = { bindings in
         #expect(bindings == [
-          HotkeyBinding(hotkey: replacement, action: .activate),
-          HotkeyBinding(hotkey: .testPasteLastTranscript, action: .pasteLastTranscript),
+          HotkeyBinding(hotkey: replacement, route: .gesture),
+          HotkeyBinding(hotkey: .testPasteLastTranscript, route: .action(.pasteLastTranscript)),
         ])
         return listenerEvents
       }
     }
 
-    await store.send(.settingsWindow(.settingsPane(.bindings(.bindingTapped(0))))) {
-      $0.settingsWindow.settingsPane.bindings.target = .existing(0)
+    await store.send(settingsBindingAction(.activate, .bindingTapped(0))) {
+      $0.settingsWindow
+        .settingsPane
+        .bindingEditors[id: .activate]?
+        .$recordingCommand
+        .withLock { $0 = .activate }
+      $0.settingsWindow.settingsPane.bindingEditors[id: .activate]?.target = .existing(0)
       $0.$health.withLock { $0.hotkeyTap = .idle }
     }
-    await store.receive(.settingsWindow(.settingsPane(.bindings(.delegate(.recordingStarted)))))
-    await store.receive(.settingsWindow(.settingsPane(.bindings(.recorderReady))))
+    await store.receive(settingsBindingAction(.activate, .delegate(.recordingStarted)))
+    await store.receive(settingsBindingAction(.activate, .recorderReady))
     recorderContinuation.yield(.committed(replacement))
-    await store
-      .receive(.settingsWindow(.settingsPane(.bindings(.recorderEvent(.committed(replacement)))))) {
-        $0.$settings.withLock { $0.bindings.activate = [replacement] }
-        $0.settingsWindow.settingsPane.bindings.target = nil
-        $0.$health.withLock { $0.hotkeyTap = .starting }
-      }
-    await store.receive(.settingsWindow(.settingsPane(.bindings(.delegate(.recordingStopped)))))
+    await store.receive(
+      settingsBindingAction(.activate, .recorderEvent(.committed(replacement))),
+    ) {
+      $0.$settings.withLock { $0.bindings.set([replacement], for: .activate) }
+      $0.settingsWindow
+        .settingsPane
+        .bindingEditors[id: .activate]?
+        .$recordingCommand
+        .withLock { $0 = nil }
+      $0.settingsWindow.settingsPane.bindingEditors[id: .activate]?.target = nil
+      $0.$health.withLock { $0.hotkeyTap = .starting }
+    }
+    await store.receive(settingsBindingAction(.activate, .delegate(.recordingStopped)))
     listenerContinuation.yield(.monitoringStarted)
     await store
       .receive(.hotkeyListenerEvent(.monitoringStarted)) {
         $0.$health.withLock { $0.hotkeyTap = .active }
       }
     recorderContinuation.finish()
-    await store.receive(.settingsWindow(.settingsPane(.bindings(.recorderFinished))))
+    await store.receive(settingsBindingAction(.activate, .recorderFinished))
     listenerContinuation.finish()
     await store.receive(.hotkeyListenerFinished) { $0.$health.withLock { $0.hotkeyTap = .dead } }
+  }
+
+  @Test func `recording paste last stops the listener and restarts with the new chord`(
+  ) async throws {
+    let (recorderEvents, recorderContinuation) = AsyncStream.makeStream(
+      of: HotkeyRecorderEvent.self,
+    )
+    let (listenerEvents, listenerContinuation) = AsyncStream.makeStream(
+      of: HotkeyListenerEvent<HotkeyAction>.self,
+    )
+    let replacement = try Hotkey(keyCode: 15, modifiers: [.rightControl, .rightCommand])
+    var state = AppFeature.State()
+    state.$health.withLock {
+      $0.accessibilityGranted = true
+      $0.hotkeyTap = .active
+      $0.engineReadiness = .ready
+    }
+    let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
+      $0.accessibilityPermission.hasPermission = { true }
+      $0.hotkeyListener.record = { recorderEvents }
+      $0.hotkeyListener.events = { bindings in
+        #expect(bindings == [
+          HotkeyBinding(hotkey: .testRightOption, route: .gesture),
+          HotkeyBinding(hotkey: replacement, route: .action(.pasteLastTranscript)),
+        ])
+        return listenerEvents
+      }
+    }
+
+    await store.send(settingsBindingAction(.pasteLastTranscript, .bindingTapped(0))) {
+      $0.settingsWindow
+        .settingsPane
+        .bindingEditors[id: .pasteLastTranscript]?
+        .$recordingCommand
+        .withLock { $0 = .pasteLastTranscript }
+      $0.settingsWindow.settingsPane.bindingEditors[id: .pasteLastTranscript]?.target = .existing(0)
+      $0.$health.withLock { $0.hotkeyTap = .idle }
+    }
+    await store.receive(
+      settingsBindingAction(.pasteLastTranscript, .delegate(.recordingStarted)),
+    )
+    await store.receive(settingsBindingAction(.pasteLastTranscript, .recorderReady))
+    recorderContinuation.yield(.committed(replacement))
+    await store.receive(
+      settingsBindingAction(
+        .pasteLastTranscript, .recorderEvent(.committed(replacement)),
+      ),
+    ) {
+      $0.$settings.withLock {
+        $0.bindings.set([replacement], for: .pasteLastTranscript)
+      }
+      $0.settingsWindow
+        .settingsPane
+        .bindingEditors[id: .pasteLastTranscript]?
+        .$recordingCommand
+        .withLock { $0 = nil }
+      $0.settingsWindow.settingsPane.bindingEditors[id: .pasteLastTranscript]?.target = nil
+      $0.$health.withLock { $0.hotkeyTap = .starting }
+    }
+    await store.receive(
+      settingsBindingAction(.pasteLastTranscript, .delegate(.recordingStopped)),
+    )
+    listenerContinuation.yield(.monitoringStarted)
+    await store.receive(.hotkeyListenerEvent(.monitoringStarted)) {
+      $0.$health.withLock { $0.hotkeyTap = .active }
+    }
+    recorderContinuation.finish()
+    await store.receive(settingsBindingAction(.pasteLastTranscript, .recorderFinished))
+    listenerContinuation.finish()
+    await store.receive(.hotkeyListenerFinished) {
+      $0.$health.withLock { $0.hotkeyTap = .dead }
+    }
   }
 
   @Test func `recording the onboarding shortcut suppresses and restarts activation listening`(
@@ -213,12 +308,12 @@ import Testing
       of: HotkeyRecorderEvent.self,
     )
     let (listenerEvents, listenerContinuation) = AsyncStream.makeStream(
-      of: HotkeyListenerEvent.self,
+      of: HotkeyListenerEvent<HotkeyAction>.self,
     )
     let extra = try Hotkey(keyCode: 15, modifiers: [.rightControl])
     let replacement = try Hotkey(keyCode: 0, modifiers: [.leftCommand])
     var settings = MiniWhisperSettings.defaults
-    settings.bindings.activate = [.testRightOption, extra]
+    settings.bindings.set([.testRightOption, extra], for: .activate)
     var state = AppFeature.State(
       history: Shared(value: HistoryLog()), settings: Shared(value: settings),
     )
@@ -237,15 +332,16 @@ import Testing
       $0.hotkeyListener.record = { recorderEvents }
       $0.hotkeyListener.events = { bindings in
         #expect(bindings == [
-          HotkeyBinding(hotkey: replacement, action: .activate),
-          HotkeyBinding(hotkey: extra, action: .activate),
-          HotkeyBinding(hotkey: .testPasteLastTranscript, action: .pasteLastTranscript),
+          HotkeyBinding(hotkey: replacement, route: .gesture),
+          HotkeyBinding(hotkey: extra, route: .gesture),
+          HotkeyBinding(hotkey: .testPasteLastTranscript, route: .action(.pasteLastTranscript)),
         ])
         return listenerEvents
       }
     }
 
     await store.send(.onboarding(.shortcutBindings(.primaryBindingTapped))) {
+      $0.onboarding.shortcutBindings.$recordingCommand.withLock { $0 = .activate }
       $0.onboarding.shortcutBindings.target = .existing(0)
       $0.$health.withLock { $0.hotkeyTap = .idle }
     }
@@ -255,7 +351,10 @@ import Testing
     await store.receive(
       .onboarding(.shortcutBindings(.recorderEvent(.committed(replacement)))),
     ) {
-      $0.$settings.withLock { $0.bindings.activate = [replacement, extra] }
+      $0.$settings.withLock {
+        $0.bindings.set([replacement, extra], for: .activate)
+      }
+      $0.onboarding.shortcutBindings.$recordingCommand.withLock { $0 = nil }
       $0.onboarding.shortcutBindings.target = nil
       $0.$health.withLock { $0.hotkeyTap = .starting }
     }
@@ -273,7 +372,7 @@ import Testing
 
   @Test func `recovery binding keeps the tap active without activation bindings`() async {
     var settings = MiniWhisperSettings.defaults
-    settings.bindings.activate = []
+    settings.bindings.set([], for: .activate)
     var state = AppFeature.State(
       history: Shared(value: HistoryLog()), settings: Shared(value: settings),
     )
@@ -281,12 +380,12 @@ import Testing
       $0.accessibilityGranted = true
       $0.hotkeyTap = .dead
     }
-    let (events, continuation) = AsyncStream.makeStream(of: HotkeyListenerEvent.self)
+    let (events, continuation) = AsyncStream.makeStream(of: HotkeyListenerEvent<HotkeyAction>.self)
     let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
       $0.accessibilityPermission.hasPermission = { true }
       $0.hotkeyListener.events = { bindings in
         #expect(bindings == [
-          HotkeyBinding(hotkey: .testPasteLastTranscript, action: .pasteLastTranscript),
+          HotkeyBinding(hotkey: .testPasteLastTranscript, route: .action(.pasteLastTranscript)),
         ])
         return events
       }
@@ -303,6 +402,29 @@ import Testing
     continuation.finish()
     await store.receive(.hotkeyListenerFinished) {
       $0.$health.withLock { $0.hotkeyTap = .dead }
+    }
+  }
+
+  @Test func `no configured bindings leaves the listener idle`() async {
+    var settings = MiniWhisperSettings.defaults
+    settings.bindings.set([], for: .activate)
+    settings.bindings.set([], for: .pasteLastTranscript)
+    var state = AppFeature.State(
+      history: Shared(value: HistoryLog()), settings: Shared(value: settings),
+    )
+    state.$health.withLock {
+      $0.accessibilityGranted = true
+      $0.hotkeyTap = .dead
+    }
+    let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
+      $0.hotkeyListener.events = { _ in
+        Issue.record("An empty binding set must not install an event tap")
+        return AsyncStream { $0.finish() }
+      }
+    }
+
+    await store.send(.repairRequested(.hotkeyTapDead)) {
+      $0.$health.withLock { $0.hotkeyTap = .idle }
     }
   }
 
@@ -427,7 +549,8 @@ import Testing
 
   @Test func `first run presents onboarding from resolved system state`() async {
     let consents = SynchronousCounter()
-    let (hotkeyEvents, hotkeyContinuation) = AsyncStream.makeStream(of: HotkeyListenerEvent.self)
+    let (hotkeyEvents, hotkeyContinuation) = AsyncStream
+      .makeStream(of: HotkeyListenerEvent<HotkeyAction>.self)
     var state = AppFeature.State()
     state.$health.withLock {
       $0.hotkeyTap = .idle
@@ -1186,7 +1309,9 @@ import Testing
     ) {
       $0.currentFocusedContext = nil
     }
-    let pasteShortcut = HotkeyBindingsSettings.defaults.pasteLastTranscript.first?
+    let pasteShortcut = HotkeyBindingsSettings.defaults
+      .hotkeys(for: .pasteLastTranscript)
+      .first?
       .compactDisplayName
     await store.receive(.pill(.noReceiver(pasteShortcut: pasteShortcut))) {
       $0.pill.noticeGeneration = 1
@@ -1229,7 +1354,9 @@ import Testing
     await store.receive(
       .pill(
         .noReceiver(
-          pasteShortcut: HotkeyBindingsSettings.defaults.pasteLastTranscript.first?
+          pasteShortcut: HotkeyBindingsSettings.defaults
+            .hotkeys(for: .pasteLastTranscript)
+            .first?
             .compactDisplayName,
         ),
       ),
@@ -1264,7 +1391,7 @@ import Testing
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
 
-    await store.send(.hotkeyListenerEvent(.bindingAction(.pasteLastTranscript)))
+    await store.send(.hotkeyListenerEvent(.action(.pasteLastTranscript)))
     await store.finish()
 
     #expect(await deliveries.values == [" Memory text"])
@@ -1276,7 +1403,7 @@ import Testing
     let pasteHotkey = try Hotkey(keyCode: 15, modifiers: [.leftControl, .rightCommand])
     let sounds = SoundRecorder()
     var settings = MiniWhisperSettings.defaults
-    settings.bindings.pasteLastTranscript = [pasteHotkey]
+    settings.bindings.set([pasteHotkey], for: .pasteLastTranscript)
     var state = AppFeature.State(settings: Shared(value: settings))
     state.lastTranscript = "withhold me"
     let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
@@ -1292,7 +1419,7 @@ import Testing
       $0.sounds.play = { cue in await sounds.record(cue) }
     }
 
-    await store.send(.hotkeyListenerEvent(.bindingAction(.pasteLastTranscript)))
+    await store.send(.hotkeyListenerEvent(.action(.pasteLastTranscript)))
     await store.receive(.pasteLastTranscript)
     await store.receive(
       .recoveryDeliveryCompleted(
@@ -1334,7 +1461,7 @@ import Testing
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
 
-    await store.send(.hotkeyListenerEvent(.bindingAction(.pasteLastTranscript)))
+    await store.send(.hotkeyListenerEvent(.action(.pasteLastTranscript)))
     await store.finish()
 
     #expect(await deliveries.values == ["persisted text"])
@@ -1348,7 +1475,7 @@ import Testing
       $0.continuousClock = TestClock()
     }
 
-    await store.send(.hotkeyListenerEvent(.bindingAction(.pasteLastTranscript)))
+    await store.send(.hotkeyListenerEvent(.action(.pasteLastTranscript)))
     await store.receive(.pasteLastTranscript)
     await store.receive(.pill(.noTranscriptToPaste)) {
       $0.pill.noticeGeneration = 1
@@ -1371,7 +1498,7 @@ import Testing
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
 
-    await store.send(.hotkeyListenerEvent(.bindingAction(.pasteLastTranscript)))
+    await store.send(.hotkeyListenerEvent(.action(.pasteLastTranscript)))
     await store.finish()
 
     #expect(await deliveries.values.isEmpty)
@@ -1687,6 +1814,14 @@ import Testing
     await store.finish()
     #expect(await sounds.recorded.isEmpty)
   }
+}
+
+private func settingsBindingAction(
+  _ command: HotkeyCommand, _ action: HotkeyBindingsFeature.Action,
+) -> AppFeature.Action {
+  .settingsWindow(
+    .settingsPane(.bindingEditors(.element(id: command, action: action))),
+  )
 }
 
 private func deliveryResult(

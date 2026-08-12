@@ -41,7 +41,7 @@ final class SettingsKeyboardUITests: XCTestCase {
       Law("The microphone row joins the keyboard grammar") { app in
         try require(self.enterDetailAtFirstRow(app))
         let picker = app.popUpButtons["miniwhisper.settings.microphone.picker"]
-        app.typeText("j")
+        app.typeText("jj")
         self.assertValue(
           "Bar on", of: app.staticTexts["miniwhisper.settings.microphone.state"],
         )
@@ -63,6 +63,7 @@ final class SettingsKeyboardUITests: XCTestCase {
       Law("Sound rows join the keyboard grammar") { app in
         try require(self.enterDetailAtFirstRow(app))
         for cue in [
+          "shortcut.paste-last",
           "microphone",
           "sound.activate",
           "sound.complete",
@@ -72,7 +73,7 @@ final class SettingsKeyboardUITests: XCTestCase {
           app.typeText("j")
           self.assertValue("Bar on", of: app.staticTexts["miniwhisper.settings.\(cue).state"])
         }
-        app.typeText("kkkkk")
+        app.typeText("kkkkkk")
         self.assertValue(
           "Bar on", of: app.staticTexts["miniwhisper.settings.shortcut.activate.state"],
         )
@@ -80,7 +81,7 @@ final class SettingsKeyboardUITests: XCTestCase {
 
       Law("Return opens a sound popup") { app in
         try require(self.enterDetailAtFirstRow(app))
-        app.typeText("jj")
+        app.typeText("jjj")
         self.assertValue(
           "Bar on", of: app.staticTexts["miniwhisper.settings.sound.activate.state"],
         )
@@ -99,7 +100,7 @@ final class SettingsKeyboardUITests: XCTestCase {
         let toggle = app.switches["miniwhisper.settings.launch-at-login"]
         XCTAssertEqual(self.accessibilityValue(toggle), "1")
 
-        app.typeText(String(repeating: "j", count: 7))
+        app.typeText(String(repeating: "j", count: 8))
         self.assertValue(
           "Bar on", of: app.staticTexts["miniwhisper.settings.launch-at-login.state"],
         )

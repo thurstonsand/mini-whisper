@@ -1,10 +1,12 @@
+import AppSettings
 import ComposableArchitecture
 import HotkeyListener
 
 // MARK: - HotkeyListenerClient
 
 @DependencyClient struct HotkeyListenerClient {
-  var events: @Sendable ([HotkeyBinding]) async throws -> AsyncStream<HotkeyListenerEvent>
+  var events: @Sendable ([HotkeyBinding<HotkeyAction>]) async throws
+    -> AsyncStream<HotkeyListenerEvent<HotkeyAction>>
   var record: @Sendable () async throws -> AsyncStream<HotkeyRecorderEvent>
 }
 

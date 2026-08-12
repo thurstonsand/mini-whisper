@@ -141,23 +141,23 @@ public struct Hotkey: Equatable, Codable, Sendable {
 
 // MARK: - HotkeyBinding
 
-public struct HotkeyBinding: Equatable, Sendable {
+public struct HotkeyBinding<Action: Equatable & Sendable>: Equatable, Sendable {
   // MARK: Lifecycle
 
-  public init(hotkey: Hotkey, action: HotkeyBindingAction) {
+  public init(hotkey: Hotkey, route: HotkeyBindingRoute<Action>) {
     self.hotkey = hotkey
-    self.action = action
+    self.route = route
   }
 
   // MARK: Public
 
   public let hotkey: Hotkey
-  public let action: HotkeyBindingAction
+  public let route: HotkeyBindingRoute<Action>
 }
 
-// MARK: - HotkeyBindingAction
+// MARK: - HotkeyBindingRoute
 
-public enum HotkeyBindingAction: Equatable, Sendable {
-  case activate
-  case pasteLastTranscript
+public enum HotkeyBindingRoute<Action: Equatable & Sendable>: Equatable, Sendable {
+  case gesture
+  case action(Action)
 }

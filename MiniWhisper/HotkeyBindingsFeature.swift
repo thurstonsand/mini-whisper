@@ -9,9 +9,9 @@ private let shortcutLogger = Logger(
 
 // MARK: - HotkeyBindingsFeature
 
-/// The activation bindings and the act of recording into them. Onboarding drives one hero keycap
-/// and the settings pane drives a row of chips, but both edit the same list through this one
-/// reducer, so "which binding a recording replaces" is decided in exactly one place.
+/// One action's bindings and the act of recording into them. Onboarding drives one activation
+/// keycap and the settings pane drives rows of chips, but every editor uses this reducer, so
+/// "which binding a recording replaces" is decided in exactly one place.
 @Reducer struct HotkeyBindingsFeature {
   // MARK: Internal
 
@@ -20,22 +20,33 @@ private let shortcutLogger = Logger(
     case new
   }
 
-  @ObservableState struct State: Equatable {
+  @ObservableState struct State: Equatable, Identifiable {
     // MARK: Lifecycle
 
-    init(settings: Shared<MiniWhisperSettings>) {
+    init(
+      settings: Shared<MiniWhisperSettings>, command: HotkeyCommand,
+      recordingCommand: Shared<HotkeyCommand?> = Shared(value: nil),
+    ) {
       _settings = settings
+      self.command = command
+      _recordingCommand = recordingCommand
     }
 
     // MARK: Internal
 
     @Shared var settings: MiniWhisperSettings
+    let command: HotkeyCommand
+    @Shared var recordingCommand: HotkeyCommand?
     var target: Target?
     var liveChord: HotkeyRecordingChord?
     var validationMessage: String?
 
+    var id: HotkeyCommand {
+      command
+    }
+
     var hotkeys: [Hotkey] {
-      settings.bindings.activate
+      settings.bindings.hotkeys(for: command)
     }
 
     var isRecording: Bool {
@@ -76,7 +87,7 @@ private let shortcutLogger = Logger(
     Reduce { state, action in
       switch action {
       case let .bindingTapped(index):
-        guard state.settings.bindings.activate.indices.contains(index) else {
+        guard state.hotkeys.indices.contains(index) else {
           return .none
         }
         return beginRecording(.existing(index), state: &state)
@@ -86,18 +97,15 @@ private let shortcutLogger = Logger(
         guard !state.isRecording else {
           return .none
         }
-        return beginRecording(
-          state.settings.bindings.activate.isEmpty ? .new : .existing(0),
-          state: &state,
-        )
+        return beginRecording(state.hotkeys.isEmpty ? .new : .existing(0), state: &state)
       case .addTapped:
         return beginRecording(.new, state: &state)
       case let .removeTapped(index):
-        guard state.settings.bindings.activate.indices.contains(index) else {
+        guard state.hotkeys.indices.contains(index) else {
           return .none
         }
-        state.$settings.withLock { settings in
-          _ = settings.bindings.activate.remove(at: index)
+        state.$settings.withLock {
+          _ = $0.bindings.remove(at: index, for: state.command)
         }
         return .send(.delegate(.bindingsChanged))
       case .recorderReady:
@@ -160,27 +168,28 @@ private let shortcutLogger = Logger(
   /// A hotkey appears in the list at most once, which is the whole of the commit policy: a chord
   /// already bound anywhere — including to the binding being re-recorded — is silently dropped.
   private func commit(_ hotkey: Hotkey, to target: Target, state: inout State) {
-    switch target {
-    case let .existing(index):
-      guard state.settings.bindings.activate.indices.contains(index) else {
-        shortcutLogger.error(
-          "Dropping a recorded hotkey because binding index \(index) no longer exists",
-        )
-        return
+    let result = state.$settings.withLock { settings in
+      switch target {
+      case let .existing(index):
+        settings.bindings.replace(at: index, with: hotkey, for: state.command)
+      case .new:
+        settings.bindings.append(hotkey, for: state.command)
       }
-      guard !state.settings.bindings.activate.contains(hotkey) else {
-        return
-      }
-      state.$settings.withLock { $0.bindings.activate[index] = hotkey }
-    case .new:
-      guard !state.settings.bindings.activate.contains(hotkey) else {
-        return
-      }
-      state.$settings.withLock { $0.bindings.activate.append(hotkey) }
+    }
+    switch result {
+    case .updated,
+         .duplicate:
+      break
+    case .missingIndex:
+      shortcutLogger.error("Dropping a recorded hotkey because its binding no longer exists")
     }
   }
 
   private func beginRecording(_ target: Target, state: inout State) -> Effect<Action> {
+    guard state.recordingCommand == nil else {
+      return .none
+    }
+    state.$recordingCommand.withLock { $0 = state.command }
     state.target = target
     state.liveChord = nil
     state.validationMessage = nil
@@ -188,6 +197,11 @@ private let shortcutLogger = Logger(
   }
 
   private func clearRecording(_ state: inout State) {
+    state.$recordingCommand.withLock {
+      if $0 == state.command {
+        $0 = nil
+      }
+    }
     state.target = nil
     state.liveChord = nil
     state.validationMessage = nil

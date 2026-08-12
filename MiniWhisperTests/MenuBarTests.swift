@@ -135,7 +135,7 @@ private final class Collector<Value: Sendable>: @unchecked Sendable {
   }
 
   @Test func `opening the menu recovers A grant made while the app ran`() async {
-    let (events, continuation) = AsyncStream.makeStream(of: HotkeyListenerEvent.self)
+    let (events, continuation) = AsyncStream.makeStream(of: HotkeyListenerEvent<HotkeyAction>.self)
     var state = AppFeature.State()
     state.onboardingCompleted = true
     state.$health.withLock { $0.hotkeyTap = .idle }
@@ -217,7 +217,7 @@ private final class Collector<Value: Sendable>: @unchecked Sendable {
   }
 
   @Test func `a dead tap is repaired by restarting the listener without prompting`() async {
-    let (events, continuation) = AsyncStream.makeStream(of: HotkeyListenerEvent.self)
+    let (events, continuation) = AsyncStream.makeStream(of: HotkeyListenerEvent<HotkeyAction>.self)
     var state = AppFeature.State()
     state.$health.withLock {
       $0.hotkeyTap = .dead
@@ -285,7 +285,7 @@ private final class Collector<Value: Sendable>: @unchecked Sendable {
   }
 
   @Test func `a later accessibility grant starts the listener without A relaunch`() async {
-    let (events, continuation) = AsyncStream.makeStream(of: HotkeyListenerEvent.self)
+    let (events, continuation) = AsyncStream.makeStream(of: HotkeyListenerEvent<HotkeyAction>.self)
     var state = AppFeature.State()
     state.onboardingCompleted = true
     state.$health.withLock {

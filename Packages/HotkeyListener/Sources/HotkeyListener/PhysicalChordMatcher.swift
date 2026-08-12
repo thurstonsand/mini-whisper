@@ -84,18 +84,14 @@ public enum EventDisposition: Equatable, Sendable {
 public struct ChordMatch: Equatable, Sendable {
   // MARK: Lifecycle
 
-  public init(
-    input: GestureInput?, action: HotkeyBindingAction? = nil, disposition: EventDisposition,
-  ) {
+  public init(input: GestureInput?, disposition: EventDisposition) {
     self.input = input
-    self.action = action
     self.disposition = disposition
   }
 
   // MARK: Public
 
   public let input: GestureInput?
-  public let action: HotkeyBindingAction?
   public let disposition: EventDisposition
 }
 

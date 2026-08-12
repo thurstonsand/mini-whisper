@@ -1,17 +1,19 @@
 @testable import HotkeyListener
 import Testing
 
+// MARK: - MultipleChordMatcherTests
+
 struct MultipleChordMatcherTests {
   // MARK: Internal
 
   @Test func `either binding activates`() throws {
     let controlR = try Hotkey(keyCode: 15, modifiers: [.rightControl])
-    var matcher = MultipleChordMatcher(hotkeys: [.testRightOption, controlR])
+    var matcher = gestureMatcher([.testRightOption, controlR])
 
     let option = matcher.receive(
       transition(.modifier(.rightOption), .down, [.modifier(.rightOption)]),
     )
-    #expect(option.input == .activation(at: .zero))
+    #expect(option.gestureInput == .activation(at: .zero))
     _ = matcher.receive(transition(.modifier(.rightOption), .up, []))
 
     _ = matcher.receive(
@@ -23,12 +25,12 @@ struct MultipleChordMatcherTests {
         time: .milliseconds(10),
       ),
     )
-    #expect(keyed.input == .activation(at: .milliseconds(10)))
+    #expect(keyed.gestureInput == .activation(at: .milliseconds(10)))
   }
 
   @Test func `another binding is ignored until the active binding releases`() throws {
     let controlR = try Hotkey(keyCode: 15, modifiers: [.rightControl])
-    var matcher = MultipleChordMatcher(hotkeys: [.testRightOption, controlR])
+    var matcher = gestureMatcher([.testRightOption, controlR])
     _ = matcher.receive(
       transition(.modifier(.rightOption), .down, [.modifier(.rightOption)]),
     )
@@ -46,8 +48,8 @@ struct MultipleChordMatcherTests {
         time: .milliseconds(20),
       ),
     )
-    #expect(otherModifier.input == nil)
-    #expect(otherKey.input == nil)
+    #expect(otherModifier.output == nil)
+    #expect(otherKey.output == nil)
 
     let release = matcher.receive(
       transition(
@@ -55,11 +57,11 @@ struct MultipleChordMatcherTests {
         time: .milliseconds(30),
       ),
     )
-    #expect(release.input == .release(at: .milliseconds(30)))
+    #expect(release.gestureInput == .release(at: .milliseconds(30)))
   }
 
   @Test func `duplicate bindings emit one activation per press`() {
-    var matcher = MultipleChordMatcher(hotkeys: [.testRightOption, .testRightOption])
+    var matcher = gestureMatcher([.testRightOption, .testRightOption])
     var inputs: [GestureInput] = []
 
     for time in [Duration.zero, .milliseconds(100)] {
@@ -68,7 +70,7 @@ struct MultipleChordMatcherTests {
           .modifier(.rightOption), .down, [.modifier(.rightOption)], time: time,
         ),
       )
-      .input {
+      .gestureInput {
         inputs.append(input)
       }
       if let input = matcher.receive(
@@ -76,7 +78,7 @@ struct MultipleChordMatcherTests {
           .modifier(.rightOption), .up, [], time: time + .milliseconds(50),
         ),
       )
-      .input {
+      .gestureInput {
         inputs.append(input)
       }
     }
@@ -90,8 +92,8 @@ struct MultipleChordMatcherTests {
   @Test func `action binding fires without entering the activation gesture`() throws {
     let paste = try Hotkey(keyCode: 9, modifiers: [.leftOption, .leftCommand])
     var matcher = MultipleChordMatcher(bindings: [
-      HotkeyBinding(hotkey: .testRightOption, action: .activate),
-      HotkeyBinding(hotkey: paste, action: .pasteLastTranscript),
+      HotkeyBinding<TestAction>(hotkey: .testRightOption, route: .gesture),
+      HotkeyBinding(hotkey: paste, route: .action(.pasteLastTranscript)),
     ])
 
     _ = matcher.receive(
@@ -115,18 +117,32 @@ struct MultipleChordMatcherTests {
       ),
     )
 
-    #expect(completion.action == .pasteLastTranscript)
-    #expect(completion.input == nil)
+    #expect(completion.output == .action(.pasteLastTranscript))
     #expect(completion.disposition == .suppress)
-    #expect(release.action == nil)
-    #expect(release.input == nil)
+    #expect(release.output == nil)
     #expect(release.disposition == .suppress)
+  }
+
+  @Test func `global inputs remain distinct from route-owned gestures`() {
+    var matcher = MultipleChordMatcher(bindings: [
+      HotkeyBinding(
+        hotkey: .testPasteLastTranscript, route: .action(TestAction.pasteLastTranscript),
+      ),
+    ])
+
+    let escape = matcher.receive(
+      transition(
+        .keyCode(PhysicalKey.escapeKeyCode), .down, [.keyCode(PhysicalKey.escapeKeyCode)],
+      ),
+    )
+
+    #expect(escape.output == .global(.escape))
   }
 
   @Test func `activation alternatives still route gestures beside an action binding`() {
     var matcher = MultipleChordMatcher(bindings: [
-      HotkeyBinding(hotkey: .testRightOption, action: .activate),
-      HotkeyBinding(hotkey: .testPasteLastTranscript, action: .pasteLastTranscript),
+      HotkeyBinding<TestAction>(hotkey: .testRightOption, route: .gesture),
+      HotkeyBinding(hotkey: .testPasteLastTranscript, route: .action(.pasteLastTranscript)),
     ])
 
     let activation = matcher.receive(
@@ -136,28 +152,43 @@ struct MultipleChordMatcherTests {
       transition(.modifier(.rightOption), .up, []),
     )
 
-    #expect(activation.input == .activation(at: .zero))
-    #expect(activation.action == nil)
-    #expect(release.input == .release(at: .zero))
-    #expect(release.action == nil)
+    #expect(activation.output == .gesture(.activation(at: .zero)))
+    #expect(release.output == .gesture(.release(at: .zero)))
   }
 
   @Test func `building one alternative does not conflict with another`() throws {
     let controlR = try Hotkey(keyCode: 15, modifiers: [.rightControl])
-    var matcher = MultipleChordMatcher(hotkeys: [.testRightOption, controlR])
+    var matcher = gestureMatcher([.testRightOption, controlR])
 
     let partial = matcher.receive(
       transition(.modifier(.rightControl), .down, [.modifier(.rightControl)]),
     )
-    #expect(partial.input == nil)
+    #expect(partial.output == nil)
   }
 
   // MARK: Private
+
+  private enum TestAction: Equatable { case pasteLastTranscript }
+
+  private func gestureMatcher(_ hotkeys: [Hotkey]) -> MultipleChordMatcher<TestAction> {
+    MultipleChordMatcher(
+      bindings: hotkeys.map { HotkeyBinding(hotkey: $0, route: .gesture) },
+    )
+  }
 
   private func transition(
     _ key: PhysicalKey, _ phase: KeyPhase, _ pressedAfter: Set<PhysicalKey>,
     time: Duration = .zero,
   ) -> KeyTransition {
     KeyTransition(key: key, phase: phase, pressedAfter: pressedAfter, time: time)
+  }
+}
+
+private extension RoutedChordMatch {
+  var gestureInput: GestureInput? {
+    guard case let .gesture(input) = output else {
+      return nil
+    }
+    return input
   }
 }

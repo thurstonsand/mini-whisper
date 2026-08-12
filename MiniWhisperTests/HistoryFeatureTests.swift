@@ -261,7 +261,7 @@ import Testing
     let stored = try MiniWhisperSettings(
       bindings: HotkeyBindingsSettings(
         activate: [Hotkey(keyCode: 0, modifiers: [.leftCommand])],
-        pasteLastTranscript: HotkeyBindingsSettings.defaults.pasteLastTranscript,
+        pasteLastTranscript: HotkeyBindingsSettings.defaults.hotkeys(for: .pasteLastTranscript),
       ),
       microphone: .systemDefault, sounds: .silent, retention: .defaults,
     )

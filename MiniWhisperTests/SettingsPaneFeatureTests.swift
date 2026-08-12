@@ -17,21 +17,33 @@ import Testing
     let store = TestStore(initialState: makeWindowState()) { SettingsWindowFeature() }
 
     await store.send(.focusChanged(.detail)) { $0.interaction.focus = .detail }
-    #expect(store.state.showsSettingsBar(.activate))
-    #expect(!store.state.showsSettingsRing(.activate, target: .binding(0)))
+    #expect(store.state.showsSettingsBar(.shortcut(.activate)))
+    #expect(
+      !store.state.showsSettingsRing(
+        .shortcut(.activate), target: .binding(.activate, 0),
+      ),
+    )
 
     await store.send(.keyboardModeEntered) { $0.interaction.mode = .keyboard }
-    #expect(store.state.showsSettingsBar(.activate))
-    #expect(store.state.showsSettingsRing(.activate, target: .binding(0)))
+    #expect(store.state.showsSettingsBar(.shortcut(.activate)))
+    #expect(
+      store.state.showsSettingsRing(
+        .shortcut(.activate), target: .binding(.activate, 0),
+      ),
+    )
 
     await store.send(.focusChanged(.sidebar)) { $0.interaction.focus = .sidebar }
-    #expect(!store.state.showsSettingsBar(.activate))
+    #expect(!store.state.showsSettingsBar(.shortcut(.activate)))
     await store.send(.focusChanged(.detail)) { $0.interaction.focus = .detail }
-    #expect(store.state.showsSettingsBar(.activate))
+    #expect(store.state.showsSettingsBar(.shortcut(.activate)))
 
     await store.send(.pointerMoved) { $0.interaction.mode = .mouse }
-    #expect(store.state.showsSettingsBar(.activate))
-    #expect(!store.state.showsSettingsRing(.activate, target: .binding(0)))
+    #expect(store.state.showsSettingsBar(.shortcut(.activate)))
+    #expect(
+      !store.state.showsSettingsRing(
+        .shortcut(.activate), target: .binding(.activate, 0),
+      ),
+    )
   }
 
   @Test func `target movement clamps and left ascends past the first target`() async throws {
@@ -53,11 +65,11 @@ import Testing
     let store = TestStore(initialState: state) { SettingsPaneFeature() }
 
     await store.send(.rowMoved(.next)) {
-      $0.cursor.row = .microphone
+      $0.cursor.row = .shortcut(.pasteLastTranscript)
       $0.cursor.target = 0
     }
     await store.send(.rightPressed)
-    await store.send(.rowMoved(.previous)) { $0.cursor.row = .activate }
+    await store.send(.rowMoved(.previous)) { $0.cursor.row = .shortcut(.activate) }
     await store.send(.rightPressed) { $0.cursor.target = 1 }
   }
 
@@ -105,6 +117,9 @@ import Testing
   @Test func `microphone row joins keyboard movement and Return activation`() async {
     let store = TestStore(initialState: makeState()) { SettingsPaneFeature() }
 
+    await store.send(.rowMoved(.next)) {
+      $0.cursor.row = .shortcut(.pasteLastTranscript)
+    }
     await store.send(.rowMoved(.next)) { $0.cursor.row = .microphone }
     #expect(store.state.cursorTarget == .microphone)
     await store.send(.pressRequested) { $0.microphoneActivation = 1 }
@@ -152,7 +167,7 @@ import Testing
 
     let selection = MicrophoneSelection.device(uid: studio.uid, lastKnownName: studio.name)
     await store.send(.microphoneSelected(selection)) {
-      $0.bindings.$settings.withLock { $0.microphone = selection }
+      $0.$settings.withLock { $0.microphone = selection }
     }
     await store.receive(.delegate(.microphoneChanged(selection)))
     await store.receive(.inputLevelUpdated(nil))
@@ -189,6 +204,9 @@ import Testing
   @Test func `sound rows join movement with popup and preview targets`() async {
     let store = TestStore(initialState: makeState()) { SettingsPaneFeature() }
 
+    await store.send(.rowMoved(.next)) {
+      $0.cursor.row = .shortcut(.pasteLastTranscript)
+    }
     await store.send(.rowMoved(.next)) { $0.cursor.row = .microphone }
     await store.send(.rowMoved(.next)) { $0.cursor.row = .sound(.activate) }
     #expect(store.state.cursorTarget == .soundPicker(.activate))
@@ -286,8 +304,8 @@ import Testing
     state.$health.withLock { $0.micStatus = .granted }
 
     #expect(state.health.degradations.isEmpty)
-    #expect(state.cursorRow == .activate)
-    #expect(state.cursorTarget == .binding(0))
+    #expect(state.cursorRow == .shortcut(.activate))
+    #expect(state.cursorTarget == .binding(.activate, 0))
   }
 
   @Test func `choosing A sound commits it and plays it once`() async {
@@ -297,7 +315,7 @@ import Testing
     }
 
     await store.send(.soundSelected(.complete, "Glass")) {
-      $0.bindings.$settings.withLock { $0.sounds.complete = "Glass" }
+      $0.$settings.withLock { $0.sounds.complete = "Glass" }
     }
     await store.receive(.soundPlaybackCompleted("Glass")) { $0.lastPlayedSound = "Glass" }
     #expect(await sounds.recorded == ["Glass"])
@@ -334,7 +352,7 @@ import Testing
     }
 
     await store.send(.soundSelected(.cancel, nil)) {
-      $0.bindings.$settings.withLock { $0.sounds.cancel = nil }
+      $0.$settings.withLock { $0.sounds.cancel = nil }
     }
     await store.send(.soundReplayRequested(.cancel))
     #expect(await sounds.recorded.isEmpty)
@@ -347,16 +365,58 @@ import Testing
     let store = TestStore(initialState: state) { SettingsPaneFeature() }
 
     await store.send(.pressRequested)
-    await store.receive(.bindings(.bindingTapped(1))) { $0.bindings.target = .existing(1) }
-    await store.receive(.bindings(.delegate(.recordingStarted)))
+    await store.receive(bindingAction(.activate, .bindingTapped(1))) {
+      $0.bindingEditors[id: .activate]?.$recordingCommand.withLock { $0 = .activate }
+      $0.bindingEditors[id: .activate]?.target = .existing(1)
+    }
+    await store.receive(bindingAction(.activate, .delegate(.recordingStarted)))
+  }
+
+  @Test func `press records the paste last binding through its own child`() async {
+    var state = makeState()
+    state.cursor.row = .shortcut(.pasteLastTranscript)
+    let store = TestStore(initialState: state) { SettingsPaneFeature() }
+
+    await store.send(.pressRequested)
+    await store.receive(bindingAction(.pasteLastTranscript, .bindingTapped(0))) {
+      $0.bindingEditors[id: .pasteLastTranscript]?.$recordingCommand.withLock {
+        $0 = .pasteLastTranscript
+      }
+      $0.bindingEditors[id: .pasteLastTranscript]?.target = .existing(0)
+    }
+    await store.receive(bindingAction(.pasteLastTranscript, .delegate(.recordingStarted)))
+  }
+
+  @Test func `another shortcut cannot record while one is already recording`() async {
+    var state = makeState()
+    state.cursor.row = .shortcut(.pasteLastTranscript)
+    let store = TestStore(initialState: state) { SettingsPaneFeature() }
+
+    await store.send(bindingAction(.activate, .bindingTapped(0))) {
+      $0.bindingEditors[id: .activate]?.$recordingCommand.withLock { $0 = .activate }
+      $0.bindingEditors[id: .activate]?.target = .existing(0)
+    }
+    await store.receive(bindingAction(.activate, .delegate(.recordingStarted)))
+    await store.send(.pressRequested)
+    await store.receive(bindingAction(.pasteLastTranscript, .bindingTapped(0)))
+    #expect(store.state.bindingEditors[id: .pasteLastTranscript]?.target == nil)
+
+    await store.send(bindingAction(.activate, .cancelRecording)) {
+      $0.bindingEditors[id: .activate]?.$recordingCommand.withLock { $0 = nil }
+      $0.bindingEditors[id: .activate]?.target = nil
+    }
+    await store.receive(bindingAction(.activate, .delegate(.recordingStopped)))
   }
 
   @Test func `press sets an empty binding`() async {
     let store = TestStore(initialState: makeState(hotkeys: [])) { SettingsPaneFeature() }
 
     await store.send(.pressRequested)
-    await store.receive(.bindings(.addTapped)) { $0.bindings.target = .new }
-    await store.receive(.bindings(.delegate(.recordingStarted)))
+    await store.receive(bindingAction(.activate, .addTapped)) {
+      $0.bindingEditors[id: .activate]?.$recordingCommand.withLock { $0 = .activate }
+      $0.bindingEditors[id: .activate]?.target = .new
+    }
+    await store.receive(bindingAction(.activate, .delegate(.recordingStarted)))
   }
 
   @Test func `hover moves the single row cursor and keyboard movement continues from it`() async {
@@ -383,25 +443,30 @@ import Testing
     state.cursor.target = 1
     let store = TestStore(initialState: state) { SettingsPaneFeature() }
 
-    await store.send(.bindings(.removeTapped(1))) {
-      $0.bindings.$settings.withLock { $0.bindings.activate = [.testRightOption] }
+    await store.send(bindingAction(.activate, .removeTapped(1))) {
+      $0.$settings.withLock { $0.bindings.set([.testRightOption], for: .activate) }
     }
-    await store.receive(.bindings(.delegate(.bindingsChanged))) { $0.cursor.target = 0 }
-    #expect(store.state.cursorTarget == .binding(0))
+    await store.receive(bindingAction(.activate, .delegate(.bindingsChanged))) {
+      $0.cursor.target = 0
+    }
+    #expect(store.state.cursorTarget == .binding(.activate, 0))
 
-    await store.send(.bindings(.removeTapped(0))) {
-      $0.bindings.$settings.withLock { $0.bindings.activate = [] }
+    await store.send(bindingAction(.activate, .removeTapped(0))) {
+      $0.$settings.withLock { $0.bindings.set([], for: .activate) }
     }
-    await store.receive(.bindings(.delegate(.bindingsChanged)))
-    #expect(store.state.cursorTarget == .set)
+    await store.receive(bindingAction(.activate, .delegate(.bindingsChanged)))
+    #expect(store.state.cursorTarget == .set(.activate))
   }
 
   @Test func `A new binding is recorded in its own chip rather than the set button`() async {
     let store = TestStore(initialState: makeState()) { SettingsPaneFeature() }
 
-    await store.send(.bindings(.addTapped)) { $0.bindings.target = .new }
-    await store.receive(.bindings(.delegate(.recordingStarted)))
-    #expect(store.state.targets == [.binding(0), .recording])
+    await store.send(bindingAction(.activate, .addTapped)) {
+      $0.bindingEditors[id: .activate]?.$recordingCommand.withLock { $0 = .activate }
+      $0.bindingEditors[id: .activate]?.target = .new
+    }
+    await store.receive(bindingAction(.activate, .delegate(.recordingStarted)))
+    #expect(store.state.targets == [.binding(.activate, 0), .recording(.activate)])
   }
 
   // MARK: Private
@@ -411,10 +476,16 @@ import Testing
     health: AppHealth = .healthy,
   ) -> SettingsPaneFeature.State {
     var settings = MiniWhisperSettings.defaults
-    settings.bindings.activate = hotkeys
+    settings.bindings.set(hotkeys, for: .activate)
     return SettingsPaneFeature.State(
       settings: Shared(value: settings), health: Shared(value: health),
     )
+  }
+
+  private func bindingAction(
+    _ command: HotkeyCommand, _ action: HotkeyBindingsFeature.Action,
+  ) -> SettingsPaneFeature.Action {
+    .bindingEditors(.element(id: command, action: action))
   }
 
   private func makeWindowState() -> SettingsWindowFeature.State {

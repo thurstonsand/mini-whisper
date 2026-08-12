@@ -1,29 +1,47 @@
-// MARK: - MultipleChordMatcher
+// MARK: - HotkeyMatchOutput
 
-/// Treats configured bindings as alternatives. Once one activates, only that binding sees input
-/// until its primary chord releases; another binding cannot interfere with an active gesture.
-public struct MultipleChordMatcher: Equatable, Sendable {
+public enum HotkeyMatchOutput<Action: Equatable & Sendable>: Equatable, Sendable {
+  case gesture(GestureInput)
+  case global(GestureInput)
+  case action(Action)
+}
+
+// MARK: - RoutedChordMatch
+
+public struct RoutedChordMatch<Action: Equatable & Sendable>: Equatable, Sendable {
   // MARK: Lifecycle
 
-  public init(hotkeys: [Hotkey]) {
-    self.init(bindings: hotkeys.map { HotkeyBinding(hotkey: $0, action: .activate) })
-  }
-
-  public init(bindings: [HotkeyBinding]) {
-    matchers = bindings.map { PhysicalChordMatcher(hotkey: $0.hotkey) }
-    bindingKeys = bindings.map(\.hotkey.physicalKeys)
-    actions = bindings.map(\.action)
+  public init(output: HotkeyMatchOutput<Action>?, disposition: EventDisposition) {
+    self.output = output
+    self.disposition = disposition
   }
 
   // MARK: Public
 
-  public mutating func receive(_ transition: KeyTransition) -> ChordMatch {
+  public let output: HotkeyMatchOutput<Action>?
+  public let disposition: EventDisposition
+}
+
+// MARK: - MultipleChordMatcher
+
+/// Treats configured bindings as alternatives. Once one activates, only that binding sees input
+/// until its primary chord releases; another binding cannot interfere with an active gesture.
+public struct MultipleChordMatcher<Action: Equatable & Sendable>: Equatable, Sendable {
+  // MARK: Lifecycle
+
+  public init(bindings: [HotkeyBinding<Action>]) {
+    entries = bindings.map(Entry.init(binding:))
+  }
+
+  // MARK: Public
+
+  public mutating func receive(_ transition: KeyTransition) -> RoutedChordMatch<Action> {
     if let activeIndex {
       return forward(transition, to: activeIndex)
     }
 
-    let matches = matchers.indices.map { index in
-      (index: index, match: matchers[index].receive(transition))
+    let matches = entries.indices.map { index in
+      (index: index, match: entries[index].matcher.receive(transition))
     }
     if let winner = matches.first(where: { $0.match.input?.isActivation == true }) {
       activate(winner.index)
@@ -34,8 +52,9 @@ public struct MultipleChordMatcher: Equatable, Sendable {
     // for all of them: only an input none of them can explain is a real conflict. Building the
     // first half of one binding is therefore never the other binding's conflict.
     let inputs = matches.compactMap(\.match.input)
-    return ChordMatch(
-      input: inputs.count == matches.count ? inputs.first : nil,
+    let input = inputs.count == matches.count ? inputs.first : nil
+    return RoutedChordMatch(
+      output: input.map(HotkeyMatchOutput.global),
       disposition: matches.contains { $0.match.disposition == .suppress }
         ? .suppress : .passThrough,
     )
@@ -43,49 +62,64 @@ public struct MultipleChordMatcher: Equatable, Sendable {
 
   public mutating func interrupt() {
     activeIndex = nil
-    for index in matchers.indices {
-      matchers[index].interrupt()
+    for index in entries.indices {
+      entries[index].matcher.interrupt()
     }
   }
 
   // MARK: Private
 
-  private var matchers: [PhysicalChordMatcher]
-  private let bindingKeys: [Set<PhysicalKey>]
-  private let actions: [HotkeyBindingAction]
+  private struct Entry: Equatable {
+    // MARK: Lifecycle
+
+    init(binding: HotkeyBinding<Action>) {
+      matcher = PhysicalChordMatcher(hotkey: binding.hotkey)
+      physicalKeys = binding.hotkey.physicalKeys
+      route = binding.route
+    }
+
+    // MARK: Internal
+
+    var matcher: PhysicalChordMatcher
+    let physicalKeys: Set<PhysicalKey>
+    let route: HotkeyBindingRoute<Action>
+  }
+
+  private var entries: [Entry]
   private var activeIndex: Int?
 
-  private mutating func forward(_ transition: KeyTransition, to index: Int) -> ChordMatch {
-    guard bindingKeys[index].contains(transition.key)
-      || !bindingKeys.indices.contains(where: {
-        $0 != index && bindingKeys[$0].contains(transition.key)
+  private mutating func forward(
+    _ transition: KeyTransition, to index: Int,
+  ) -> RoutedChordMatch<Action> {
+    guard entries[index].physicalKeys.contains(transition.key)
+      || !entries.indices.contains(where: {
+        $0 != index && entries[$0].physicalKeys.contains(transition.key)
       })
     else {
-      return ChordMatch(input: nil, disposition: .passThrough)
+      return RoutedChordMatch(output: nil, disposition: .passThrough)
     }
-    let match = matchers[index].receive(transition)
+    let match = entries[index].matcher.receive(transition)
     if match.input?.isRelease == true {
       activeIndex = nil
     }
     return routed(match, for: index)
   }
 
-  private func routed(_ match: ChordMatch, for index: Int) -> ChordMatch {
-    switch actions[index] {
-    case .activate:
-      match
-    case .pasteLastTranscript:
-      ChordMatch(
-        input: nil, action: match.input?.isActivation == true ? .pasteLastTranscript : nil,
-        disposition: match.disposition,
-      )
-    }
+  private func routed(_ match: ChordMatch, for index: Int) -> RoutedChordMatch<Action> {
+    let output: HotkeyMatchOutput<Action>? =
+      switch entries[index].route {
+      case .gesture:
+        match.input.map(HotkeyMatchOutput.gesture)
+      case let .action(action):
+        match.input?.isActivation == true ? .action(action) : nil
+      }
+    return RoutedChordMatch(output: output, disposition: match.disposition)
   }
 
   private mutating func activate(_ index: Int) {
     activeIndex = index
-    for other in matchers.indices where other != index {
-      matchers[other].interrupt()
+    for other in entries.indices where other != index {
+      entries[other].matcher.interrupt()
     }
   }
 }

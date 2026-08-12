@@ -260,6 +260,21 @@ final class MiniWhisperUITests: XCTestCase {
           .menuButton, "miniwhisper.settings.shortcut.menu", "Shortcut actions", isEnabled: true,
           isActionable: true,
         ),
+        contract(
+          .group, "miniwhisper.settings.shortcut.paste-last", "Paste last transcript shortcut",
+        ),
+        contract(
+          .staticText, "miniwhisper.settings.shortcut.paste-last.state",
+          "Paste last transcript shortcut highlight", "Bar off",
+        ),
+        contract(
+          .button, "miniwhisper.settings.shortcut.paste-last.binding.0",
+          "⌥ Opt ← ⌘ Cmd ← V", "Ring off", isEnabled: true, isActionable: true,
+        ),
+        contract(
+          .menuButton, "miniwhisper.settings.shortcut.paste-last.menu", "Shortcut actions",
+          isEnabled: true, isActionable: true,
+        ),
         contract(.group, "miniwhisper.settings.microphone", "Microphone"),
         contract(
           .staticText, "miniwhisper.settings.microphone.state", "Microphone highlight",
