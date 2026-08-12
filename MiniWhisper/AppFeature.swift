@@ -2,6 +2,7 @@ import AppSettings
 import ASREngine
 import AudioCapture
 import ComposableArchitecture
+import Dictionary
 import FieldContext
 import Foundation
 import History
@@ -54,16 +55,20 @@ private let performanceLogger = Logger(
       settings: Shared<MiniWhisperSettings> = Shared(
         wrappedValue: .defaults, .settingsFile,
       ),
+      dictionary: Shared<DictionaryContents> = Shared(
+        wrappedValue: .empty, .dictionaryFile,
+      ),
       // Nothing has been read from the system yet, so the app starts as broken as it could be.
       health: Shared<AppHealth> = Shared(value: AppHealth()),
     ) {
       _history = history
       _settings = settings
+      _dictionary = dictionary
       _health = health
       recording = RecordingFeature.State(settings: settings, health: health)
       onboarding = OnboardingFeature.State(settings: settings, health: health)
       settingsWindow = SettingsWindowFeature.State(
-        history: history, settings: settings, health: health,
+        history: history, settings: settings, dictionary: dictionary, health: health,
       )
     }
 
@@ -87,6 +92,7 @@ private let performanceLogger = Logger(
     var historyMaintenance = HistoryMaintenanceState.idle
     @Shared var history: HistoryLog
     @Shared var settings: MiniWhisperSettings
+    @Shared var dictionary: DictionaryContents
     @Shared var health: AppHealth
     var onboardingCompleted = false
 
@@ -220,6 +226,15 @@ private let performanceLogger = Logger(
             """
             Settings failed to load, so the defaults are in effect and \
             \(Channel.settingsFile.path, privacy: .public) has been left as it is: \
+            \(error.localizedDescription, privacy: .public)
+            """,
+          )
+        }
+        if let error = state.$dictionary.loadError {
+          settingsLogger.error(
+            """
+            Dictionary failed to load, so corrections are not being applied and \
+            \(Channel.dictionaryFile.path, privacy: .public) has been left as it is: \
             \(error.localizedDescription, privacy: .public)
             """,
           )
@@ -464,12 +479,15 @@ private let performanceLogger = Logger(
           generation: generation, recording: recording, createdAt: now,
           engine: asrEngine.identity(), original: nil,
         )
+        let dictionary = state.dictionary
         return .concatenate(
           .send(.pill(.transcribingStarted)),
           .run { send in
             performanceLogger.notice("benchmark transcription-started")
             do {
-              try await send(.transcriptionCompleted(generation, asrEngine.submit(recording)))
+              try await send(
+                .transcriptionCompleted(generation, asrEngine.submit(recording, dictionary)),
+              )
             } catch { await send(.transcriptionFailed(generation, error.localizedDescription)) }
           }.cancellable(id: CancelID.transcription, cancelInFlight: true),
         )

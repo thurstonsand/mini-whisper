@@ -43,7 +43,7 @@ public actor LocalASREngine {
   }
 
   public func submit(
-    _ samples: [Float], sampleRate: Double,
+    _ samples: [Float], sampleRate: Double, dictionary: TranscriptionDictionary,
   ) async throws -> TranscriptionOutcome {
     precondition(sampleRate > 0)
     let duration = Double(samples.count) / sampleRate
@@ -69,7 +69,9 @@ public actor LocalASREngine {
 
     var decoderState = try TdtDecoderState(decoderLayers: decoderLayerCount)
     let transcript = try await asrManager.transcribe(samples, decoderState: &decoderState)
-    return TranscriptionOutcomeMapper.map(transcript: transcript.text)
+    return TranscriptionOutcomeFinisher.finish(
+      transcript: transcript.text, dictionary: dictionary,
+    )
   }
 
   // MARK: Private

@@ -2,6 +2,7 @@ import AppSettings
 import ASREngine
 import AudioCapture
 import ComposableArchitecture
+import Dictionary
 import Foundation
 import History
 import HotkeyListener
@@ -209,11 +210,19 @@ import Testing
   @Test func `re-transcription appends without replacing the original`() async {
     let entry = makeEntry(text: "Original text")
     let date = Date(timeIntervalSince1970: 1_700_000_100)
-    let store = TestStore(initialState: makeState([entry])) { HistoryFeature() } withDependencies: {
+    let state = makeState([entry])
+    state.$dictionary.withLock {
+      $0.vocabulary = [VocabularyEntry(text: "TCA", addedAt: date)]
+    }
+    let store = TestStore(initialState: state) { HistoryFeature() } withDependencies: {
       $0.date.now = date
       $0.historyClient.loadAudio = { _ in CanonicalRecording(samples: [0]) }
       $0.asrEngine.identity = { "second-engine" }
-      $0.asrEngine.submit = { _ in .transcript("Second opinion") }
+      $0.asrEngine.submit = { _, dictionary in
+        #expect(dictionary.vocabulary.map(\.text) == ["TCA"])
+        #expect(dictionary.corrections.isEmpty)
+        return .transcript("Second opinion")
+      }
     }
 
     await store.send(.retranscribeTapped(entry.id)) {
@@ -324,13 +333,15 @@ private actor DeletedAudioRecorder {
 private func makeState(_ entries: [HistoryEntry]) -> HistoryFeature.State {
   HistoryFeature.State(
     log: Shared(value: HistoryLog(entries: entries)), retention: Shared(value: .defaults),
+    dictionary: Shared(value: .empty),
   )
 }
 
 private func makeWindowState(_ entries: [HistoryEntry]) -> SettingsWindowFeature.State {
   SettingsWindowFeature.State(
     selection: .history, history: Shared(value: HistoryLog(entries: entries)),
-    settings: Shared(value: .defaults), health: Shared(value: AppHealth()),
+    settings: Shared(value: .defaults), dictionary: Shared(value: .empty),
+    health: Shared(value: AppHealth()),
   )
 }
 

@@ -1,5 +1,6 @@
 ---
 status: open
+claimed: fable-dictionary
 type: grilling
 blocked-by: [8]
 ---

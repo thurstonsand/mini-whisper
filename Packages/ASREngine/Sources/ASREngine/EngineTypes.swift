@@ -1,6 +1,40 @@
 import FluidAudio
 import Foundation
 
+// MARK: - TranscriptionDictionary
+
+public struct TranscriptionDictionary: Equatable, Sendable {
+  // MARK: Lifecycle
+
+  public init(vocabulary: [String], corrections: [TranscriptionCorrection]) {
+    self.vocabulary = vocabulary
+    self.corrections = corrections
+  }
+
+  // MARK: Public
+
+  public static let empty = TranscriptionDictionary(vocabulary: [], corrections: [])
+
+  public let vocabulary: [String]
+  public let corrections: [TranscriptionCorrection]
+}
+
+// MARK: - TranscriptionCorrection
+
+public struct TranscriptionCorrection: Equatable, Sendable {
+  // MARK: Lifecycle
+
+  public init(misspelling: String, text: String) {
+    self.misspelling = misspelling
+    self.text = text
+  }
+
+  // MARK: Public
+
+  public let misspelling: String
+  public let text: String
+}
+
 // MARK: - TranscriptionOutcome
 
 public enum TranscriptionOutcome: Equatable, Sendable {
@@ -114,11 +148,18 @@ public enum GateFraming {
   }
 }
 
-// MARK: - TranscriptionOutcomeMapper
+// MARK: - TranscriptionOutcomeFinisher
 
-public enum TranscriptionOutcomeMapper {
-  public static func map(transcript: String?) -> TranscriptionOutcome {
-    let text = transcript?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-    return text.isEmpty ? .engineEmpty : .transcript(text)
+public enum TranscriptionOutcomeFinisher {
+  public static func finish(
+    transcript: String?, dictionary: TranscriptionDictionary,
+  ) -> TranscriptionOutcome {
+    let decoded = transcript?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    guard !decoded.isEmpty else {
+      return .engineEmpty
+    }
+    let corrected = TranscriptCorrector(dictionary: dictionary).apply(to: decoded)
+    return corrected.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+      ? .engineEmpty : .transcript(corrected)
   }
 }

@@ -58,7 +58,9 @@ struct EngineLifecycleTests {
     )
     let samples = Array(repeating: Float.zero, count: 7984)
 
-    #expect(try await engine.submit(samples, sampleRate: 16000) == .tooShort)
+    #expect(
+      try await engine.submit(samples, sampleRate: 16000, dictionary: .empty) == .tooShort,
+    )
   }
 
   @Test func `five hundred milliseconds proceeds beyond the duration floor`() async {
@@ -69,7 +71,7 @@ struct EngineLifecycleTests {
     let samples = Array(repeating: Float.zero, count: 8000)
 
     await #expect(throws: ASREngineError.notReady) {
-      try await engine.submit(samples, sampleRate: 16000)
+      try await engine.submit(samples, sampleRate: 16000, dictionary: .empty)
     }
   }
 
@@ -360,14 +362,43 @@ struct GateConfigurationTests {
   }
 }
 
-// MARK: - TranscriptionOutcomeMapperTests
+// MARK: - TranscriptionOutcomeFinisherTests
 
-struct TranscriptionOutcomeMapperTests {
+struct TranscriptionOutcomeFinisherTests {
   @Test func `accepted empty transcript remains distinct`() {
-    #expect(TranscriptionOutcomeMapper.map(transcript: "  \n") == .engineEmpty)
+    #expect(
+      TranscriptionOutcomeFinisher.finish(transcript: "  \n", dictionary: .empty) == .engineEmpty,
+    )
   }
 
   @Test func `accepted text is trimmed and returned`() {
-    #expect(TranscriptionOutcomeMapper.map(transcript: " hello \n") == .transcript("hello"))
+    #expect(
+      TranscriptionOutcomeFinisher.finish(transcript: " hello \n", dictionary: .empty)
+        == .transcript("hello"),
+    )
+  }
+
+  @Test func `decoded text is corrected before it leaves the engine boundary`() {
+    let dictionary = TranscriptionDictionary(
+      vocabulary: ["TCA"],
+      corrections: [TranscriptionCorrection(misspelling: "mini whisper", text: "MiniWhisper")],
+    )
+
+    #expect(
+      TranscriptionOutcomeFinisher.finish(
+        transcript: "mini whisper uses tca", dictionary: dictionary,
+      ) == .transcript("MiniWhisper uses TCA"),
+    )
+  }
+
+  @Test func `a correction that removes all text produces engine empty`() {
+    let dictionary = TranscriptionDictionary(
+      vocabulary: [], corrections: [TranscriptionCorrection(misspelling: "remove", text: "")],
+    )
+
+    #expect(
+      TranscriptionOutcomeFinisher.finish(transcript: "remove", dictionary: dictionary)
+        == .engineEmpty,
+    )
   }
 }

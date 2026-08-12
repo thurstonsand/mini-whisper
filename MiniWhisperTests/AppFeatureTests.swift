@@ -2,6 +2,7 @@ import AppSettings
 import ASREngine
 import AudioCapture
 import ComposableArchitecture
+import Dictionary
 import FieldContext
 import Foundation
 import History
@@ -38,7 +39,7 @@ import Testing
         return recording
       }
       $0.audioCapture.currentInputDeviceName = { _ in "Test Microphone" }
-      $0.asrEngine.submit = { _ in .noSpeech }
+      $0.asrEngine.submit = { _, _ in .noSpeech }
       $0.contextCapture.prewarmFrontmostApp = {}
       $0.date.now = Date(timeIntervalSince1970: 1000)
       $0.continuousClock = clock
@@ -1003,7 +1004,7 @@ import Testing
       AppFeature()
     } withDependencies: {
       $0.asrEngine.identity = { "parakeet-tdt-0.6b-v2" }
-      $0.asrEngine.submit = { _ in .transcript("recoverable words") }
+      $0.asrEngine.submit = { _, _ in .transcript("recoverable words") }
       $0.audioCapture.stop = { id in
         #expect(id == sessionID)
         return recording
@@ -1611,6 +1612,17 @@ import Testing
     let clock = TestClock()
     var state = AppFeature.State()
     state.$settings.withLock { $0.retention.audio = .never }
+    state.$dictionary.withLock {
+      $0 = DictionaryContents(
+        vocabulary: [VocabularyEntry(text: "TCA", addedAt: Date(timeIntervalSince1970: 1))],
+        corrections: [
+          CorrectionEntry(
+            misspelling: "mini whisper", text: "MiniWhisper",
+            addedAt: Date(timeIntervalSince1970: 1),
+          ),
+        ],
+      )
+    }
     state.$health.withLock { $0 = .healthy }
     state.onboardingCompleted = true
     let store = TestStore(initialState: state) {
@@ -1630,8 +1642,11 @@ import Testing
       $0.audioCapture.currentInputDeviceName = { _ in "Microphone" }
       $0.asrEngine.identity = { "test-engine" }
       $0.asrEngine.prepareForActivation = { AsyncStream { $0.finish() } }
-      $0.asrEngine.submit = { submitted in
+      $0.asrEngine.submit = { submitted, dictionary in
         #expect(submitted == recording)
+        #expect(dictionary.vocabulary.map(\.text) == ["TCA"])
+        #expect(dictionary.corrections.map(\.misspelling) == ["mini whisper"])
+        #expect(dictionary.corrections.map(\.text) == ["MiniWhisper"])
         return .transcript("continuous capture")
       }
       $0.contextCapture.prewarmFrontmostApp = {}

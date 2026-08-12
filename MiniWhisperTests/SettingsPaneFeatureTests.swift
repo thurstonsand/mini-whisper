@@ -2,6 +2,7 @@ import AppSettings
 import ASREngine
 import AudioCapture
 import ComposableArchitecture
+import Dictionary
 import Foundation
 import History
 import HotkeyListener
@@ -491,7 +492,7 @@ import Testing
   private func makeWindowState() -> SettingsWindowFeature.State {
     SettingsWindowFeature.State(
       history: Shared(value: HistoryLog()), settings: Shared(value: .defaults),
-      health: Shared(value: .healthy),
+      dictionary: Shared(value: .empty), health: Shared(value: .healthy),
     )
   }
 }

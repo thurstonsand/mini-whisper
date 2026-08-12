@@ -1,5 +1,6 @@
 import AppSettings
 import ComposableArchitecture
+import Dictionary
 import Foundation
 import History
 
@@ -103,11 +104,14 @@ struct SettingsWindowInteraction: Equatable {
       selection: SettingsDestination = .settings,
       history: Shared<HistoryLog>,
       settings: Shared<MiniWhisperSettings>,
+      dictionary: Shared<DictionaryContents>,
       health: Shared<AppHealth>,
     ) {
       self.selection = selection
       settingsPane = SettingsPaneFeature.State(settings: settings, health: health)
-      self.history = HistoryFeature.State(log: history, retention: settings.retention)
+      self.history = HistoryFeature.State(
+        log: history, retention: settings.retention, dictionary: dictionary,
+      )
     }
 
     // MARK: Internal

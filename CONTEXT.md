@@ -19,6 +19,7 @@
 - Channel: one of the three apps this project builds — dev, nightly, release. Each is its own bundle identifier, its own name in System Settings, and its own application support directory, so grants and state never cross.
 - Settings file: `settings.json` in the running channel's application support directory. Every setting is backed by that file.
 - The settings window: the app's only non-modal window, and its one home for everything that is not a dictation: configurable settings, history, dictionary, cleanup.
+- The dictionary: the user's custom vocabulary.
 - Field context: the text around the insertion point of the focused field.
 - Cleanup pass: the optional post-transcription LLM pass, talking to a configurable OpenAI-compatible endpoint.
 - The allowlist: A list of permitted software/libraries.

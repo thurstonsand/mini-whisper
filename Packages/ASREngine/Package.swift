@@ -9,7 +9,10 @@ let package = Package(
     .package(url: "https://github.com/FluidInference/FluidAudio.git", exact: "0.15.5"),
   ],
   targets: [
-    .target(name: "ASREngine", dependencies: [.product(name: "FluidAudio", package: "FluidAudio")]),
+    .target(
+      name: "ASREngine",
+      dependencies: [.product(name: "FluidAudio", package: "FluidAudio")],
+    ),
     .testTarget(name: "ASREngineTests", dependencies: ["ASREngine"]),
   ],
 )

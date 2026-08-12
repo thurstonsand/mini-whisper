@@ -1,5 +1,6 @@
 import AppSettings
 import ComposableArchitecture
+import Dictionary
 import Foundation
 
 // MARK: - Channel
@@ -31,6 +32,7 @@ enum Channel {
   )[0].appending(path: name, directoryHint: .isDirectory)
 
   static let settingsFile = supportDirectory.appending(path: "settings.json")
+  static let dictionaryFile = supportDirectory.appending(path: "dictionary.json")
   static let historyDirectory = supportDirectory.appending(
     path: "History", directoryHint: .isDirectory,
   )
@@ -54,6 +56,14 @@ extension SharedKey where Self == FileStorageKey<MiniWhisperSettings> {
   static var settingsFile: Self {
     fileStorage(
       Channel.settingsFile, decode: SettingsCoding.decode, encode: SettingsCoding.encode,
+    )
+  }
+}
+
+extension SharedKey where Self == FileStorageKey<DictionaryContents> {
+  static var dictionaryFile: Self {
+    fileStorage(
+      Channel.dictionaryFile, decode: DictionaryCoding.decode, encode: DictionaryCoding.encode,
     )
   }
 }

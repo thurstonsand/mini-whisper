@@ -1,5 +1,6 @@
 import ASREngine
 import ComposableArchitecture
+import Dictionary
 import Foundation
 import History
 import OSLog
@@ -23,14 +24,19 @@ import SwiftUI
   @ObservableState struct State: Equatable {
     // MARK: Lifecycle
 
-    init(log: Shared<HistoryLog>, retention: Shared<RetentionPolicy>) {
+    init(
+      log: Shared<HistoryLog>, retention: Shared<RetentionPolicy>,
+      dictionary: Shared<DictionaryContents>,
+    ) {
       _log = log
       _retention = retention
+      _dictionary = dictionary
     }
 
     // MARK: Internal
 
     @Shared var log: HistoryLog
+    @Shared var dictionary: DictionaryContents
     var search = ""
     var cursor: UUID?
     var copiedEntryID: UUID?
@@ -209,12 +215,13 @@ import SwiftUI
         guard state.log.entries.first(where: { $0.id == id })?.audio != nil else {
           return .none
         }
+        let dictionary = state.dictionary
         state.retranscribingEntryIDs.insert(id)
         state.retranscriptionFailures[id] = nil
         return .run { send in
           do {
             let recording = try await historyClient.loadAudio(id)
-            let outcome = try await asrEngine.submit(recording)
+            let outcome = try await asrEngine.submit(recording, dictionary)
             await send(.retranscriptionCompleted(id, outcome))
           } catch { await send(.retranscriptionFailed(id, error.localizedDescription)) }
         }
