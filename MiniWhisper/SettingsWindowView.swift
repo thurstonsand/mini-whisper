@@ -127,19 +127,46 @@ struct SettingsWindowView: View {
         up: { store.send(.history(.cursorMoved(.previous))) },
         right: { store.send(.history(.copyRequested)) },
         press: { store.send(.history(.copyRequested)) },
-        search: {
-          guard !isHistorySearchFocused else {
-            return .ignored
-          }
-          isHistorySearchFocused = true
-          return .handled
-        },
+        search: isHistorySearchFocused ? nil : { isHistorySearchFocused = true },
         escape: dismissStoragePopover,
       )
+    case .dictionary:
+      WindowKeyActions(
+        left: { setFocus(.sidebar) },
+        down: { store.send(.dictionary(.cursorMoved(.next))) },
+        up: { store.send(.dictionary(.cursorMoved(.previous))) },
+        right: { editDictionaryCursor() },
+        press: { editDictionaryCursor() },
+        add: { store.send(.dictionary(.addShortcutPressed)) },
+        delete: { store.send(.dictionary(.cursorDeleteShortcutPressed)) },
+      )
     case .model,
-         .dictionary,
          .cleanup:
       WindowKeyActions(left: { setFocus(.sidebar) })
+    }
+  }
+
+  private var dismissStoragePopover: (() -> Void)? {
+    guard store.history.isStoragePresented else {
+      return nil
+    }
+    return { store.send(.history(.storagePresentationChanged(false))) }
+  }
+
+  private var cancelSettingsRecording: (() -> Void)? {
+    let recordingCommands = store.settingsPane
+      .bindingEditors
+      .filter(\.isRecording)
+      .map(\.command)
+    guard !recordingCommands.isEmpty else {
+      return nil
+    }
+    return {
+      for command in recordingCommands {
+        store.send(
+          .settingsPane(.bindingEditors(.element(id: command, action: .cancelRecording))),
+        )
+      }
     }
   }
 
@@ -149,8 +176,9 @@ struct SettingsWindowView: View {
       SettingsPane(store: store)
     case .history:
       HistoryPane(store: store, searchFocus: $isHistorySearchFocused)
+    case .dictionary:
+      DictionaryPane(store: store)
     case .model,
-         .dictionary,
          .cleanup:
       SettingsPlaceholderPane(destination: store.selection)
     }
@@ -172,28 +200,11 @@ struct SettingsWindowView: View {
     .tag(destination)
   }
 
-  private func dismissStoragePopover() -> KeyPress.Result {
-    guard store.history.isStoragePresented else {
-      return .ignored
+  private func editDictionaryCursor() {
+    guard let entry = store.dictionary.cursorEntry else {
+      return
     }
-    store.send(.history(.storagePresentationChanged(false)))
-    return .handled
-  }
-
-  private func cancelSettingsRecording() -> KeyPress.Result {
-    let recordingCommands = store.settingsPane
-      .bindingEditors
-      .filter(\.isRecording)
-      .map(\.command)
-    guard !recordingCommands.isEmpty else {
-      return .ignored
-    }
-    for command in recordingCommands {
-      store.send(
-        .settingsPane(.bindingEditors(.element(id: command, action: .cancelRecording))),
-      )
-    }
-    return .handled
+    store.send(.dictionary(.editRequested(entry.id)))
   }
 
   private func applyInitialFocus() {

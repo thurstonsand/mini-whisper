@@ -50,6 +50,12 @@ struct AgentDriveabilitySceneTests {
     #expect(state.settingsWindow.settingsPane.cursorRow == .repair(.accessibilityDenied))
   }
 
+  @Test func `unreadable dictionary scene carries the load failure`() {
+    let state = AgentDriveabilityScene.settingsDictionaryUnreadable.initialState
+
+    #expect(state.settingsWindow.dictionary.loadFailure != nil)
+  }
+
   @Test func `No audio scene seeds state instead of the live settings file`() {
     #expect(AgentDriveabilityScene.settingsSoundsNoAudio.initialState.settings.sounds.cancel == nil)
   }

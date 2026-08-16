@@ -165,6 +165,11 @@ final class MiniWhisperUITests: XCTestCase {
           .menuItem, "miniwhisper.menu.copy-last-transcript", "Copy Last Transcript",
           isEnabled: true, isActionable: true,
         ),
+        contract(.menuItem, "miniwhisper.menu.quick-add", "Add to Dictionary…"),
+        contract(
+          .button, "miniwhisper.menu.quick-add.header", "Add to Dictionary…",
+          isEnabled: true, isActionable: true,
+        ),
         contract(
           .menuItem, "miniwhisper.menu.settings", "Settings", isEnabled: true,
           isActionable: true,
@@ -201,6 +206,11 @@ final class MiniWhisperUITests: XCTestCase {
           .menuItem, "miniwhisper.menu.copy-last-transcript", "Copy Last Transcript",
           isEnabled: false,
         ),
+        contract(.menuItem, "miniwhisper.menu.quick-add", "Add to Dictionary…"),
+        contract(
+          .button, "miniwhisper.menu.quick-add.header", "Add to Dictionary…",
+          isEnabled: true, isActionable: true,
+        ),
         contract(
           .menuItem, "miniwhisper.menu.settings", "Settings", isEnabled: true,
           isActionable: true,
@@ -214,6 +224,57 @@ final class MiniWhisperUITests: XCTestCase {
           isActionable: true,
         ),
       ],
+    )
+
+    try assertMenuManifest(
+      scene: "menu-healthy",
+      elements: [
+        contract(
+          .menuItem, "miniwhisper.menu.status", "Status", "Ready; Parakeet v2; Test Microphone",
+          isEnabled: false,
+        ),
+        contract(
+          .menuItem, "miniwhisper.menu.copy-last-transcript", "Copy Last Transcript",
+          isEnabled: true, isActionable: true,
+        ),
+        contract(.menuItem, "miniwhisper.menu.quick-add", "Add to Dictionary…"),
+        contract(
+          .button, "miniwhisper.menu.quick-add.header", "Add to Dictionary…", isEnabled: false,
+        ),
+        contract(
+          .textField, "miniwhisper.menu.quick-add.word", "Correct spelling", isEnabled: true,
+        ),
+        contract(
+          .button, "miniwhisper.menu.quick-add.disclosure", "Misheard as…", isEnabled: false,
+        ),
+        contract(
+          .textField, "miniwhisper.menu.quick-add.misspelling", "Misspelling", isEnabled: true,
+        ),
+        contract(
+          .button, "miniwhisper.menu.quick-add.submit", "Add to Dictionary", isEnabled: true,
+          isActionable: true,
+        ),
+        contract(
+          .menuItem, "miniwhisper.menu.settings", "Settings", isEnabled: true,
+          isActionable: true,
+        ),
+        contract(
+          .menuItem, "miniwhisper.menu.about", "About \(appName)", isEnabled: true,
+          isActionable: true,
+        ),
+        contract(
+          .menuItem, "miniwhisper.menu.quit", "Quit \(appName)", isEnabled: true,
+          isActionable: true,
+        ),
+      ],
+      mutation: { app in
+        let header = app.buttons["miniwhisper.menu.quick-add.header"]
+        XCTAssertTrue(header.awaitHittable(timeout: 2))
+        header.click()
+        let disclosure = app.buttons["miniwhisper.menu.quick-add.disclosure"]
+        XCTAssertTrue(disclosure.awaitHittable(timeout: 2))
+        disclosure.click()
+      },
     )
   }
 
@@ -550,8 +611,9 @@ final class MiniWhisperUITests: XCTestCase {
   // MARK: Private
 
   @MainActor private func assertMenuManifest(
-    scene: String, elements: [AccessibilityContract], file: StaticString = #filePath,
-    line: UInt = #line,
+    scene: String, elements: [AccessibilityContract],
+    mutation: ((XCUIApplication) -> Void)? = nil,
+    file: StaticString = #filePath, line: UInt = #line,
   ) throws {
     let app = launch(scene)
     defer { terminate(app) }
@@ -566,6 +628,7 @@ final class MiniWhisperUITests: XCTestCase {
     XCTAssertTrue(
       app.menuItems[elements[0].identifier].awaitExistence(timeout: 2), file: file, line: line,
     )
+    mutation?(app)
     assert(elements, in: app, file: file, line: line)
   }
 
@@ -867,5 +930,9 @@ private enum PermissionManifest: CaseIterable {
 private let menuKnownIdentifiers: Set<String> = [
   "miniwhisper.menu.status", "miniwhisper.menu.repair.accessibility",
   "miniwhisper.menu.repair.microphone", "miniwhisper.menu.copy-last-transcript",
-  "miniwhisper.menu.settings", "miniwhisper.menu.about", "miniwhisper.menu.quit",
+  "miniwhisper.menu.quick-add", "miniwhisper.menu.quick-add.header",
+  "miniwhisper.menu.quick-add.word", "miniwhisper.menu.quick-add.disclosure",
+  "miniwhisper.menu.quick-add.misspelling", "miniwhisper.menu.quick-add.submit",
+  "miniwhisper.menu.quick-add.failure", "miniwhisper.menu.settings",
+  "miniwhisper.menu.about", "miniwhisper.menu.quit",
 ]

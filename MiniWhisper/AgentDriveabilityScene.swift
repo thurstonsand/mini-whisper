@@ -5,6 +5,7 @@ import ComposableArchitecture
 import Foundation
 import History
 import HotkeyListener
+import SpeechDictionary
 
 // MARK: - PresentedWindow
 
@@ -33,6 +34,8 @@ enum PresentedWindow: Equatable {
     case settingsSoundsNoAudio = "settings-sounds-no-audio"
     case settingsDegraded = "settings-degraded"
     case settingsHistory = "settings-history"
+    case settingsDictionary = "settings-dictionary"
+    case settingsDictionaryUnreadable = "settings-dictionary-unreadable"
     case about
     case pillRecording = "pill-recording"
     case pillTranscribing = "pill-transcribing"
@@ -63,6 +66,9 @@ enum PresentedWindow: Equatable {
         .settings(.settings, initialFocus: nil)
       case .settingsHistory:
         .settings(.history, initialFocus: nil)
+      case .settingsDictionary,
+           .settingsDictionaryUnreadable:
+        .settings(.dictionary, initialFocus: nil)
       case .about:
         .about
       default:
@@ -77,6 +83,7 @@ enum PresentedWindow: Equatable {
     var initialState: AppFeature.State {
       var state = AppFeature.State(
         history: Shared(value: seededHistory), settings: Shared(value: seededSettings),
+        dictionary: makeSeededDictionary(),
       )
       state.onboardingCompleted = true
       state.$health.withLock {
@@ -156,6 +163,8 @@ enum PresentedWindow: Equatable {
         }
         state.settingsWindow.settingsPane.launchAtLoginRegistered = true
       case .settingsHistory,
+           .settingsDictionary,
+           .settingsDictionaryUnreadable,
            .about:
         break
       case .settingsShortcutsKeyboard:
@@ -186,6 +195,17 @@ enum PresentedWindow: Equatable {
     }
 
     // MARK: Private
+
+    /// File-backed dictionary scenes use the real persistence path; the harness gives each test
+    /// process its own file so concurrent runs cannot read each other's words.
+    private static let dictionaryFileURL: URL = {
+      if let path = ProcessInfo.processInfo.environment["MINIWHISPER_AGENT_DICTIONARY_FILE"] {
+        return URL(fileURLWithPath: path)
+      }
+      return FileManager.default.temporaryDirectory.appending(
+        path: "miniwhisper-agent-dictionary-\(ProcessInfo.processInfo.processIdentifier).json",
+      )
+    }()
 
     private var seededSettings: MiniWhisperSettings {
       var settings = MiniWhisperSettings.defaults
@@ -266,6 +286,68 @@ enum PresentedWindow: Equatable {
         )
       })
       return HistoryLog(entries: entries)
+    }
+
+    private func makeSeededDictionary() -> Shared<DictionaryContents> {
+      if self == .menuHealthy {
+        if !FileManager.default.fileExists(atPath: Self.dictionaryFileURL.path) {
+          writeDictionaryFixture(encodedEmptyDictionary())
+        }
+        return fileBacked(Self.dictionaryFileURL)
+      }
+      if self == .settingsDictionaryUnreadable {
+        writeDictionaryFixture(Data("{ unreadable".utf8))
+        return fileBacked(Self.dictionaryFileURL)
+      }
+      guard self == .settingsDictionary else {
+        return Shared(value: .empty)
+      }
+      return Shared(
+        value: DictionaryContents(
+          vocabulary: [
+            VocabularyEntry(
+              text: "MiniWhisper", addedAt: Date(timeIntervalSince1970: 1_754_352_000),
+            ),
+          ],
+          corrections: [
+            CorrectionEntry(
+              misspelling: "mini whisperer", text: "MiniWhisper",
+              addedAt: Date(timeIntervalSince1970: 1_754_351_000),
+            ),
+          ],
+        ),
+      )
+    }
+
+    /// File-backed rather than in-memory: a scene that drives a save has to write where the app
+    /// really writes, and the caller has already put the bytes it wants read back at `url`.
+    private func encodedEmptyDictionary() -> Data {
+      do {
+        return try DictionaryCoding.encode(.empty)
+      } catch {
+        preconditionFailure("Agent scene could not encode an empty dictionary: \(error)")
+      }
+    }
+
+    private func writeDictionaryFixture(_ data: Data) {
+      do {
+        try data.write(to: Self.dictionaryFileURL)
+      } catch {
+        preconditionFailure("Agent scene could not seed dictionary.json: \(error)")
+      }
+    }
+
+    private func fileBacked(_ url: URL) -> Shared<DictionaryContents> {
+      withDependencies {
+        $0.defaultFileStorage = .fileSystem
+      } operation: {
+        Shared(
+          wrappedValue: .empty,
+          .fileStorage(
+            url, decode: DictionaryCoding.decode, encode: DictionaryCoding.encode,
+          ),
+        )
+      }
     }
 
     /// Seeded in place: the onboarding state built by `AppFeature.State` already shares the

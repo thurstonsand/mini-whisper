@@ -1,5 +1,5 @@
-@testable import Dictionary
 import Foundation
+@testable import SpeechDictionary
 import Testing
 
 struct DictionaryCodingTests {
@@ -22,6 +22,27 @@ struct DictionaryCodingTests {
     let corrections = try #require(object["corrections"] as? [[String: Any]])
     #expect(try Set(#require(corrections.first).keys) == ["misspelling", "text", "addedAt"])
     #expect(try DictionaryCoding.decode(data) == contents)
+  }
+
+  @Test func `duplicate keys keep their last occurrence`() throws {
+    let contents = """
+    {
+      "vocabulary": [
+        {"text":"TCA","addedAt":"2026-08-10T20:00:00Z"},
+        {"text":"tca","addedAt":"2026-08-10T21:00:00Z"}
+      ],
+      "corrections": [
+        {"misspelling":"mini whisper","text":"Miniwhisper","addedAt":"2026-08-10T20:00:00Z"},
+        {"misspelling":"MINI WHISPER","text":"MiniWhisper","addedAt":"2026-08-10T21:00:00Z"}
+      ]
+    }
+    """
+
+    let dictionary = try DictionaryCoding.decode(Data(contents.utf8))
+
+    #expect(dictionary.vocabulary.map(\.text) == ["tca"])
+    #expect(dictionary.corrections.map(\.misspelling) == ["MINI WHISPER"])
+    #expect(dictionary.corrections.map(\.text) == ["MiniWhisper"])
   }
 
   @Test(

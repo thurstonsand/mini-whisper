@@ -2,13 +2,13 @@ import AppSettings
 import ASREngine
 import AudioCapture
 import ComposableArchitecture
-import Dictionary
 import FieldContext
 import Foundation
 import History
 import HotkeyListener
 @testable import MiniWhisper
 import Sharing
+import SpeechDictionary
 import Testing
 
 // MARK: - AppFeatureTests

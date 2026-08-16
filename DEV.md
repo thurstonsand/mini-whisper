@@ -42,7 +42,7 @@ Three build configurations produce three separate apps, so all three can be inst
 - `MiniWhisper/` — SwiftUI app target (thin shell, NSStatusItem menu, TCA features and clients)
 - `Packages/AudioCapture` — AVAudioEngine mic capture, input-device selection and observation, canonical whole-utterance accumulation, level metering
 - `Packages/ASREngine` — silence gate + transcription, and the post-decode correction pass
-- `Packages/Dictionary` — the `dictionary.json` entry model and codec
+- `Packages/SpeechDictionary` — the `dictionary.json` entry model and codec
 - `Packages/FieldContext` — focused-field capture payload, fallback taxonomy, and the transcript join rules
 - `Packages/TranscriptCleanup` — optional LLM cleanup client
 - `Packages/HotkeyListener` — event pipeline routing action-bound bindings and the chord recorder

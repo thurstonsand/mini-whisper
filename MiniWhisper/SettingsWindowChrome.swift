@@ -8,15 +8,15 @@ import SwiftUI
 /// with the window; this is the only shape that says what a press does, so every surface's whole
 /// keymap is one value rather than a switch per key.
 struct WindowKeyActions {
-  var left: () -> Void = {}
-  var down: () -> Void = {}
-  var up: () -> Void = {}
-  var right: () -> Void = {}
-  var press: () -> Void = {}
-  /// The two keys a surface may decline: an ignored press stays an ordinary character, which is
-  /// how `/` reaches a focused search field and how Escape reaches whatever else wants it.
-  var search: () -> KeyPress.Result = { .ignored }
-  var escape: () -> KeyPress.Result = { .ignored }
+  var left: (() -> Void)?
+  var down: (() -> Void)?
+  var up: (() -> Void)?
+  var right: (() -> Void)?
+  var press: (() -> Void)?
+  var add: (() -> Void)?
+  var delete: (() -> Void)?
+  var search: (() -> Void)?
+  var escape: (() -> Void)?
 }
 
 // MARK: - WindowKeys
@@ -30,8 +30,21 @@ private struct WindowKeys: ViewModifier {
 
   func body(content: Content) -> some View {
     content
-      .onKeyPress(.escape) { actions.escape() }
-      .onKeyPress(.return) { press(actions.press) }
+      .onKeyPress(.escape) {
+        guard let escape = actions.escape else {
+          return .ignored
+        }
+        escape()
+        return .handled
+      }
+      .onKeyPress(.return) {
+        // Return belongs to a sheet while one is up: the key window is either the sheet or its
+        // parent, and consuming it here would also activate the row behind the sheet.
+        guard NSApp.keyWindow?.attachedSheet == nil, NSApp.keyWindow?.sheetParent == nil else {
+          return .ignored
+        }
+        return press(actions.press) ? .handled : .ignored
+      }
       .onKeyPress(.tab) {
         store.send(.keyboardModeEntered)
         return .ignored
@@ -43,19 +56,24 @@ private struct WindowKeys: ViewModifier {
           }
           switch characters {
           case "h":
-            _ = press(actions.left)
-            return true
+            return press(actions.left)
           case "j":
-            _ = press(actions.down)
-            return true
+            return press(actions.down)
           case "k":
-            _ = press(actions.up)
-            return true
+            return press(actions.up)
           case "l":
-            _ = press(actions.right)
-            return true
+            return press(actions.right)
+          case "n":
+            return press(actions.add)
+          case "\u{7f}",
+               "\u{f728}":
+            return press(actions.delete)
           case "/":
-            return actions.search() == .handled
+            guard let search = actions.search else {
+              return false
+            }
+            search()
+            return true
           default:
             return false
           }
@@ -65,10 +83,15 @@ private struct WindowKeys: ViewModifier {
 
   // MARK: Private
 
-  private func press(_ action: () -> Void) -> KeyPress.Result {
+  /// A surface declines a key by leaving its action nil: the press stays an ordinary character,
+  /// which is how `/` reaches a focused search field and how Escape reaches whatever else wants it.
+  private func press(_ action: (() -> Void)?) -> Bool {
+    guard let action else {
+      return false
+    }
     store.send(.keyboardModeEntered)
     action()
-    return .handled
+    return true
   }
 }
 
@@ -146,12 +169,40 @@ private struct KeyboardCursorScroll<Cursor: Hashable>: ViewModifier {
   }
 }
 
+// MARK: - SettingsListRowMetrics
+
+private enum SettingsListRowMetrics {
+  static let contentHeight: CGFloat = 22
+  static let verticalPadding: CGFloat = 3
+  /// Live insertion otherwise caches AppKit's 24pt estimate; settled hosted content plus native
+  /// table chrome has a 33pt pitch in both History and Dictionary.
+  static let listPitch: CGFloat = 33
+}
+
+// MARK: - SettingsListRowHeight
+
+private struct SettingsListRowHeight: ViewModifier {
+  func body(content: Content) -> some View {
+    content
+      .frame(height: SettingsListRowMetrics.contentHeight)
+      .padding(.vertical, SettingsListRowMetrics.verticalPadding)
+  }
+}
+
 extension View {
   func windowKeys(
     store: StoreOf<SettingsWindowFeature>, _ actions: WindowKeyActions,
     isActive: @escaping () -> Bool,
   ) -> some View {
     modifier(WindowKeys(store: store, actions: actions, isActive: isActive))
+  }
+
+  func settingsListRowHeight() -> some View {
+    modifier(SettingsListRowHeight())
+  }
+
+  func stableSettingsListRowHeight() -> some View {
+    environment(\.defaultMinListRowHeight, SettingsListRowMetrics.listPitch)
   }
 
   /// Apply to the scrolling container itself; every row it holds must carry `.id(cursor)`.

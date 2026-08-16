@@ -1,9 +1,9 @@
 import ASREngine
 import ComposableArchitecture
-import Dictionary
 import Foundation
 import History
 import OSLog
+import SpeechDictionary
 import SwiftUI
 
 // MARK: - HistoryFeature

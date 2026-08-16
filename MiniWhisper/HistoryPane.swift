@@ -21,6 +21,7 @@ struct HistoryPane: View {
         }
       }
     }
+    .stableSettingsListRowHeight()
     .focusEffectDisabled()
     .keyboardCursorScroll(store: store, cursor: visibleCursor)
     .overlay {
@@ -199,8 +200,7 @@ private struct HistoryRow: View {
       accessory
         .frame(width: 70, height: 18, alignment: .trailing)
     }
-    .frame(height: 22)
-    .padding(.vertical, 3)
+    .settingsListRowHeight()
     .padding(.horizontal, 6)
     .background {
       RoundedRectangle(cornerRadius: 8)

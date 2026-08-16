@@ -2,6 +2,7 @@ import AppSettings
 import ASREngine
 import ComposableArchitecture
 import Foundation
+import History
 
 #if DEBUG
 
@@ -70,6 +71,13 @@ import Foundation
         store.send(.engineReadinessUpdated(.downloading(fraction)))
       case "model-ready":
         store.send(.engineReadinessUpdated(.ready))
+      case "dictionary-save-failed":
+        store.send(.settingsWindow(.dictionary(.persistenceFailed(.pane, String(fields[2])))))
+      case "history-first-entries":
+        store.send(.agentHistoryReplaced(firstHistoryEntries()))
+        try? "history:first-entries".write(
+          to: AgentSceneFiles.result, atomically: true, encoding: .utf8,
+        )
       case "scene":
         guard let scene = AgentDriveabilityScene(rawValue: String(fields[2])) else {
           return
@@ -84,6 +92,32 @@ import Foundation
       default:
         return
       }
+    }
+
+    private func firstHistoryEntries() -> HistoryLog {
+      let now = Date(timeIntervalSince1970: 1_754_352_000)
+      return HistoryLog(entries: [
+        HistoryEntry(
+          id: UUID(uuidString: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")!,
+          createdAt: now,
+          targetApp: TargetApp(bundleID: "com.apple.TextEdit", name: "TextEdit"),
+          original: Transcription(
+            text: "First live history entry", engine: "test-engine", transcribedAt: now,
+          ),
+          delivery: Delivery(text: "First live history entry", method: .pasted, detail: nil),
+          audio: nil,
+        ),
+        HistoryEntry(
+          id: UUID(uuidString: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb")!,
+          createdAt: now.addingTimeInterval(-1),
+          targetApp: TargetApp(bundleID: "com.apple.TextEdit", name: "TextEdit"),
+          original: Transcription(
+            text: "Second live history entry", engine: "test-engine", transcribedAt: now,
+          ),
+          delivery: Delivery(text: "Second live history entry", method: .pasted, detail: nil),
+          audio: nil,
+        ),
+      ])
     }
   }
 #else

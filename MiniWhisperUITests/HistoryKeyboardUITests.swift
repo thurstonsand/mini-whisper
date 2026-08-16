@@ -10,6 +10,25 @@ final class HistoryKeyboardUITests: XCTestCase {
     continueAfterFailure = false
   }
 
+  @MainActor func testFirstRowsKeepTheirHeightWhenInsertedIntoOpenPane() {
+    let app = launch("settings")
+    defer { terminate(app) }
+
+    let history = app.staticTexts["miniwhisper.settings.sidebar.history"]
+    XCTAssertTrue(history.awaitHittable(timeout: 5))
+    history.click()
+    XCTAssertTrue(app.staticTexts["No History"].awaitExistence(timeout: 2))
+
+    postAgentMutation("history-first-entries", value: "")
+    waitForAgentResult("history:first-entries")
+    let first = historyRow(app, id: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA")
+    let second = historyRow(app, id: "BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB")
+    XCTAssertTrue(first.awaitExistence(timeout: 2))
+    XCTAssertTrue(second.awaitExistence(timeout: 2))
+    let pitch = abs(first.frame.midY - second.frame.midY)
+    XCTAssertGreaterThanOrEqual(pitch, 30, "History row pitch was \(pitch)pt")
+  }
+
   @MainActor func testHistoryKeyboardLaws() {
     let firstID = "11111111-1111-1111-1111-111111111111"
     let secondID = "22222222-2222-2222-2222-222222222222"

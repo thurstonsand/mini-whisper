@@ -1,6 +1,16 @@
 import AppSettings
 import Foundation
 
+private extension String {
+  var accessibilitySlug: String {
+    lowercased().map { $0.isLetter || $0.isNumber ? $0 : "-" }.reduce(into: "") {
+      if $1 != "-" || !$0.hasSuffix("-") {
+        $0.append($1)
+      }
+    }
+  }
+}
+
 // MARK: - SettingsSoundPart
 
 /// The addressable pieces of one sound row. Naming them keeps the pane from spelling identifier
@@ -33,9 +43,18 @@ enum SettingsSoundPart {
 // MARK: - AccessibilityID
 
 enum AccessibilityID {
+  // MARK: Internal
+
   static let menuStatusItem = "miniwhisper.menu.status-item"
   static let menuStatus = "miniwhisper.menu.status"
   static let menuCopyLastTranscript = "miniwhisper.menu.copy-last-transcript"
+  static let menuQuickAdd = "miniwhisper.menu.quick-add"
+  static let menuQuickAddHeader = "miniwhisper.menu.quick-add.header"
+  static let menuQuickAddWord = "miniwhisper.menu.quick-add.word"
+  static let menuQuickAddDisclosure = "miniwhisper.menu.quick-add.disclosure"
+  static let menuQuickAddMisspelling = "miniwhisper.menu.quick-add.misspelling"
+  static let menuQuickAddSubmit = "miniwhisper.menu.quick-add.submit"
+  static let menuQuickAddFailure = "miniwhisper.menu.quick-add.failure"
   static let menuSettings = "miniwhisper.menu.settings"
   static let menuAbout = "miniwhisper.menu.about"
   static let menuQuit = "miniwhisper.menu.quit"
@@ -75,6 +94,10 @@ enum AccessibilityID {
   static let historyCaption = "miniwhisper.history.caption"
   static let historyStorage = "miniwhisper.history.storage"
   static let historyStoragePopover = "miniwhisper.history.storage.popover"
+  static let dictionaryAdd = "miniwhisper.dictionary.add"
+  static let dictionaryText = "miniwhisper.dictionary.text"
+  static let dictionaryMisspelling = "miniwhisper.dictionary.misspelling"
+  static let dictionarySave = "miniwhisper.dictionary.save"
 
   static let aboutWindow = "miniwhisper.about.window"
   static let aboutContent = "miniwhisper.about.content"
@@ -196,5 +219,28 @@ enum AccessibilityID {
 
   static func historyCopied(_ id: UUID) -> String {
     "miniwhisper.history.copied.\(id.uuidString)"
+  }
+
+  static func dictionaryRow(_ id: DictionaryFeature.EntryID) -> String {
+    "miniwhisper.dictionary.row.\(dictionaryEntryComponent(id))"
+  }
+
+  static func dictionaryRowState(_ id: DictionaryFeature.EntryID) -> String {
+    "\(dictionaryRow(id)).state"
+  }
+
+  static func dictionaryDelete(_ id: DictionaryFeature.EntryID) -> String {
+    "\(dictionaryRow(id)).delete"
+  }
+
+  // MARK: Private
+
+  private static func dictionaryEntryComponent(_ id: DictionaryFeature.EntryID) -> String {
+    switch id {
+    case let .vocabulary(text):
+      "vocabulary.\(text.accessibilitySlug)"
+    case let .correction(misspelling):
+      "correction.\(misspelling.accessibilitySlug)"
+    }
   }
 }

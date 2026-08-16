@@ -1,7 +1,7 @@
 import AppSettings
 import ComposableArchitecture
-import Dictionary
 import Foundation
+import SpeechDictionary
 
 // MARK: - Channel
 

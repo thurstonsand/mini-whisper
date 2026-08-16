@@ -1,8 +1,8 @@
 import AppSettings
 import ComposableArchitecture
-import Dictionary
 import Foundation
 import History
+import SpeechDictionary
 
 // MARK: - SettingsDestination
 
@@ -112,6 +112,7 @@ struct SettingsWindowInteraction: Equatable {
       self.history = HistoryFeature.State(
         log: history, retention: settings.retention, dictionary: dictionary,
       )
+      self.dictionary = DictionaryFeature.State(dictionary: dictionary)
     }
 
     // MARK: Internal
@@ -123,9 +124,14 @@ struct SettingsWindowInteraction: Equatable {
     var interaction = SettingsWindowInteraction()
     var settingsPane: SettingsPaneFeature.State
     var history: HistoryFeature.State
+    var dictionary: DictionaryFeature.State
 
     func showsHistoryKeyboardCursor(_ id: UUID) -> Bool {
       interaction.showsKeyboardCursor(history.cursorEntry?.id == id)
+    }
+
+    func showsDictionaryKeyboardCursor(_ id: DictionaryFeature.EntryID) -> Bool {
+      interaction.showsKeyboardCursor(dictionary.cursorEntry?.id == id)
     }
 
     /// A focused detail column always shows where its single row cursor is; input mode only
@@ -150,11 +156,13 @@ struct SettingsWindowInteraction: Equatable {
     case pointerMoved
     case settingsPane(SettingsPaneFeature.Action)
     case history(HistoryFeature.Action)
+    case dictionary(DictionaryFeature.Action)
   }
 
   var body: some ReducerOf<Self> {
     Scope(state: \.settingsPane, action: \.settingsPane) { SettingsPaneFeature() }
     Scope(state: \.history, action: \.history) { HistoryFeature() }
+    Scope(state: \.dictionary, action: \.dictionary) { DictionaryFeature() }
 
     Reduce { state, action in
       switch action {
@@ -173,11 +181,13 @@ struct SettingsWindowInteraction: Equatable {
       // The pointer landing on a row is the detail column being driven, so it claims focus the
       // same way an arrow key would. Nobody types and mouses at once, so there is nothing to steal.
       case .settingsPane(.cursorHovered),
-           .history(.cursorHovered):
+           .history(.cursorHovered),
+           .dictionary(.cursorHovered):
         state.interaction.focus = .detail
         return .none
       case .settingsPane,
-           .history:
+           .history,
+           .dictionary:
         return .none
       }
     }

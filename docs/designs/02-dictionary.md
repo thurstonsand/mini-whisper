@@ -53,15 +53,15 @@ Lives beside `settings.json` in the running channel's application support direct
 
 Free text, single words and phrases alike. `addedAt` backs the pane's Newest First sort. A missing file is an empty dictionary. Malformed content fails fast at load — conform at the edge.
 
-### `Packages/Dictionary`
+### `Packages/SpeechDictionary`
 
-Owns the data: entry models (`DictionaryEntry` forms) and the `dictionary.json` codec, validated at decode (empty text or misspelling is rejected there — conform at the edge). Depends on nothing. History's precedent: user data with its own package.
+(Renamed from `Packages/Dictionary` during implementation: a module named `Dictionary` shadows `Swift.Dictionary` in every importing file.) Owns the data: entry models (`DictionaryEntry` forms) and the `dictionary.json` codec, validated at decode (empty text or misspelling is rejected there — conform at the edge). Depends on nothing. History's precedent: user data with its own package.
 
 The correction algorithm lives in `ASREngine`, expressed in the engine's own carrier types — the engine owns the pass because the engine is where speech becomes finished text. (Amended after review: an earlier draft gave `Dictionary` a public `TranscriptCorrector`, which forced either a forbidden package dependency or a third, dependency-neutral package with a wrapper nobody called.)
 
 ### App ⇄ engine boundary
 
-The app hands dictionary contents to the engine as plain values at each transcribe call; there is no package dependency between `Dictionary` and `ASREngine`. Both engine consumers — live dictation and history's rerun — thread the current dictionary per call; that is honest per-call data, not duplicated knowledge. Inside the engine, order is: TDT decode → boost (if enabled and assets present) → corrections and case repair. The transcript that leaves the engine is finished text — delivery, history, and rerun all inherit it.
+The app hands dictionary contents to the engine as plain values at each transcribe call; there is no package dependency between `SpeechDictionary` and `ASREngine`. Both engine consumers — live dictation and history's rerun — thread the current dictionary per call; that is honest per-call data, not duplicated knowledge. Inside the engine, order is: TDT decode → boost (if enabled and assets present) → corrections and case repair. The transcript that leaves the engine is finished text — delivery, history, and rerun all inherit it.
 
 ### The Dictionary pane
 
@@ -69,7 +69,7 @@ As the settings mockup settled it: rows not selectable, click opens the edit she
 
 ### Quick add (menu)
 
-A view-based `NSMenuItem` under the menu's transcript items: two plain `NSTextField`s (Word, Misspelling — optional). Click focuses; Tab traverses; Return commits through the Dictionary store and closes the menu; Escape dismisses the menu and discards the draft — that dismissal *is* the abort. Proven by the [quick-add spike](../../spikes/quick-add-menu/README.md).
+A view-based `NSMenuItem` under the menu's transcript items. (Amended after user review of the shipped first pass; interaction settled by [ticket 34](../wayfinding/finishing-mini-whisper/tickets/34-quick-add-disclosure-spike.md).) Collapsed, it is one native-looking "Add to Dictionary…" row — selection-material hover pill, full-row click target. Clicking it (one-way) expands the item in place — frame-driven resize; intrinsic invalidation is ignored under tracking — to a word field plus a "Misheard as…" disclosure row of the same native appearance, itself one-way expanding to the misspelling field beneath the taught word (disclosure order: taught on top, misheard revealed below). An always-enabled, left-aligned Add button sits beside Return; an invalid submit shakes the form instead of disabling anything. Click focuses; Tab traverses; Return or Add commits and closes the menu; Escape dismisses the menu and discards the draft — that dismissal *is* the abort. Because the menu window never becomes key, the insertion caret is a layer-backed overlay child of the focused field, and focus moves must `endEditing` the previously-editing cell or it draws blank. Proven across [ticket 33](../wayfinding/finishing-mini-whisper/tickets/33-quick-add-menu-spike.md) and [ticket 34](../wayfinding/finishing-mini-whisper/tickets/34-quick-add-disclosure-spike.md).
 
 ### CTC assets
 
@@ -117,7 +117,7 @@ Spike-proven (see [ticket 33](../wayfinding/finishing-mini-whisper/tickets/33-qu
 - **Correction output matching another rule:** never re-matched; single pass over the original transcript.
 - **Overlapping matches:** longest match wins; remaining text continues after the replacement.
 - **Term shorter than the sidecar's `minTermLength` (3):** FluidAudio skips it for boosting; case repair and corrections still apply. Not surfaced as an error.
-- **Quick add commit with empty Word:** Return does nothing; the field stays. Misspelling filled but Word empty commits nothing.
+- **Quick add commit with empty word:** Return or Add shakes the form; nothing commits. Misspelling filled but word empty is the same shake. Word filled with the disclosure open but misspelling empty degrades silently to a vocabulary entry.
 - **Dictionary edited on disk while the pane is open:** shared file storage reloads (same posture as settings.json handling).
 - **Malformed `dictionary.json`:** log and keep dictating — corrections silently don't apply, the file is left exactly as it is (settings precedent). The write-side guard — never save over a file that failed to load — lands with the pane.
 - **A correction that deletes its match:** an empty transcript must not leave the engine as success; it degrades to the engine-empty outcome.

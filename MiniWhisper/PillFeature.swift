@@ -25,6 +25,7 @@ import ComposableArchitecture
         case cancelledSavedToHistory
         case fieldContextUnavailable
         case speechModelUnavailable(String)
+        case dictionarySaveFailed
 
         // MARK: Internal
 
@@ -72,6 +73,11 @@ import ComposableArchitecture
             Content(
               text: status, phase: status, isSubdued: true, duration: .seconds(3),
             )
+          case .dictionarySaveFailed:
+            Content(
+              text: "Couldn’t save dictionary entry", phase: "Dictionary entry not saved",
+              isSubdued: false, duration: .seconds(3),
+            )
           }
         }
 
@@ -105,6 +111,7 @@ import ComposableArchitecture
     case cancelledSavedToHistory
     case fieldContextUnavailable
     case speechModelUnavailable(String)
+    case dictionarySaveFailed
     case dismiss
     case cancel
     case noticeDisplayElapsed(Int)
@@ -177,6 +184,8 @@ import ComposableArchitecture
         }
       case let .speechModelUnavailable(status):
         return showNotice(.speechModelUnavailable(status), state: &state)
+      case .dictionarySaveFailed:
+        return showNotice(.dictionarySaveFailed, state: &state)
       case .dismiss,
            .cancel:
         state.presentation = nil

@@ -17,6 +17,7 @@ import ComposableArchitecture
     statusItem.button?.setAccessibilityLabel(Channel.name)
     statusItem.button?.setAccessibilityHelp("Open the \(Channel.name) menu")
     menu.autoenablesItems = false
+    menu.minimumWidth = DictionaryQuickAddView.width
     menu.delegate = self
     statusItem.menu = menu
     observeIcon()
@@ -30,6 +31,10 @@ import ComposableArchitecture
       store.send(.menuWillOpen)
     }
     rebuild(menu, state: store.state.menuBar)
+  }
+
+  func menuDidClose(_: NSMenu) {
+    quickAddView.collapse()
   }
 
   func presentAbout() {
@@ -60,6 +65,14 @@ import ComposableArchitecture
   private let aboutWindowController = AboutWindowController()
   private let settingsWindowController: SettingsWindowController
   private var renderedIconSymbolName: String?
+  private lazy var quickAddView = makeQuickAddView()
+  private lazy var quickAddItem: NSMenuItem = {
+    let item = NSMenuItem(title: "Add to Dictionary…", action: nil, keyEquivalent: "")
+    item.view = quickAddView
+    item.setAccessibilityIdentifier(AccessibilityID.menuQuickAdd)
+    item.setAccessibilityLabel("Add to Dictionary…")
+    return item
+  }()
 
   /// Only whether the app is broken is watched, and `renderIcon` drops a repeat of the symbol it
   /// already drew — a download's progress does retrigger this, but it cannot repaint anything.
@@ -120,6 +133,8 @@ import ComposableArchitecture
       ),
     )
 
+    menu.addItem(quickAddItem)
+
     menu.addItem(.separator())
     let settingsItem = item(
       title: "Settings…", identifier: AccessibilityID.menuSettings,
@@ -142,6 +157,19 @@ import ComposableArchitecture
     quitItem.target = nil
     quitItem.keyEquivalent = "q"
     menu.addItem(quitItem)
+  }
+
+  private func makeQuickAddView() -> DictionaryQuickAddView {
+    let view = DictionaryQuickAddView(frame: .zero)
+    view.refuses = { [store] in
+      store.state.settingsWindow.dictionary.refusalReason
+    }
+    view.submit = { [store] word, misspelling in
+      store.send(
+        .settingsWindow(.dictionary(.quickAddSubmitted(word: word, misspelling: misspelling))),
+      )
+    }
+    return view
   }
 
   private func item(

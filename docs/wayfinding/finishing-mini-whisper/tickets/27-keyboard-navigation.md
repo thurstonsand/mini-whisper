@@ -1,5 +1,5 @@
 ---
-status: open
+status: closed
 type: grilling
 blocked-by: [8]
 ---
@@ -19,3 +19,11 @@ Onboarding is largely mouse-driven today, and the app as a whole has never been 
 - Escape already has a meaning in the gesture machine (`.escape` cancels a recording). Whatever Escape does in a window must not collide with that, and the two paths should be distinguishable in the reducer, not just visually.
 - Menus are keyboard-navigable natively, so the menu's share of this is narrower: check that every item is reachable and that the ones that open windows hand focus over correctly.
 - Verification belongs in the existing seam. [Agent-driveability](22-agent-driveability.md) already gives every element a stable identifier and a curated `mise run test:ui` manifest; keyboard order and default actions are assertable there, so the outcome should extend that manifest rather than start a parallel one.
+
+## Resolution
+
+**Audited: ~90% already built; the one real decision was Tab on single-action pages.** The audit found the question largely answered by prior work: onboarding already ran a `tabCycle` on its multi-control pages, Return already carried default-button semantics, Escape's window meaning was already reducer-distinguished from the gesture machine's `.escape`, the About window and menu were already keyboard-clean, and the pill was already out of scope by construction.
+
+The gap: single-action onboarding pages (welcome, model, try-it) owned no Tab cycle, so Tab fell to the system "Keyboard navigation" setting — off by default — and did nothing on a stock install. Decision (interview-settled): the app owns every Tab cycle itself, covering single-action pages' default buttons rather than gating setup on a system preference. A setup flow must be completable by keyboard on a default macOS install.
+
+Built in worktree `onboarding-tab-cycle`, review-hardened (six findings applied), landed as `3c93eeb` — fix(onboarding): own every Tab cycle — with deterministic OnboardingKeyboardUITests extending the existing manifest (6/6).

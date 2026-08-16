@@ -1,7 +1,7 @@
 import ASREngine
 import AudioCapture
 import ComposableArchitecture
-import Dictionary
+import SpeechDictionary
 
 // MARK: - ASREngineClient
 

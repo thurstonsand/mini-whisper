@@ -130,14 +130,31 @@ extension XCTestCase {
     URL(fileURLWithPath: "\(agentCommandFileURL.path).result")
   }
 
-  @MainActor func launch(_ scene: String) -> XCUIApplication {
+  /// The menu scene persists dictionary edits to a real file; per test process so two runs on the
+  /// same machine cannot read each other's words.
+  var agentDictionaryFileURL: URL {
+    FileManager.default.temporaryDirectory.appending(
+      path: "miniwhisper-agent-dictionary-\(ProcessInfo.processInfo.processIdentifier).json",
+    )
+  }
+
+  @MainActor func launch(_ scene: String, dictionaryData: Data? = nil) -> XCUIApplication {
     XCTAssertTrue(Quiescence.disabled, "XCTest renamed its quiescence hooks; update Quiescence")
     let app = XCUIApplication()
     parkPointer()
     try? FileManager.default.removeItem(at: agentCommandFileURL)
     try? FileManager.default.removeItem(at: agentResultFileURL)
+    try? FileManager.default.removeItem(at: agentDictionaryFileURL)
+    if let dictionaryData {
+      do {
+        try dictionaryData.write(to: agentDictionaryFileURL)
+      } catch {
+        XCTFail("Could not seed the agent dictionary: \(error)")
+      }
+    }
     app.launchEnvironment["MINIWHISPER_AGENT_SCENE"] = scene
     app.launchEnvironment["MINIWHISPER_AGENT_COMMAND_FILE"] = agentCommandFileURL.path
+    app.launchEnvironment["MINIWHISPER_AGENT_DICTIONARY_FILE"] = agentDictionaryFileURL.path
     app.launch()
     return app
   }
@@ -187,6 +204,19 @@ extension XCTestCase {
   @MainActor func terminate(_ app: XCUIApplication) {
     app.terminate()
     XCTAssertTrue(app.wait(for: .notRunning, timeout: 5))
+  }
+
+  @MainActor func clickImmediately(_ element: XCUIElement) {
+    let point = CGPoint(x: element.frame.midX, y: element.frame.midY)
+    CGWarpMouseCursorPosition(point)
+    CGEvent(
+      mouseEventSource: nil, mouseType: .leftMouseDown, mouseCursorPosition: point,
+      mouseButton: .left,
+    )?.post(tap: .cghidEventTap)
+    CGEvent(
+      mouseEventSource: nil, mouseType: .leftMouseUp, mouseCursorPosition: point,
+      mouseButton: .left,
+    )?.post(tap: .cghidEventTap)
   }
 
   /// The pointer is physical and outlives the app under test, so a scene would otherwise open

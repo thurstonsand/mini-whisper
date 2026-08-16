@@ -2,12 +2,12 @@ import AppSettings
 import ASREngine
 import AudioCapture
 import ComposableArchitecture
-import Dictionary
 import FieldContext
 import Foundation
 import History
 import HotkeyListener
 import OSLog
+import SpeechDictionary
 
 private let gestureLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "gesture")
 private let engineLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "engine")
@@ -144,9 +144,10 @@ private let performanceLogger = Logger(
     case modelDownloadConsentRecorded
     case modelDownloadConsentRecordingFailed(String)
     case engineReadinessUpdated(EngineReadiness)
-    /// The agent-driveability seam's scene swap. In Release, `AgentDriveabilityScene` has no
-    /// cases, so this action cannot be constructed there.
+    /// Agent-driveability state injection. In Release, `AgentDriveabilityScene` has no cases and
+    /// no caller constructs either action.
     case agentScenePresented(AgentDriveabilityScene)
+    case agentHistoryReplaced(HistoryLog)
     case transcriptionCompleted(Int, TranscriptionOutcome)
     case transcriptionFailed(Int, String)
     case contextCaptured(Int, ContextCapture)
@@ -189,6 +190,8 @@ private let performanceLogger = Logger(
       switch action {
       case .settingsWindow(.history(.delegate(.retentionChanged))):
         return .send(.historyMaintenanceRequested)
+      case .settingsWindow(.dictionary(.delegate(.quickAddPersistenceFailed))):
+        return .send(.pill(.dictionarySaveFailed))
       case .settingsWindow(.settingsPane(.task)):
         state.$health.withLock { $0.micStatus = microphonePermission.status() }
         return .none
@@ -443,6 +446,9 @@ private let performanceLogger = Logger(
             ? .send(.onboarding(.modelDownloadConsentFailed(failure))) : .none,
           playSound(state.settings.sounds.error),
         )
+      case let .agentHistoryReplaced(history):
+        state.settingsWindow.history.$log.withLock { $0 = history }
+        return .none
       case let .agentScenePresented(scene):
         state = scene.initialState
         return scene.initialAction.map { .send($0) } ?? .none
