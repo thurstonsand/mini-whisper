@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+started=$SECONDS
+
+if command -v mise >/dev/null 2>&1; then
+  mise_bin="$(command -v mise)"
+else
+  echo "Installing mise"
+  curl -fsSL https://mise.run | sh
+  mise_bin="$HOME/.local/bin/mise"
+fi
+
+echo "Installing Linux-compatible development tools"
+"$mise_bin" trust --yes mise.toml
+"$mise_bin" install --yes hk swiftformat markdownlint-cli2 ruff
+
+echo "Orb setup completed in $((SECONDS - started))s"
