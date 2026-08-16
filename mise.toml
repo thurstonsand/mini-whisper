@@ -21,7 +21,7 @@ enter = "mise bootstrap --yes --quiet && ([ -f buildServer.json ] || mise run bs
 
 [tools]
 "aqua:cpisciotta/xcbeautify" = "latest"
-hk = "1.50.0"
+hk = "1.55.0"
 swiftformat = "0.62.1"
 markdownlint-cli2 = "0.23.1"
 ruff = "0.15.14"
