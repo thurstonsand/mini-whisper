@@ -1,0 +1,51 @@
+#!/bin/sh
+# Run a slice of the XCUITest suite and end with the profiler report (phase
+# breakdown per test, plus every system beep pinned to its activity).
+#
+# --surfaces menu,dictionary   runs the union of classes tagged with those surfaces
+#                              (SurfaceTagged in UITestSupport.swift); the rest skip at setUp.
+#                              A test tagged into several requested surfaces still runs once.
+# Other arguments are -only-testing identifiers for iterating on one test:
+#   scripts/run_ui_tests DictionaryUITests/testDictionaryPaneLaws
+# Neither runs the whole suite. Surface-named slices live in mise.toml.
+set -u
+
+SCHEME="${SCHEME:-MiniWhisper}"
+DEST="${DEST:-platform=macOS,arch=arm64}"
+DERIVED_DATA="${DERIVED_DATA:-.build/DerivedData}"
+bundle=.build/uitest.xcresult
+
+surfaces=""
+only=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+  --surfaces)
+    surfaces="$2"
+    shift 2
+    ;;
+  *)
+    only="$only -only-testing:MiniWhisperUITests/$1"
+    shift
+    ;;
+  esac
+done
+if [ -z "$only" ]; then
+  only="-only-testing:MiniWhisperUITests"
+fi
+
+# xcodebuild forwards TEST_RUNNER_-prefixed variables into the test runner's environment.
+export TEST_RUNNER_MINIWHISPER_UI_SURFACES="$surfaces"
+
+rm -rf "$bundle"
+status=0
+# shellcheck disable=SC2086 # $only is a deliberate word-split list of flags
+xcodebuild -scheme "$SCHEME" \
+  -destination "$DEST" \
+  -derivedDataPath "$DERIVED_DATA" \
+  -skipMacroValidation \
+  -skipPackagePluginValidation \
+  $only \
+  -resultBundlePath "$bundle" \
+  test | xcbeautify -q --disable-colored-output --disable-logging || status=$?
+scripts/profile_uitest_bundle "$bundle"
+exit $status

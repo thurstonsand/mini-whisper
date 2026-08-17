@@ -3,12 +3,10 @@ import XCTest
 /// The history pane's keyboard and pointer grammar. The cursor is the subject of nearly every
 /// claim here, so the laws run in the order written and each opens by stating where it expects to
 /// find the cursor the previous law left.
-final class HistoryKeyboardUITests: XCTestCase {
+final class HistoryKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
   // MARK: Internal
 
-  override func setUpWithError() throws {
-    continueAfterFailure = false
-  }
+  static let surfaces: Set<Surface> = [.history]
 
   @MainActor func testFirstRowsKeepTheirHeightWhenInsertedIntoOpenPane() {
     let app = launch("settings")

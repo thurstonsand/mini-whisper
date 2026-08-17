@@ -3,12 +3,10 @@ import XCTest
 /// The default settings scene's keyboard and pointer grammar. Each law leaves the window in a
 /// known state; returning through the sidebar and clamping at the first row gives the next law a
 /// cheap reset without paying for another process launch.
-final class SettingsKeyboardUITests: XCTestCase {
+final class SettingsKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
   // MARK: Internal
 
-  override func setUpWithError() throws {
-    continueAfterFailure = false
-  }
+  static let surfaces: Set<Surface> = [.settings]
 
   @MainActor func testSettingsLaws() {
     assertLaws(on: "settings", [

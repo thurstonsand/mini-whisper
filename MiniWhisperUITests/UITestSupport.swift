@@ -77,6 +77,66 @@ extension XCUIApplication {
   }
 }
 
+// MARK: - Surface
+
+/// The app surfaces the suite is sliced by. A slice run (`mise run test:ui:<surface>`) sets
+/// `MINIWHISPER_UI_SURFACES`, and every test class outside the requested surfaces skips.
+enum Surface: String {
+  case onboarding
+  case menu
+  case dictionary
+  case history
+  case settings
+  case pill
+}
+
+// MARK: - SurfaceTagged
+
+/// Every UI test class declares the surfaces it exercises — the tag lives with the tests it
+/// describes. When one test's surfaces diverge from its class, that is the signal to split it
+/// into its own class, not to widen the class's tags.
+protocol SurfaceTagged {
+  static var surfaces: Set<Surface> { get }
+}
+
+// MARK: - MiniWhisperUITestCase
+
+/// Base class for every UI test. Swift cannot force a subclass to declare its surfaces at
+/// compile time, so the next-loudest thing happens instead: every test of an untagged class
+/// fails immediately, naming the fix.
+class MiniWhisperUITestCase: XCTestCase {
+  override func setUpWithError() throws {
+    continueAfterFailure = false
+    guard let tagged = type(of: self) as? SurfaceTagged.Type else {
+      XCTFail("\(type(of: self)) declares no surfaces; conform to SurfaceTagged")
+      throw SurfaceError.untaggedClass
+    }
+    guard let requestedRaw = ProcessInfo.processInfo.environment["MINIWHISPER_UI_SURFACES"],
+          !requestedRaw.isEmpty
+    else {
+      return
+    }
+    let requested = try Set(requestedRaw.split(separator: ",").map { name -> Surface in
+      guard let surface = Surface(rawValue: String(name)) else {
+        XCTFail("Unknown surface \(name); see the Surface enum for the slice names")
+        throw SurfaceError.unknownSurface
+      }
+      return surface
+    })
+    try XCTSkipUnless(
+      !tagged.surfaces.isDisjoint(with: requested),
+      "\(type(of: self)) covers \(tagged.surfaces), not \(requested)",
+    )
+  }
+}
+
+// MARK: - SurfaceError
+
+private enum SurfaceError: Error {
+  case untaggedClass
+  case unknownSurface
+}
+
 // MARK: - Law
 
 /// One claim about a launched scene. A group of them shares a single launch, because launching and

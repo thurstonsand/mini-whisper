@@ -29,10 +29,7 @@ ruff = "0.15.14"
 
 [tasks.bootstrap]
 description = "Install tools and git hooks"
-run = [
-    "mise install",
-    "hk install --mise --quiet",
-]
+run = ["mise install", "hk install --mise --quiet"]
 sources = ["mise.toml", "hk.pkl"]
 outputs = [".git/config"]
 quiet = true
@@ -88,16 +85,32 @@ xcodebuild -scheme $SCHEME \
 """
 
 [tasks."test:ui"]
-description = "Run interactive XCUITest suite (takes over the screen; run deliberately)"
-run = """
-xcodebuild -scheme $SCHEME \
-    -destination "$DEST" \
-    -derivedDataPath $DERIVED_DATA \
-    -skipMacroValidation \
-    -skipPackagePluginValidation \
-    -only-testing:MiniWhisperUITests \
-    test | xcbeautify -q --disable-colored-output --disable-logging
-"""
+description = "Run the full XCUITest suite (takes over the screen; prefer a test:ui:* slice)"
+run = "scripts/run_ui_tests"
+
+[tasks."test:ui:onboarding"]
+description = "UI tests for the onboarding flow"
+run = "scripts/run_ui_tests --surfaces onboarding"
+
+[tasks."test:ui:menu"]
+description = "UI tests for the status menu, quick add, and About"
+run = "scripts/run_ui_tests --surfaces menu"
+
+[tasks."test:ui:dictionary"]
+description = "UI tests for the dictionary pane and quick add"
+run = "scripts/run_ui_tests --surfaces dictionary"
+
+[tasks."test:ui:history"]
+description = "UI tests for the history pane"
+run = "scripts/run_ui_tests --surfaces history"
+
+[tasks."test:ui:settings"]
+description = "UI tests for the settings window and panes"
+run = "scripts/run_ui_tests --surfaces settings"
+
+[tasks."test:ui:pill"]
+description = "UI tests for the pill"
+run = "scripts/run_ui_tests --surfaces pill"
 
 # === Package Targets (fast, no Xcode overhead) ===
 

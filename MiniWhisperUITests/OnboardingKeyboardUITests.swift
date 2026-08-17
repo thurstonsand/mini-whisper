@@ -2,12 +2,10 @@ import XCTest
 
 /// Onboarding's keyboard grammar, asserted the way a user meets it: Return does the visible step's
 /// one job, and Tab visits only the controls that step actually offers.
-final class OnboardingKeyboardUITests: XCTestCase {
+final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
   // MARK: Internal
 
-  override func setUpWithError() throws {
-    continueAfterFailure = false
-  }
+  static let surfaces: Set<Surface> = [.onboarding]
 
   @MainActor func testSingleActionPageKeyboardLaws() {
     // Each page's single action owns the tab order; Return then proves the action does what its

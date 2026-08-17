@@ -1,0 +1,223 @@
+#!/usr/bin/env python3
+"""Break a UI-test .xcresult bundle down by where the time actually went.
+
+Every XCUITest activity records only a start time, so an activity's cost is the
+gap to its next sibling (the run is single-threaded); the last activity ends at
+the test's own end time. Top-level activities are classified into the suite's
+cost currencies — process launch/terminate, synthesized events, element
+queries, waits — so a slow test names the currency it is overspending.
+
+The report also names every system beep the run provoked. A beep is an
+unhandled event — a keystroke or click that reached nothing — so each one is
+either a test defect or an app bug. Beeps are read from the unified log for
+the bundle's own time window and pinned to the test and activity in flight.
+
+Usage: scripts/profile_uitest_bundle <bundle.xcresult> [--activities TEST_ID]
+"""
+
+import datetime
+import json
+import subprocess
+import sys
+from collections import defaultdict
+
+PHASES = [
+    ("launch", ("Open ", "Launch ", "Activate ")),
+    ("terminate", ("Terminate ",)),
+    (
+        "event",
+        ("Type ", "Press ", "Click ", "Tap ", "Hover ", "Perform ", "Synthesize "),
+    ),
+    (
+        "query",
+        (
+            "Find ",
+            "Check ",
+            "Snapshot",
+            "Requesting snapshot",
+            "Get all elements",
+            "Capturing element",
+            "Get number of",
+        ),
+    ),
+    ("wait", ("Wait ", "Waiting ")),
+    ("screenshot", ("Screenshot", "Added attachment", "Capture ")),
+]
+
+
+def xcresulttool(bundle, *args):
+    out = subprocess.run(
+        ["xcrun", "xcresulttool", "get", "test-results", *args, "--path", bundle],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return json.loads(out.stdout)
+
+
+def test_cases(bundle):
+    cases = []
+
+    def walk(node):
+        if (
+            node.get("nodeType") == "Test Case"
+            and node.get("nodeIdentifier")
+            and node.get("result") != "Skipped"
+        ):
+            cases.append(node["nodeIdentifier"])
+        for child in node.get("children", []):
+            walk(child)
+
+    for root in xcresulttool(bundle, "tests")["testNodes"]:
+        walk(root)
+    return cases
+
+
+def classify(title):
+    for phase, prefixes in PHASES:
+        if any(title.startswith(prefix) for prefix in prefixes):
+            return phase
+    return "test code"
+
+
+def profile_test(bundle, test_id):
+    runs = xcresulttool(bundle, "activities", "--test-id", test_id)["testRuns"]
+    phases = defaultdict(float)
+    total = 0.0
+    for run in runs:
+        activities = [a for a in run.get("activities", []) if "startTime" in a]
+        if not activities:
+            continue
+        end = last_start_time(activities[-1])
+        total += end - activities[0]["startTime"]
+        for activity, following in zip(activities, activities[1:] + [None]):
+            following_start = following["startTime"] if following else end
+            phases[classify(activity["title"])] += (
+                following_start - activity["startTime"]
+            )
+    return total, phases
+
+
+def last_start_time(activity):
+    children = activity.get("childActivities", [])
+    return max([activity["startTime"]] + [last_start_time(child) for child in children])
+
+
+def beeps_between(start, end):
+    fmt = "%Y-%m-%d %H:%M:%S"
+    out = subprocess.run(
+        [
+            "log",
+            "show",
+            "--style",
+            "compact",
+            "--start",
+            datetime.datetime.fromtimestamp(start - 1).strftime(fmt),
+            "--end",
+            datetime.datetime.fromtimestamp(end + 1).strftime(fmt),
+            "--predicate",
+            'process == "systemsoundserverd" AND eventMessage CONTAINS "Incoming Request"',
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    beeps = []
+    for line in out.stdout.splitlines():
+        if "Incoming Request" not in line:
+            continue
+        timestamp = datetime.datetime.strptime(
+            line[:23], "%Y-%m-%d %H:%M:%S.%f"
+        ).timestamp()
+        client = line.split("inClientPID", 1)[1].split("(", 1)[1].split(")", 1)[0]
+        beeps.append((timestamp, client))
+    return beeps
+
+
+def report_beeps(bundle, cases):
+    spans = []
+    for test_id in cases:
+        runs = xcresulttool(bundle, "activities", "--test-id", test_id)["testRuns"]
+        for run in runs:
+            activities = [a for a in run.get("activities", []) if "startTime" in a]
+            if activities:
+                spans.append(
+                    (
+                        activities[0]["startTime"],
+                        last_start_time(activities[-1]),
+                        test_id,
+                        activities,
+                    ),
+                )
+    if not spans:
+        return
+    beeps = beeps_between(min(s[0] for s in spans), max(s[1] for s in spans))
+    if not beeps:
+        print("\nNo system beeps during the run.")
+        return
+    print(
+        f"\n{len(beeps)} system beep(s) — each is an unhandled event; a test defect or an app bug:"
+    )
+    for timestamp, client in beeps:
+        placed = False
+        for start, end, test_id, activities in spans:
+            if start <= timestamp <= end + 0.5:
+                in_flight = [a for a in activities if a["startTime"] <= timestamp]
+                title = in_flight[-1]["title"] if in_flight else "?"
+                print(f"  {client}: {test_id}\n      during: {title[:90]}")
+                placed = True
+                break
+        if not placed:
+            print(f"  {client}: between tests")
+
+
+def print_activities(bundle, test_id):
+    runs = xcresulttool(bundle, "activities", "--test-id", test_id)["testRuns"]
+    for run in runs:
+        activities = [a for a in run.get("activities", []) if "startTime" in a]
+        end = last_start_time(activities[-1]) if activities else 0
+        for activity, following in zip(activities, activities[1:] + [None]):
+            following_start = following["startTime"] if following else end
+            duration = following_start - activity["startTime"]
+            marker = " <<<" if duration > 1 else ""
+            print(f"  {duration:7.3f}s  {activity['title'][:100]}{marker}")
+
+
+def main():
+    args = sys.argv[1:]
+    if not args:
+        sys.exit(__doc__)
+    bundle = args[0]
+
+    if "--activities" in args:
+        print_activities(bundle, args[args.index("--activities") + 1])
+        return
+
+    cases = test_cases(bundle)
+    rows = []
+    for test_id in cases:
+        total, phases = profile_test(bundle, test_id)
+        rows.append((total, phases, test_id))
+    rows.sort(reverse=True)
+
+    phase_names = [name for name, _ in PHASES] + ["test code"]
+    suite_totals = defaultdict(float)
+    header = (
+        f"{'total':>8}  " + "".join(f"{name:>10}" for name in phase_names) + "  test"
+    )
+    print(header)
+    print("-" * len(header))
+    for total, phases, test_id in rows:
+        for name in phase_names:
+            suite_totals[name] += phases.get(name, 0)
+        cells = "".join(f"{phases.get(name, 0):>9.1f}s" for name in phase_names)
+        print(f"{total:>7.1f}s  {cells}  {test_id}")
+    grand = sum(total for total, _, _ in rows)
+    cells = "".join(f"{suite_totals[name]:>9.1f}s" for name in phase_names)
+    print("-" * len(header))
+    print(f"{grand:>7.1f}s  {cells}  ({len(rows)} tests)")
+    report_beeps(bundle, cases)
+
+
+if __name__ == "__main__":
+    main()
