@@ -25,6 +25,8 @@ struct PinnedModelStore {
   static let asrRevision = "ee09c569f73759e6d44c9bd16766f477b2b36d39"
   static let vadRepository = "FluidInference/silero-vad-coreml"
   static let vadRevision = "b419383c55c110e2c9271fa6ee0ea83d03c70d96"
+  static let ctcRepository = "FluidInference/parakeet-ctc-110m-coreml"
+  static let ctcRevision = "accdafd8cf8a2ff1cabe3c11e54416b405d409aa"
 
   let root: URL
   let session: URLSession
@@ -39,6 +41,10 @@ struct PinnedModelStore {
 
   var vadBaseDirectory: URL {
     root
+  }
+
+  var ctcDirectory: URL {
+    modelsDirectory.appending(path: Self.ctcFolder, directoryHint: .isDirectory)
   }
 
   var stagingRoot: URL {
@@ -67,6 +73,11 @@ struct PinnedModelStore {
       RepositorySpecification(
         repository: Self.vadRepository, revision: Self.vadRevision, localFolder: Self.vadFolder,
         expectedDirectoryRoots: Self.expectedVADRoots, expectedFiles: [],
+      ),
+      RepositorySpecification(
+        repository: Self.ctcRepository, revision: Self.ctcRevision, localFolder: Self.ctcFolder,
+        expectedDirectoryRoots: Self.expectedCTCRoots,
+        expectedFiles: ["tokenizer.json", "vocab.json"],
       ),
     ]
     var plan: [PlannedFile] = []
@@ -152,7 +163,8 @@ struct PinnedModelStore {
       throw ASREngineError.invalidArtifact("unreadable provenance: \(error.localizedDescription)")
     }
     guard provenance.revision(for: Self.asrRepository) == Self.asrRevision,
-          provenance.revision(for: Self.vadRepository) == Self.vadRevision
+          provenance.revision(for: Self.vadRepository) == Self.vadRevision,
+          provenance.revision(for: Self.ctcRepository) == Self.ctcRevision
     else {
       throw ASREngineError.invalidArtifact("revision provenance does not match code pins")
     }
@@ -177,7 +189,12 @@ struct PinnedModelStore {
   func prepareStagingRoot() throws {
     let fileManager = FileManager.default
     let pins = Data(
-      "\(Self.asrRepository)@\(Self.asrRevision)\n\(Self.vadRepository)@\(Self.vadRevision)\n".utf8,
+      """
+      \(Self.asrRepository)@\(Self.asrRevision)
+      \(Self.vadRepository)@\(Self.vadRevision)
+      \(Self.ctcRepository)@\(Self.ctcRevision)
+
+      """.utf8,
     )
     if fileManager.fileExists(atPath: stagingRoot.path),
        (try? Data(contentsOf: stagingPinsURL)) != pins
@@ -192,11 +209,13 @@ struct PinnedModelStore {
 
   private static let asrFolder = "parakeet-tdt-0.6b-v2"
   private static let vadFolder = "silero-vad"
+  private static let ctcFolder = "parakeet-ctc-110m"
   private static let stagingPinsFilename = ".pins"
   private static let expectedASRRoots = [
     "Preprocessor.mlmodelc/", "Encoder.mlmodelc/", "Decoder.mlmodelc/", "JointDecision.mlmodelc/",
   ]
   private static let expectedVADRoots = ["silero-vad-unified-256ms-v6.2.1.mlmodelc/"]
+  private static let expectedCTCRoots = ["MelSpectrogram.mlmodelc/", "AudioEncoder.mlmodelc/"]
 
   private func listFiles(_ specification: RepositorySpecification) async throws -> [RemoteFile] {
     var components = URLComponents(
@@ -362,6 +381,8 @@ struct PinnedModelStore {
         folder = Self.asrFolder
       case Self.vadRepository:
         folder = Self.vadFolder
+      case Self.ctcRepository:
+        folder = Self.ctcFolder
       default:
         throw ASREngineError.invalidArtifact("unexpected repository")
       }
@@ -425,6 +446,9 @@ private final class ModelDownloadLock {
 
 // MARK: - AggregateDownloadProgress
 
+/// One bar over every pinned repository. Bytes are the only unit all of them share, so the
+/// fraction is byte-weighted across the whole plan and the clamp keeps a retried file from
+/// walking it backwards.
 private final class AggregateDownloadProgress: @unchecked Sendable {
   // MARK: Lifecycle
 

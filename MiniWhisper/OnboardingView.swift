@@ -8,11 +8,14 @@ import SwiftUI
 /// Onboarding teaches the shortcut the user actually has, so every sentence naming it is written
 /// against the live first binding and has an honest answer for having none.
 enum OnboardingCopy {
+  static let tryItQuote =
+    "“A future is not given to you. It is something you must take for yourself.” — Pod 042"
+
   static func tryItInstructions(hotkeys: [Hotkey]) -> String {
     guard let name = hotkeys.first?.displayName else {
-      return "Set an activation shortcut in Settings before trying dictation here."
+      return "Set an activation shortcut in Settings before reading the line aloud."
     }
-    return "Focus the text box below, hold \(name) while you speak, then release. Or double-tap \(name) to keep recording until you tap it again."
+    return "Focus the text box below, hold \(name), and read the line aloud. Release when you're done, or double-tap \(name) to keep recording until you tap it again."
   }
 
   static func readySummary(hotkeys: [Hotkey]) -> String {
@@ -93,7 +96,7 @@ struct OnboardingView: View {
     case .shortcut:
       store.isRecordingShortcut ? [] : [.shortcutKeycap, .shortcutContinue]
     case .model:
-      store.needsModelSetup ? [.modelAction] : []
+      store.needsModelSetup || store.canContinueFromModel ? [.modelAction] : []
     // Nothing to dictate into yet, so Skip is the page's only control — and still a Tab stop,
     // because a button the keyboard cannot reach is not a way out.
     case .tryIt:
@@ -192,6 +195,12 @@ struct OnboardingView: View {
           .focused($focus, equals: .modelAction)
           .keyboardShortcut(.defaultAction)
           .accessibilityIdentifier(AccessibilityID.onboardingModelRetry)
+      } else if store.canContinueFromModel {
+        Button("Continue") { store.send(.modelContinueTapped) }
+          .buttonStyle(.borderedProminent)
+          .focused($focus, equals: .modelAction)
+          .keyboardShortcut(.defaultAction)
+          .accessibilityIdentifier(AccessibilityID.onboardingModelContinue)
       }
     case .tryIt:
       if store.step == .tryIt {

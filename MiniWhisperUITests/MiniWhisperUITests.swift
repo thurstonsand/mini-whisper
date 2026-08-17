@@ -49,7 +49,7 @@ final class MiniWhisperUITests: XCTestCase {
     try assertManifest(
       in: app,
       elements: onboardingRail(
-        ["Complete", "Current", "Available; Downloading 42%", "Available"],
+        ["Complete", "Current", "Available; Downloading Parakeet v2 42%", "Available"],
       ) + [
         contract(.group, "miniwhisper.onboarding.shortcut", "Activation shortcut setup"),
         contract(
@@ -82,7 +82,12 @@ final class MiniWhisperUITests: XCTestCase {
     presentScene("onboarding-model")
     try assertManifest(
       in: app,
-      elements: onboardingRail(["Complete", "Complete", "Current; Downloading 42%", "Available"]) +
+      elements: onboardingRail([
+        "Complete",
+        "Complete",
+        "Current; Downloading Parakeet v2 42%",
+        "Available",
+      ]) +
         [
           contract(.group, "miniwhisper.onboarding.model", "Speech model setup"),
           contract(
@@ -91,10 +96,11 @@ final class MiniWhisperUITests: XCTestCase {
           ),
           contract(
             .staticText, "miniwhisper.onboarding.model.summary", "Model setup information",
-            "Downloads once (~450 MB), then everything runs on this Mac.",
+            "Downloads once (~550 MB), then everything runs on this Mac.",
           ),
           contract(
-            .staticText, "miniwhisper.onboarding.model.status", "Model status", "Downloading model",
+            .staticText, "miniwhisper.onboarding.model.status", "Model status",
+            "Downloading Parakeet v2…",
           ),
           contract(
             .progressIndicator, "miniwhisper.onboarding.model-progress", "Model download", "0.42",
@@ -112,8 +118,8 @@ final class MiniWhisperUITests: XCTestCase {
         ),
         contract(
           .staticText, "miniwhisper.onboarding.try-it.instructions", "Try it instructions",
-          "Focus the text box below, hold ⌥ Opt → while you speak, then release. Or double-tap ⌥ Opt → to keep recording until you tap it again.",
-        ), contract(.textView, "miniwhisper.onboarding.try-it.text", "Try dictation", ""),
+          "Focus the text box below, hold ⌥ Opt →, and read the line aloud. Release when you're done, or double-tap ⌥ Opt → to keep recording until you tap it again.",
+        ), contract(.textField, "miniwhisper.onboarding.try-it.text", "Try dictation", ""),
         contract(
           .staticText, "miniwhisper.onboarding.try-it.hotkey", "Dictation hotkey", "⌥ Opt →",
         ),
@@ -621,8 +627,18 @@ final class MiniWhisperUITests: XCTestCase {
     XCTAssertTrue(statusItem.awaitExistence(timeout: 5), file: file, line: line)
     XCTAssertEqual(statusItem.label, appName, file: file, line: line)
     XCTAssertTrue(statusItem.isEnabled, file: file, line: line)
+    // Existing and being clickable are different moments. A status item is placed into the menu
+    // bar after it appears in the accessibility tree, and a menu-bar manager (Bartender, Ice) may
+    // reshuffle it once more after that — macOS offers the app no way to observe either, so the
+    // only honest spelling is to wait for hittable rather than to sample it once.
     XCTAssertTrue(
-      statusItem.isHittable, "Status item is hidden by menu bar overflow.", file: file, line: line,
+      statusItem.awaitHittable(timeout: 5),
+      """
+      Status item never became clickable. If this persists, the menu bar is genuinely out of \
+      room: a menu-bar manager is hiding \(appName), or the notch is swallowing it. Reveal the \
+      item before running the suite.
+      """,
+      file: file, line: line,
     )
     statusItem.click()
     XCTAssertTrue(
@@ -712,7 +728,32 @@ final class MiniWhisperUITests: XCTestCase {
       return
     }
     if !settled {
-      XCTFail("Accessibility tree did not settle", file: file, line: line)
+      // Naming the mismatch, because "did not settle" alone sends the reader back to a snapshot
+      // they cannot see. Unexpected identifiers are the common cause: a new element reaches the
+      // tree and no manifest claims it.
+      let unexpected = Set(snapshots.keys).subtracting(allowedIdentifiers).sorted()
+      let missing = contracts
+        .filter { snapshots[$0.identifier]?.count != 1 }
+        .map(\.identifier)
+        .sorted()
+      let mismatched = contracts.compactMap { contract -> String? in
+        guard let snapshot = snapshots[contract.identifier]?.first,
+              let expected = contract.value,
+              accessibilityValue(snapshot) != expected
+        else {
+          return nil
+        }
+        return "\(contract.identifier): expected \(expected), got \(accessibilityValue(snapshot))"
+      }
+      XCTFail(
+        """
+        Accessibility tree did not settle
+          unexpected: \(unexpected)
+          missing or duplicated: \(missing)
+          wrong value: \(mismatched)
+        """,
+        file: file, line: line,
+      )
     }
 
     for contract in contracts {
@@ -826,7 +867,7 @@ final class MiniWhisperUITests: XCTestCase {
       ),
       contract(
         .staticText, "miniwhisper.onboarding.permission.accessibility", "Accessibility",
-        "Watch for the dictation hotkey, paste at your cursor, and read the text around it.",
+        "Listen for the hotkey and paste at your cursor.",
       ),
       contract(
         .staticText, "miniwhisper.onboarding.permission.accessibility.status",
@@ -923,7 +964,7 @@ private enum PermissionManifest: CaseIterable {
   }
 
   var railValues: [String] {
-    ["Current", "Available", "Available; Downloading 42%", "Available"]
+    ["Current", "Available", "Available; Downloading Parakeet v2 42%", "Available"]
   }
 }
 

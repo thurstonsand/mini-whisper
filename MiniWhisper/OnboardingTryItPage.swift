@@ -1,6 +1,8 @@
 import ComposableArchitecture
 import SwiftUI
 
+// MARK: - OnboardingTryItPage
+
 /// The one page whose card is only ever the real thing: an editable field the user dictates into.
 /// Until the earlier steps are done it says which one is missing rather than pretending.
 struct OnboardingTryItPage: View {
@@ -26,6 +28,7 @@ struct OnboardingTryItPage: View {
     ) {
       VStack(alignment: .leading, spacing: 10) { cardContent }
     }
+    .animation(.easeInOut(duration: 0.2), value: store.step)
     .accessibilityIdentifier(AccessibilityID.onboardingTryIt)
     .accessibilityLabel("Try \(Channel.name)")
   }
@@ -86,13 +89,19 @@ struct OnboardingTryItPage: View {
   }
 
   private var editor: some View {
-    TextEditor(
+    TextField(
       text: Binding(get: { store.tryItText }, set: { store.send(.tryItTextChanged($0)) }),
-    )
-    .font(.system(size: 15))
-    .scrollContentBackground(.hidden)
+      prompt: Text(OnboardingCopy.tryItQuote).italic(),
+      axis: .vertical,
+    ) {
+      Text("Try dictation")
+    }
+    .labelsHidden()
+    .textFieldStyle(.plain)
+    .font(.body)
+    .lineLimit(4, reservesSpace: true)
     .padding(8)
-    .frame(height: 96)
+    .frame(height: 96, alignment: .topLeading)
     .background(Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 7))
     .overlay {
       RoundedRectangle(cornerRadius: 7).strokeBorder(
@@ -101,6 +110,8 @@ struct OnboardingTryItPage: View {
       )
     }
     .focused(focus, equals: .tryItEditor)
+    .accessibilityIdentifier(AccessibilityID.onboardingTryItText)
+    .accessibilityLabel("Try dictation")
     // Focus is claimed when the field exists, not when the state that summons it changes: a
     // @FocusState assignment aimed at a view SwiftUI has not built yet lands nowhere, and the
     // yield puts this after AppKit has chosen its own first responder.
@@ -108,9 +119,6 @@ struct OnboardingTryItPage: View {
       await Task.yield()
       focus.wrappedValue = .tryItEditor
     }
-    .accessibilityIdentifier(AccessibilityID.onboardingTryItText)
-    .accessibilityLabel("Try dictation")
-    .accessibilityValue(store.tryItText)
   }
 
   private func unavailable(_ message: String, symbol: String) -> some View {

@@ -111,8 +111,11 @@ struct SettingsWindowInteraction: Equatable {
       settingsPane = SettingsPaneFeature.State(settings: settings, health: health)
       self.history = HistoryFeature.State(
         log: history, retention: settings.retention, dictionary: dictionary,
+        improveRecognition: settings.improveRecognition,
       )
-      self.dictionary = DictionaryFeature.State(dictionary: dictionary)
+      self.dictionary = DictionaryFeature.State(
+        dictionary: dictionary, improveRecognition: settings.improveRecognition,
+      )
     }
 
     // MARK: Internal

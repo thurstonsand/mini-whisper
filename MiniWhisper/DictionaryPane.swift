@@ -10,8 +10,52 @@ struct DictionaryPane: View {
 
   var body: some View {
     List {
-      ForEach(store.dictionary.entries) { entry in
-        DictionaryRow(store: store, entry: entry)
+      Section {
+        HStack(spacing: 6) {
+          Toggle(
+            "Improve recognition",
+            isOn: $store.dictionary.improveRecognition.sending(
+              \.dictionary.improveRecognitionChanged,
+            ),
+          )
+          .accessibilityIdentifier(AccessibilityID.dictionaryImproveRecognition)
+          .fixedSize()
+
+          // The switch's own hit area stays the toggle and its label; the badge is a sibling, so
+          // a click on it can only ever open the explanation.
+          Button {
+            isExplainingRecognition.toggle()
+          } label: {
+            Image(systemName: "info.circle")
+              .imageScale(.medium)
+              .foregroundStyle(.secondary)
+          }
+          .buttonStyle(.plain)
+          .help(DictionaryFieldCopy.improveRecognition)
+          .accessibilityIdentifier(AccessibilityID.dictionaryImproveRecognitionInfo)
+          .accessibilityLabel("About improve recognition")
+          .popover(isPresented: $isExplainingRecognition, arrowEdge: .bottom) {
+            SemanticText(
+              DictionaryFieldCopy.improveRecognition,
+              identifier: AccessibilityID.dictionaryImproveRecognitionPopover,
+              label: "Improve recognition explanation",
+            )
+            .font(.callout)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(width: 260, alignment: .leading)
+            .padding(12)
+          }
+
+          Spacer(minLength: 0)
+        }
+      } header: {
+        Text("Recognition")
+      }
+
+      Section {
+        ForEach(store.dictionary.entries) { entry in
+          DictionaryRow(store: store, entry: entry)
+        }
       }
     }
     .stableSettingsListRowHeight()
@@ -36,7 +80,7 @@ struct DictionaryPane: View {
     .sheet(isPresented: draftPresented) {
       DictionaryEditSheet(store: store)
     }
-    .alert("Dictionary could not be saved", isPresented: persistenceFailurePresented) {
+    .alert("Changes could not be saved", isPresented: persistenceFailurePresented) {
       Button("OK") { store.send(.dictionary(.persistenceFailureDismissed)) }
     } message: {
       Text(store.dictionary.persistenceFailure ?? "Unknown error")
@@ -44,6 +88,8 @@ struct DictionaryPane: View {
   }
 
   // MARK: Private
+
+  @State private var isExplainingRecognition = false
 
   private var draftPresented: Binding<Bool> {
     Binding(
@@ -96,7 +142,9 @@ private struct DictionaryRow: View {
     HStack(spacing: 8) {
       switch entry.kind {
       case .vocabulary:
-        Text(entry.text).lineLimit(1)
+        Text(entry.text)
+          .foregroundStyle(usesReducedEmphasis ? .secondary : .primary)
+          .lineLimit(1)
       case let .correction(misspelling):
         Text(misspelling)
           .foregroundStyle(.secondary)
@@ -139,11 +187,15 @@ private struct DictionaryRow: View {
     .accessibilityLabel(accessibilityLabel)
     .accessibilityPaintState(
       AccessibilityID.dictionaryRowState(entry.id), label: "Dictionary row highlight",
-      value: "Grey \(showsGrey ? "on" : "off"); Cursor \(showsKeyboardCursor ? "on" : "off")",
+      value: "Grey \(showsGrey ? "on" : "off"); Cursor \(showsKeyboardCursor ? "on" : "off"); Emphasis \(usesReducedEmphasis ? "reduced" : "normal")",
     )
   }
 
   // MARK: Private
+
+  private var usesReducedEmphasis: Bool {
+    store.dictionary.usesReducedEmphasis(entry)
+  }
 
   private var isPointed: Bool {
     store.interaction.mode == .mouse && store.interaction.focus == .detail

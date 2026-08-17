@@ -485,7 +485,9 @@ private let performanceLogger = Logger(
           generation: generation, recording: recording, createdAt: now,
           engine: asrEngine.identity(), original: nil,
         )
-        let dictionary = state.dictionary
+        let dictionary = state.dictionary.transcriptionDictionary(
+          boostsVocabulary: state.settings.improveRecognition,
+        )
         return .concatenate(
           .send(.pill(.transcribingStarted)),
           .run { send in

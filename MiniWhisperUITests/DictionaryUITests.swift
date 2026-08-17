@@ -1,3 +1,4 @@
+import AppKit
 import XCTest
 
 final class DictionaryUITests: XCTestCase {
@@ -20,16 +21,32 @@ final class DictionaryUITests: XCTestCase {
     XCTAssertTrue(vocabulary.awaitExistence(timeout: 5))
     XCTAssertTrue(correction.exists)
 
+    let improveRecognition = app.checkBoxes["miniwhisper.dictionary.improve-recognition"]
+    XCTAssertTrue(improveRecognition.awaitHittable(timeout: 2))
+    improveRecognition.click()
+    assertValue(
+      "Grey off; Cursor off; Emphasis reduced",
+      of: app.staticTexts[
+        "miniwhisper.dictionary.row.vocabulary.miniwhisper.state",
+      ],
+    )
+    assertValue(
+      "Grey off; Cursor off; Emphasis normal",
+      of: app.staticTexts[
+        "miniwhisper.dictionary.row.correction.mini-whisperer.state",
+      ],
+    )
+
     app.typeText("l")
     assertValue(
-      "Grey on; Cursor on",
+      "Grey on; Cursor on; Emphasis reduced",
       of: app.staticTexts[
         "miniwhisper.dictionary.row.vocabulary.miniwhisper.state",
       ],
     )
     app.typeText("j")
     assertValue(
-      "Grey on; Cursor on",
+      "Grey on; Cursor on; Emphasis normal",
       of: app.staticTexts[
         "miniwhisper.dictionary.row.correction.mini-whisperer.state",
       ],
@@ -40,6 +57,9 @@ final class DictionaryUITests: XCTestCase {
     app.typeKey(.return, modifierFlags: [])
     let sheet = app.sheets.firstMatch
     XCTAssertTrue(sheet.awaitExistence(timeout: 2))
+    let editHeadline = app.staticTexts["Edit Entry"]
+    XCTAssertTrue(editHeadline.awaitExistence(timeout: 2))
+    recordScreenshot("recognition-off-sheet", screenshot: app.screenshot())
     XCTAssertTrue(sheet.buttons["Delete"].exists)
     assertValue("mini whisperer", of: app.textFields["miniwhisper.dictionary.misspelling"])
     assertValue("MiniWhisper", of: app.textFields["miniwhisper.dictionary.text"])
@@ -74,6 +94,185 @@ final class DictionaryUITests: XCTestCase {
     XCTAssertTrue(correction.awaitNonExistence())
   }
 
+  @MainActor func testQuickAddOwnsNativeMenuItemInteractionBand() {
+    let app = launch("settings-dictionary")
+    defer { terminate(app) }
+
+    openStatusMenu(app)
+    let aboutItem = app.menuItems["miniwhisper.menu.about"]
+    let quickAddItem = app.descendants(matching: .any)["miniwhisper.menu.quick-add"]
+    XCTAssertTrue(aboutItem.awaitHittable(timeout: 2))
+    XCTAssertTrue(quickAddItem.exists)
+    let nativeFrame = aboutItem.frame
+    let quickAddFrame = quickAddItem.frame
+    print("ITEM FRAMES native=\(nativeFrame) quick-add=\(quickAddFrame)")
+    app.typeKey(.escape, modifierFlags: [])
+
+    let horizontalInsets = stride(from: CGFloat(0.5), through: 30, by: 0.5)
+    let verticalInsets = stride(
+      from: CGFloat(0.5), through: nativeFrame.height / 2, by: 0.5,
+    )
+    let candidates: [(String, [CGPoint])] = [
+      (
+        "left edge",
+        horizontalInsets.map { CGPoint(x: $0, y: nativeFrame.height / 2) },
+      ),
+      (
+        "right edge",
+        horizontalInsets.map { CGPoint(x: nativeFrame.width - $0, y: nativeFrame.height / 2) },
+      ),
+      (
+        "top edge",
+        verticalInsets.map { CGPoint(x: nativeFrame.width / 2, y: $0) },
+      ),
+      (
+        "bottom edge",
+        verticalInsets.map { CGPoint(x: nativeFrame.width / 2, y: nativeFrame.height - $0) },
+      ),
+    ]
+    var probes: [(String, CGPoint)] = []
+
+    for (name, offsets) in candidates {
+      let offset = offsets.first { offset in
+        openStatusMenu(app)
+        click(
+          at: CGPoint(x: nativeFrame.minX + offset.x, y: nativeFrame.minY + offset.y), in: app,
+        )
+        let aboutWindow = app.windows["miniwhisper.about.window"]
+        let activated = aboutWindow.awaitExistence(timeout: 0.3)
+        app.typeKey(.escape, modifierFlags: [])
+        if activated {
+          XCTAssertTrue(aboutWindow.awaitNonExistence(timeout: 1))
+        }
+        return activated
+      }
+      XCTAssertNotNil(offset, "Could not find the native \(name)")
+      if let offset {
+        probes.append((name, offset))
+        print(
+          "NATIVE BAND \(name): absolute=(\(nativeFrame.minX + offset.x), \(nativeFrame.minY + offset.y)) offset=(\(offset.x), \(offset.y))",
+        )
+      }
+    }
+
+    for (name, offset) in probes {
+      openStatusMenu(app)
+      click(
+        at: CGPoint(x: quickAddFrame.minX + offset.x, y: quickAddFrame.minY + offset.y), in: app,
+      )
+      let word = app.textFields["miniwhisper.menu.quick-add.word"]
+      XCTAssertTrue(word.awaitExistence(timeout: 1), "Quick Add did not own the native \(name)")
+      word.typeKey(.escape, modifierFlags: [])
+    }
+
+    openStatusMenu(app)
+    for (name, offset) in probes {
+      hover(
+        at: CGPoint(x: quickAddFrame.minX + offset.x, y: quickAddFrame.minY + offset.y), in: app,
+      )
+      let hoverState = app.buttons["miniwhisper.menu.quick-add.header"]
+      XCTAssertTrue(hoverState.awaitExistence(timeout: 1))
+      XCTAssertTrue(
+        poll { self.accessibilityValue(hoverState).hasPrefix("Hover on") },
+        "Quick Add did not hover at the native \(name): \(accessibilityValue(hoverState))",
+      )
+      if name == "right edge" {
+        recordScreenshot("quick-add-native-band-hover", screenshot: app.screenshot())
+      }
+    }
+    app.typeKey(.escape, modifierFlags: [])
+  }
+
+  /// The badge and the switch share a row, so the one thing worth pinning is that they never
+  /// share a click: opening the explanation must not silently change the setting.
+  @MainActor func testRecognitionInfoBadgeExplainsWithoutTogglingTheSetting() {
+    let app = launch("settings-dictionary")
+    defer { terminate(app) }
+
+    let improveRecognition = app.checkBoxes["miniwhisper.dictionary.improve-recognition"]
+    XCTAssertTrue(improveRecognition.awaitHittable(timeout: 5))
+    let wasEnabled = improveRecognition.value as? Int
+
+    let badge = app.buttons["miniwhisper.dictionary.improve-recognition.info"]
+    XCTAssertTrue(badge.awaitHittable(timeout: 2))
+    badge.click()
+
+    let explanation = app.descendants(matching: .any)[
+      "miniwhisper.dictionary.improve-recognition.popover",
+    ]
+    XCTAssertTrue(explanation.awaitExistence(timeout: 2))
+    assertValue(
+      """
+      Part of the speech transcription pipeline; turning off can speed up transcription, but will \
+      no longer consider words or phrases. Replacements are always applied.
+      """,
+      of: explanation,
+    )
+    XCTAssertEqual(
+      improveRecognition.value as? Int, wasEnabled,
+      "Opening the explanation changed the setting",
+    )
+    recordScreenshot("recognition-info-popover", screenshot: app.screenshot())
+
+    app.typeKey(.escape, modifierFlags: [])
+    XCTAssertTrue(explanation.awaitNonExistence())
+
+    // And the switch still answers a click of its own.
+    improveRecognition.click()
+    XCTAssertTrue(poll { improveRecognition.value as? Int != wasEnabled })
+  }
+
+  @MainActor func testQuickAddMarksRecognitionOffWhenCollapsedAndExpanded() {
+    let app = launch("settings-dictionary")
+    defer { terminate(app) }
+
+    let improveRecognition = app.checkBoxes["miniwhisper.dictionary.improve-recognition"]
+    XCTAssertTrue(improveRecognition.awaitHittable(timeout: 5))
+    app.buttons["miniwhisper.dictionary.add"].click()
+    let sheet = app.sheets.firstMatch
+    XCTAssertTrue(sheet.awaitExistence(timeout: 2))
+    app.typeKey(.escape, modifierFlags: [])
+    XCTAssertTrue(sheet.awaitNonExistence())
+
+    let markerID = "miniwhisper.menu.quick-add.recognition-off"
+    openStatusMenu(app)
+    XCTAssertFalse(app.staticTexts[markerID].exists)
+    app.typeKey(.escape, modifierFlags: [])
+
+    improveRecognition.click()
+    openStatusMenu(app)
+    XCTAssertTrue(app.staticTexts[markerID].awaitExistence(timeout: 2))
+    let quickAddItem = app.descendants(matching: .any)["miniwhisper.menu.quick-add"]
+    let nativeRow = app.menuItems["miniwhisper.menu.copy-last-transcript"]
+    XCTAssertEqual(quickAddItem.frame.height, nativeRow.frame.height)
+    app.buttons["miniwhisper.menu.quick-add.header"].click()
+    XCTAssertTrue(app.staticTexts[markerID].awaitExistence(timeout: 2))
+    XCTAssertTrue(app.buttons["miniwhisper.menu.quick-add.submit"].exists)
+  }
+
+  @MainActor func testRecognitionOffMarkerScreenshotsInBothAppearances() {
+    for appearance in ["dark", "light"] {
+      let app = launch(
+        "settings-dictionary",
+        environment: ["MINIWHISPER_AGENT_APPEARANCE": appearance],
+      )
+      let improveRecognition = app.checkBoxes["miniwhisper.dictionary.improve-recognition"]
+      XCTAssertTrue(improveRecognition.awaitHittable(timeout: 5))
+      improveRecognition.click()
+
+      openStatusMenu(app)
+      let marker = app.staticTexts["miniwhisper.menu.quick-add.recognition-off"]
+      XCTAssertTrue(marker.awaitExistence(timeout: 2))
+      recordScreenshot("recognition-off-collapsed-\(appearance)", screenshot: app.screenshot())
+
+      app.buttons["miniwhisper.menu.quick-add.header"].click()
+      XCTAssertTrue(app.buttons["miniwhisper.menu.quick-add.submit"].awaitExistence(timeout: 2))
+      XCTAssertTrue(marker.awaitExistence(timeout: 2))
+      recordScreenshot("recognition-off-expanded-\(appearance)", screenshot: app.screenshot())
+      terminate(app)
+    }
+  }
+
   @MainActor func testUnreadableDictionaryRefusesEditing() {
     let app = launch("settings-dictionary-unreadable")
     defer { terminate(app) }
@@ -88,7 +287,7 @@ final class DictionaryUITests: XCTestCase {
 
     let alert = app.sheets.firstMatch
     XCTAssertTrue(alert.awaitExistence(timeout: 5))
-    XCTAssertTrue(app.staticTexts["Dictionary could not be saved"].exists)
+    XCTAssertTrue(app.staticTexts["Changes could not be saved"].exists)
     XCTAssertTrue(alert.staticTexts["disk full"].exists)
     alert.buttons["OK"].click()
     XCTAssertTrue(alert.awaitNonExistence())
@@ -236,6 +435,22 @@ final class DictionaryUITests: XCTestCase {
       }
       """.utf8,
     )
+  }
+
+  @MainActor private func click(at point: CGPoint, in app: XCUIApplication) {
+    windowCoordinate(at: point, in: app).click()
+  }
+
+  @MainActor private func hover(at point: CGPoint, in app: XCUIApplication) {
+    windowCoordinate(at: point, in: app).hover()
+  }
+
+  @MainActor private func windowCoordinate(
+    at point: CGPoint, in app: XCUIApplication,
+  ) -> XCUICoordinate {
+    let window = app.windows["miniwhisper.settings.window"]
+    return window.coordinate(withNormalizedOffset: .zero)
+      .withOffset(CGVector(dx: point.x - window.frame.minX, dy: point.y - window.frame.minY))
   }
 
   @MainActor private func openStatusMenu(_ app: XCUIApplication) {

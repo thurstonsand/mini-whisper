@@ -92,6 +92,12 @@ struct SettingsWindowView: View {
 
   private var sidebarKeys: WindowKeyActions {
     WindowKeyActions(
+      // The sidebar is the leftmost column, so "left" has nowhere to go — but it must still be
+      // claimed. An unclaimed letter falls through to the List, which type-selects on it, and
+      // "h" is the first letter of History: the grammar's own move for "go left" would jump the
+      // user to a different pane. Every key the grammar names is consumed wherever the grammar
+      // is active, including where the answer is to do nothing.
+      left: {},
       down: { moveDestination(by: 1) },
       up: { moveDestination(by: -1) },
       right: { setFocus(.detail) },

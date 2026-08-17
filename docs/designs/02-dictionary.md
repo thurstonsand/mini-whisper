@@ -65,7 +65,7 @@ The app hands dictionary contents to the engine as plain values at each transcri
 
 ### The Dictionary pane
 
-As the settings mockup settled it: rows not selectable, click opens the edit sheet, hover shows only a trash icon, sort is Newest First or Alphabetical, no dates in rows. One sheet serves add and edit; a toggle in its own section reveals the correction shape (`Misspelling → Correct spelling`, dimmed left). New: a "Recognition" section hosting the boost toggle — titled "Improve recognition", footer copy disclosing experimental status and that a taught word may occasionally be substituted incorrectly.
+As the settings mockup settled it: rows not selectable, click opens the edit sheet, hover shows only a trash icon, sort is Newest First or Alphabetical, no dates in rows. One sheet serves add and edit; a toggle in its own section reveals the correction shape (`Misspelling → Correct spelling`, dimmed left). New: a "Recognition" section hosting the boost toggle — titled "Improve recognition". (Amended in implementation: the disclosure lives in a tooltip plus a clickable ⓘ badge beside the toggle rather than a Section footer, with the user's copy — "Experimental. Turn off if vocabulary is showing up too often when it shouldn't." With the toggle off, vocabulary rows render reduced-emphasis — corrections never do — and the status-menu quick add shows an amber "recognition off" marker, trailing on the collapsed row and beside Add when expanded. The toggle governs only the acoustic boost; case repair and corrections are deterministic and always run.)
 
 ### Quick add (menu)
 
@@ -73,7 +73,7 @@ A view-based `NSMenuItem` under the menu's transcript items. (Amended after user
 
 ### CTC assets
 
-`parakeet-ctc-110m` joins Parakeet v2 in ASREngine's pinned-model machinery and downloads eagerly during onboarding's model step, under the same recorded bandwidth consent. Existing installs fetch at next launch through the consented auto-resume path. A missing or failed CTC asset rides the existing model degradation machinery.
+`parakeet-ctc-110m` joins Parakeet v2 in ASREngine's pinned-model machinery and downloads eagerly during onboarding's model step, under the same recorded bandwidth consent, as one continuum of rolling status stages ("Downloading Parakeet v2…" → "Downloading recognition helper…" → "Preparing Core ML models…") that never names CTC. (Amended in implementation, user's call: the helper is REQUIRED, exactly like the speech model — one pin guard, one byte-weighted progress bar, no separate degradation state. An artifact missing the helper is simply invalid and re-downloads. The earlier off-critical-path design carried a parallel readiness/repair machinery whose every consumer behaved identically; with zero existing users, requiring the asset deleted it all.)
 
 ## Design Decisions
 
@@ -112,7 +112,8 @@ Spike-proven (see [ticket 33](../wayfinding/finishing-mini-whisper/tickets/33-qu
 ## Edge Cases & Failure Modes
 
 - **Empty dictionary:** boost and correction passes are no-ops; no CTC inference runs when there are no terms.
-- **CTC asset missing/failed:** rides the existing model degradation machinery (repair row + menu item); transcription itself continues un-boosted — the sidecar is never on the critical path's failure line.
+- **CTC asset missing/failed:** the helper is pinned with the speech model — an artifact without it is invalid and re-downloads through the ordinary model-missing path. (Amended from the off-critical-path design; see decision 7.) A runtime boost error still logs and returns the decoded transcript — inference failure never fails a dictation.
+- **Vocabulary beyond ~230 terms:** untested upstream — FluidAudio validates to 230 and auto-tightens its gate past 100; no cap is enforced here. Revisit only on evidence.
 - **Duplicate add (quick add or sheet):** case-insensitive match on `text` is a no-op for vocabulary; a duplicate misspelling updates the existing pair. Quietly succeed — the user's intent ("this word should exist") is satisfied.
 - **Correction output matching another rule:** never re-matched; single pass over the original transcript.
 - **Overlapping matches:** longest match wins; remaining text continues after the replacement.
@@ -146,37 +147,37 @@ Spike-proven (see [ticket 33](../wayfinding/finishing-mini-whisper/tickets/33-qu
 
 ## Implementation Plan
 
-- [ ] Phase 1: `Packages/Dictionary` — model, store, corrector
+- [x] Phase 1: `Packages/Dictionary` — model, store, corrector (landed as `Packages/SpeechDictionary`, coding enum instead of a store class)
   - Goal: The package exists with the full data layer and pure correction logic; nothing visible changes.
   - Files: `Packages/Dictionary/` (new: `DictionaryEntry.swift`, `DictionaryStore.swift`, `TranscriptCorrector.swift`, tests), workspace/project wiring.
   - Work: Entry models with Codable round-trip; store load/save/observe of `dictionary.json` (missing file = empty, malformed = fail fast); `TranscriptCorrector.apply` implementing decision 4 + 5 semantics (case-insensitive, word-boundary, phrase-capable, longest-first, single pass, verbatim + sentence-start exception, case repair).
   - Validation: `mise run test:packages` — corrector table tests covering every semantics clause and edge case above; store round-trip tests.
 
-- [ ] Phase 2: corrections wired through the engine
+- [x] Phase 2: corrections wired through the engine
   - Goal: A hand-edited `dictionary.json` visibly corrects real dictations everywhere transcripts land.
   - Files: `Packages/ASREngine` (transcribe boundary takes dictionary values), `MiniWhisper/ASREngineClient.swift`, `MiniWhisper/AppFeature.swift` (thread store contents to the client).
   - Work: Extend the engine's transcribe contract with vocabulary + corrections as plain values; apply the corrector post-decode; rerun-transcription inherits automatically.
   - Validation: Engine package tests; smoke test — teach "MiniWhisper", dictate "mini whisper", see the corrected transcript in delivery and history, then Rerun Transcription and confirm identical output.
 
-- [ ] Phase 3: the Dictionary pane
+- [x] Phase 3: the Dictionary pane
   - Goal: The settings window's Dictionary placeholder becomes the real pane.
   - Files: `MiniWhisper/DictionaryPane.swift` (new), `MiniWhisper/DictionaryFeature.swift` (new), `MiniWhisper/SettingsWindowView.swift`, `MiniWhisper/SettingsWindowFeature.swift`, `MiniWhisper/AccessibilityID.swift`, UI-test manifest.
   - Work: Port the mockup's settled shape (rows, sheet, hover trash, sort) onto the store; keyboard laws per the window's input model (arrows/`j`/`k`, Return opens the sheet, Escape declines); AX identifiers per the `miniwhisper.<surface>.<element>` vocabulary; extend the curated UI-test manifest.
   - Validation: `mise run lint`; targeted settings UI tests; screenshot against the mockup.
 
-- [ ] Phase 4: quick add in the menu
+- [x] Phase 4: quick add in the menu (accordion, ticket 34)
   - Goal: Open menu, click, type, Return — the word is in the dictionary.
   - Files: `MiniWhisper/MenuBarController.swift`, new quick-add item view (adapting `spikes/quick-add-menu/QuickAddMenu.swift`), `MiniWhisper/AccessibilityID.swift`, UI-test manifest.
   - Work: View-based NSMenuItem with Word + optional Misspelling fields per the spike's AppKit shape (explicit field-editor sync on Tab); Return commits through the store and closes the menu; duplicate handling per edge cases; AX identifiers.
   - Validation: UI test driving the real status item: type a word, Return, assert it appears in the pane; `./scripts/capture_menu_screenshot` for visual evidence.
 
-- [ ] Phase 5: the boost
+- [x] Phase 5: the boost — measured cost: +207 ms release→delivered with a non-empty dictionary (≈208 ms sidecar inference); zero when off or empty. All pill budgets hold.
   - Goal: Taught words win acoustically; the toggle governs it; a fresh onboarding fetches everything.
   - Files: `Packages/ASREngine` (`PinnedModelStore.swift`, CTC integration, threshold constants file), `MiniWhisper/OnboardingFeature.swift` (asset scope), `MiniWhisper/DictionaryPane.swift` (Recognition section), `Packages/AppSettings` (boost toggle setting).
   - Work: Pin `parakeet-ctc-110m` and fold it into `setUpModel`/readiness so onboarding and the consented auto-resume path fetch it; integrate `CtcKeywordSpotter` + `VocabularyRescorer` post-decode (cache models and tokenized vocabulary by dictionary revision); strict-gate constants in one file with the MacParakeet citation; boost toggle (default on) in the pane with disclosure footer; missing-asset degradation.
   - Validation: `FRESH_MODEL=1 mise run mw:fresh` proves the onboarding download path; smoke test — teach an OOV name, dictate it, show the boosted transcript; toggle off, dictate again, show the un-boosted one; `mise run benchmark:live` confirms latency budgets hold with the sidecar active.
 
-- [ ] Phase 6: documentation and close-out
+- [x] Phase 6: documentation and close-out
   - Goal: The map and docs reflect reality.
   - Files: `CONTEXT.md` (verify terms), `DEV.md` (package list), `docs/wayfinding/finishing-mini-whisper/` (ticket 13 resolution, map line).
   - Work: Update the architecture package list; write ticket 13's resolution linking this doc; Decisions-so-far line.

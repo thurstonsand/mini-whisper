@@ -274,24 +274,27 @@ public struct MiniWhisperSettings: Equatable, Sendable {
 
   public init(
     bindings: HotkeyBindingsSettings, microphone: MicrophoneSelection, sounds: SoundSettings,
-    retention: RetentionPolicy,
+    retention: RetentionPolicy, improveRecognition: Bool,
   ) {
     self.bindings = bindings
     self.microphone = microphone
     self.sounds = sounds
     self.retention = retention
+    self.improveRecognition = improveRecognition
   }
 
   // MARK: Public
 
   public static let defaults = MiniWhisperSettings(
     bindings: .defaults, microphone: .systemDefault, sounds: .defaults, retention: .defaults,
+    improveRecognition: true,
   )
 
   public var bindings: HotkeyBindingsSettings
   public var microphone: MicrophoneSelection
   public var sounds: SoundSettings
   public var retention: RetentionPolicy
+  public var improveRecognition: Bool
 }
 
 // MARK: Codable
@@ -302,6 +305,7 @@ extension MiniWhisperSettings: Codable {
     case microphone
     case sounds
     case retention
+    case improveRecognition
   }
 
   /// The file is meant to be edited by hand, so an absent key means "never configured" and takes
@@ -315,6 +319,8 @@ extension MiniWhisperSettings: Codable {
     sounds = try container.decodeIfPresent(SoundSettings.self, forKey: .sounds) ?? .defaults
     retention = try container.decodeIfPresent(RetentionPolicy.self, forKey: .retention)
       ?? .defaults
+    improveRecognition = try container.decodeIfPresent(Bool.self, forKey: .improveRecognition)
+      ?? true
   }
 }
 

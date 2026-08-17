@@ -69,6 +69,14 @@ extension XCUIElement {
   }
 }
 
+extension XCUIApplication {
+  /// Queried by identifier rather than element type: a multiline text entry surfaces as a text
+  /// view or a text field depending on how it is built, and no assertion here is about which.
+  @MainActor var tryItEditor: XCUIElement {
+    descendants(matching: .any)["miniwhisper.onboarding.try-it.text"].firstMatch
+  }
+}
+
 // MARK: - Law
 
 /// One claim about a launched scene. A group of them shares a single launch, because launching and
@@ -138,7 +146,9 @@ extension XCTestCase {
     )
   }
 
-  @MainActor func launch(_ scene: String, dictionaryData: Data? = nil) -> XCUIApplication {
+  @MainActor func launch(
+    _ scene: String, dictionaryData: Data? = nil, environment: [String: String] = [:],
+  ) -> XCUIApplication {
     XCTAssertTrue(Quiescence.disabled, "XCTest renamed its quiescence hooks; update Quiescence")
     let app = XCUIApplication()
     parkPointer()
@@ -153,6 +163,7 @@ extension XCTestCase {
       }
     }
     app.launchEnvironment["MINIWHISPER_AGENT_SCENE"] = scene
+    app.launchEnvironment.merge(environment) { _, requested in requested }
     app.launchEnvironment["MINIWHISPER_AGENT_COMMAND_FILE"] = agentCommandFileURL.path
     app.launchEnvironment["MINIWHISPER_AGENT_DICTIONARY_FILE"] = agentDictionaryFileURL.path
     app.launch()

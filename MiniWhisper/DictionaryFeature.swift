@@ -13,6 +13,10 @@ enum DictionaryFieldCopy {
   static let word = "Word or phrase"
   static let correction = "Correct spelling"
   static let misspelling = "Misspelling"
+  static let improveRecognition = """
+  Part of the speech transcription pipeline; turning off can speed up transcription, but will no \
+  longer consider words or phrases. Replacements are always applied.
+  """
 }
 
 // MARK: - DictionaryFeature
@@ -64,13 +68,18 @@ enum DictionaryFieldCopy {
   @ObservableState struct State: Equatable {
     // MARK: Lifecycle
 
-    init(dictionary: Shared<DictionaryContents>) {
+    init(
+      dictionary: Shared<DictionaryContents>,
+      improveRecognition: Shared<Bool>,
+    ) {
       _dictionary = dictionary
+      _improveRecognition = improveRecognition
     }
 
     // MARK: Internal
 
     @Shared var dictionary: DictionaryContents
+    @Shared var improveRecognition: Bool
     var sort = Sort.newestFirst
     var cursor: EntryID?
     var draft: Draft?
@@ -119,6 +128,16 @@ enum DictionaryFieldCopy {
       entries.first { $0.id == cursor } ?? entries.first
     }
 
+    func usesReducedEmphasis(_ entry: Entry) -> Bool {
+      guard !improveRecognition else {
+        return false
+      }
+      if case .vocabulary = entry.kind {
+        return true
+      }
+      return false
+    }
+
     mutating func advanceCursor(past id: EntryID) {
       guard cursorEntry?.id == id,
             let index = entries.firstIndex(where: { $0.id == id })
@@ -137,6 +156,7 @@ enum DictionaryFieldCopy {
 
   enum Action: Equatable {
     case sortChanged(Sort)
+    case improveRecognitionChanged(Bool)
     case cursorMoved(CursorMovement)
     case cursorHovered(EntryID)
     case addRequested
@@ -176,6 +196,9 @@ enum DictionaryFieldCopy {
       case let .sortChanged(sort):
         state.sort = sort
         return .none
+      case let .improveRecognitionChanged(isEnabled):
+        state.$improveRecognition.withLock { $0 = isEnabled }
+        return save(state.$improveRecognition, context: .pane)
       case let .cursorMoved(movement):
         let entries = state.entries
         guard let place = state.cursorEntry,
@@ -348,10 +371,10 @@ enum DictionaryFieldCopy {
   }
 
   private func save(
-    _ dictionary: Shared<DictionaryContents>, context: PersistenceContext,
+    _ value: Shared<some Sendable>, context: PersistenceContext,
   ) -> Effect<Action> {
     .run { send in
-      do { try await dictionary.save() } catch {
+      do { try await value.save() } catch {
         await send(.persistenceFailed(context, error.localizedDescription))
       }
     }

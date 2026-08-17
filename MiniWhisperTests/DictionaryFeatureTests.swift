@@ -6,11 +6,60 @@ import History
 import SpeechDictionary
 import Testing
 
+// MARK: - DictionaryFeatureTests
+
 @MainActor struct DictionaryFeatureTests {
+  @Test func `recognition setting persists and only vocabulary loses emphasis`() async throws {
+    let directory = FileManager.default.temporaryDirectory.appending(
+      path: "recognition-setting-\(UUID().uuidString)", directoryHint: .isDirectory,
+    )
+    defer { try? FileManager.default.removeItem(at: directory) }
+    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    let url = directory.appending(path: "settings.json")
+    let settings = withDependencies {
+      $0.defaultFileStorage = .fileSystem
+    } operation: {
+      Shared(
+        wrappedValue: MiniWhisperSettings.defaults,
+        .fileStorage(url, decode: SettingsCoding.decode, encode: SettingsCoding.encode),
+      )
+    }
+    let dictionary = DictionaryContents(
+      vocabulary: [VocabularyEntry(text: "MiniWhisper", addedAt: .distantPast)],
+      corrections: [
+        CorrectionEntry(misspelling: "mini whisperer", text: "MiniWhisper", addedAt: .distantPast),
+      ],
+    )
+    let store = TestStore(
+      initialState: DictionaryFeature.State(
+        dictionary: Shared(value: dictionary), improveRecognition: settings.improveRecognition,
+      ),
+    ) { DictionaryFeature() } withDependencies: {
+      $0.defaultFileStorage = .fileSystem
+    }
+
+    await store.send(.improveRecognitionChanged(false)) {
+      $0.$improveRecognition.withLock { $0 = false }
+    }
+    await store.finish()
+
+    let vocabulary = try #require(store.state.entries.first { $0.kind == .vocabulary })
+    let correction = try #require(store.state.entries.first {
+      if case .correction = $0.kind {
+        return true
+      }
+      return false
+    })
+    #expect(store.state.usesReducedEmphasis(vocabulary))
+    #expect(!store.state.usesReducedEmphasis(correction))
+    let persisted = try SettingsCoding.decode(Data(contentsOf: url))
+    #expect(!persisted.improveRecognition)
+  }
+
   @Test func `one sorted list presents vocabulary and corrections`() {
     let older = Date(timeIntervalSince1970: 100)
     let newer = Date(timeIntervalSince1970: 200)
-    var state = DictionaryFeature.State(
+    var state = makeRecognitionEnabledDictionaryState(
       dictionary: Shared(
         value: DictionaryContents(
           vocabulary: [VocabularyEntry(text: "Zebra", addedAt: newer)],
@@ -26,7 +75,7 @@ import Testing
 
   @Test func `sheet refuses whitespace-only vocabulary and correction fields`() async {
     let store = TestStore(
-      initialState: DictionaryFeature.State(dictionary: Shared(value: .empty)),
+      initialState: makeRecognitionEnabledDictionaryState(dictionary: Shared(value: .empty)),
     ) { DictionaryFeature() }
 
     await store.send(.addRequested) { $0.draft = DictionaryFeature.Draft() }
@@ -44,7 +93,7 @@ import Testing
   @Test func `quick add deduplicates vocabulary and updates a correction`() async {
     let date = Date(timeIntervalSince1970: 300)
     let store = TestStore(
-      initialState: DictionaryFeature.State(
+      initialState: makeRecognitionEnabledDictionaryState(
         dictionary: Shared(
           value: DictionaryContents(
             vocabulary: [VocabularyEntry(text: "TCA", addedAt: date)],
@@ -73,7 +122,7 @@ import Testing
   @Test func `quick add degrades an empty misspelling to vocabulary`() async {
     let date = Date(timeIntervalSince1970: 400)
     let store = TestStore(
-      initialState: DictionaryFeature.State(dictionary: Shared(value: .empty)),
+      initialState: makeRecognitionEnabledDictionaryState(dictionary: Shared(value: .empty)),
     ) { DictionaryFeature() } withDependencies: {
       $0.date.now = date
     }
@@ -89,7 +138,7 @@ import Testing
   @Test func `editing preserves the original date and can change entry kind`() async {
     let date = Date(timeIntervalSince1970: 300)
     let entry = VocabularyEntry(text: "Miniwhisper", addedAt: date)
-    let state = DictionaryFeature.State(
+    let state = makeRecognitionEnabledDictionaryState(
       dictionary: Shared(value: DictionaryContents(vocabulary: [entry])),
     )
     let id = DictionaryFeature.EntryID.vocabulary("Miniwhisper")
@@ -118,7 +167,7 @@ import Testing
 
   @Test func `n shortcut opens a new entry draft`() async {
     let store = TestStore(
-      initialState: DictionaryFeature.State(dictionary: Shared(value: .empty)),
+      initialState: makeRecognitionEnabledDictionaryState(dictionary: Shared(value: .empty)),
     ) { DictionaryFeature() }
 
     await store.send(.addShortcutPressed) {
@@ -129,7 +178,7 @@ import Testing
   @Test func `deleting the cursor moves to the row taking its place`() async {
     let newer = VocabularyEntry(text: "Alpha", addedAt: Date(timeIntervalSince1970: 200))
     let older = VocabularyEntry(text: "Beta", addedAt: Date(timeIntervalSince1970: 100))
-    var state = DictionaryFeature.State(
+    var state = makeRecognitionEnabledDictionaryState(
       dictionary: Shared(value: DictionaryContents(vocabulary: [newer, older])),
     )
     state.cursor = .vocabulary("Alpha")
@@ -144,7 +193,7 @@ import Testing
   @Test func `deleting from the edit sheet dismisses it`() async {
     let entry = VocabularyEntry(text: "Alpha", addedAt: Date(timeIntervalSince1970: 200))
     let id = DictionaryFeature.EntryID.vocabulary("Alpha")
-    var state = DictionaryFeature.State(
+    var state = makeRecognitionEnabledDictionaryState(
       dictionary: Shared(value: DictionaryContents(vocabulary: [entry])),
     )
     state.draft = DictionaryFeature.Draft(originalID: id, text: "Alpha")
@@ -158,7 +207,7 @@ import Testing
 
   @Test func `pane persistence failures present and dismiss an alert`() async {
     let store = TestStore(
-      initialState: DictionaryFeature.State(dictionary: Shared(value: .empty)),
+      initialState: makeRecognitionEnabledDictionaryState(dictionary: Shared(value: .empty)),
     ) { DictionaryFeature() }
 
     await store.send(.persistenceFailed(.pane, "disk full")) {
@@ -209,7 +258,7 @@ import Testing
     let state = withDependencies {
       $0.defaultFileStorage = .fileSystem
     } operation: {
-      DictionaryFeature.State(
+      makeRecognitionEnabledDictionaryState(
         dictionary: Shared(
           wrappedValue: .empty,
           .fileStorage(url, decode: DictionaryCoding.decode, encode: DictionaryCoding.encode),
@@ -229,4 +278,12 @@ import Testing
     #expect(store.state.persistenceFailure == nil)
     #expect(try Data(contentsOf: url) == malformed)
   }
+}
+
+private func makeRecognitionEnabledDictionaryState(
+  dictionary: Shared<DictionaryContents>,
+) -> DictionaryFeature.State {
+  DictionaryFeature.State(
+    dictionary: dictionary, improveRecognition: Shared(value: true),
+  )
 }

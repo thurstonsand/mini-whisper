@@ -38,7 +38,7 @@ struct DegradationTests {
     #expect(degradations(hotkeyTap: .dead) == [.hotkeyTapDead])
   }
 
-  @Test func `an uninstalled model and a failed setup are told apart`() {
+  @Test func `model failures route through repair machinery`() {
     #expect(degradations(engineReadiness: .modelMissing) == [.modelMissing])
     #expect(degradations(engineReadiness: .failed("compile crashed")) == [.modelSetupFailed])
   }

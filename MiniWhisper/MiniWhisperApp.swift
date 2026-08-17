@@ -35,6 +35,15 @@ import SwiftUI
       return
     }
 
+    switch ProcessInfo.processInfo.environment["MINIWHISPER_AGENT_APPEARANCE"] {
+    case "dark":
+      NSApp.appearance = NSAppearance(named: .darkAqua)
+    case "light":
+      NSApp.appearance = NSAppearance(named: .aqua)
+    default:
+      break
+    }
+
     logger.notice("App started; structured logging ready")
     menuBarController = MenuBarController(store: store, refreshesStateOnOpen: agentScene == nil)
     pillPanelController = PillPanelController(store: store.scope(state: \.pill, action: \.pill))

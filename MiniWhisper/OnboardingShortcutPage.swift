@@ -44,6 +44,8 @@ struct OnboardingShortcutPage: View {
         value: showsRing ? "Ring on" : "Ring off",
       )
     }
+    .animation(.easeInOut(duration: 0.2), value: store.isRecordingShortcut)
+    .animation(.easeInOut(duration: 0.2), value: store.shortcutBindings.validationMessage)
     .accessibilityIdentifier(AccessibilityID.onboardingShortcut)
     .accessibilityLabel("Activation shortcut setup")
   }

@@ -53,7 +53,8 @@ public actor LocalASREngine {
       )
       return .tooShort
     }
-    guard readiness == .ready, let vadManager, let asrManager, let decoderLayerCount else {
+    guard readiness == .ready, let vadManager, let asrManager, let decoderLayerCount, let boost
+    else {
       throw ASREngineError.notReady
     }
 
@@ -69,9 +70,23 @@ public actor LocalASREngine {
 
     var decoderState = try TdtDecoderState(decoderLayers: decoderLayerCount)
     let transcript = try await asrManager.transcribe(samples, decoderState: &decoderState)
-    return TranscriptionOutcomeFinisher.finish(
-      transcript: transcript.text, dictionary: dictionary,
-    )
+    let boosted: String
+    if let tokenTimings = transcript.tokenTimings {
+      do {
+        boosted = try await boost.apply(
+          samples: samples, transcript: transcript.text, tokenTimings: tokenTimings,
+          dictionary: dictionary,
+        )
+      } catch {
+        engineLogger.error(
+          "Recognition boost failed; continuing with decoded transcript: \(error.localizedDescription, privacy: .public)",
+        )
+        boosted = transcript.text
+      }
+    } else {
+      boosted = transcript.text
+    }
+    return TranscriptionOutcomeFinisher.finish(transcript: boosted, dictionary: dictionary)
   }
 
   // MARK: Private
@@ -82,6 +97,7 @@ public actor LocalASREngine {
   private var vadManager: VadManager?
   private var asrManager: AsrManager?
   private var decoderLayerCount: Int?
+  private var boost: VocabularyBoost?
 
   private func prepareInstalled(continuation: AsyncStream<EngineReadiness>.Continuation) async {
     defer { continuation.finish() }
@@ -114,8 +130,9 @@ public actor LocalASREngine {
     } catch { updateReadiness(.failed(error.localizedDescription)) { continuation.yield($0) } }
   }
 
-  private func loadAndPrewarm(progress: @escaping @Sendable (EngineReadiness) -> Void) async throws
-  {
+  private func loadAndPrewarm(
+    progress: @escaping @Sendable (EngineReadiness) -> Void,
+  ) async throws {
     ModelHub.offlineMode = true
     updateReadiness(.compiling, progress: progress)
     let vadManager = try await VadManager(
@@ -142,6 +159,9 @@ public actor LocalASREngine {
     self.vadManager = vadManager
     self.asrManager = asrManager
     decoderLayerCount = models.version.decoderLayers
+    boost = try await VocabularyBoost(
+      backend: FluidVocabularyBoostBackend.load(from: modelStore.ctcDirectory),
+    )
     updateReadiness(.ready, progress: progress)
   }
 

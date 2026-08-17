@@ -102,11 +102,40 @@ final class OnboardingKeyboardUITests: XCTestCase {
     )
   }
 
+  @MainActor func testOpenSettingsReplacesStatusWithoutReflowingPermissionCopy() {
+    let app = launch("onboarding-permissions-accessibility")
+    defer { terminate(app) }
+
+    let explanation = app.staticTexts["miniwhisper.onboarding.permission.accessibility"]
+    XCTAssertTrue(explanation.awaitExistence(timeout: 5))
+    let grantHeight = explanation.frame.height
+
+    presentScene("onboarding-permissions-accessibility-settings")
+    XCTAssertTrue(
+      app.buttons["miniwhisper.onboarding.permission.accessibility.action"]
+        .awaitExistence(timeout: 2),
+    )
+    XCTAssertTrue(
+      app.staticTexts["miniwhisper.onboarding.permission.accessibility.status"]
+        .awaitNonExistence(timeout: 2),
+    )
+    XCTAssertEqual(explanation.frame.height, grantHeight)
+  }
+
   @MainActor func testModelProgressHasNoTabStopsAndCanBeAbandoned() {
     let app = launch("onboarding-model")
     defer { terminate(app) }
 
     XCTAssertTrue(app.groups["miniwhisper.onboarding.model"].awaitExistence(timeout: 5))
+    let railButtons = ["permissions", "shortcut", "model", "try-it"].map {
+      app.buttons["miniwhisper.onboarding.rail.\($0)"]
+    }
+    XCTAssertTrue(railButtons.allSatisfy { $0.awaitExistence(timeout: 2) })
+    let railRowHeights = railButtons.map(\.frame.height)
+    XCTAssertLessThan(
+      railRowHeights.max() ?? 0, 20,
+      "Every rail label must remain a single line",
+    )
     for modifiers: XCUIElement.KeyModifierFlags in [[], [], [.shift], [.shift]] {
       app.typeKey(.tab, modifierFlags: modifiers)
       assertOnlyWindowHasKeyboardFocus(in: app)
@@ -122,11 +151,27 @@ final class OnboardingKeyboardUITests: XCTestCase {
     let skip = app.buttons["miniwhisper.onboarding.try-it.skip"]
     app.buttons["miniwhisper.onboarding.rail.try-it"].click()
     XCTAssertTrue(skip.awaitExistence(timeout: 2))
-    XCTAssertFalse(app.textViews["miniwhisper.onboarding.try-it.text"].exists)
+    XCTAssertFalse(app.tryItEditor.exists)
 
     skip.click()
     XCTAssertTrue(app.staticTexts["miniwhisper.menu.status-item"].awaitNonExistence(timeout: 3))
     XCTAssertFalse(app.buttons["miniwhisper.onboarding.rail.try-it"].exists)
+  }
+
+  @MainActor func testRevisitedReadyModelOffersKeyboardContinue() {
+    let app = launch("onboarding-model")
+    defer { terminate(app) }
+
+    let continueButton = app.buttons["miniwhisper.onboarding.model.continue"]
+    XCTAssertTrue(app.groups["miniwhisper.onboarding.model"].awaitExistence(timeout: 5))
+    XCTAssertFalse(continueButton.exists)
+
+    postAgentMutation("model-ready", value: "")
+    XCTAssertTrue(continueButton.awaitExistence(timeout: 2))
+    app.typeKey(.tab, modifierFlags: [])
+    assertKeyboardFocus(on: continueButton)
+    app.typeKey(.return, modifierFlags: [])
+    XCTAssertTrue(app.tryItEditor.awaitExistence(timeout: 2))
   }
 
   @MainActor func testShortcutKeyboardLaws() {
@@ -211,10 +256,15 @@ final class OnboardingKeyboardUITests: XCTestCase {
     let app = launch("onboarding-try-it")
     defer { terminate(app) }
 
-    let editor = app.textViews["miniwhisper.onboarding.try-it.text"]
+    let editor = app.tryItEditor
     let skip = app.buttons["miniwhisper.onboarding.try-it.skip"]
     let skipRing = app.staticTexts["miniwhisper.onboarding.try-it.skip.state"]
     XCTAssertTrue(editor.awaitExistence(timeout: 5))
+    XCTAssertEqual(
+      editor.placeholderValue,
+      "“A future is not given to you. It is something you must take for yourself.” — Pod 042",
+      "The try-it field does not offer the line the page asks the user to read",
+    )
     assertKeyboardFocus(on: editor)
     assertValue("Ring off", of: skipRing)
     let entryScreenshot = app.screenshot()
@@ -272,7 +322,7 @@ final class OnboardingKeyboardUITests: XCTestCase {
     XCTAssertTrue(app.groups["miniwhisper.onboarding.model"].awaitExistence(timeout: 2))
 
     postAgentMutation("model-ready", value: "now")
-    let editor = app.textViews["miniwhisper.onboarding.try-it.text"]
+    let editor = app.tryItEditor
     XCTAssertTrue(editor.awaitExistence(timeout: 3))
     assertKeyboardFocus(on: editor)
     assertValue("Ring off", of: app.staticTexts["miniwhisper.onboarding.try-it.skip.state"])

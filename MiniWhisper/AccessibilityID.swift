@@ -54,6 +54,7 @@ enum AccessibilityID {
   static let menuQuickAddDisclosure = "miniwhisper.menu.quick-add.disclosure"
   static let menuQuickAddMisspelling = "miniwhisper.menu.quick-add.misspelling"
   static let menuQuickAddSubmit = "miniwhisper.menu.quick-add.submit"
+  static let menuQuickAddRecognitionOff = "miniwhisper.menu.quick-add.recognition-off"
   static let menuQuickAddFailure = "miniwhisper.menu.quick-add.failure"
   static let menuSettings = "miniwhisper.menu.settings"
   static let menuAbout = "miniwhisper.menu.about"
@@ -94,6 +95,10 @@ enum AccessibilityID {
   static let historyCaption = "miniwhisper.history.caption"
   static let historyStorage = "miniwhisper.history.storage"
   static let historyStoragePopover = "miniwhisper.history.storage.popover"
+  static let dictionaryImproveRecognition = "miniwhisper.dictionary.improve-recognition"
+  static let dictionaryImproveRecognitionInfo = "miniwhisper.dictionary.improve-recognition.info"
+  static let dictionaryImproveRecognitionPopover =
+    "miniwhisper.dictionary.improve-recognition.popover"
   static let dictionaryAdd = "miniwhisper.dictionary.add"
   static let dictionaryText = "miniwhisper.dictionary.text"
   static let dictionaryMisspelling = "miniwhisper.dictionary.misspelling"
@@ -156,6 +161,7 @@ enum AccessibilityID {
   static let onboardingModelStatus = "miniwhisper.onboarding.model.status"
   static let onboardingModelProgress = "miniwhisper.onboarding.model-progress"
   static let onboardingModelRetry = "miniwhisper.onboarding.model.retry"
+  static let onboardingModelContinue = "miniwhisper.onboarding.model.continue"
 
   static let onboardingTryIt = "miniwhisper.onboarding.try-it"
   static let onboardingTryItTitle = "miniwhisper.onboarding.try-it.title"

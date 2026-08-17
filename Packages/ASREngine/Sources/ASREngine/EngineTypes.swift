@@ -6,9 +6,12 @@ import Foundation
 public struct TranscriptionDictionary: Equatable, Sendable {
   // MARK: Lifecycle
 
-  public init(vocabulary: [String], corrections: [TranscriptionCorrection]) {
+  public init(
+    vocabulary: [String], corrections: [TranscriptionCorrection], boostsVocabulary: Bool = false,
+  ) {
     self.vocabulary = vocabulary
     self.corrections = corrections
+    self.boostsVocabulary = boostsVocabulary
   }
 
   // MARK: Public
@@ -17,6 +20,21 @@ public struct TranscriptionDictionary: Equatable, Sendable {
 
   public let vocabulary: [String]
   public let corrections: [TranscriptionCorrection]
+
+  /// Boosting is the user's call, so a dictionary that is not permitted to boost offers no terms
+  /// and the engine never has to ask a second question about it. Corrections are unaffected:
+  /// they run post-decode and answer to nothing here.
+  public let boostsVocabulary: Bool
+
+  // MARK: Internal
+
+  /// Short terms are the ones that collide with ordinary speech, so they never reach the spotter.
+  var boostableTerms: [String] {
+    guard boostsVocabulary else {
+      return []
+    }
+    return vocabulary.filter { $0.count >= RecognitionBoostThresholds.minimumTermLength }
+  }
 }
 
 // MARK: - TranscriptionCorrection

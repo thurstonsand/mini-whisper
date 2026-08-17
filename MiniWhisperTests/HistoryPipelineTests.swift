@@ -394,6 +394,7 @@ import Testing
       settings: Shared(value: MiniWhisperSettings(
         bindings: .defaults, microphone: .systemDefault, sounds: .defaults,
         retention: RetentionPolicy(transcripts: .forever, audio: .oneDay),
+        improveRecognition: true,
       )),
     )
     let store = TestStore(initialState: state) {

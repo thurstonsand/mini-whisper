@@ -4,9 +4,8 @@ import SwiftUI
 
 // MARK: - OnboardingStepPage
 
-/// Every step wears the same silhouette — glyph, heading, a summary that reserves its height so
-/// the card never moves, and a 162pt card. Written once so a new step inherits the layout instead
-/// of copying it.
+/// Every step wears the same silhouette — glyph, heading, a summary that reserves its height, and
+/// an intrinsic card. Written once so a new step inherits the layout instead of copying it.
 struct OnboardingStepPage<Card: View>: View {
   struct Line {
     let text: String
@@ -48,7 +47,7 @@ struct OnboardingStepPage<Card: View>: View {
         .padding(.top, 10)
       card
         .padding(cardPadding)
-        .frame(maxWidth: .infinity, minHeight: 162, maxHeight: 162, alignment: cardAlignment)
+        .frame(maxWidth: .infinity, alignment: cardAlignment)
         .background(
           Color(nsColor: .controlBackgroundColor).opacity(0.5),
           in: RoundedRectangle(cornerRadius: 9),
@@ -175,9 +174,11 @@ struct OnboardingStepRail: View {
   @ViewBuilder private var compactModelProgress: some View {
     switch store.engineReadiness {
     case let .downloading(fraction):
-      Text("\(Int(fraction * 100))%").font(.system(size: 10)).monospacedDigit().foregroundStyle(
-        .secondary,
-      )
+      Text("\(Int(fraction * 100))%")
+        .font(.caption2)
+        .monospacedDigit()
+        .foregroundStyle(.secondary)
+        .fixedSize(horizontal: true, vertical: false)
     case .compiling,
          .prewarming:
       ProgressView().controlSize(.mini)
@@ -215,6 +216,8 @@ struct OnboardingStepRail: View {
         Text(title)
           .font(.system(size: 12, weight: isCurrent ? .semibold : .regular))
           .foregroundStyle(isCurrent ? Color.primary : Color.secondary)
+          .lineLimit(1)
+          .fixedSize(horizontal: true, vertical: false)
         Spacer()
         if step == .model {
           compactModelProgress
@@ -266,11 +269,13 @@ struct OnboardingPermissionsPage: View {
         Divider()
         permissionRow(
           .accessibility, title: "Accessibility", symbol: "keyboard",
-          explanation:
-          "Watch for the dictation hotkey, paste at your cursor, and read the text around it.",
+          explanation: "Listen for the hotkey and paste at your cursor.",
         )
       }
     }
+    .animation(.easeInOut(duration: 0.2), value: store.snapshot.permissions)
+    .animation(.easeInOut(duration: 0.2), value: store.requestingPermission)
+    .animation(.easeInOut(duration: 0.2), value: store.requestedPermissions)
     .accessibilityIdentifier(AccessibilityID.onboardingPermissions)
     .accessibilityLabel("Permissions setup")
   }
@@ -282,7 +287,7 @@ struct OnboardingPermissionsPage: View {
   ) -> some View {
     let isGranted = store.snapshot.permissions.isGranted(permission)
     let ownsAction = store.activePermission == permission
-    return HStack(spacing: 12) {
+    return HStack(spacing: 8) {
       Image(systemName: isGranted ? "checkmark.circle.fill" : symbol)
         .font(.system(size: 15))
         .foregroundStyle(isGranted ? Color.green : Color.accentColor)
@@ -290,56 +295,63 @@ struct OnboardingPermissionsPage: View {
         .accessibilityHidden(true)
       VStack(alignment: .leading, spacing: 2) {
         Text(title).font(.system(size: 13, weight: .medium))
-        Text(explanation).font(.system(size: 11)).foregroundStyle(.secondary).fixedSize(
-          horizontal: false, vertical: true,
-        )
+        Text(explanation)
+          .font(.system(size: 11))
+          .foregroundStyle(.secondary)
+          .lineLimit(1)
       }
+      .frame(maxWidth: .infinity, alignment: .leading)
       .accessibilityElement(children: .combine)
       .accessibilityIdentifier(OnboardingAccessibility.permissionIdentifier(permission))
       .accessibilityLabel(title)
       .accessibilityValue(explanation)
-      Spacer(minLength: 12)
+
       // Only an unfulfilled request sends the user to System Settings. Merely coming back to this
       // page is not that: macOS still has a prompt to give, and offering the pane instead strands
       // the user in front of a list the app has not yet earned a row in.
       let showsSettings = store.state.needsSystemSettings(for: permission)
-      SemanticText(
-        OnboardingAccessibility.permissionStatus(
-          isGranted: isGranted, isRequesting: store.requestingPermission == permission,
-          showsSettings: showsSettings,
-        ),
-        identifier: OnboardingAccessibility.permissionStatusIdentifier(permission),
-        label: "\(title) status",
-      )
-      .font(.system(size: 12, weight: .medium))
-      .foregroundStyle(isGranted ? Color.green : Color.secondary)
-      if ownsAction {
-        // The default action follows the row that still needs the user, so Return always means
-        // "do the one thing this page is asking for".
-        if showsSettings {
-          Button("Open Settings") { store.send(.openSystemSettings(permission)) }
-            .focused(focus, equals: .permissionsAction)
-            .keyboardShortcut(.defaultAction)
-            .accessibilityIdentifier(
-              OnboardingAccessibility.permissionActionIdentifier(permission),
-            )
-            .accessibilityLabel("Open \(title) Settings")
-        } else {
-          Button("Grant") { store.send(.requestPermission(permission)) }
-            .buttonStyle(.borderedProminent)
-            .disabled(store.requestingPermission != nil)
-            .focused(focus, equals: .permissionsAction)
-            .keyboardShortcut(.defaultAction)
-            .accessibilityIdentifier(
-              OnboardingAccessibility.permissionActionIdentifier(permission),
-            )
-            .accessibilityLabel("Grant \(title)")
+      HStack(spacing: 8) {
+        if !(ownsAction && showsSettings) {
+          SemanticText(
+            OnboardingAccessibility.permissionStatus(
+              isGranted: isGranted, isRequesting: store.requestingPermission == permission,
+              showsSettings: showsSettings,
+            ),
+            identifier: OnboardingAccessibility.permissionStatusIdentifier(permission),
+            label: "\(title) status",
+          )
+          .font(.system(size: 12, weight: .medium))
+          .foregroundStyle(isGranted ? Color.green : Color.secondary)
+        }
+        if ownsAction {
+          // The default action follows the row that still needs the user, so Return always means
+          // "do the one thing this page is asking for".
+          if showsSettings {
+            Button("Open Settings") { store.send(.openSystemSettings(permission)) }
+              .focused(focus, equals: .permissionsAction)
+              .keyboardShortcut(.defaultAction)
+              .accessibilityIdentifier(
+                OnboardingAccessibility.permissionActionIdentifier(permission),
+              )
+              .accessibilityLabel("Open \(title) Settings")
+          } else {
+            Button("Grant") { store.send(.requestPermission(permission)) }
+              .buttonStyle(.borderedProminent)
+              .disabled(store.requestingPermission != nil)
+              .focused(focus, equals: .permissionsAction)
+              .keyboardShortcut(.defaultAction)
+              .accessibilityIdentifier(
+                OnboardingAccessibility.permissionActionIdentifier(permission),
+              )
+              .accessibilityLabel("Grant \(title)")
+          }
         }
       }
+      .frame(width: 124, alignment: .trailing)
     }
     .accessibilityElement(children: .contain)
     .controlSize(.small)
-    .padding(.horizontal, 14)
+    .padding(.horizontal, 10)
     .padding(.vertical, 9)
   }
 }
@@ -359,7 +371,7 @@ struct OnboardingModelPage: View {
         label: "Model setup heading",
       ),
       summary: .init(
-        text: "Downloads once (~450 MB), then everything runs on this Mac.",
+        text: "Downloads once (~550 MB), then everything runs on this Mac.",
         identifier: AccessibilityID.onboardingModelSummary, label: "Model setup information",
       ),
       summaryLineLimit: 1,
@@ -368,6 +380,7 @@ struct OnboardingModelPage: View {
       cardAlignment: .topLeading,
     ) {
       VStack(alignment: .leading, spacing: 10) { cardContent }
+        .animation(.easeInOut(duration: 0.2), value: store.engineReadiness)
     }
     .accessibilityIdentifier(AccessibilityID.onboardingModel)
     .accessibilityLabel("Speech model setup")
@@ -378,26 +391,9 @@ struct OnboardingModelPage: View {
   @ViewBuilder private var cardContent: some View {
     switch store.engineReadiness {
     case let .downloading(fraction):
-      VStack(alignment: .leading, spacing: 8) {
-        HStack {
-          SemanticText(
-            "Downloading model", identifier: AccessibilityID.onboardingModelStatus,
-            label: "Model status",
-          ).font(.system(size: 13, weight: .medium))
-          Spacer()
-          Text("\(Int(fraction * 100))%")
-            .monospacedDigit()
-            .foregroundStyle(.secondary)
-            .accessibilityHidden(true)
-        }
-        ProgressView(value: fraction)
-          .progressViewStyle(.linear)
-          .accessibilityIdentifier(AccessibilityID.onboardingModelProgress)
-          .accessibilityLabel("Model download")
-          .accessibilityValue("\(Int(fraction * 100))%")
-      }
+      downloadProgress(title: "Downloading Parakeet v2…", fraction: fraction)
     case .compiling:
-      progressRow("Compiling Core ML models…", value: "Compiling")
+      progressRow("Preparing Core ML models…", value: "Compiling")
     case .prewarming:
       VStack(alignment: .leading, spacing: 8) {
         progressRow("Optimizing for this Mac…", value: "Prewarming")
@@ -410,7 +406,7 @@ struct OnboardingModelPage: View {
       }
     case .modelMissing,
          .failed:
-      Label("About 450 MB · downloaded once", systemImage: "internaldrive")
+      Label("About 550 MB · downloaded once", systemImage: "internaldrive")
         .font(.system(size: 12))
         .foregroundStyle(.secondary)
         .accessibilityElement(children: .ignore)
@@ -424,6 +420,27 @@ struct OnboardingModelPage: View {
         .accessibilityIdentifier(AccessibilityID.onboardingModelStatus)
         .accessibilityLabel("Model status")
         .accessibilityValue("Ready")
+    }
+  }
+
+  private func downloadProgress(title: String, fraction: Double) -> some View {
+    VStack(alignment: .leading, spacing: 8) {
+      HStack {
+        SemanticText(
+          title, identifier: AccessibilityID.onboardingModelStatus,
+          label: "Model status",
+        ).font(.system(size: 13, weight: .medium))
+        Spacer()
+        Text("\(Int(fraction * 100))%")
+          .monospacedDigit()
+          .foregroundStyle(.secondary)
+          .accessibilityHidden(true)
+      }
+      ProgressView(value: fraction)
+        .progressViewStyle(.linear)
+        .accessibilityIdentifier(AccessibilityID.onboardingModelProgress)
+        .accessibilityLabel("Model download")
+        .accessibilityValue("\(Int(fraction * 100))%")
     }
   }
 

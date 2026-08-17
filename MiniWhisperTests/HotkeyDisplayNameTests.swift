@@ -48,7 +48,7 @@ struct HotkeyDisplayNameTests {
     #expect(
       OnboardingCopy.tryItInstructions(hotkeys: hotkeys)
         ==
-        "Focus the text box below, hold ⌃ Ctrl → R while you speak, then release. Or double-tap ⌃ Ctrl → R to keep recording until you tap it again.",
+        "Focus the text box below, hold ⌃ Ctrl → R, and read the line aloud. Release when you're done, or double-tap ⌃ Ctrl → R to keep recording until you tap it again.",
     )
     #expect(
       OnboardingCopy.readySummary(hotkeys: hotkeys)
@@ -59,7 +59,7 @@ struct HotkeyDisplayNameTests {
   @Test func `onboarding copy is honest when no binding exists`() {
     #expect(
       OnboardingCopy.tryItInstructions(hotkeys: [])
-        == "Set an activation shortcut in Settings before trying dictation here.",
+        == "Set an activation shortcut in Settings before reading the line aloud.",
     )
     #expect(
       OnboardingCopy.readySummary(hotkeys: [])

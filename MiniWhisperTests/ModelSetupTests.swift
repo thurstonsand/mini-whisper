@@ -132,6 +132,7 @@ import Testing
   }
 
   @Test func `a consented model resumes at startup with onboarding long finished`() async {
+    let readiness = EngineReadiness.modelMissing
     let installs = SynchronousCounter()
     let store = TestStore(initialState: AppFeature.State()) { AppFeature() } withDependencies: {
       $0.modelDownloadConsent.markConsented = {}
@@ -151,7 +152,7 @@ import Testing
           permissions: OnboardingPermissionStatuses(
             microphoneStatus: .granted, hasAccessibilityPermission: true,
           ),
-          engineReadiness: .modelMissing,
+          engineReadiness: readiness,
         ),
       ),
     )

@@ -30,7 +30,7 @@ enum OnboardingAccessibility {
     }
     switch readiness {
     case let .downloading(fraction):
-      return "\(position); Downloading \(Int(fraction * 100))%"
+      return "\(position); Downloading Parakeet v2 \(Int(fraction * 100))%"
     case .compiling:
       return "\(position); Compiling"
     case .prewarming:

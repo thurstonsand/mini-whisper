@@ -18,8 +18,10 @@ struct EngineLifecycleTests {
   @Test func `model revisions are immutable code pins`() {
     #expect(PinnedModelStore.asrRevision.count == 40)
     #expect(PinnedModelStore.vadRevision.count == 40)
+    #expect(PinnedModelStore.ctcRevision.count == 40)
     #expect(!PinnedModelStore.asrRevision.contains("main"))
     #expect(!PinnedModelStore.vadRevision.contains("main"))
+    #expect(!PinnedModelStore.ctcRevision.contains("main"))
   }
 
   @Test func `missing and corrupt provenance remain distinct`() throws {
@@ -58,9 +60,7 @@ struct EngineLifecycleTests {
     )
     let samples = Array(repeating: Float.zero, count: 7984)
 
-    #expect(
-      try await engine.submit(samples, sampleRate: 16000, dictionary: .empty) == .tooShort,
-    )
+    #expect(try await engine.submit(samples, sampleRate: 16000, dictionary: .empty) == .tooShort)
   }
 
   @Test func `five hundred milliseconds proceeds beyond the duration floor`() async {
@@ -280,6 +280,16 @@ struct InstalledArtifactValidationTests {
     #expect(!FileManager.default.fileExists(atPath: store.stagingRoot.path))
   }
 
+  /// The recognition helper is pinned like every other repository, so an artifact predating it is
+  /// not a lesser artifact to be patched — it is one that does not match the code pins, and the
+  /// ordinary download path is the whole remedy.
+  @Test func `launch validation rejects an artifact without the recognition helper`() throws {
+    let store = try install(size: 5, contents: "other", installsRecognitionHelper: false)
+    defer { try? FileManager.default.removeItem(at: store.root) }
+
+    #expect(throws: ASREngineError.self) { try store.validateInstalledArtifact() }
+  }
+
   @Test func `launch validation rejects size mismatches`() throws {
     let store = try install(size: 6, contents: "five!")
     defer { try? FileManager.default.removeItem(at: store.root) }
@@ -289,13 +299,19 @@ struct InstalledArtifactValidationTests {
 
   // MARK: Private
 
-  private func install(size: Int, contents: String) throws -> PinnedModelStore {
+  private func install(
+    size: Int, contents: String, installsRecognitionHelper: Bool = true,
+  ) throws -> PinnedModelStore {
     let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
     let file = root.appending(path: "Models/parakeet-tdt-0.6b-v2/Encoder.mlmodelc/coremldata.bin")
     try FileManager.default.createDirectory(
       at: file.deletingLastPathComponent(), withIntermediateDirectories: true,
     )
     try Data(contents.utf8).write(to: file)
+    let recognitionHelper = installsRecognitionHelper ? """
+    ,{"repository":"\(PinnedModelStore.ctcRepository)",
+      "revision":"\(PinnedModelStore.ctcRevision)","files":[]}
+    """ : ""
     let provenance = """
     {"repositories":[
       {"repository":"\(PinnedModelStore.asrRepository)",
@@ -303,7 +319,7 @@ struct InstalledArtifactValidationTests {
        "files":[{"path":"Encoder.mlmodelc/coremldata.bin","size":\(size),
                  "sha256":"\(String(repeating: "a", count: 64))"}]},
       {"repository":"\(PinnedModelStore.vadRepository)",
-       "revision":"\(PinnedModelStore.vadRevision)","files":[]}]}
+       "revision":"\(PinnedModelStore.vadRevision)","files":[]}\(recognitionHelper)]}
     """
     try Data(provenance.utf8).write(to: root.appending(path: "provenance.json"))
     return PinnedModelStore(root: root)

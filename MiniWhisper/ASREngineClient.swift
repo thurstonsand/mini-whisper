@@ -20,11 +20,27 @@ import SpeechDictionary
 
   var identity: @Sendable () -> String = { LocalASREngine.identity }
   var submit: @Sendable (
-    CanonicalRecording, DictionaryContents,
+    CanonicalRecording, TranscriptionDictionary,
   ) async throws -> TranscriptionOutcome
 }
 
-// MARK: DependencyKey
+// MARK: - DictionaryContents transcription mapping
+
+extension DictionaryContents {
+  /// The one place the stored dictionary becomes an engine request. Boosting is named here rather
+  /// than carried alongside as a loose flag, so no call site has to explain a bare `Bool`.
+  func transcriptionDictionary(boostsVocabulary: Bool) -> TranscriptionDictionary {
+    TranscriptionDictionary(
+      vocabulary: vocabulary.map(\.text),
+      corrections: corrections.map {
+        TranscriptionCorrection(misspelling: $0.misspelling, text: $0.text)
+      },
+      boostsVocabulary: boostsVocabulary,
+    )
+  }
+}
+
+// MARK: - ASREngineClient + DependencyKey
 
 extension ASREngineClient: DependencyKey {
   static let liveValue: Self = {
@@ -35,15 +51,8 @@ extension ASREngineClient: DependencyKey {
       prepareForActivation: { engine.prepareInstalled() },
       identity: { LocalASREngine.identity },
       submit: { recording, dictionary in
-        let transcriptionDictionary = TranscriptionDictionary(
-          vocabulary: dictionary.vocabulary.map(\.text),
-          corrections: dictionary.corrections.map {
-            TranscriptionCorrection(misspelling: $0.misspelling, text: $0.text)
-          },
-        )
-        return try await engine.submit(
-          recording.samples, sampleRate: CanonicalRecording.sampleRate,
-          dictionary: transcriptionDictionary,
+        try await engine.submit(
+          recording.samples, sampleRate: CanonicalRecording.sampleRate, dictionary: dictionary,
         )
       },
     )

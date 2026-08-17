@@ -167,6 +167,11 @@ enum OnboardingStep: Int, Equatable {
       !engineReadiness.isSetupInProgress && engineReadiness != .ready
     }
 
+    var canContinueFromModel: Bool {
+      visibleStep == .model && engineReadiness == .ready && step.rawValue > OnboardingStep.model
+        .rawValue
+    }
+
     var isMarkingCompletion: Bool {
       completionIntent != nil
     }
@@ -213,6 +218,7 @@ enum OnboardingStep: Int, Equatable {
     case openSystemSettings(OnboardingPermission)
     case workspaceOpenFailed(String)
     case setupModel
+    case modelContinueTapped
     case modelSetupFailed(String)
     case tryItTextChanged(String)
     case tryItFailed(String)
@@ -360,6 +366,12 @@ enum OnboardingStep: Int, Equatable {
         return .none
       case .setupModel:
         return modelSetupEffect(for: &state)
+      case .modelContinueTapped:
+        guard state.canContinueFromModel else {
+          return .none
+        }
+        state.selectedStep = nil
+        return .none
       case let .modelSetupFailed(message):
         state.failureMessage = message
         return .none

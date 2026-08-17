@@ -181,12 +181,14 @@ esac
 # Each channel's executable is named for its channel, so this can never reach a sibling.
 pkill -x "$app" || true
 
-tccutil reset Microphone "$bundle"
-tccutil reset Accessibility "$bundle"
-tccutil reset PostEvent "$bundle"
+# tccutil prints its success line once per TCC domain it clears, so its stdout doubles up;
+# errors still surface on stderr and the summary line below reports the outcome.
+tccutil reset Microphone "$bundle" >/dev/null
+tccutil reset Accessibility "$bundle" >/dev/null
+tccutil reset PostEvent "$bundle" >/dev/null
 # The app has not asked for Input Monitoring since the tap became a modifying tap. Clearing it
 # anyway keeps a grant from the listen-only era from ever masking a missing Accessibility grant.
-tccutil reset ListenEvent "$bundle"
+tccutil reset ListenEvent "$bundle" >/dev/null
 
 support="$HOME/Library/Application Support/$app"
 rm -f "$support/onboarding-completed" "$support/model-download-consented"

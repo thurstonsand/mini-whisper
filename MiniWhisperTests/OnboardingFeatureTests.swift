@@ -394,6 +394,20 @@ struct OnboardingStepDerivationTests {
     #expect(store.state.visibleStep == .tryIt)
   }
 
+  @Test func `a revisited ready model continues to the derived next step`() async {
+    var state = shortcutState()
+    state.hasCompletedShortcut = true
+    state.selectedStep = .model
+    state.$health.withLock { $0.engineReadiness = .ready }
+    let store = TestStore(initialState: state) { OnboardingFeature() }
+
+    #expect(store.state.canContinueFromModel)
+    await store.send(.modelContinueTapped) {
+      $0.selectedStep = nil
+    }
+    #expect(store.state.visibleStep == .tryIt)
+  }
+
   @Test func `the step is frozen while A recording is in flight`() async {
     var state = shortcutState()
     state.shortcutBindings.target = .existing(0)

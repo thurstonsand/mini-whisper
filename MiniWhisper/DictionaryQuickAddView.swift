@@ -1,5 +1,44 @@
 import AppKit
 
+// MARK: - DictionaryQuickAddCopy
+
+enum DictionaryQuickAddCopy {
+  static let recognitionOffMarker = "recognition off"
+}
+
+// MARK: - DictionaryQuickAddMarker
+
+private final class DictionaryQuickAddMarker: NSTextField {
+  // MARK: Lifecycle
+
+  init() {
+    super.init(frame: .zero)
+    stringValue = DictionaryQuickAddCopy.recognitionOffMarker
+    isEditable = false
+    isBordered = false
+    drawsBackground = false
+    font = .systemFont(ofSize: NSFont.smallSystemFontSize)
+    textColor = .systemOrange
+    alignment = .right
+    lineBreakMode = .byClipping
+    setContentCompressionResistancePriority(.required, for: .horizontal)
+    setAccessibilityIdentifier(AccessibilityID.menuQuickAddRecognitionOff)
+    setAccessibilityLabel("Recognition status")
+    setAccessibilityValue(DictionaryQuickAddCopy.recognitionOffMarker)
+  }
+
+  @available(*, unavailable)
+  required init?(coder _: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+
+  // MARK: Internal
+
+  override func hitTest(_: NSPoint) -> NSView? {
+    nil
+  }
+}
+
 // MARK: - DictionaryQuickAddDisclosureButton
 
 private final class DictionaryQuickAddDisclosureButton: NSButton {
@@ -108,6 +147,10 @@ final class DictionaryQuickAddView: NSView, NSTextFieldDelegate {
     )
     super.init(frame: frameRect)
 
+    // The wrapper NSMenu hosts this item in owns the width; the mask keeps the view stretched to
+    // it through every resize, so nothing has to re-sync geometry by hand and `resizeToFit` is
+    // left owning exactly one axis.
+    autoresizingMask = [.width]
     setAccessibilityLabel("Add to Dictionary…")
     wordField.delegate = self
     misspellingField.delegate = self
@@ -123,7 +166,8 @@ final class DictionaryQuickAddView: NSView, NSTextFieldDelegate {
       identifier: AccessibilityID.menuQuickAddHeader,
       action: #selector(openWord),
     )
-    headerButton.hoverChanged = { [weak self] in self?.isHeaderHovered = $0 }
+    // The container's tracking area is the single writer of isHeaderHovered; a second writer on
+    // the button strobes the pill at every internal boundary crossing.
     headerButton.translatesAutoresizingMaskIntoConstraints = false
     addSubview(headerButton)
 
@@ -144,7 +188,12 @@ final class DictionaryQuickAddView: NSView, NSTextFieldDelegate {
 
     actionRow.orientation = .horizontal
     actionRow.alignment = .centerY
+    actionSpacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
     actionRow.addArrangedSubview(addButton)
+    actionRow.addArrangedSubview(actionSpacer)
+
+    recognitionOffMarker.translatesAutoresizingMaskIntoConstraints = false
+    addSubview(recognitionOffMarker)
 
     failureLabel.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
     failureLabel.textColor = .secondaryLabelColor
@@ -165,16 +214,30 @@ final class DictionaryQuickAddView: NSView, NSTextFieldDelegate {
     addSubview(stack)
 
     NSLayoutConstraint.activate([
-      headerSelection.leadingAnchor.constraint(equalTo: leadingAnchor, constant: Metrics.rowInset),
+      headerSelection.leadingAnchor.constraint(
+        equalTo: leadingAnchor, constant: Metrics.rowInset,
+      ),
       headerSelection.trailingAnchor.constraint(
         equalTo: trailingAnchor, constant: -Metrics.rowInset,
       ),
       headerSelection.topAnchor.constraint(equalTo: topAnchor),
       headerSelection.heightAnchor.constraint(equalToConstant: Metrics.selectionHeight),
-      headerButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: Metrics.rowInset),
-      headerButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -Metrics.rowInset),
-      headerButton.topAnchor.constraint(equalTo: topAnchor, constant: Metrics.headerButtonTop),
+      headerButton.leadingAnchor.constraint(
+        equalTo: leadingAnchor, constant: Metrics.rowInset,
+      ),
+      headerButton.trailingAnchor.constraint(
+        equalTo: trailingAnchor, constant: -Metrics.rowInset,
+      ),
+      // The header centers in the collapsed row band and keeps that position when the form
+      // expands below it, so the collapsed→expanded morph never moves the title.
+      headerButton.centerYAnchor.constraint(
+        equalTo: topAnchor, constant: Metrics.collapsedHeight / 2,
+      ),
       headerButton.heightAnchor.constraint(equalToConstant: Metrics.buttonHeight),
+      recognitionOffMarker.trailingAnchor.constraint(
+        equalTo: trailingAnchor, constant: -Metrics.contentInset,
+      ),
+      recognitionOffMarker.centerYAnchor.constraint(equalTo: headerButton.centerYAnchor),
       correctionSelection.leadingAnchor.constraint(
         equalTo: leadingAnchor, constant: Metrics.rowInset,
       ),
@@ -183,10 +246,17 @@ final class DictionaryQuickAddView: NSView, NSTextFieldDelegate {
       ),
       correctionSelection.centerYAnchor.constraint(equalTo: correctionButton.centerYAnchor),
       correctionSelection.heightAnchor.constraint(equalToConstant: Metrics.selectionHeight),
-      stack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: Metrics.contentInset),
-      stack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -Metrics.contentInset),
+      stack.leadingAnchor.constraint(
+        equalTo: leadingAnchor, constant: Metrics.contentInset,
+      ),
+      stack.trailingAnchor.constraint(
+        equalTo: trailingAnchor, constant: -Metrics.contentInset,
+      ),
       stack.topAnchor.constraint(equalTo: headerButton.bottomAnchor, constant: Metrics.spacing),
-      stack.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: -Metrics.spacing),
+      // The bottom guard only describes the expanded form. In the 24pt collapsed row the hidden
+      // stack cannot fit, and at required priority autolayout would break an arbitrary sibling
+      // constraint instead — once the header's centerY, which emptied the row.
+      expandedStackBottomGuard,
       wordField.widthAnchor.constraint(equalTo: stack.widthAnchor),
       wordField.heightAnchor.constraint(equalToConstant: Metrics.fieldHeight),
       correctionButton.widthAnchor.constraint(equalTo: stack.widthAnchor),
@@ -212,9 +282,40 @@ final class DictionaryQuickAddView: NSView, NSTextFieldDelegate {
   var refuses: () -> String? = { nil }
   var submit: (String, String) -> Void = { _, _ in }
 
+  var improvesRecognition = true {
+    didSet { render() }
+  }
+
   override func viewDidChangeEffectiveAppearance() {
     super.viewDidChangeEffectiveAppearance()
     render()
+  }
+
+  override func updateTrackingAreas() {
+    super.updateTrackingAreas()
+    if let headerTrackingArea {
+      removeTrackingArea(headerTrackingArea)
+    }
+    // .inVisibleRect keeps the area glued to the wrapper-filling bounds through every
+    // frame-driven resize, so hover has exactly one writer and one geometry.
+    let trackingArea = NSTrackingArea(
+      rect: .zero,
+      options: [.activeAlways, .mouseEnteredAndExited, .inVisibleRect],
+      owner: self,
+      userInfo: nil,
+    )
+    addTrackingArea(trackingArea)
+    headerTrackingArea = trackingArea
+  }
+
+  override func mouseEntered(with _: NSEvent) {
+    if stage == .collapsed {
+      isHeaderHovered = true
+    }
+  }
+
+  override func mouseExited(with _: NSEvent) {
+    isHeaderHovered = false
   }
 
   override func hitTest(_ point: NSPoint) -> NSView? {
@@ -233,6 +334,7 @@ final class DictionaryQuickAddView: NSView, NSTextFieldDelegate {
 
   func collapse() {
     stage = .collapsed
+    isHeaderHovered = false
     reset()
   }
 
@@ -293,14 +395,14 @@ final class DictionaryQuickAddView: NSView, NSTextFieldDelegate {
   }
 
   private enum Metrics {
-    // Ticket 34 measured a 330pt item, 28pt collapsed row, and 42pt form chrome.
+    /// Ticket 34 measured the 330pt menu width and 42pt form chrome; native-row probing pins the
+    /// collapsed row band to 24pt. Visual insets are edge-relative to the wrapper-filling view.
     static let width: CGFloat = 330
-    static let collapsedHeight: CGFloat = 28
+    static let collapsedHeight: CGFloat = 24
     static let expandedChromeHeight: CGFloat = 42
     // Ticket 34 aligned the selection, buttons, and content column against a native sibling.
     static let selectionHeight: CGFloat = 24
     static let rowInset: CGFloat = 5
-    static let headerButtonTop: CGFloat = 8
     static let buttonHeight: CGFloat = 22
     static let contentInset: CGFloat = 14
     static let spacing: CGFloat = 6
@@ -327,11 +429,22 @@ final class DictionaryQuickAddView: NSView, NSTextFieldDelegate {
   private let correctionButton = DictionaryQuickAddDisclosureButton()
   private let addButton = NSButton()
   private let actionRow = NSStackView()
+  private let actionSpacer = NSView()
+  private let recognitionOffMarker = DictionaryQuickAddMarker()
   private let wordField: DictionaryQuickAddField
   private let misspellingField: DictionaryQuickAddField
   private let failureLabel = NSTextField(wrappingLabelWithString: "")
   private var caretIndicator: DictionaryQuickAddCaret?
   private var caretTimer: Timer?
+  private var headerTrackingArea: NSTrackingArea?
+
+  private lazy var expandedStackBottomGuard: NSLayoutConstraint = {
+    let constraint = stack.bottomAnchor.constraint(
+      lessThanOrEqualTo: bottomAnchor, constant: -Metrics.spacing,
+    )
+    constraint.priority = .defaultHigh
+    return constraint
+  }()
 
   private var isHeaderHovered = false {
     didSet { updateHeaderAppearance(isHovered: isHeaderHovered) }
@@ -388,6 +501,7 @@ final class DictionaryQuickAddView: NSView, NSTextFieldDelegate {
     correctionButton.isEnabled = stage == .word
     misspellingField.isHidden = !isCorrection
     actionRow.isHidden = isCollapsed
+    recognitionOffMarker.isHidden = improvesRecognition
 
     let wordLabel = isCorrection ? DictionaryFieldCopy.correction : DictionaryFieldCopy.word
     wordField.placeholderString = wordLabel
@@ -395,6 +509,7 @@ final class DictionaryQuickAddView: NSView, NSTextFieldDelegate {
 
     updateHeaderAppearance(isHovered: isHeaderHovered)
     updateCorrectionAppearance(isHovered: isCorrectionHovered)
+    updateRecognitionOffMarkerAppearance()
     resizeToFit()
   }
 
@@ -410,7 +525,7 @@ final class DictionaryQuickAddView: NSView, NSTextFieldDelegate {
   }
 
   private func rowAction(at point: NSPoint) -> (() -> Void)? {
-    if stage == .collapsed, headerSelection.frame.contains(point) {
+    if stage == .collapsed, bounds.contains(point) {
       return { [weak self] in self?.openWord() }
     }
     if stage == .word, correctionSelection.frame.contains(point) {
@@ -662,6 +777,9 @@ final class DictionaryQuickAddView: NSView, NSTextFieldDelegate {
   private func updateHeaderAppearance(isHovered: Bool) {
     let showsSelection = stage == .collapsed && isHovered
     headerSelection.isHidden = !showsSelection
+    // The header button is already in the accessibility tree and already changes with hover, so
+    // it publishes the state rather than a clear one-point label existing to be read by a test.
+    headerButton.setAccessibilityValue("Hover \(showsSelection ? "on" : "off")")
     updateTitle(headerButton, selected: showsSelection)
   }
 
@@ -669,6 +787,14 @@ final class DictionaryQuickAddView: NSView, NSTextFieldDelegate {
     let showsSelection = stage == .word && isHovered
     correctionSelection.isHidden = !showsSelection
     updateTitle(correctionButton, selected: showsSelection)
+  }
+
+  /// The marker sits on the header row in both stages, so only the collapsed row's selection
+  /// pill can ever run underneath it.
+  private func updateRecognitionOffMarkerAppearance() {
+    recognitionOffMarker.textColor = isHeaderHovered && stage == .collapsed
+      ? .selectedMenuItemTextColor
+      : .systemOrange
   }
 
   private func updateTitle(_ button: NSButton, selected: Bool) {
@@ -700,8 +826,10 @@ final class DictionaryQuickAddView: NSView, NSTextFieldDelegate {
       ? Metrics.collapsedHeight
       : ceil(stack.fittingSize.height) + Metrics.expandedChromeHeight
     // NSMenu ignores intrinsic-size invalidation while tracking; mutating the hosted frame resizes
-    // it live.
-    setFrameSize(NSSize(width: Self.width, height: height))
+    // it live, and `menu.update()` is what makes NSMenu re-lay-out the wrapper to the new height.
+    // Width is the autoresizing mask's job — the view owning the full native band is what makes
+    // ordinary hit testing and one tracking area cover everything a native row covers.
+    setFrameSize(NSSize(width: frame.width, height: height))
     needsLayout = true
     layoutSubtreeIfNeeded()
     enclosingMenuItem?.menu?.update()

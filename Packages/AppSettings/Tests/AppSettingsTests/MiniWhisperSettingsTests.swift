@@ -10,7 +10,9 @@ struct MiniWhisperSettingsTests {
     let data = try SettingsCoding.encode(.defaults)
 
     let object = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
-    #expect(Set(object.keys) == ["bindings", "microphone", "retention", "sounds"])
+    #expect(
+      Set(object.keys) == ["bindings", "improveRecognition", "microphone", "retention", "sounds"],
+    )
     let bindings = try #require(object["bindings"] as? [String: Any])
     #expect(Set(bindings.keys) == ["activate", "pasteLastTranscript"])
     #expect(try SettingsCoding.decode(data) == .defaults)
@@ -37,6 +39,7 @@ struct MiniWhisperSettingsTests {
     #expect(settings.retention == .defaults)
     #expect(settings.microphone == .systemDefault)
     #expect(settings.sounds == .defaults)
+    #expect(settings.improveRecognition)
   }
 
   @Test func `an empty file resolves to the defaults`() throws {
@@ -92,6 +95,7 @@ struct MiniWhisperSettingsTests {
         activate: "Glass", complete: nil, cancel: "Frog", error: "Submarine",
       ),
       retention: RetentionPolicy(transcripts: .ninetyDays, audio: .never),
+      improveRecognition: false,
     )
 
     #expect(try SettingsCoding.decode(SettingsCoding.encode(settings)) == settings)

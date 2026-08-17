@@ -219,7 +219,7 @@ import Testing
       $0.historyClient.loadAudio = { _ in CanonicalRecording(samples: [0]) }
       $0.asrEngine.identity = { "second-engine" }
       $0.asrEngine.submit = { _, dictionary in
-        #expect(dictionary.vocabulary.map(\.text) == ["TCA"])
+        #expect(dictionary.vocabulary == ["TCA"])
         #expect(dictionary.corrections.isEmpty)
         return .transcript("Second opinion")
       }
@@ -273,6 +273,7 @@ import Testing
         pasteLastTranscript: HotkeyBindingsSettings.defaults.hotkeys(for: .pasteLastTranscript),
       ),
       microphone: .systemDefault, sounds: .silent, retention: .defaults,
+      improveRecognition: true,
     )
     try SettingsCoding.encode(stored).write(to: settingsURL)
 
@@ -333,7 +334,7 @@ private actor DeletedAudioRecorder {
 private func makeState(_ entries: [HistoryEntry]) -> HistoryFeature.State {
   HistoryFeature.State(
     log: Shared(value: HistoryLog(entries: entries)), retention: Shared(value: .defaults),
-    dictionary: Shared(value: .empty),
+    dictionary: Shared(value: .empty), improveRecognition: Shared(value: true),
   )
 }
 

@@ -27,16 +27,19 @@ import SwiftUI
     init(
       log: Shared<HistoryLog>, retention: Shared<RetentionPolicy>,
       dictionary: Shared<DictionaryContents>,
+      improveRecognition: Shared<Bool>,
     ) {
       _log = log
       _retention = retention
       _dictionary = dictionary
+      _improveRecognition = improveRecognition
     }
 
     // MARK: Internal
 
     @Shared var log: HistoryLog
     @Shared var dictionary: DictionaryContents
+    @Shared var improveRecognition: Bool
     var search = ""
     var cursor: UUID?
     var copiedEntryID: UUID?
@@ -215,7 +218,9 @@ import SwiftUI
         guard state.log.entries.first(where: { $0.id == id })?.audio != nil else {
           return .none
         }
-        let dictionary = state.dictionary
+        let dictionary = state.dictionary.transcriptionDictionary(
+          boostsVocabulary: state.improveRecognition,
+        )
         state.retranscribingEntryIDs.insert(id)
         state.retranscriptionFailures[id] = nil
         return .run { send in

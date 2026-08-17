@@ -38,6 +38,28 @@ final class SettingsKeyboardUITests: XCTestCase {
         )
       },
 
+      // Every letter the grammar names must be consumed wherever the grammar is active. An
+      // unclaimed one reaches the sidebar List, which type-selects on it — and "h", the move for
+      // "go left", is the first letter of History.
+      Law("Grammar keys never reach the sidebar's type-select") { app in
+        try require(self.enterDetailAtFirstRow(app))
+        app.typeText("h")
+        self.assertValue("Focused", of: app.outlines["miniwhisper.settings.sidebar"])
+        self.assertValue(
+          "Settings; Selected",
+          of: app.staticTexts["miniwhisper.settings.sidebar.settings"],
+        )
+        app.typeText("hhh")
+        self.assertValue(
+          "Settings; Selected",
+          of: app.staticTexts["miniwhisper.settings.sidebar.settings"],
+        )
+        self.assertValue(
+          "History; Not selected",
+          of: app.staticTexts["miniwhisper.settings.sidebar.history"],
+        )
+      },
+
       Law("The microphone row joins the keyboard grammar") { app in
         try require(self.enterDetailAtFirstRow(app))
         let picker = app.popUpButtons["miniwhisper.settings.microphone.picker"]
@@ -173,6 +195,18 @@ final class SettingsKeyboardUITests: XCTestCase {
     // One synthesis call: every typeText costs a few hundred milliseconds of event synthesis
     // and idle-waiting regardless of how many characters it carries.
     app.typeText("hl" + String(repeating: "k", count: 8))
+    let landed = poll {
+      app.staticTexts["miniwhisper.settings.shortcut.activate.state"].exists
+    }
+    guard landed else {
+      XCTFail(
+        """
+        The shortcut row left the accessibility tree entirely after entering the detail column.
+        \(app.debugDescription)
+        """,
+      )
+      return false
+    }
     return poll {
       self.accessibilityValue(
         app.staticTexts["miniwhisper.settings.shortcut.activate.state"],

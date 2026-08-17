@@ -17,6 +17,7 @@ import ComposableArchitecture
     statusItem.button?.setAccessibilityLabel(Channel.name)
     statusItem.button?.setAccessibilityHelp("Open the \(Channel.name) menu")
     menu.autoenablesItems = false
+    menu.appearance = NSApp.appearance
     menu.minimumWidth = DictionaryQuickAddView.width
     menu.delegate = self
     statusItem.menu = menu
@@ -30,6 +31,7 @@ import ComposableArchitecture
     if refreshesStateOnOpen {
       store.send(.menuWillOpen)
     }
+    quickAddView.improvesRecognition = store.state.settingsWindow.dictionary.improveRecognition
     rebuild(menu, state: store.state.menuBar)
   }
 

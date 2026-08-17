@@ -1644,7 +1644,8 @@ import Testing
       $0.asrEngine.prepareForActivation = { AsyncStream { $0.finish() } }
       $0.asrEngine.submit = { submitted, dictionary in
         #expect(submitted == recording)
-        #expect(dictionary.vocabulary.map(\.text) == ["TCA"])
+        #expect(dictionary.vocabulary == ["TCA"])
+        #expect(dictionary.boostsVocabulary)
         #expect(dictionary.corrections.map(\.misspelling) == ["mini whisper"])
         #expect(dictionary.corrections.map(\.text) == ["MiniWhisper"])
         return .transcript("continuous capture")
