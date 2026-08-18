@@ -8,6 +8,7 @@ import HotkeyListener
 @testable import MiniWhisper
 import SpeechDictionary
 import Testing
+import TranscriptCleanup
 
 // MARK: - HistoryFeatureTests
 
@@ -273,7 +274,7 @@ import Testing
         pasteLastTranscript: HotkeyBindingsSettings.defaults.hotkeys(for: .pasteLastTranscript),
       ),
       microphone: .systemDefault, sounds: .silent, retention: .defaults,
-      improveRecognition: true,
+      improveRecognition: true, cleanup: .defaults,
     )
     try SettingsCoding.encode(stored).write(to: settingsURL)
 

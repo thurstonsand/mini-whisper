@@ -2,6 +2,7 @@ import AudioCapture
 import Foundation
 import History
 import HotkeyListener
+import TranscriptCleanup
 
 // MARK: - SoundCue
 
@@ -274,20 +275,21 @@ public struct MiniWhisperSettings: Equatable, Sendable {
 
   public init(
     bindings: HotkeyBindingsSettings, microphone: MicrophoneSelection, sounds: SoundSettings,
-    retention: RetentionPolicy, improveRecognition: Bool,
+    retention: RetentionPolicy, improveRecognition: Bool, cleanup: CleanupSettings,
   ) {
     self.bindings = bindings
     self.microphone = microphone
     self.sounds = sounds
     self.retention = retention
     self.improveRecognition = improveRecognition
+    self.cleanup = cleanup
   }
 
   // MARK: Public
 
   public static let defaults = MiniWhisperSettings(
     bindings: .defaults, microphone: .systemDefault, sounds: .defaults, retention: .defaults,
-    improveRecognition: true,
+    improveRecognition: true, cleanup: .defaults,
   )
 
   public var bindings: HotkeyBindingsSettings
@@ -295,6 +297,7 @@ public struct MiniWhisperSettings: Equatable, Sendable {
   public var sounds: SoundSettings
   public var retention: RetentionPolicy
   public var improveRecognition: Bool
+  public var cleanup: CleanupSettings
 }
 
 // MARK: Codable
@@ -306,6 +309,7 @@ extension MiniWhisperSettings: Codable {
     case sounds
     case retention
     case improveRecognition
+    case cleanup
   }
 
   /// The file is meant to be edited by hand, so an absent key means "never configured" and takes
@@ -321,6 +325,7 @@ extension MiniWhisperSettings: Codable {
       ?? .defaults
     improveRecognition = try container.decodeIfPresent(Bool.self, forKey: .improveRecognition)
       ?? true
+    cleanup = try container.decodeIfPresent(CleanupSettings.self, forKey: .cleanup) ?? .defaults
   }
 }
 

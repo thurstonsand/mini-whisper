@@ -7,7 +7,6 @@ on:
 
 permissions:
   contents: write
-  id-token: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -77,30 +76,14 @@ jobs:
           install: true
           cache: true
 
-      - name: Record toolchain version
-        run: echo "XCODE_BUILD_VERSION=$(xcodebuild -version | tr '\n' ' ')" >> "${GITHUB_ENV}"
-
-      # Only the incremental state is cached, and its key covers everything that
-      # changes the compiled output: the toolchain, the resolved dependencies,
-      # the project, and the build settings the script passes.
-      - name: Cache Swift build products
-        uses: actions/cache@v6
-        with:
-          path: .build/release/DerivedData
-          key: release-swift-${{ runner.os }}-${{ env.XCODE_BUILD_VERSION }}-${{ hashFiles('**/Package.resolved', '**/Package.swift', 'MiniWhisper.xcodeproj/project.pbxproj', 'scripts/build-release-archive.sh') }}
-          restore-keys: |
-            release-swift-${{ runner.os }}-${{ env.XCODE_BUILD_VERSION }}-
-
       - name: Validate signing secrets
         env:
-          APPLE_CODESIGN_IDENTITY: ${{ secrets.APPLE_CODESIGN_IDENTITY }}
           APPLE_DEVELOPER_ID_CERTIFICATE_BASE64: ${{ secrets.APPLE_DEVELOPER_ID_CERTIFICATE_BASE64 }}
           APPLE_DEVELOPER_ID_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_CERTIFICATE_PASSWORD }}
           APPLE_NOTARY_ISSUER_ID: ${{ secrets.APPLE_NOTARY_ISSUER_ID }}
           APPLE_NOTARY_KEY: ${{ secrets.APPLE_NOTARY_KEY }}
           APPLE_NOTARY_KEY_ID: ${{ secrets.APPLE_NOTARY_KEY_ID }}
         run: |
-          test -n "${APPLE_CODESIGN_IDENTITY}"
           test -n "${APPLE_DEVELOPER_ID_CERTIFICATE_BASE64}"
           test -n "${APPLE_DEVELOPER_ID_CERTIFICATE_PASSWORD}"
           test -n "${APPLE_NOTARY_ISSUER_ID}"
@@ -113,7 +96,7 @@ jobs:
           p12-file-base64: ${{ secrets.APPLE_DEVELOPER_ID_CERTIFICATE_BASE64 }}
           p12-password: ${{ secrets.APPLE_DEVELOPER_ID_CERTIFICATE_PASSWORD }}
 
-      - name: Write notarization key
+      - name: Write Apple API key
         env:
           APPLE_NOTARY_KEY: ${{ secrets.APPLE_NOTARY_KEY }}
           APPLE_NOTARY_KEY_ID: ${{ secrets.APPLE_NOTARY_KEY_ID }}
@@ -132,8 +115,15 @@ jobs:
         env:
           RELEASE_VERSION: ${{ needs.resolve.outputs.archive_version }}
           RELEASE_CHANNEL: ${{ github.ref_type == 'tag' && 'release' || 'nightly' }}
-          CODESIGN_IDENTITY: ${{ secrets.APPLE_CODESIGN_IDENTITY }}
+          RELEASE_SIGNING: 1
         run: scripts/build-release-archive.sh
+
+      - name: Remove Apple API key
+        if: always()
+        run: |
+          if [[ -n "${APPLE_NOTARY_KEY_PATH:-}" ]]; then
+            rm -f "${APPLE_NOTARY_KEY_PATH}"
+          fi
 
       - name: Upload release archive
         uses: actions/upload-artifact@v7

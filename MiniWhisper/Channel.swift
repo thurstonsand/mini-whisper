@@ -16,6 +16,13 @@ enum Channel {
     return name
   }()
 
+  static let bundleIdentifier: String = {
+    guard let identifier = Bundle.main.bundleIdentifier else {
+      fatalError("CFBundleIdentifier is missing; the running channel cannot be identified")
+    }
+    return identifier
+  }()
+
   static let version: String = {
     guard let shortVersion = Bundle.main.object(
       forInfoDictionaryKey: "CFBundleShortVersionString",

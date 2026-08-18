@@ -4,6 +4,7 @@ import Foundation
 import History
 import HotkeyListener
 import Testing
+import TranscriptCleanup
 
 struct MiniWhisperSettingsTests {
   @Test func `the encoded shape stays hand-editable`() throws {
@@ -11,7 +12,9 @@ struct MiniWhisperSettingsTests {
 
     let object = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
     #expect(
-      Set(object.keys) == ["bindings", "improveRecognition", "microphone", "retention", "sounds"],
+      Set(object.keys) == [
+        "bindings", "cleanup", "improveRecognition", "microphone", "retention", "sounds",
+      ],
     )
     let bindings = try #require(object["bindings"] as? [String: Any])
     #expect(Set(bindings.keys) == ["activate", "pasteLastTranscript"])
@@ -40,6 +43,7 @@ struct MiniWhisperSettingsTests {
     #expect(settings.microphone == .systemDefault)
     #expect(settings.sounds == .defaults)
     #expect(settings.improveRecognition)
+    #expect(settings.cleanup == .defaults)
   }
 
   @Test func `an empty file resolves to the defaults`() throws {
@@ -96,6 +100,10 @@ struct MiniWhisperSettingsTests {
       ),
       retention: RetentionPolicy(transcripts: .ninetyDays, audio: .never),
       improveRecognition: false,
+      cleanup: CleanupSettings(
+        enabled: true, endpoint: URL(string: "https://gateway.internal/v1"), model: "gpt-4o-mini",
+        timeout: 20, additionalInstructions: "Keep British spellings.",
+      ),
     )
 
     #expect(try SettingsCoding.decode(SettingsCoding.encode(settings)) == settings)
@@ -124,6 +132,35 @@ struct MiniWhisperSettingsTests {
     settings.microphone = selection
 
     #expect(try SettingsCoding.decode(SettingsCoding.encode(settings)).microphone == selection)
+  }
+
+  @Test func `an unconfigured cleanup writes no endpoint and no model`() throws {
+    let encoded = try SettingsCoding.encode(.defaults)
+
+    let object = try #require(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+    let cleanup = try #require(object["cleanup"] as? [String: Any])
+    #expect(Set(cleanup.keys) == ["additionalInstructions", "enabled", "timeout"])
+    #expect(cleanup["enabled"] as? Bool == false)
+    #expect(cleanup["timeout"] as? TimeInterval == CleanupConfiguration.defaultTimeout)
+  }
+
+  @Test func `a partly written cleanup section takes the defaults for the rest`() throws {
+    let data = Data(#"{"cleanup":{"enabled":true,"model":"llama-3.3-70b"}}"#.utf8)
+
+    let cleanup = try SettingsCoding.decode(data).cleanup
+
+    #expect(cleanup.enabled)
+    #expect(cleanup.model == "llama-3.3-70b")
+    #expect(cleanup.endpoint == nil)
+    #expect(cleanup.timeout == CleanupConfiguration.defaultTimeout)
+    #expect(cleanup.additionalInstructions.isEmpty)
+  }
+
+  @Test(arguments: ["0", "-5", #""ten""#])
+  func `a cleanup timeout that cannot back a request fails`(timeout: String) {
+    #expect(throws: (any Error).self) {
+      try SettingsCoding.decode(Data(#"{"cleanup":{"timeout":\#(timeout)}}"#.utf8))
+    }
   }
 
   @Test func `hotkey validation rejects empty and reserved keys`() {

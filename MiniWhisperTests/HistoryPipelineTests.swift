@@ -9,6 +9,7 @@ import HotkeyListener
 @testable import MiniWhisper
 import Sharing
 import Testing
+import TranscriptCleanup
 
 // MARK: - HistoryPipelineTests
 
@@ -394,7 +395,7 @@ import Testing
       settings: Shared(value: MiniWhisperSettings(
         bindings: .defaults, microphone: .systemDefault, sounds: .defaults,
         retention: RetentionPolicy(transcripts: .forever, audio: .oneDay),
-        improveRecognition: true,
+        improveRecognition: true, cleanup: .defaults,
       )),
     )
     let store = TestStore(initialState: state) {

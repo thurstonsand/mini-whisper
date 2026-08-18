@@ -43,7 +43,7 @@ Four research passes ground this design: the [model benchmark](../wayfinding/fin
 
 **The pipeline seam.** In `AppFeature`, cleanup inserts between context capture and delivery: transcription completes → context captured (once — the same capture feeds the prompt and the join) → cleanup request as a cancellable effect → delivery of cleaned (or raw, on skip/failure) text through the unchanged join rules and no-receiver law. Disabled or unconfigured cleanup means the effect is a pass-through; the pipeline shape does not fork.
 
-**Persistence.** Settings gains a cleanup section (enabled, endpoint, model, timeout, instructions, key-exists marker). The key itself is a Keychain generic-password item with a per-channel service name — the app's first non-JSON persistence, scoped to exactly this value. `HistoryEntry` gains an optional cleanup record: cleaned text, model, endpoint identity, duration. It also persists the captured field context, so the benchmark harness can replay the real conditioned prompt — the benchmark run found history holds no context today, making context-conditioned comparison impossible.
+**Persistence.** Settings gains a cleanup section (enabled, endpoint, model, timeout, instructions). The key itself is a Data Protection Keychain generic-password item with a per-channel service name — the app's first non-JSON persistence, scoped to exactly this value. Key existence is read from the Keychain rather than duplicated into settings. `HistoryEntry` gains an optional cleanup record: cleaned text, model, endpoint identity, duration. It also persists the captured field context, so the benchmark harness can replay the real conditioned prompt — the benchmark run found history holds no context today, making context-conditioned comparison impossible.
 
 ## Design Decisions
 
@@ -73,7 +73,7 @@ The cleanup record sits beside the structurally immutable original transcription
 
 ### 7. OpenAI-compatible chat completions over URLSession, key in the Keychain
 
-No SDK (supply-chain surface on a strict allowlist), no Responses API (no primary-source latency win for a tiny bounded request), no subscription auth (forbidden or Codex-only per vendor terms). The key is a Keychain generic-password item per channel; settings.json never carries a credential, so settings backups and exports stay clean.
+No SDK (supply-chain surface on a strict allowlist), no Responses API (no primary-source latency win for a tiny bounded request), no subscription auth (forbidden or Codex-only per vendor terms). The key is a Data Protection Keychain generic-password item per channel; settings.json never carries a credential, so settings backups and exports stay clean. Xcode manages the required Developer ID provisioning profile during archive export through the release API key, so expiring profiles are renewed build input rather than manually rotated secrets.
 
 ## Edge Cases & Failure Modes
 
@@ -118,17 +118,17 @@ No SDK (supply-chain surface on a strict allowlist), no Responses API (no primar
 
 ## Implementation Plan
 
-- [ ] Phase 1: The TranscriptCleanup package
+- [x] Phase 1: The TranscriptCleanup package
   - Goal: the whole client exists and is provable without the app — prompt assembly, request, typed outcomes, response conformance.
   - Files: `Packages/TranscriptCleanup/` (replacing the stub).
   - Work: `CleanupConfiguration` (endpoint, model, timeout, additional instructions); the built-in prompt (Candidate A + B's symbol enumeration) with tagged-field assembly over transcript, optional `FocusedTextContext`, vocabulary, bundle ID; the chat-completions request over URLSession; typed outcomes (cleaned text, cancellation, unreachable/HTTP/timeout/malformed); response shaping that strips wrappers and rejects degenerate output; the bounded verify and optional `/v1/models` listing for the pane.
   - Validation: package unit tests — prompt assembly with absent optional blocks, outcome mapping against a stub URLProtocol, shaping cases; `mise run test:packages`. Verify URLSession task cancellation surfaces as the cancellation outcome, not an error (the design's open question).
 
-- [ ] Phase 2: Settings and the Keychain
+- [x] Phase 2: Settings and the Keychain
   - Goal: cleanup configuration persists; the key lives in the Keychain.
   - Files: `Packages/AppSettings/`, a Keychain client in the app layer.
-  - Work: cleanup section on the settings value (enabled, endpoint, model, timeout default 10 s, instructions, key-exists marker); Keychain generic-password storage keyed per channel; no legacy decode — absent section is defaults.
-  - Validation: settings codec tests; a smoke write/read/delete against the real Keychain on the dev channel.
+  - Work: cleanup section on the settings value (enabled, endpoint, model, timeout default 10 s, instructions); Data Protection Keychain generic-password storage keyed per channel, with existence queried from the Keychain; no legacy decode — absent section is defaults.
+  - Validation: settings codec tests; a smoke write/read/delete from the dev test host under an isolated Keychain service.
 
 - [ ] Phase 3: The history cleanup record
   - Goal: entries can carry cleaned text and the context that conditioned it, without touching the immutable original.
