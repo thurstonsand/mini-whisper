@@ -1,5 +1,5 @@
 ---
-status: open
+status: closed
 type: build
 claimed: settings-pane-build
 blocked-by: []
@@ -92,3 +92,7 @@ Remaining: permissions row (5), Open at login/Version, and the rest of the menu 
 - "Activate", not Dictate: hold to dictate, double-tap for hands-free, stated once as the Shortcuts section footer.
 - Settings writes go through the single `@Shared` settings value; no per-key clients return.
 - Design rules in [`.agents/skills/native-macos-ui`](../../../.agents/skills/native-macos-ui/SKILL.md) bind; the mock-up at [`spikes/settings-mockup`](../../../spikes/settings-mockup/SettingsMockup.swift) is the visual reference for this pane's rows.
+
+## Resolution
+
+Every scoped element shipped: Shortcuts with the full recorder and the paste-last sibling row, the Microphone picker with fallback narration and live meter, per-cue Sounds pickers (and the gesture-machine overhaul they provoked), pinned degraded-repair rows, Open at login, and the menu slimmed to exactly status, Copy Last Transcript, Settings…, About, Quit — "Open Settings File" and the Sounds toggle are gone, and hand-editing `settings.json` is no longer required for anything. One deliberate deviation from the kickoff scope: Version renders only in the About window, not at the bottom of the pane — About is one click away and the pane stays a place for things that change.

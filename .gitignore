@@ -31,3 +31,6 @@ dist/
 
 # AI
 /docs/scratch
+
+# Secrets
+.env

@@ -45,7 +45,7 @@ Three build configurations produce three separate apps, so all three can be inst
 - `Packages/ASREngine` — silence gate + transcription, vocabulary boost and corrections
 - `Packages/SpeechDictionary` — the `dictionary.json` entry model and codec
 - `Packages/FieldContext` — focused-field capture payload, fallback taxonomy, and the transcript join rules
-- `Packages/TranscriptCleanup` — optional LLM cleanup client
+- `Packages/TranscriptCleanup` — the OpenAI-compatible client
 - `Packages/HotkeyListener` — event pipeline routing action-bound bindings and the chord recorder
 - `Packages/History` — history log model, retention policy, and the audio vault
 - `Packages/AppSettings` — the `settings.json` model and store, aggregating settings from the feature packages

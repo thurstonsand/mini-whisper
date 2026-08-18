@@ -1,5 +1,5 @@
 ---
-status: open
+status: closed
 type: grilling
 claimed: history-build
 blocked-by: [8, 16]
@@ -78,3 +78,7 @@ Settled across the build's review rounds, recorded here because most of it is in
 - **Retention lives in the toolbar's storage popover**: two TTL pickers and a stored-counts line. Shortening a limit warns destructively and prunes immediately on confirm.
 
 Remaining: daily-drive the completed pane and close the ticket.
+
+## Resolution
+
+Built in place and daily-driven. The store (`Packages/History`), pipeline wiring (with `writeDebugWAV` deleted), the settings window shell, and the full History pane all shipped per the build order above; the interaction contract recorded here is the shipped behavior, with regression insurance in the settings/History XCUITest contract batches. The daily-driving condition is met — tickets 25–27 were filed from real use of the completed pane. The deliberate fast-follow closed as its own ticket: [Settings pane](31-settings-pane.md).

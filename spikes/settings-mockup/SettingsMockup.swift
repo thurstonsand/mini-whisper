@@ -145,9 +145,10 @@ enum InstallState: String, CaseIterable, Identifiable {
   var editingTerm: Term?
   var addingTerm = false
   var cleanupEnabled = true
-  var cleanupModel = "gpt-4o-mini"
+  var cleanupModel = "gpt-5.6-luna"
+  var cleanupTimeout = 10
   var customModel = ""
-  var modelListing = ModelListing.loaded(["gpt-4o-mini", "gpt-4o", "llama-3.3-70b"])
+  var modelListing = ModelListing.loaded(["gpt-5.6-luna", "gpt-5.4-mini", "llama-3.3-70b"])
 
   /// Alternates success and failure so both paths are reachable from the mock-up.
   func loadModels() {
@@ -157,7 +158,7 @@ enum InstallState: String, CaseIterable, Identifiable {
       cleanupModel = customModelTag
     case .notLoaded,
          .failed:
-      modelListing = .loaded(["gpt-4o-mini", "gpt-4o", "llama-3.3-70b"])
+      modelListing = .loaded(["gpt-5.6-luna", "gpt-5.4-mini", "llama-3.3-70b"])
     }
   }
   var endpointAddress = "https://gateway.internal/v1"
@@ -561,8 +562,16 @@ struct CleanupPane: View {
     Form {
       Section {
         Toggle("Clean up transcripts", isOn: $mock.cleanupEnabled)
+        Picker("Give up after", selection: $mock.cleanupTimeout) {
+          ForEach([5, 10, 20, 30], id: \.self) { seconds in
+            Text("\(seconds) seconds").tag(seconds)
+          }
+        }
+        .disabled(!mock.cleanupEnabled)
       } footer: {
-        Text("Transcripts are sent to this endpoint. Recorded audio never leaves this Mac.")
+        Text(
+          "Transcripts are sent to this endpoint. Recorded audio never leaves this Mac. If cleanup fails or runs past the limit, the transcript is delivered as heard.",
+        )
       }
 
       Section {
