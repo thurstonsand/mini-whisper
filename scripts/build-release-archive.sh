@@ -12,11 +12,13 @@ case "${channel}" in
     configuration="Release"
     app_name="MiniWhisper"
     bundle_identifier="com.thurstonsand.MiniWhisper"
+    expected_profile_name="MiniWhisper Developer ID"
     ;;
   nightly)
     configuration="Nightly"
     app_name="MiniWhisper Nightly"
     bundle_identifier="com.thurstonsand.MiniWhisper.nightly"
+    expected_profile_name="MiniWhisper Nightly Developer ID"
     ;;
   *) echo "unknown RELEASE_CHANNEL '${channel}'; expected release or nightly" >&2; exit 1 ;;
 esac
@@ -35,8 +37,14 @@ profile_plist="${work_dir}/ProvisioningProfile.plist"
 app_path="${work_dir}/${app_name}.app"
 notary_archive="${work_dir}/MiniWhisper-notarization.zip"
 archive="dist/${name}.zip"
+expected_access_group="${team_id}.${bundle_identifier}"
+installed_profile=""
+remove_installed_profile=0
 
 cleanup() {
+  if [[ "${remove_installed_profile}" == 1 ]]; then
+    rm -f "${installed_profile}"
+  fi
   rm -rf \
     "${archive_path}" "${export_path}" "${work_dir}/${app_name}.app" "${notary_archive}" \
     "${export_options}" "${archive_entitlements}" "${signed_entitlements}" "${profile_plist}"
@@ -54,9 +62,93 @@ trap cleanup EXIT
 rm -rf dist "${derived_data}"
 mkdir -p dist "${work_dir}"
 
-# The archive is intentionally unsigned. CI seeds it with the requested entitlements below, then
-# Xcode owns the real Developer ID signature and downloads the channel's managed provisioning
-# profile at export. Local validation takes the same archive path without signing credentials.
+case "${RELEASE_SIGNING:-0}" in
+  0 | 1) ;;
+  *) echo "RELEASE_SIGNING must be 0 or 1" >&2; exit 1 ;;
+esac
+
+if [[ "${RELEASE_SIGNING:-0}" == 1 ]]; then
+  : "${APPLE_NOTARY_KEY_PATH:?APPLE_NOTARY_KEY_PATH is required for notarization}"
+  : "${APPLE_NOTARY_KEY_ID:?APPLE_NOTARY_KEY_ID is required for notarization}"
+  : "${APPLE_NOTARY_ISSUER_ID:?APPLE_NOTARY_ISSUER_ID is required for notarization}"
+  : "${APPLE_PROVISIONING_PROFILE_PATH:?APPLE_PROVISIONING_PROFILE_PATH is required for signed export}"
+  test -f "${APPLE_NOTARY_KEY_PATH}"
+  test -f "${APPLE_PROVISIONING_PROFILE_PATH}"
+
+  security cms -D -i "${APPLE_PROVISIONING_PROFILE_PATH}" > "${profile_plist}"
+  profile_uuid=$(/usr/libexec/PlistBuddy -c "Print :UUID" "${profile_plist}")
+  profile_name=$(/usr/libexec/PlistBuddy -c "Print :Name" "${profile_plist}")
+  profile_team=$(/usr/libexec/PlistBuddy -c "Print :TeamIdentifier:0" "${profile_plist}")
+  profile_application_identifier=$(
+    /usr/libexec/PlistBuddy \
+      -c "Print :Entitlements:com.apple.application-identifier" "${profile_plist}"
+  )
+  profile_access_group=$(
+    /usr/libexec/PlistBuddy -c "Print :Entitlements:keychain-access-groups:0" "${profile_plist}"
+  )
+  provisions_all_devices=$(
+    /usr/libexec/PlistBuddy -c "Print :ProvisionsAllDevices" "${profile_plist}"
+  )
+  signing_fingerprint=$(
+    security find-identity -v -p codesigning \
+      | awk -v team="${team_id}" \
+        '/Developer ID Application:/ && index($0, "(" team ")") {print $2; exit}'
+  )
+
+  require_equal "provisioning profile name" "${expected_profile_name}" "${profile_name}"
+  require_equal "provisioning team" "${team_id}" "${profile_team}"
+  require_equal "profile application identifier" \
+    "${expected_access_group}" "${profile_application_identifier}"
+  require_equal "provisions all devices" "true" "${provisions_all_devices}"
+  if [[ "${profile_access_group}" != "${expected_access_group}" \
+    && "${profile_access_group}" != "${team_id}.*" ]]
+  then
+    echo "provisioning profile does not authorize '${expected_access_group}'" >&2
+    exit 1
+  fi
+  if [[ -z "${signing_fingerprint}" ]]; then
+    echo "no Developer ID Application identity found for team '${team_id}'" >&2
+    exit 1
+  fi
+
+  PROFILE_PLIST="${profile_plist}" SIGNING_FINGERPRINT="${signing_fingerprint}" python3 <<'PY'
+import datetime
+import hashlib
+import os
+import plistlib
+
+with open(os.environ["PROFILE_PLIST"], "rb") as file:
+    profile = plistlib.load(file)
+
+expiration = profile["ExpirationDate"].replace(tzinfo=datetime.timezone.utc)
+if expiration <= datetime.datetime.now(datetime.timezone.utc):
+    raise SystemExit("provisioning profile has expired")
+
+fingerprints = {
+    hashlib.sha1(certificate).hexdigest().upper()
+    for certificate in profile["DeveloperCertificates"]
+}
+if os.environ["SIGNING_FINGERPRINT"] not in fingerprints:
+    raise SystemExit("provisioning profile does not contain the signing certificate")
+PY
+
+  profile_dir="${HOME}/Library/Developer/Xcode/UserData/Provisioning Profiles"
+  installed_profile="${profile_dir}/${profile_uuid}.provisionprofile"
+  mkdir -p "${profile_dir}"
+  if [[ -f "${installed_profile}" ]]; then
+    cmp -s "${APPLE_PROVISIONING_PROFILE_PATH}" "${installed_profile}" || {
+      echo "installed provisioning profile '${profile_uuid}' has unexpected contents" >&2
+      exit 1
+    }
+  else
+    cp "${APPLE_PROVISIONING_PROFILE_PATH}" "${installed_profile}"
+    remove_installed_profile=1
+  fi
+fi
+
+# The archive is intentionally unsigned. The script seeds it with the requested entitlements, then
+# Xcode applies the pinned profile and local Developer ID identity during manual export. Local
+# validation takes the same archive path without requiring signing credentials.
 xcodebuild \
   -scheme MiniWhisper \
   -configuration "${configuration}" \
@@ -77,23 +169,14 @@ xcodebuild \
   SWIFT_ENABLE_CODE_COVERAGE=NO \
   archive
 
-case "${RELEASE_SIGNING:-0}" in
-  0 | 1) ;;
-  *) echo "RELEASE_SIGNING must be 0 or 1" >&2; exit 1 ;;
-esac
-
 if [[ "${RELEASE_SIGNING:-0}" == 1 ]]; then
-  : "${APPLE_NOTARY_KEY_PATH:?APPLE_NOTARY_KEY_PATH is required for signed export}"
-  : "${APPLE_NOTARY_KEY_ID:?APPLE_NOTARY_KEY_ID is required for signed export}"
-  : "${APPLE_NOTARY_ISSUER_ID:?APPLE_NOTARY_ISSUER_ID is required for signed export}"
-
   cp MiniWhisper/MiniWhisper.entitlements "${archive_entitlements}"
   /usr/libexec/PlistBuddy \
     -c "Set :keychain-access-groups:0 ${team_id}.${bundle_identifier}" \
     "${archive_entitlements}"
 
-  # Export reads the archive's requested entitlements to create the matching profile. The ad-hoc
-  # signature is only that handoff; export replaces it with the Developer ID signature.
+  # Export reads the archive's requested entitlements and pairs them with the pinned profile. The
+  # ad-hoc signature is only that handoff; export replaces it with the Developer ID signature.
   codesign \
     --force \
     --sign - \
@@ -113,11 +196,11 @@ if [[ "${RELEASE_SIGNING:-0}" == 1 ]]; then
   <key>signingStyle</key>
   <string>manual</string>
   <key>signingCertificate</key>
-  <string>Developer ID Application</string>
+  <string>${signing_fingerprint}</string>
   <key>provisioningProfiles</key>
   <dict>
     <key>${bundle_identifier}</key>
-    <string>Mac Team Direct Provisioning Profile: ${bundle_identifier}</string>
+    <string>${expected_profile_name}</string>
   </dict>
   <key>teamID</key>
   <string>${team_id}</string>
@@ -129,15 +212,10 @@ EOF
     -exportArchive \
     -archivePath "${archive_path}" \
     -exportPath "${export_path}" \
-    -exportOptionsPlist "${export_options}" \
-    -allowProvisioningUpdates \
-    -authenticationKeyPath "${APPLE_NOTARY_KEY_PATH}" \
-    -authenticationKeyID "${APPLE_NOTARY_KEY_ID}" \
-    -authenticationKeyIssuerID "${APPLE_NOTARY_ISSUER_ID}"
+    -exportOptionsPlist "${export_options}"
 
   app_path="${export_path}/${app_name}.app"
   embedded_profile="${app_path}/Contents/embedded.provisionprofile"
-  expected_access_group="${team_id}.${bundle_identifier}"
 
   test -f "${embedded_profile}"
   codesign --verify --deep --strict --verbose=2 "${app_path}"

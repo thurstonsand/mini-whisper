@@ -73,7 +73,7 @@ The cleanup record sits beside the structurally immutable original transcription
 
 ### 7. OpenAI-compatible chat completions over URLSession, key in the Keychain
 
-No SDK (supply-chain surface on a strict allowlist), no Responses API (no primary-source latency win for a tiny bounded request), no subscription auth (forbidden or Codex-only per vendor terms). The key is a Data Protection Keychain generic-password item per channel; settings.json never carries a credential, so settings backups and exports stay clean. Xcode manages the required Developer ID provisioning profile during archive export through the release API key, so expiring profiles are renewed build input rather than manually rotated secrets.
+No SDK (supply-chain surface on a strict allowlist), no Responses API (no primary-source latency win for a tiny bounded request), no subscription auth (forbidden or Codex-only per vendor terms). The key is a Data Protection Keychain generic-password item per channel; settings.json never carries a credential, so settings backups and exports stay clean. Release CI installs a pinned Developer ID provisioning profile for each channel and exports with the local Developer ID identity; the App Store Connect API key is reserved for notarization.
 
 ## Edge Cases & Failure Modes
 
