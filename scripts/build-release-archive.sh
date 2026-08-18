@@ -55,8 +55,8 @@ rm -rf dist "${derived_data}"
 mkdir -p dist "${work_dir}"
 
 # The archive is intentionally unsigned. CI seeds it with the requested entitlements below, then
-# Xcode owns the real Developer ID signature and its automatically managed provisioning profile at
-# export. Local validation takes the same archive path without requiring signing credentials.
+# Xcode owns the real Developer ID signature and downloads the channel's managed provisioning
+# profile at export. Local validation takes the same archive path without signing credentials.
 xcodebuild \
   -scheme MiniWhisper \
   -configuration "${configuration}" \
@@ -83,9 +83,9 @@ case "${RELEASE_SIGNING:-0}" in
 esac
 
 if [[ "${RELEASE_SIGNING:-0}" == 1 ]]; then
-  : "${APPLE_NOTARY_KEY_PATH:?APPLE_NOTARY_KEY_PATH is required for automatic signing}"
-  : "${APPLE_NOTARY_KEY_ID:?APPLE_NOTARY_KEY_ID is required for automatic signing}"
-  : "${APPLE_NOTARY_ISSUER_ID:?APPLE_NOTARY_ISSUER_ID is required for automatic signing}"
+  : "${APPLE_NOTARY_KEY_PATH:?APPLE_NOTARY_KEY_PATH is required for signed export}"
+  : "${APPLE_NOTARY_KEY_ID:?APPLE_NOTARY_KEY_ID is required for signed export}"
+  : "${APPLE_NOTARY_ISSUER_ID:?APPLE_NOTARY_ISSUER_ID is required for signed export}"
 
   cp MiniWhisper/MiniWhisper.entitlements "${archive_entitlements}"
   /usr/libexec/PlistBuddy \
@@ -111,7 +111,14 @@ if [[ "${RELEASE_SIGNING:-0}" == 1 ]]; then
   <key>destination</key>
   <string>export</string>
   <key>signingStyle</key>
-  <string>automatic</string>
+  <string>manual</string>
+  <key>signingCertificate</key>
+  <string>Developer ID Application</string>
+  <key>provisioningProfiles</key>
+  <dict>
+    <key>${bundle_identifier}</key>
+    <string>Mac Team Direct Provisioning Profile: ${bundle_identifier}</string>
+  </dict>
   <key>teamID</key>
   <string>${team_id}</string>
 </dict>
