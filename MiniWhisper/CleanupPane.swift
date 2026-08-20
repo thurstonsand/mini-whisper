@@ -346,8 +346,6 @@ private struct SaveFailureLine: View {
 // MARK: - InstructionsRow
 
 private struct InstructionsRow: View {
-  // MARK: Internal
-
   /// Written the way it asks to be written: plain sentences about how the text should read, not
   /// instructions to a machine.
   static let example = "keep it casual — lowercase greetings, don’t expand my contractions"
@@ -355,44 +353,19 @@ private struct InstructionsRow: View {
   let store: StoreOf<SettingsWindowFeature>
 
   var body: some View {
-    TextEditor(text: $text)
-      .font(.body)
-      .frame(minHeight: 64)
-      .focused($isFocused)
-      // TextEditor has no prompt of its own, so the example is drawn behind it and takes no
-      // clicks — it is a suggestion, never something the user has to clear.
-      .overlay(alignment: .topLeading) {
-        if text.isEmpty {
-          Text(Self.example)
-            .font(.body)
-            .foregroundStyle(.tertiary)
-            .padding(.top, 8)
-            .padding(.leading, 5)
-            .allowsHitTesting(false)
-        }
-      }
-      .focusRing(store.state.showsCleanupRing(.instructions, target: .instructions))
-      .accessibilityIdentifier(AccessibilityID.cleanupInstructions)
-      .accessibilityLabel("Custom prompt")
-      .onAppear { text = store.cleanup.instructions }
-      .onChange(of: text) { _, edited in
-        guard edited != store.cleanup.instructions else {
-          return
-        }
-        store.send(.cleanup(.instructionsEdited(edited)))
-      }
-      .onChange(of: store.cleanup.instructionsActivation) { isFocused = true }
-      .onChange(of: isFocused) { _, focused in
-        store.send(.cleanup(.fieldFocusChanged(.instructions, focused)))
-      }
-      .onExitCommand { isFocused = false }
-      .modifier(CleanupFormRow(store: store, row: .instructions))
+    // A growing text field rather than a `TextEditor`: only a real prompt sits exactly where the
+    // cursor does, and `TextEditor` has none.
+    CleanupTextField(
+      value: store.cleanup.instructions, prompt: Self.example,
+      identifier: AccessibilityID.cleanupInstructions, label: "Custom prompt",
+      activation: store.cleanup.instructionsActivation,
+      reservedLines: 3,
+      isRinged: store.state.showsCleanupRing(.instructions, target: .instructions),
+      onChange: { store.send(.cleanup(.instructionsEdited($0))) },
+      onFocusChange: { store.send(.cleanup(.fieldFocusChanged(.instructions, $0))) },
+    )
+    .modifier(CleanupFormRow(store: store, row: .instructions))
   }
-
-  // MARK: Private
-
-  @State private var text = ""
-  @FocusState private var isFocused: Bool
 }
 
 // MARK: - CleanupTextField
@@ -412,12 +385,14 @@ private struct CleanupTextField: View {
   /// A field that was opened by a press rather than merely shown: the press already meant "type
   /// here", and the activation that carried it landed before this view existed to hear it.
   var claimsFocus = false
+  /// A multiline field grows vertically, reserving this many lines and scrolling past them.
+  var reservedLines: Int?
   let isRinged: Bool
   let onChange: (String) -> Void
   let onFocusChange: (Bool) -> Void
 
   var body: some View {
-    TextField("", text: $text, prompt: Text(prompt))
+    field
       .labelsHidden()
       .focused($isFocused)
       // The yield puts the assignment after AppKit has chosen its own first responder; without
@@ -456,6 +431,17 @@ private struct CleanupTextField: View {
 
   @State private var text = ""
   @FocusState private var isFocused: Bool
+
+  @ViewBuilder private var field: some View {
+    let field = TextField(
+      "", text: $text, prompt: Text(prompt), axis: reservedLines == nil ? .horizontal : .vertical,
+    )
+    if let reservedLines {
+      field.lineLimit(reservedLines, reservesSpace: true)
+    } else {
+      field
+    }
+  }
 }
 
 // MARK: - CleanupFormRow

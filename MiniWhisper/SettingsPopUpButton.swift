@@ -56,6 +56,10 @@ struct SettingsPopUpButton<Value: Equatable>: NSViewRepresentable {
 
   func makeNSView(context: Context) -> NSPopUpButton {
     let button = NSPopUpButton(frame: .zero, pullsDown: false)
+    // The control is as wide as its widest option, which a long model id can make very wide. A
+    // settings row reads right to left from its value, so the collapsed title stays against the
+    // chevron instead of stranded at the far end of the button.
+    button.alignment = .right
     button.target = context.coordinator
     button.action = #selector(Coordinator.selectionChanged(_:))
     return button

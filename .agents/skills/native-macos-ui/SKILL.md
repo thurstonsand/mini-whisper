@@ -72,6 +72,8 @@ Both of these were regressions before they were rules. Chrome and focus belong t
 - Never hand-draw a control. No rounded-rect "keycaps" as buttons, no custom toggles, no bespoke progress bars. (Keycap boxes *displaying* a recorded chord inside a real `Button` are content, not a control — that one is deliberate.)
 - `Toggle` keeps its own label. `.labelsHidden()` is for when the enclosing row already labels it, not a layout convenience.
 - Exclusive options are one `Picker` with one selection, never several toggles that can contradict each other.
+- **A field that grows is `TextField(axis: .vertical)` with `lineLimit(_:reservesSpace:)`, not a `TextEditor`.** `TextEditor` has no prompt, and the overlay that fakes one is a hand-drawn placeholder with hand-tuned padding that never quite sits where the cursor does. The vertical field reserves its height, scrolls past the limit, and prompts natively. `TextEditor` earns its keep only for long-form editing — documents, not a sentence of settings.
+- **An `NSPopUpButton` is as wide as its widest menu item.** A long option strands a short selection at the far end of the control, and sizing the button to its selection makes the row jump on every change. `alignment = .right` keeps the width stable and the value against the chevron, where a settings row already reads it.
 - Buttons say what they do: `Copy`, `Delete`, `Choose…`. A trailing ellipsis means a further dialog follows; without one, the action happens immediately.
 
 ## Copy
@@ -90,6 +92,7 @@ Both of these were regressions before they were rules. Chrome and focus belong t
 - [ ] One scrolling region per pane
 - [ ] Every footer prevents a mistake
 - [ ] Every ellipsis means a dialog follows
+- [ ] Multiline entry is a vertical `TextField`, never a `TextEditor` with an overlay placeholder
 - [ ] Window looks correct at its minimum size, not only at its ideal one
 - [ ] No `glassEffect` anywhere in the content layer
 - [ ] Edge captions and button bars use `safeAreaBar`, not a hand-built bar
