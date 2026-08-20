@@ -1,8 +1,10 @@
 import AppSettings
 import ASREngine
 import ComposableArchitecture
+import History
 import HotkeyListener
 import OSLog
+import TranscriptCleanup
 
 private let gestureLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "gesture")
 private let performanceLogger = Logger(
@@ -70,7 +72,6 @@ extension AppFeature {
       performanceLogger.notice("benchmark app-activation-received")
       state.transcriptionGeneration += 1
       state.dictationWasCancelled = false
-      state.currentFocusedContext = nil
       state.pendingDictation = nil
       state.dictationInFlight = true
       if state.historyMaintenance == .running {
@@ -87,7 +88,8 @@ extension AppFeature {
         ),
         .merge(
           .cancel(id: CancelID.transcription), .cancel(id: CancelID.capture),
-          .cancel(id: CancelID.delivery), .cancel(id: CancelID.historyMaintenance),
+          .cancel(id: CancelID.cleanup), .cancel(id: CancelID.delivery),
+          .cancel(id: CancelID.historyMaintenance),
           .send(.recording(.startRecording)),
           // The machine emits this exactly once per interaction, so the onset cue needs no
           // suppression flag: one interaction, one sound, at the moment the user acted.
@@ -115,23 +117,68 @@ extension AppFeature {
       // Totally silent: a misfire, an expired lone tap, or an interruption never happened as far
       // as the user, History, and onboarding are concerned.
       state.dictationWasCancelled = false
-      state.currentFocusedContext = nil
       state.pendingDictation = nil
       state.dictationInFlight = false
       return .merge(
         .cancel(id: CancelID.transcription), .cancel(id: CancelID.capture),
-        .cancel(id: CancelID.delivery), .send(.recording(.cancelRecording)),
+        .cancel(id: CancelID.cleanup), .cancel(id: CancelID.delivery),
+        .send(.recording(.cancelRecording)),
         .send(.pill(.dismiss)),
       )
+    case .skipCleanupAndRecord:
+      // Two meanings, one press, in this order: the transcript waiting on the endpoint is let go
+      // as heard, and only then does the next dictation take the field.
+      let skipped = skipPendingCleanup(&state)
+      return .merge(skipped, performGesture(.startRecording, state: &state))
     case .cancelAndArchive:
+      // Escape during cleanup: the request is abandoned and nothing is delivered, but the words
+      // are still the user's and still reach History.
+      if var dictation = state.pendingDictation, let configuration = dictation.cleanup {
+        dictation.cleanupRecord = CleanupRecord(
+          .attempted(configuration, .skipped(seconds: dictation.elapsedCleanup(now))),
+        )
+        state.pendingDictation = dictation
+        state.dictationWasCancelled = true
+        return .merge(
+          .cancel(id: CancelID.cleanup), .cancel(id: CancelID.delivery),
+          .send(.pill(.cancelledSavedToHistory)), playSound(state.settings.sounds.cancel),
+          finishDictation(&state, delivery: nil),
+        )
+      }
       // Escape revokes delivery, not the user's words. The retained capture still runs through
       // transcription so a successful result can be recovered from History.
-      state.currentFocusedContext = nil
       state.dictationWasCancelled = true
       return .merge(
         .cancel(id: CancelID.delivery), .send(.recording(.stopAndRetain)),
         playSound(state.settings.sounds.cancel),
       )
     }
+  }
+
+  // MARK: Private
+
+  /// Lets go of the cleanup a press just resolved: the request is cancelled, and the dictation
+  /// steps aside into `skippedDictations` — still owed a paste and an entry — so the next one can
+  /// take the pill and the generation while that tail finishes on its own.
+  private func skipPendingCleanup(_ state: inout State) -> Effect<Action> {
+    guard var dictation = state.pendingDictation, let configuration = dictation.cleanup,
+          let capture = dictation.capture, let transcript = dictation.original?.text,
+          !dictation.isFinishing
+    else {
+      return .none
+    }
+    dictation.cleanupRecord = CleanupRecord(
+      .attempted(configuration, .skipped(seconds: dictation.elapsedCleanup(now))),
+    )
+    state.pendingDictation = nil
+    state.skippedDictations[dictation.generation] = dictation
+    gestureLogger.notice("Cleanup skipped; delivering the transcript as heard")
+    return .merge(
+      .cancel(id: CancelID.cleanup),
+      deliverEffect(
+        to: .skipped(dictation.generation), text: transcript, capture: capture,
+        targetApp: dictation.targetApp,
+      ),
+    )
   }
 }

@@ -49,6 +49,8 @@ enum SettingsDestination: String, CaseIterable, Identifiable, Equatable {
     }
   }
 
+  /// Only the destinations that are still unbuilt ever show one; the rest answer for
+  /// completeness, because a caption is cheaper than a switch that can go stale.
   var placeholderCaption: String {
     switch self {
     case .settings:
@@ -109,9 +111,10 @@ struct SettingsWindowInteraction: Equatable {
     ) {
       self.selection = selection
       settingsPane = SettingsPaneFeature.State(settings: settings, health: health)
+      cleanup = CleanupFeature.State(settings: settings)
       self.history = HistoryFeature.State(
         log: history, retention: settings.retention, dictionary: dictionary,
-        improveRecognition: settings.improveRecognition,
+        improveRecognition: settings.improveRecognition, cleanup: settings.cleanup,
       )
       self.dictionary = DictionaryFeature.State(
         dictionary: dictionary, improveRecognition: settings.improveRecognition,
@@ -128,6 +131,7 @@ struct SettingsWindowInteraction: Equatable {
     var settingsPane: SettingsPaneFeature.State
     var history: HistoryFeature.State
     var dictionary: DictionaryFeature.State
+    var cleanup: CleanupFeature.State
 
     func showsHistoryKeyboardCursor(_ id: UUID) -> Bool {
       interaction.showsKeyboardCursor(history.cursorEntry?.id == id)
@@ -150,6 +154,16 @@ struct SettingsWindowInteraction: Equatable {
         settingsPane.cursorRow == row && settingsPane.cursorTarget == target,
       )
     }
+
+    func showsCleanupBar(_ row: CleanupFeature.Row) -> Bool {
+      interaction.focus == .detail && cleanup.cursorRow == row
+    }
+
+    func showsCleanupRing(_ row: CleanupFeature.Row, target: CleanupFeature.Target) -> Bool {
+      interaction.showsKeyboardCursor(
+        cleanup.cursorRow == row && cleanup.cursorTarget == target,
+      )
+    }
   }
 
   enum Action: Equatable {
@@ -160,12 +174,14 @@ struct SettingsWindowInteraction: Equatable {
     case settingsPane(SettingsPaneFeature.Action)
     case history(HistoryFeature.Action)
     case dictionary(DictionaryFeature.Action)
+    case cleanup(CleanupFeature.Action)
   }
 
   var body: some ReducerOf<Self> {
     Scope(state: \.settingsPane, action: \.settingsPane) { SettingsPaneFeature() }
     Scope(state: \.history, action: \.history) { HistoryFeature() }
     Scope(state: \.dictionary, action: \.dictionary) { DictionaryFeature() }
+    Scope(state: \.cleanup, action: \.cleanup) { CleanupFeature() }
 
     Reduce { state, action in
       switch action {
@@ -185,12 +201,14 @@ struct SettingsWindowInteraction: Equatable {
       // same way an arrow key would. Nobody types and mouses at once, so there is nothing to steal.
       case .settingsPane(.cursorHovered),
            .history(.cursorHovered),
-           .dictionary(.cursorHovered):
+           .dictionary(.cursorHovered),
+           .cleanup(.cursorHovered):
         state.interaction.focus = .detail
         return .none
-      case .settingsPane,
+      case .cleanup,
+           .dictionary,
            .history,
-           .dictionary:
+           .settingsPane:
         return .none
       }
     }

@@ -22,6 +22,8 @@
 		60292D0B2EF609C5009AD5D1 /* HotkeyListener in Frameworks */ = {isa = PBXBuildFile; productRef = 60292D0A2EF609C5009AD5D1 /* HotkeyListener */; };
 		60292D0D2EF609C7009AD5D1 /* TranscriptCleanup in Frameworks */ = {isa = PBXBuildFile; productRef = 60292D0C2EF609C7009AD5D1 /* TranscriptCleanup */; };
 		60FC0001000000000000FC01 /* FieldContext in Frameworks */ = {isa = PBXBuildFile; productRef = 60FC0002000000000000FC02 /* FieldContext */; };
+		60FC0004000000000000FC04 /* FieldContext in Frameworks */ = {isa = PBXBuildFile; productRef = 60FC0005000000000000FC05 /* FieldContext */; };
+		60FC0006000000000000FC06 /* CleanupTestSupport in Frameworks */ = {isa = PBXBuildFile; productRef = 60FC0007000000000000FC07 /* CleanupTestSupport */; };
 		60A50001000000000000A501 /* AppSettings in Frameworks */ = {isa = PBXBuildFile; productRef = 60A50002000000000000A502 /* AppSettings */; };
 		60A50006000000000000A506 /* History in Frameworks */ = {isa = PBXBuildFile; productRef = 60A50007000000000000A507 /* History */; };
 		60A50008000000000000A508 /* History in Frameworks */ = {isa = PBXBuildFile; productRef = 60A50009000000000000A509 /* History */; };
@@ -135,6 +137,8 @@
 				60B60004000000000000B604 /* IdentifiedCollections in Frameworks */,
 				A11111111111111111111111 /* Dependencies in Frameworks */,
 				60A50008000000000000A508 /* History in Frameworks */,
+				60FC0004000000000000FC04 /* FieldContext in Frameworks */,
+				60FC0006000000000000FC06 /* CleanupTestSupport in Frameworks */,
 				60D10003000000000000D103 /* SpeechDictionary in Frameworks */,
 				60A5000C000000000000A50C /* Sharing in Frameworks */,
 				60A5000E000000000000A50E /* AudioCapture in Frameworks */,
@@ -290,6 +294,8 @@
 				60B60005000000000000B605 /* IdentifiedCollections */,
 				A11333333333333333333333 /* Dependencies */,
 				60A50009000000000000A509 /* History */,
+				60FC0005000000000000FC05 /* FieldContext */,
+				60FC0007000000000000FC07 /* CleanupTestSupport */,
 				60D10004000000000000D104 /* SpeechDictionary */,
 				60A5000D000000000000A50D /* Sharing */,
 				60A5000F000000000000A50F /* AudioCapture */,
@@ -1068,6 +1074,14 @@
 		60FC0002000000000000FC02 /* FieldContext */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = FieldContext;
+		};
+		60FC0005000000000000FC05 /* FieldContext */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FieldContext;
+		};
+		60FC0007000000000000FC07 /* CleanupTestSupport */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = CleanupTestSupport;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

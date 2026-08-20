@@ -93,7 +93,9 @@ def load_entries(
 ) -> list[dict[str, Any]]:
     with path.open(encoding="utf-8") as source:
         history = json.load(source)
-    if history.get("version") != 1:
+    # Version 2 moved each cleanup record onto the transcription it polished; the corpus this
+    # harness reads — original text and field context — sits where it always did.
+    if history.get("version") not in (1, 2):
         raise ValueError(f"Unsupported HistoryLog version: {history.get('version')!r}")
 
     entries = []
@@ -167,6 +169,8 @@ def clean(
         headers={
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
+            # Gateways behind Cloudflare reject the default Python-urllib agent (error 1010).
+            "User-Agent": "miniwhisper-cleanup-benchmark/1",
         },
         method="POST",
     )

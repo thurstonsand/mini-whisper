@@ -6,6 +6,10 @@ public enum GestureEvent: String, Equatable, Sendable {
   case latchEngaged
   case discardRecording
   case cancelAndArchive
+  /// One press, both meanings: the pending cleanup is abandoned and its transcript delivers as
+  /// heard, and the press goes on to start a recording exactly as it would have from idle. A tap
+  /// discards that recording on its own, which is what makes tap-to-skip need no case of its own.
+  case skipCleanupAndRecord
 }
 
 // MARK: - HotkeyGestureMachine
@@ -51,6 +55,9 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
     case secondPress(startedAt: Duration)
     case latched
     case blockedUntilRelease
+    /// A transcript is waiting on the cleanup endpoint. Delivery has not happened yet, so the
+    /// activation key means something here that it means nowhere else.
+    case cleanupPending
   }
 
   public private(set) var phase = Phase.idle
@@ -76,6 +83,10 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
       deadlineElapsed()
     case .neutral:
       neutral()
+    case .cleanupStarted:
+      beginCleanup()
+    case .cleanupEnded:
+      endCleanup()
     case let .activation(time):
       activate(at: time)
     case let .release(time):
@@ -104,6 +115,9 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
     case .latched:
       phase = .blockedUntilRelease
       return .stopAndTranscribe
+    case .cleanupPending:
+      phase = .holding(startedAt: time)
+      return .skipCleanupAndRecord
     case .holding,
          .secondPress,
          .blockedUntilRelease:
@@ -130,7 +144,8 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
     case .blockedUntilRelease:
       phase = .idle
       return nil
-    case .idle,
+    case .cleanupPending,
+         .idle,
          .provisional,
          .latched:
       return nil
@@ -156,7 +171,10 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
         phase = .blockedUntilRelease
       }
       return nil
-    case .latched,
+    // Typing on while the endpoint thinks discards nothing: the recording is over, and the
+    // transcript is already owed to whatever the user does next.
+    case .cleanupPending,
+         .latched,
          .blockedUntilRelease:
       return nil
     }
@@ -164,7 +182,8 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
 
   private mutating func escape() -> GestureEvent? {
     switch phase {
-    case .holding,
+    case .cleanupPending,
+         .holding,
          .secondPress,
          .latched:
       phase = .blockedUntilRelease
@@ -189,7 +208,10 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
         GestureEvent.cancelAndArchive
       case .provisional:
         GestureEvent.discardRecording
-      case .idle,
+      // A tap that died has nothing to deliver; a cleanup that is already in flight still does,
+      // and losing the tap is no reason to throw the transcript away.
+      case .cleanupPending,
+           .idle,
            .blockedUntilRelease:
         nil
       }
@@ -203,6 +225,22 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
     }
     phase = .idle
     return .discardRecording
+  }
+
+  /// Only an idle machine can start waiting on cleanup: a press that already began the next
+  /// dictation has taken the key's meaning with it.
+  private mutating func beginCleanup() -> GestureEvent? {
+    if phase == .idle {
+      phase = .cleanupPending
+    }
+    return nil
+  }
+
+  private mutating func endCleanup() -> GestureEvent? {
+    if phase == .cleanupPending {
+      phase = .idle
+    }
+    return nil
   }
 
   private mutating func neutral() -> GestureEvent? {

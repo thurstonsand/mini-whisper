@@ -8,7 +8,7 @@ The dev-channel default is:
 ~/Library/Application Support/MiniWhisper Dev/History/history.json
 ```
 
-It selects only `HistoryEntry.original.text`, never a re-transcription or `delivery.text`. That preserves the distinction between immutable ASR evidence and a later cleanup/delivery result. Current entries do not persist field context; when a future history shape carries `fieldContext`, `focusedTextContext`, or `cleanupContext` on the entry (or its delivery record), the payload includes it automatically. `--without-context` makes a matched corpus useful for an explicit context A/B.
+It selects only `HistoryEntry.original.text`, never a re-transcription or `delivery.text`. That preserves the distinction between immutable ASR evidence and a later cleanup/delivery result. Entries persist the dictation's field context (log version 2; version 1 is still read), and the payload includes it automatically. `--without-context` makes a matched corpus useful for an explicit context A/B.
 
 ## Run
 

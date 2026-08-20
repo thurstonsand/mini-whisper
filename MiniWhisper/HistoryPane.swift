@@ -34,7 +34,7 @@ struct HistoryPane: View {
         ContentUnavailableView.search(text: store.history.search)
       }
     }
-    .modifier(HistoryCaptionBar())
+    .modifier(HistoryCaptionBar(mentionsHold: hasRevealableEntry))
     .searchable(
       text: $store.history.search.sending(\.history.searchChanged), prompt: "Search transcripts",
     )
@@ -69,6 +69,10 @@ struct HistoryPane: View {
         entries: grouped[day, default: []].sorted { $0.createdAt > $1.createdAt },
       )
     }
+  }
+
+  private var hasRevealableEntry: Bool {
+    store.history.log.entries.contains { $0.revealedText != nil }
   }
 
   /// A cursor filtered out by the search is not on screen to scroll to.
@@ -129,6 +133,10 @@ struct HistorySearchFocus: ViewModifier {
 private struct HistoryCaptionBar: ViewModifier {
   // MARK: Internal
 
+  /// A pane whose transcripts were never cleaned has nothing to reveal, so it never teaches a
+  /// gesture that would do nothing.
+  let mentionsHold: Bool
+
   func body(content: Content) -> some View {
     content.safeAreaBar(edge: .top) { caption }
   }
@@ -136,13 +144,17 @@ private struct HistoryCaptionBar: ViewModifier {
   // MARK: Private
 
   private var caption: some View {
-    Text("Click a transcript to copy it.")
-      .font(.callout)
-      .foregroundStyle(.secondary)
-      .frame(maxWidth: .infinity, alignment: .leading)
-      .padding(.horizontal, 20)
-      .padding(.bottom, 6)
-      .accessibilityIdentifier(AccessibilityID.historyCaption)
+    Text(
+      mentionsHold
+        ? "Click a transcript to copy it. Hold \u{2325} to see raw transcript."
+        : "Click a transcript to copy it.",
+    )
+    .font(.callout)
+    .foregroundStyle(.secondary)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(.horizontal, 20)
+    .padding(.bottom, 6)
+    .accessibilityIdentifier(AccessibilityID.historyCaption)
   }
 }
 
@@ -167,7 +179,9 @@ private struct HistoryRow: View {
   let entry: HistoryEntry
 
   var body: some View {
-    HStack(spacing: 8) {
+    // A wrapped transcript makes the row as tall as it needs to be; everything beside it sits on
+    // the transcript's first line, which is the line the row began on.
+    HStack(alignment: .firstTextBaseline, spacing: 8) {
       Text(entry.createdAt.formatted(date: .omitted, time: .shortened))
         .monospacedDigit()
         .font(.callout)
@@ -181,11 +195,17 @@ private struct HistoryRow: View {
         .frame(width: 78, alignment: .leading)
 
       Text(rowText)
-        .lineLimit(1)
-        .truncationMode(.tail)
-        .foregroundStyle(failure == nil ? AnyShapeStyle(.primary) : AnyShapeStyle(.orange))
+        .fixedSize(horizontal: false, vertical: true)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .foregroundStyle(rowTextStyle)
 
-      Spacer(minLength: 8)
+      if entry.revealedText != nil {
+        Image(systemName: "wand.and.sparkles")
+          .font(.callout)
+          .foregroundStyle(.tertiary)
+          .opacity(isRevealed ? 0 : 1)
+          .accessibilityIdentifier(AccessibilityID.historyCleaned(entry.id))
+      }
 
       if entry.audio != nil {
         Button(isPlaying ? "Stop" : "Play", systemImage: playbackSymbol) {
@@ -198,9 +218,9 @@ private struct HistoryRow: View {
       }
 
       accessory
-        .frame(width: 70, height: 18, alignment: .trailing)
+        .frame(width: 70, alignment: .trailing)
     }
-    .settingsListRowHeight()
+    .settingsListRowHeight(grows: true)
     .padding(.horizontal, 6)
     .background {
       RoundedRectangle(cornerRadius: 8)
@@ -211,9 +231,15 @@ private struct HistoryRow: View {
         .opacity(isCopied ? 0.18 : 0)
         .animation(copyTintAnimation, value: isCopied)
     }
+    // A row whose content is a custom layout leaves the separator to guess where the text
+    // begins, and it guesses from the trailing accessory — which is what leaves stubs beside
+    // the durations. Naming both edges gives the list back the full-width rule it draws
+    // everywhere else.
+    .alignmentGuide(.listRowSeparatorLeading) { $0[.leading] }
+    .alignmentGuide(.listRowSeparatorTrailing) { $0[.trailing] }
     .contentShape(.rect)
     .onTapGesture {
-      guard entry.currentText != nil else {
+      guard entry.displayText != nil else {
         return
       }
       store.send(.pointerMoved)
@@ -225,7 +251,7 @@ private struct HistoryRow: View {
     .contextMenu { menuItems }
     .accessibilityElement(children: .contain)
     .accessibilityIdentifier(AccessibilityID.historyRow(entry.id))
-    .accessibilityLabel(entry.currentText ?? "Transcription unavailable")
+    .accessibilityLabel(rowText)
     .accessibilityPaintState(
       AccessibilityID.historyRowState(entry.id), label: "History row highlight",
       value:
@@ -250,6 +276,10 @@ private struct HistoryRow: View {
 
   private var isCopied: Bool {
     store.history.copiedEntryID == entry.id
+  }
+
+  private var isRevealed: Bool {
+    store.history.isRevealingRawText && entry.revealedText != nil
   }
 
   private var isPlaying: Bool {
@@ -277,7 +307,18 @@ private struct HistoryRow: View {
     if let failure {
       return failure
     }
-    return entry.currentText ?? "Transcription unavailable"
+    if isRevealed, let revealedText = entry.revealedText {
+      return revealedText
+    }
+    return entry.displayText ?? "Transcription unavailable"
+  }
+
+  /// The revealed transcript is not the entry's text, and reads as the supporting fact it is.
+  private var rowTextStyle: AnyShapeStyle {
+    if failure != nil {
+      return AnyShapeStyle(.orange)
+    }
+    return isRevealed ? AnyShapeStyle(.secondary) : AnyShapeStyle(.primary)
   }
 
   private var playbackSymbol: String {

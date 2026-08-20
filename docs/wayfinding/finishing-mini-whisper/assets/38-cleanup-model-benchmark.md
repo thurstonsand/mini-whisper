@@ -65,3 +65,23 @@ The following is a test order, not a selection:
 4. **The work-gateway Haiku 4.5 and GPT-5.6-luna routes** — product-relevant controls. They can win despite slower public figures because sanctioned routing, proximity, and actual cleanup quality are the real constraints.
 
 Use the same fixed History sample, a small output cap, and at least a cold-ish first call plus repeated requests. Compare median and tail final wall-clock time, then eyeball every diff for forbidden invention, missed symbols, capitalization/spacing against the field context, and failures. Any contender regularly crossing the ~3-second skip point is difficult to call a comfortable default even if it stays inside the 10-second fallback ceiling. The decision belongs to ticket 18's grilling session.
+
+## Measured runs (2026-08-20, post-implementation)
+
+First real credentialed runs, harness unchanged except a User-Agent header (Cloudflare-fronted gateways reject `Python-urllib` with error 1010). Corpus: first six dev-channel history entries; temp 0; `--max-completion-tokens 2048` for reasoning models. Medians:
+
+| Model | Host | Median | Notes |
+| --- | --- | --- | --- |
+| gemma-4-31b | Cerebras | **215 ms** | ⚠ deterministically hallucinates a dictionary term (`silence gate` → `Silero gate`, 4/4 runs) — disqualifying for the full contract |
+| S1-mini Q4_K_M (llama.cpp) | local, M4 Pro | 222 ms | [ticket-45 spike](45-local-cleanup-s1-mini.md); no prompt surface, coded speech fails |
+| S1-mini bf16 (MLX) | local, M4 Pro | 391 ms | bandwidth-bound; 4-bit convert untested |
+| gpt-oss-120b | Cerebras | 394 ms | failed the self-correction probe once (kept both values), 2.9 s outlier on it |
+| openai/gpt-oss-20b | Groq | 676 ms | clean on the history corpus; n=3 (free-tier 429s) |
+| openai/gpt-oss-120b | Groq | ~690–800 ms | emitted a U+2011 non-breaking hyphen once — shaping consideration |
+| gpt-5.6-sol | personal gateway | 3049 ms | frontier-class |
+| gpt-5.6-luna | personal gateway | 3295 ms | frontier-class; **only model to go 4/4 on the boundary probes** |
+| qwen/qwen3.6-27b | Groq | ~3.4 s | reasoning tax; unsuited |
+
+Boundary probes (the `cleanup-smoke` four: spoken symbols, question preserved, self-correction, dictionary near-miss) were additionally run through the real package client against Cerebras: gemma-4-31b converted `dash dash filter` correctly and respected the whisper/MiniWhisper near-miss, but substituted the vocabulary term `Silero` for `silence` in a sentence that never said it — the exact failure the conditional-authority prompt rule exists to prevent, at 31B apparently not preventable by prompt alone. Cerebras gpt-oss-120b kept `silence gate` but flunked self-correction once. Both fast hosts also lowercase the first word of command-like transcripts and drop the final period.
+
+Read: the speed–quality tradeoff is real and measurable. The fast tier (200–700 ms) is 4–15× quicker than frontier but each fast option failed at least one design invariant on first contact; luna alone was faultless. Groq free tier rate-limits a burst after ~3 requests. The [ticket-43 corpus](../tickets/43-coded-speech-corpus.md) is the instrument for deciding whether any fast model's failure rate is acceptable, and [ticket 39](../tickets/39-recommended-cleanup-providers.md) owns the recommendation.

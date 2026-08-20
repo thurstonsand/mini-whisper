@@ -8,7 +8,8 @@ private struct WindowKeyMonitor: NSViewRepresentable {
   final class MonitorView: NSView {
     // MARK: Lifecycle
 
-    init(handles: @escaping (NSEvent) -> Bool) {
+    init(mask: NSEvent.EventTypeMask, handles: @escaping (NSEvent) -> Bool) {
+      self.mask = mask
       self.handles = handles
       super.init(frame: .zero)
     }
@@ -37,7 +38,7 @@ private struct WindowKeyMonitor: NSViewRepresentable {
       guard let window else {
         return
       }
-      monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) {
+      monitor = NSEvent.addLocalMonitorForEvents(matching: mask) {
         [weak self, weak window] event in
         guard event.window === window, self?.handles(event) == true else {
           return event
@@ -48,13 +49,15 @@ private struct WindowKeyMonitor: NSViewRepresentable {
 
     // MARK: Private
 
+    private let mask: NSEvent.EventTypeMask
     private nonisolated(unsafe) var monitor: Any?
   }
 
+  var mask: NSEvent.EventTypeMask = .keyDown
   let handles: (NSEvent) -> Bool
 
   func makeNSView(context _: Context) -> MonitorView {
-    MonitorView(handles: handles)
+    MonitorView(mask: mask, handles: handles)
   }
 
   func updateNSView(_ view: MonitorView, context _: Context) {
@@ -92,8 +95,26 @@ struct WindowCharacterKeys: View {
   var body: some View {
     WindowKeyMonitor { event in
       let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
-      return modifiers.subtracting(.capsLock).isEmpty
+      // A bare arrow still arrives flagged: AppKit marks every key that has no letter as
+      // function, and the arrow cluster as numeric pad. Neither is a modifier anyone held.
+      return modifiers.subtracting([.capsLock, .function, .numericPad]).isEmpty
         && event.characters.map(onKey) == true
+    }
+  }
+}
+
+// MARK: - WindowModifierHold
+
+/// A modifier reported for as long as it is held. Nothing is consumed: a bare modifier is not a
+/// command anywhere in this window, and every chord that contains one still needs to see it.
+struct WindowModifierHold: View {
+  let modifier: NSEvent.ModifierFlags
+  let isHeldChanged: (Bool) -> Void
+
+  var body: some View {
+    WindowKeyMonitor(mask: .flagsChanged) { event in
+      isHeldChanged(event.modifierFlags.contains(modifier))
+      return false
     }
   }
 }

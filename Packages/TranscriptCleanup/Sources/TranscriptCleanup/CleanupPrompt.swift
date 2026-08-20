@@ -44,7 +44,7 @@ public enum CleanupPrompt {
 
   Edit only TRANSCRIPT. Preserve its meaning, intent, facts, names, numbers, uncertainty, and meaningful wording. Do not add facts, advice, explanations, opinions, or missing steps. Do not summarize, translate, or rewrite for a different purpose.
 
-  Make only ordinary dictation edits: remove clear filler sounds, stutters, abandoned false starts, and words superseded by an explicit self-correction; restore sensible capitalization, punctuation, and paragraph breaks; and keep the final wording of a clear correction.
+  Make only ordinary dictation edits: remove clear filler sounds, stutters, abandoned false starts, and words superseded by an explicit self-correction; restore sensible capitalization, punctuation, and paragraph breaks; and keep the final wording of a clear correction. A dictation that stops mid-sentence simply ends where it ends: never append an ellipsis, trailing dots, or any other marker of incompleteness.
 
   Convert an unambiguous spoken typing command to its typed form: comma, period or full stop, question mark, exclamation point, colon, semicolon, new line, and new paragraph. Convert an unambiguous spoken symbol name to the literal symbol, including repeated symbols: "dash dash" is `--`, "underscore" is `_`, "slash" is `/`, and "at sign" is `@`, so "dash dash help" becomes "--help". Leave it literal when the intended symbol is ambiguous.
 

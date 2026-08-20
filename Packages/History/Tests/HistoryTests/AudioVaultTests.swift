@@ -131,7 +131,7 @@ struct HistoryLogCodingTests {
   }
 
   @Test func `a log from an unknown version refuses to decode`() throws {
-    let data = Data(#"{"version": 2, "entries": []}"#.utf8)
+    let data = Data(#"{"version": 3, "entries": []}"#.utf8)
     #expect(throws: DecodingError.self) { try JSONDecoder().decode(HistoryLog.self, from: data) }
   }
 
@@ -142,5 +142,12 @@ struct HistoryLogCodingTests {
     )
     #expect(mutated.original?.text == "original")
     #expect(mutated.currentText == "second opinion")
+  }
+
+  /// A version-1 log carried its cleanup record on the entry; version 2 carries it on the
+  /// transcription it polished, and the two cannot be told apart by shape alone.
+  @Test func `a log from the version that kept cleanup on the entry refuses to decode`() throws {
+    let data = Data(#"{"version": 1, "entries": []}"#.utf8)
+    #expect(throws: DecodingError.self) { try JSONDecoder().decode(HistoryLog.self, from: data) }
   }
 }

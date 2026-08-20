@@ -52,6 +52,23 @@ final class HistoryKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
         self.assertSingleGreyHistoryRow(app, id: firstID)
       },
 
+      // The arrows are the same grammar under different keycaps, so they are claimed where the
+      // letters are: one law, all four, on the surface that owns every direction.
+      Law("Arrows say what the letters say") { app in
+        try require(self.awaitGrey(app, id: firstID), "The cursor is not on the first row")
+        app.typeKey(.downArrow, modifierFlags: [])
+        self.assertSingleGreyHistoryRow(app, id: secondID)
+        app.typeKey(.upArrow, modifierFlags: [])
+        self.assertSingleGreyHistoryRow(app, id: firstID)
+        app.typeKey(.leftArrow, modifierFlags: [])
+        self.assertValue("Focused", of: app.outlines["miniwhisper.settings.sidebar"])
+        // Right hands the column back the way l does, and only then means copy.
+        app.typeKey(.rightArrow, modifierFlags: [])
+        self.assertValue("Not focused", of: app.outlines["miniwhisper.settings.sidebar"])
+        app.typeKey(.rightArrow, modifierFlags: [])
+        XCTAssertTrue(self.copiedToast(app, id: firstID).awaitExistence(timeout: 2))
+      },
+
       Law("Copying keeps the cursor") { app in
         try require(self.awaitGrey(app, id: firstID), "The cursor is not on the first row")
         app.typeText("l")
@@ -151,6 +168,25 @@ final class HistoryKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
     firstRow.click()
     XCTAssertTrue(copiedToast(app, id: firstID).awaitExistence(timeout: 2))
 
+    assertPasteboard("The history pane keeps every transcript close at hand.")
+
+    // Both seeded entries were cleaned, so the held key is the pane's peek and not one row's:
+    // every rewrite gives way to the transcript underneath it, and takes it back on the release.
+    // This is the suite's only claim that rests on a synthesized flagsChanged reaching a local
+    // event monitor; if it ever goes flaky, that is where to look.
+    assertLabel("The history pane keeps every transcript close at hand.", of: firstRow)
+    assertLabel("A second deterministic transcript for search and deletion.", of: secondRow)
+    XCUIElement.perform(withKeyModifiers: .option) {
+      assertLabel("um the history pane keeps every transcript close at hand", of: firstRow)
+      assertLabel("a second deterministic transcript for search and deletion", of: secondRow)
+      // The click target is the row either way; the held key decides which of its two texts
+      // reaches the clipboard.
+      firstRow.click()
+      assertPasteboard("um the history pane keeps every transcript close at hand")
+    }
+    assertLabel("The history pane keeps every transcript close at hand.", of: firstRow)
+    assertLabel("A second deterministic transcript for search and deletion.", of: secondRow)
+
     let storage = app.buttons["miniwhisper.history.storage"]
     XCTAssertTrue(storage.awaitHittable())
     storage.click()
@@ -170,6 +206,18 @@ final class HistoryKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
   }
 
   // MARK: Private
+
+  /// The clipboard is the machine's, so the test process reads the very pasteboard the app wrote
+  /// — the one claim about a copy that no accessibility attribute can fake.
+  private func assertPasteboard(
+    _ expected: String, file: StaticString = #filePath, line: UInt = #line,
+  ) {
+    XCTAssertTrue(
+      poll { NSPasteboard.general.string(forType: .string) == expected },
+      "The clipboard holds \(NSPasteboard.general.string(forType: .string) ?? "nothing"), not \(expected)",
+      file: file, line: line,
+    )
+  }
 
   private func historyRow(_ app: XCUIApplication, id: String) -> XCUIElement {
     app.descendants(matching: .any)["miniwhisper.history.row.\(id)"]

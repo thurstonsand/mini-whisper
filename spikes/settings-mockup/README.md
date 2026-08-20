@@ -14,6 +14,8 @@ swiftc -framework AppKit -framework SwiftUI \
 
 A trailing `light` or `dark` argument forces that appearance.
 
+The Cleanup pane also answers the Save-placement question: `save-a` through `save-d` pick a variant (own row, pane bottom bar, model row, section header), and with `save-c` — the ratified tri-state — a further `pristine`, `dirty`, `saved`, or `error` argument seeds that state for capture. `.build/settings-mockup cleanup save-c error dark` shows the red failure line under the table.
+
 The launch argument picks the starting pane, matching on the destination name with spaces removed. Everything is interactive: panes navigate, rows hover and copy, sheets open, pickers and toggles work.
 
 `componentstates` is a mock-up-only page with no counterpart in the app. It shows every state the stateful rows can take — six model install states, six endpoint save outcomes, three API-key states — side by side, so they can be compared rather than imagined one at a time.

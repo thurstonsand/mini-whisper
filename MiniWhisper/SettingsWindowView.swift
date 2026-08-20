@@ -67,6 +67,14 @@ struct SettingsWindowView: View {
     // The other half of the mirror: a hover moves focus in the store, and @FocusState is the only
     // thing that can make it real. Assigning a value it already holds ends the round trip.
     .onChange(of: store.interaction.focus) { _, focus in focusedColumn = focus }
+    // A field the user has left hands the column back, or the pane's grammar has nothing
+    // listening for the next key.
+    .onChange(of: isEditingText) { _, isEditing in
+      guard !isEditing else {
+        return
+      }
+      focusedColumn = store.interaction.focus ?? .detail
+    }
   }
 
   // MARK: Private
@@ -135,6 +143,7 @@ struct SettingsWindowView: View {
         press: { store.send(.history(.copyRequested)) },
         search: isHistorySearchFocused ? nil : { isHistorySearchFocused = true },
         escape: dismissStoragePopover,
+        reveal: { isHeld in store.send(.history(.revealChanged(isHeld))) },
       )
     case .dictionary:
       WindowKeyActions(
@@ -146,8 +155,21 @@ struct SettingsWindowView: View {
         add: { store.send(.dictionary(.addShortcutPressed)) },
         delete: { store.send(.dictionary(.cursorDeleteShortcutPressed)) },
       )
-    case .model,
-         .cleanup:
+    case .cleanup:
+      isEditingText ? WindowKeyActions() : WindowKeyActions(
+        left: {
+          let ascends = store.cleanup.cursor.target == 0
+          store.send(.cleanup(.leftPressed))
+          if ascends {
+            setFocus(.sidebar)
+          }
+        },
+        down: { store.send(.cleanup(.rowMoved(.next))) },
+        up: { store.send(.cleanup(.rowMoved(.previous))) },
+        right: { store.send(.cleanup(.rightPressed)) },
+        press: { store.send(.cleanup(.pressRequested)) },
+      )
+    case .model:
       WindowKeyActions(left: { setFocus(.sidebar) })
     }
   }
@@ -176,6 +198,13 @@ struct SettingsWindowView: View {
     }
   }
 
+  /// A text field owns the keys: while one is being typed in, the window claims no letters and
+  /// every key falls through to the editor. Two panes have such a field — History's search and
+  /// the Cleanup pane's — and the window only ever needs to know that one of them does.
+  private var isEditingText: Bool {
+    isHistorySearchFocused || store.cleanup.isEditingField
+  }
+
   @ViewBuilder private var detail: some View {
     switch store.selection {
     case .settings:
@@ -184,8 +213,9 @@ struct SettingsWindowView: View {
       HistoryPane(store: store, searchFocus: $isHistorySearchFocused)
     case .dictionary:
       DictionaryPane(store: store)
-    case .model,
-         .cleanup:
+    case .cleanup:
+      CleanupPane(store: store)
+    case .model:
       SettingsPlaceholderPane(destination: store.selection)
     }
   }
@@ -227,12 +257,13 @@ struct SettingsWindowView: View {
   }
 
   private func synchronizeFocus(_ focus: SettingsWindowFocus?) {
-    guard focus == nil, !isHistorySearchFocused, let retainedFocus = store.interaction.focus else {
+    guard focus == nil, !isEditingText, let retainedFocus = store.interaction.focus
+    else {
       store.send(.focusChanged(focus))
       return
     }
     Task { @MainActor in
-      guard focusedColumn == nil, !isHistorySearchFocused else {
+      guard focusedColumn == nil, !isEditingText else {
         return
       }
       focusedColumn = retainedFocus

@@ -28,7 +28,14 @@ import SwiftUI
       defer: false,
     )
     window.title = Channel.name
-    window.titlebarAppearsTransparent = true
+    // Every pane scrolls its content under the title, which is what macOS windows do — but only
+    // a titlebar that paints can be scrolled under. Left transparent, the panes built from a
+    // grouped Form ran their rows straight through the title, and each new pane would have had
+    // to remember a workaround. This is the whole fix, and it belongs to the window.
+    window.titlebarAppearsTransparent = false
+    // Automatic is the separator macOS draws for a unified toolbar: a line once content has
+    // scrolled under the title, and nothing at all while none has.
+    window.titlebarSeparatorStyle = .automatic
     window.toolbarStyle = .unified
     window.toolbar = NSToolbar(identifier: "MiniWhisper Settings Window")
     window.isReleasedWhenClosed = false

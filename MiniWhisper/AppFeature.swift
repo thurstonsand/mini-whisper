@@ -8,6 +8,7 @@ import History
 import HotkeyListener
 import OSLog
 import SpeechDictionary
+import TranscriptCleanup
 
 private let gestureLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "gesture")
 private let engineLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "engine")
@@ -86,8 +87,12 @@ private let performanceLogger = Logger(
     var gestureDeadlineGeneration = 0
     var inputDeviceName: String?
     var lastTranscript: String?
-    var currentFocusedContext: ContextCapture?
     var pendingDictation: PendingDictation?
+    /// Dictations whose cleanup pass the user skipped. The press that skipped one handed the
+    /// pill, the generation, and the field to its successor, so it is no longer the dictation in
+    /// flight — but it is still owed a paste and an entry, and waits here under the generation it
+    /// was until it has both.
+    var skippedDictations: [Int: PendingDictation] = [:]
     var dictationInFlight = false
     var historyMaintenance = HistoryMaintenanceState.idle
     @Shared var history: HistoryLog
@@ -150,15 +155,22 @@ private let performanceLogger = Logger(
     case agentHistoryReplaced(HistoryLog)
     case transcriptionCompleted(Int, TranscriptionOutcome)
     case transcriptionFailed(Int, String)
-    case contextCaptured(Int, ContextCapture)
+    case contextCaptured(Int, ContextCapture, TargetApp?)
+    case cleanupStarted(Int, CleanupConfiguration)
+    case cleanupResolved(Int, CleanupResolution)
     case deliveryCompleted(Int, DeliveryResult)
     case deliveryFailed(Int, DeliveryFailure)
+    case skippedDeliveryCompleted(Int, DeliveryResult)
+    case skippedDeliveryFailed(Int, DeliveryFailure)
+    case skippedDictationArchived(HistoryEntry?)
   }
 
-  enum CancelID {
+  enum CancelID: Hashable {
     case transcription
     case capture
+    case cleanup
     case delivery
+    case skippedDelivery(Int)
     case historyMaintenance
     case hotkeyEvents
     case gestureDeadline
@@ -387,11 +399,11 @@ private let performanceLogger = Logger(
         guard !state.dictationInFlight else {
           return .none
         }
-        guard let transcript = state.lastTranscript ?? state.history.entries.first?.currentText
+        guard let transcript = state.lastTranscript ?? state.history.entries.first?.displayText
         else {
           return .send(.pill(.noTranscriptToPaste))
         }
-        return deliveryEffect(route: .recovery, transcript: transcript)
+        return recoveryDeliveryEffect(transcript: transcript)
       case let .recoveryDeliveryCompleted(result):
         switch result.outcome {
         case let .pasted(restoration):
@@ -529,7 +541,7 @@ private let performanceLogger = Logger(
           // fastest recovery route for an accidental Escape.
           state.lastTranscript = transcript
           guard state.dictationWasCancelled else {
-            return deliveryEffect(route: .dictation(generation), transcript: transcript)
+            return captureContextEffect(generation: generation)
           }
           return .merge(
             .send(.pill(.cancelledSavedToHistory)), finishDictation(&state, delivery: nil),
@@ -564,12 +576,87 @@ private let performanceLogger = Logger(
           onboardingTryIt(.failed(message), state), playSound(state.settings.sounds.error),
           history,
         )
-      case let .contextCaptured(generation, capture):
-        guard generation == state.transcriptionGeneration else {
+      case let .contextCaptured(generation, capture, targetApp):
+        guard generation == state.transcriptionGeneration, var pending = state.pendingDictation,
+              pending.generation == generation, let transcript = pending.original?.text
+        else {
           return .none
         }
-        state.currentFocusedContext = capture
+        pending.capture = capture
+        pending.targetApp = targetApp
+        state.pendingDictation = pending
+        // Whether a pass is worth attempting at all. Whether one actually runs is the pipeline's
+        // to decide, and it says so by starting one.
+        guard state.settings.cleanup.configuration != nil else {
+          return .send(.cleanupResolved(generation, .passedThrough))
+        }
+        return cleanupEffect(
+          generation: generation,
+          skipComponents: state.settings
+            .bindings
+            .hotkeys(for: .activate)
+            .first?
+            .displayComponents ?? [],
+          transcript: transcript,
+          conditioning: CleanupConditioning(
+            fieldContext: capture.focusedTextContext,
+            vocabulary: state.dictionary.vocabulary.map(\.text),
+            targetBundleID: targetApp?.bundleID,
+          ),
+          settings: state.settings.cleanup,
+        )
+      case let .cleanupStarted(generation, configuration):
+        guard var pending = state.pendingDictation, pending.generation == generation else {
+          return .none
+        }
+        pending.cleanup = configuration
+        pending.cleanupStartedAt = now
+        state.pendingDictation = pending
         return .none
+      case let .cleanupResolved(generation, resolution):
+        guard generation == state.transcriptionGeneration, var pending = state.pendingDictation,
+              pending.generation == generation, let capture = pending.capture,
+              let transcript = pending.original?.text
+        else {
+          return .none
+        }
+        let record = CleanupRecord(resolution)
+        pending.cleanupRecord = record
+        state.pendingDictation = pending
+        let text = record?.cleanedText ?? transcript
+        // Paste-last and Copy Last Transcript recover what was delivered, so the rewrite
+        // replaces the transcript they answer with the moment it becomes the delivered text.
+        if record?.cleanedText != nil {
+          state.lastTranscript = text
+        }
+        return .merge(
+          // Only a wait that started has an end to announce.
+          pending.cleanup == nil
+            ? .none : .send(.hotkeyListenerEvent(.gestureInput(.cleanupEnded))),
+          deliverEffect(
+            to: .dictation(generation), text: text, capture: capture, targetApp: pending.targetApp,
+          ),
+        )
+      case let .skippedDeliveryCompleted(generation, result):
+        let delivery = result.outcome.delivery(of: result.text)
+        deliveryLogger.notice(
+          "Skipped cleanup delivered as heard: \(delivery.method.rawValue, privacy: .public)",
+        )
+        return archiveSkippedDictation(generation, state: &state, delivery: delivery)
+      case let .skippedDeliveryFailed(generation, failure):
+        deliveryLogger.error(
+          "Skipped cleanup failed to deliver: \(failure.message, privacy: .public)",
+        )
+        return archiveSkippedDictation(generation, state: &state, delivery: nil)
+      case let .skippedDictationArchived(entry):
+        guard let entry else {
+          return .none
+        }
+        guard state.$history.loadError == nil else {
+          return entry.audio == nil ? .none : deleteHistoryAudio([entry.id])
+        }
+        state.$history.withLock { $0.entries.insert(entry, at: 0) }
+        return saveHistory(state.$history)
       case let .deliveryCompleted(generation, result):
         guard generation == state.transcriptionGeneration else {
           return .none
@@ -579,36 +666,22 @@ private let performanceLogger = Logger(
           logSuccessfulPaste(restoration)
           let onboardingSuccess =
             state.lastTranscript.map { onboardingTryIt(.delivered($0), state) } ?? .none
-          let pill: PillFeature.Action =
-            if case .unavailable = state.currentFocusedContext {
-              .fieldContextUnavailable
-            } else {
-              .dismiss
-            }
-          state.currentFocusedContext = nil
-          let history = finishDeliveredDictation(
-            &state, result: result, method: .pasted, detail: restoration.historyDetail,
-          )
+          let pill = state.pendingDictation?.deliveredNotice ?? .dismiss
+          let history = finishDeliveredDictation(&state, result: result)
           return .merge(
             .send(.pill(pill)), onboardingSuccess, playSound(state.settings.sounds.complete),
             history,
           )
         case let .copied(fallback):
           logDeliveryFallback(fallback)
-          state.currentFocusedContext = nil
-          let history = finishDeliveredDictation(
-            &state, result: result, method: .copied, detail: fallback.historyDetail,
-          )
+          let history = finishDeliveredDictation(&state, result: result)
           return .merge(
             .send(.pill(.copiedToClipboard)), history,
             onboardingTryIt(.failed(onboardingFailureMessage), state),
             playSound(state.settings.sounds.error),
           )
         case let .noReceiver(reason):
-          state.currentFocusedContext = nil
-          let history = finishDeliveredDictation(
-            &state, result: result, method: .noReceiver, detail: reason.historyDetail,
-          )
+          let history = finishDeliveredDictation(&state, result: result)
           return .merge(
             .send(.pill(noReceiverNotice(settings: state.settings.bindings))), history,
             onboardingTryIt(.failed(noReceiverOnboardingMessage(for: reason)), state),
@@ -619,7 +692,6 @@ private let performanceLogger = Logger(
         guard generation == state.transcriptionGeneration else {
           return .none
         }
-        state.currentFocusedContext = nil
         deliveryLogger.error("Transcript delivery failed: \(failure.message, privacy: .public)")
         let history = finishDictation(
           &state, targetApp: failure.targetApp, delivery: nil,
@@ -676,16 +748,6 @@ private let performanceLogger = Logger(
     case failed(String)
   }
 
-  private enum DeliveryAttempt {
-    case delivered(DeliveryOutcome)
-    case failed(String)
-  }
-
-  private enum DeliveryRoute {
-    case dictation(Int)
-    case recovery
-  }
-
   private var onboardingFailureMessage: String {
     "The transcript was copied, but macOS did not allow it to be pasted. Check Accessibility and try again."
   }
@@ -703,61 +765,6 @@ private let performanceLogger = Logger(
       .cancel(id: CancelID.capture), .send(.pill(.noSpeechDetected)),
       onboardingTryIt(.failed(retryMessage), state), playSound(state.settings.sounds.cancel),
     )
-  }
-
-  /// The capture happens here, immediately before the paste, because it is the only moment whose
-  /// answer is still true: during transcription the user can type, move the caret, or switch
-  /// windows without ever leaving the application. It is a best-effort snapshot of the frontmost
-  /// field rather than a guarantee — nothing stops a third application from taking the front
-  /// between this read and the synthetic ⌘V — but the window is now microseconds wide instead of
-  /// as long as a transcription.
-  private func deliveryEffect(route: DeliveryRoute, transcript: String) -> Effect<Action> {
-    .run { send in
-      async let targetApplication = workspace.frontmostApplication()
-      let capture = await contextCapture.capture(.delivery)
-      // A newer dictation has already claimed the field; this paste would land in it.
-      guard !Task.isCancelled else {
-        return
-      }
-      if case let .dictation(generation) = route {
-        await send(.contextCaptured(generation, capture))
-      }
-      let adjusted = capture.adjusted(transcript)
-      guard !Task.isCancelled else {
-        return
-      }
-      let attempt: DeliveryAttempt
-      do {
-        if let noReceiver = capture.noReceiverReason {
-          attempt = .delivered(.noReceiver(noReceiver))
-        } else {
-          attempt = try await .delivered(delivery.deliver(adjusted))
-        }
-      } catch {
-        attempt = .failed(error.localizedDescription)
-      }
-      let targetApp = await targetApplication.map {
-        TargetApp(bundleID: $0.bundleID, name: $0.name)
-      }
-      switch attempt {
-      case let .delivered(outcome):
-        let result = DeliveryResult(text: adjusted, targetApp: targetApp, outcome: outcome)
-        switch route {
-        case let .dictation(generation):
-          await send(.deliveryCompleted(generation, result))
-        case .recovery:
-          await send(.recoveryDeliveryCompleted(result))
-        }
-      case let .failed(message):
-        let failure = DeliveryFailure(text: adjusted, targetApp: targetApp, message: message)
-        switch route {
-        case let .dictation(generation):
-          await send(.deliveryFailed(generation, failure))
-        case .recovery:
-          await send(.recoveryDeliveryFailed(failure))
-        }
-      }
-    }.cancellable(id: CancelID.delivery, cancelInFlight: true)
   }
 
   /// Settings are edited by hand as well as by the pane, so the file has to exist and say what
@@ -925,20 +932,6 @@ private let performanceLogger = Logger(
       do { try await workspace.open(url) } catch {
         await send(.workspaceOpenFailed(error.localizedDescription))
       }
-    }
-  }
-}
-
-private extension ContextCapture {
-  var noReceiverReason: NoReceiverReason? {
-    switch self {
-    case .unavailable(.noFocusedElement):
-      .noFocusedElement
-    case let .unavailable(.nonTextElement(role)):
-      .nonTextElement(role: role)
-    case .available,
-         .unavailable:
-      nil
     }
   }
 }

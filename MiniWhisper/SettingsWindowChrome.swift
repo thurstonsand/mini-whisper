@@ -17,6 +17,27 @@ struct WindowKeyActions {
   var delete: (() -> Void)?
   var search: (() -> Void)?
   var escape: (() -> Void)?
+  /// The grammar's one held meaning: ⌥ down and ⌥ up, for a surface that has something to show
+  /// only while the key is down.
+  var reveal: ((Bool) -> Void)?
+}
+
+// MARK: - FunctionKey
+
+/// The characters AppKit reports for keys that have no letter. Spelling them from AppKit's own
+/// constants keeps the grammar's arrows readable where its letters already are.
+private enum FunctionKey {
+  static let upArrow = character(NSUpArrowFunctionKey)
+  static let downArrow = character(NSDownArrowFunctionKey)
+  static let leftArrow = character(NSLeftArrowFunctionKey)
+  static let rightArrow = character(NSRightArrowFunctionKey)
+  static let forwardDelete = character(NSDeleteFunctionKey)
+
+  /// Every one of these constants is in the Unicode private-use area AppKit reserves for them, so
+  /// the scalar always exists.
+  static func character(_ key: Int) -> String {
+    String(UnicodeScalar(UInt32(key))!)
+  }
 }
 
 // MARK: - WindowKeys
@@ -54,19 +75,25 @@ private struct WindowKeys: ViewModifier {
           guard isActive() else {
             return false
           }
+          // The arrows say the same things the letters do. A surface that suppresses the
+          // grammar suppresses both at once, so a field being edited keeps its own arrows.
           switch characters {
-          case "h":
+          case "h",
+               FunctionKey.leftArrow:
             return press(actions.left)
-          case "j":
+          case "j",
+               FunctionKey.downArrow:
             return press(actions.down)
-          case "k":
+          case "k",
+               FunctionKey.upArrow:
             return press(actions.up)
-          case "l":
+          case "l",
+               FunctionKey.rightArrow:
             return press(actions.right)
           case "n":
             return press(actions.add)
           case "\u{7f}",
-               "\u{f728}":
+               FunctionKey.forwardDelete:
             return press(actions.delete)
           case "/":
             guard let search = actions.search else {
@@ -77,6 +104,16 @@ private struct WindowKeys: ViewModifier {
           default:
             return false
           }
+        }
+      }
+      .background {
+        // A peek is not navigation, so it never claims keyboard mode: it shows what the row the
+        // user is already on is hiding, whichever way they got there.
+        WindowModifierHold(modifier: .option) { isHeld in
+          guard let reveal = actions.reveal else {
+            return
+          }
+          reveal(isHeld && isActive())
         }
       }
   }
@@ -182,10 +219,19 @@ private enum SettingsListRowMetrics {
 // MARK: - SettingsListRowHeight
 
 private struct SettingsListRowHeight: ViewModifier {
+  /// A row that wraps its content owns its height; the metric becomes the floor it shares with
+  /// every single-line row, so short rows in a growing list still match the rest of the window.
+  let grows: Bool
+
   func body(content: Content) -> some View {
-    content
-      .frame(height: SettingsListRowMetrics.contentHeight)
-      .padding(.vertical, SettingsListRowMetrics.verticalPadding)
+    Group {
+      if grows {
+        content.frame(minHeight: SettingsListRowMetrics.contentHeight, alignment: .top)
+      } else {
+        content.frame(height: SettingsListRowMetrics.contentHeight)
+      }
+    }
+    .padding(.vertical, SettingsListRowMetrics.verticalPadding)
   }
 }
 
@@ -197,8 +243,8 @@ extension View {
     modifier(WindowKeys(store: store, actions: actions, isActive: isActive))
   }
 
-  func settingsListRowHeight() -> some View {
-    modifier(SettingsListRowHeight())
+  func settingsListRowHeight(grows: Bool = false) -> some View {
+    modifier(SettingsListRowHeight(grows: grows))
   }
 
   func stableSettingsListRowHeight() -> some View {

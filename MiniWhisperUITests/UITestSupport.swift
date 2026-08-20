@@ -384,6 +384,17 @@ extension XCTestCase {
     )
   }
 
+  /// Whether a control can be pressed. Existence has `awaitExistence`; this is the other property
+  /// an interaction changes asynchronously, and reading it bare is the same race.
+  func assertEnabled(
+    _ isEnabled: Bool, of element: XCUIElement, _ message: String,
+    file: StaticString = #filePath, line: UInt = #line,
+  ) {
+    XCTAssertTrue(
+      poll(until: { element.isEnabled == isEnabled }), message, file: file, line: line,
+    )
+  }
+
   func assertKeyboardFocus(
     on element: XCUIElement, file: StaticString = #filePath, line: UInt = #line,
   ) {

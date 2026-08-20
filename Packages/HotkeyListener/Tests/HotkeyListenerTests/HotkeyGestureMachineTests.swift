@@ -14,6 +14,8 @@ struct HotkeyGestureMachineTests {
     assertCell(idle, .escape, nil, .blockedUntilRelease)
     assertCell(idle, .deadlineElapsed, nil, .idle)
     assertCell(idle, .monitoringInterrupted, nil, .blockedUntilRelease)
+    assertCell(idle, .cleanupStarted, nil, .cleanupPending)
+    assertCell(idle, .cleanupEnded, nil, .idle)
   }
 
   @Test func `holding input table`() {
@@ -35,6 +37,9 @@ struct HotkeyGestureMachineTests {
     assertCell(holding, .escape, .cancelAndArchive, .blockedUntilRelease)
     assertCell(holding, .deadlineElapsed, nil, .holding(startedAt: .zero))
     assertCell(holding, .monitoringInterrupted, .cancelAndArchive, .blockedUntilRelease)
+    // A press has already taken the key's meaning; a late cleanup notice cannot take it back.
+    assertCell(holding, .cleanupStarted, nil, .holding(startedAt: .zero))
+    assertCell(holding, .cleanupEnded, nil, .holding(startedAt: .zero))
   }
 
   @Test func `provisional input table`() {
@@ -62,6 +67,10 @@ struct HotkeyGestureMachineTests {
     assertCell(provisional, .escape, .discardRecording, .blockedUntilRelease)
     assertCell(provisional, .deadlineElapsed, .discardRecording, .idle)
     assertCell(provisional, .monitoringInterrupted, .discardRecording, .blockedUntilRelease)
+    assertCell(
+      provisional, .cleanupStarted, nil, .provisional(releasedAt: .milliseconds(100)),
+    )
+    assertCell(provisional, .cleanupEnded, nil, .provisional(releasedAt: .milliseconds(100)))
   }
 
   @Test func `second press input table`() {
@@ -88,6 +97,8 @@ struct HotkeyGestureMachineTests {
       secondPress, .deadlineElapsed, nil, .secondPress(startedAt: .milliseconds(200)),
     )
     assertCell(secondPress, .monitoringInterrupted, .cancelAndArchive, .blockedUntilRelease)
+    assertCell(secondPress, .cleanupStarted, nil, .secondPress(startedAt: .milliseconds(200)))
+    assertCell(secondPress, .cleanupEnded, nil, .secondPress(startedAt: .milliseconds(200)))
   }
 
   @Test func `latched input table`() {
@@ -100,6 +111,8 @@ struct HotkeyGestureMachineTests {
     assertCell(latched, .escape, .cancelAndArchive, .blockedUntilRelease)
     assertCell(latched, .deadlineElapsed, nil, .latched)
     assertCell(latched, .monitoringInterrupted, .cancelAndArchive, .blockedUntilRelease)
+    assertCell(latched, .cleanupStarted, nil, .latched)
+    assertCell(latched, .cleanupEnded, nil, .latched)
   }
 
   @Test func `blocked input table`() {
@@ -112,6 +125,39 @@ struct HotkeyGestureMachineTests {
     assertCell(blocked, .escape, nil, .blockedUntilRelease)
     assertCell(blocked, .deadlineElapsed, nil, .blockedUntilRelease)
     assertCell(blocked, .monitoringInterrupted, nil, .blockedUntilRelease)
+    assertCell(blocked, .cleanupStarted, nil, .blockedUntilRelease)
+    assertCell(blocked, .cleanupEnded, nil, .blockedUntilRelease)
+  }
+
+  @Test func `cleanup pending input table`() {
+    assertCell(
+      cleanupPending, .activation(at: .seconds(1)), .skipCleanupAndRecord,
+      .holding(startedAt: .seconds(1)),
+    )
+    assertCell(cleanupPending, .release(at: .seconds(1)), nil, .cleanupPending)
+    assertCell(cleanupPending, .conflict(at: .seconds(1)), nil, .cleanupPending)
+    assertCell(cleanupPending, .mouseDown(at: .seconds(1)), nil, .cleanupPending)
+    assertCell(cleanupPending, .escape, .cancelAndArchive, .blockedUntilRelease)
+    assertCell(cleanupPending, .deadlineElapsed, nil, .cleanupPending)
+    assertCell(cleanupPending, .monitoringInterrupted, nil, .blockedUntilRelease)
+    assertCell(cleanupPending, .cleanupStarted, nil, .cleanupPending)
+    assertCell(cleanupPending, .cleanupEnded, nil, .idle)
+  }
+
+  @Test func `a skip leaves the press behaving exactly as it would have from idle`() {
+    var machine = cleanupPending()
+    #expect(machine.receive(.activation(at: .seconds(1))) == .skipCleanupAndRecord)
+    // A tap: the recording the press started goes on to discard itself, wordlessly.
+    #expect(machine.receive(.release(at: .seconds(1) + .milliseconds(100))) == nil)
+    #expect(machine.receive(.deadlineElapsed) == .discardRecording)
+    #expect(machine.phase == .idle)
+  }
+
+  @Test func `a hold that skipped keeps recording until it is released`() {
+    var machine = cleanupPending()
+    #expect(machine.receive(.activation(at: .seconds(1))) == .skipCleanupAndRecord)
+    #expect(machine.receive(.release(at: .seconds(2))) == .stopAndTranscribe)
+    #expect(machine.phase == .idle)
   }
 
   @Test func `tap at two hundred milliseconds is A hold`() {
@@ -209,6 +255,12 @@ struct HotkeyGestureMachineTests {
   private func latched() -> HotkeyGestureMachine {
     var machine = secondPress()
     _ = machine.receive(.release(at: .milliseconds(300)))
+    return machine
+  }
+
+  private func cleanupPending() -> HotkeyGestureMachine {
+    var machine = HotkeyGestureMachine()
+    _ = machine.receive(.cleanupStarted)
     return machine
   }
 

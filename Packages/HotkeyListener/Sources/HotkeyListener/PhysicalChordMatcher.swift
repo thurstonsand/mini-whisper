@@ -52,6 +52,10 @@ public enum GestureInput: Equatable, Sendable {
   case escape
   case monitoringInterrupted
   case neutral
+  /// The app's own dictation lifecycle rather than anything the tap witnessed. A cleanup pass is
+  /// the one wait the activation key can resolve, so the machine has to know it is running.
+  case cleanupStarted
+  case cleanupEnded
 
   // MARK: Public
 

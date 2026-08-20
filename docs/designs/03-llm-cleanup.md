@@ -43,7 +43,7 @@ Four research passes ground this design: the [model benchmark](../wayfinding/fin
 
 **The pipeline seam.** In `AppFeature`, cleanup inserts between context capture and delivery: transcription completes → context captured (once — the same capture feeds the prompt and the join) → cleanup request as a cancellable effect → delivery of cleaned (or raw, on skip/failure) text through the unchanged join rules and no-receiver law. Disabled or unconfigured cleanup means the effect is a pass-through; the pipeline shape does not fork.
 
-**Persistence.** Settings gains a cleanup section (enabled, endpoint, model, timeout, instructions). The key itself is a Data Protection Keychain generic-password item with a per-channel service name — the app's first non-JSON persistence, scoped to exactly this value. Key existence is read from the Keychain rather than duplicated into settings. `HistoryEntry` gains an optional cleanup record: cleaned text, model, endpoint identity, duration. It also persists the captured field context, so the benchmark harness can replay the real conditioned prompt — the benchmark run found history holds no context today, making context-conditioned comparison impossible.
+**Persistence.** Settings gains a cleanup section (enabled, endpoint, model, timeout, instructions). The key itself is a Data Protection Keychain generic-password item with a per-channel service name — the app's first non-JSON persistence, scoped to exactly this value. Key existence is read from the Keychain rather than duplicated into settings. `Transcription` gains an optional cleanup record: cleaned text, model, endpoint identity, duration. It sits on the transcription rather than the entry because a re-transcription runs the same pass and leaves its own record, and the entry's text is simply the newest transcription's rewrite when it has one. The entry also persists the captured field context, so the benchmark harness can replay the real conditioned prompt — the benchmark run found history holds no context today, making context-conditioned comparison impossible.
 
 ## Design Decisions
 
@@ -69,7 +69,7 @@ Transcript, field context (when available), dictionary vocabulary (so cleanup ne
 
 ### 6. History preserves raw and cleaned; the pane displays cleaned
 
-The cleanup record sits beside the structurally immutable original transcription — the corpus must distinguish a recognition error from a cleanup rewrite, re-transcription comparisons need the original, and the benchmark harness needs raw→cleaned pairs. Presentation inverts storage: the cleaned text is the entry's text (copy target included), with hold-to-reveal for the raw.
+The cleanup record sits on the transcription it polished, beside the structurally immutable original text — the corpus must distinguish a recognition error from a cleanup rewrite, re-transcription comparisons need the original, and the benchmark harness needs raw→cleaned pairs. Presentation inverts storage: the cleaned text is the entry's text (copy target included), with hold-to-reveal for the raw.
 
 ### 7. OpenAI-compatible chat completions over URLSession, key in the Keychain
 
@@ -130,25 +130,25 @@ No SDK (supply-chain surface on a strict allowlist), no Responses API (no primar
   - Work: cleanup section on the settings value (enabled, endpoint, model, timeout default 10 s, instructions); Data Protection Keychain generic-password storage keyed per channel, with existence queried from the Keychain; no legacy decode — absent section is defaults.
   - Validation: settings codec tests; a smoke write/read/delete from the dev test host under an isolated Keychain service.
 
-- [ ] Phase 3: The history cleanup record
+- [x] Phase 3: The history cleanup record
   - Goal: entries can carry cleaned text and the context that conditioned it, without touching the immutable original.
   - Files: `Packages/History/`.
-  - Work: optional cleanup record on `HistoryEntry` (cleaned text, model, endpoint identity, duration, skipped/failed disposition); persist the captured field context on the entry so the benchmark harness can replay conditioned prompts; retention and reconcile untouched.
+  - Work: optional cleanup record on `Transcription` (cleaned text, model, endpoint identity, duration, skipped/failed disposition), so every transcription answers for its own polish; persist the captured field context on the entry so the benchmark harness can replay conditioned prompts — and so a re-transcription can be conditioned exactly as the dictation was; retention and reconcile untouched.
   - Validation: package codec and retention tests; harness under `docs/wayfinding/finishing-mini-whisper/assets/38-cleanup-model-benchmark/` still reads the log.
 
-- [ ] Phase 4: Pipeline insertion and the Polishing pill
+- [x] Phase 4: Pipeline insertion and the Polishing pill
   - Goal: a dictation with cleanup enabled delivers cleaned text end-to-end; a failing endpoint delivers raw with the notice.
   - Files: `MiniWhisper/AppFeature.swift` (+History extension), `MiniWhisper/PillFeature.swift`, `MiniWhisper/PillView.swift`.
   - Work: cancellable cleanup effect between `contextCaptured` and delivery; disabled/unconfigured is a pass-through, the pipeline shape does not fork; timeout and failure fall back to raw with the subdued "Cleanup unavailable — pasted as heard" notice; entry records the cleanup record; the pill flips to Polishing… (purple dot) when the request starts, per the spike's chosen chrome.
   - Validation: reducer tests for success/failure/timeout/pass-through; live smoke against a local mock endpoint (the harness's mock serves) showing cleaned delivery, then a dead endpoint showing raw + notice.
 
-- [ ] Phase 5: The skip grammar
+- [x] Phase 5: The skip grammar
   - Goal: any activation press resolves a pending cleanup as a skip; the 3 s reveal shows the keycap chip.
   - Files: the gesture machine and `AppFeature+Gesture.swift`, `PillFeature`/`PillView`.
   - Work: cleanup-pending as a machine phase with tap = skip-deliver-raw, hold = skip-deliver-raw + start recording, Escape = existing cancel law; a 3 s reveal effect adding `Polishing… [⌥ Opt →] to skip` derived from the live first binding; request cancellation on skip.
   - Validation: machine phase × input table tests; reducer tests for skip-then-record; live smoke with a slow mock endpoint exercising tap, hold, and Escape.
 
-- [ ] Phase 6: The Cleanup pane
+- [x] Phase 6: The Cleanup pane
   - Goal: the settings window's Cleanup destination is real; hand-editing ends where it did for every other setting.
   - Files: `MiniWhisper/SettingsFeature.swift`, a new `CleanupPane.swift`, agent scene driver.
   - Work: the pane per the ticket-16 contract and mock — toggle with its footer, endpoint, the API-key state machine over the Keychain, model picker with best-effort listing falling through to Custom, the "Give up after" preset picker, additional instructions, Save as the bounded verify with quiet `Saved`/specific failure; full cursor-grammar citizenship; deterministic agent scenes.

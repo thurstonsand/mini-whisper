@@ -51,6 +51,7 @@ struct PillView: View {
     case hidden
     case recording
     case transcribing
+    case polishing(isSkipRevealed: Bool)
     case notice(PillFeature.State.Presentation.Notice)
   }
 
@@ -62,6 +63,8 @@ struct PillView: View {
       .recording
     case .transcribing:
       .transcribing
+    case let .polishing(polishing):
+      .polishing(isSkipRevealed: polishing.isSkipRevealed)
     case let .notice(notice):
       .notice(notice)
     case nil:
@@ -104,6 +107,27 @@ struct PillView: View {
         .font(.system(size: 13, weight: .medium))
         .foregroundStyle(.primary)
       }
+    case let .polishing(polishing):
+      HStack(spacing: 9) {
+        PulsingDot(color: .cleanup, glow: .purple).accessibilityHidden(true)
+        SemanticText(
+          "Polishing…", identifier: AccessibilityID.pillPhase, label: "Dictation phase",
+          value: "Polishing",
+        )
+        .font(.system(size: 13, weight: .medium))
+        .foregroundStyle(.primary)
+        if polishing.isSkipRevealed {
+          Spacer().frame(width: 2)
+          HotkeyKeycaps(components: polishing.skipComponents, scale: 0.85)
+            .accessibilityHidden(true)
+          SemanticText(
+            "to skip", identifier: AccessibilityID.pillSkipAffordance, label: "Skip cleanup",
+            value: "\(polishing.skipComponents.joined(separator: " ")) to skip",
+          )
+          .font(.system(size: 13, weight: .medium))
+          .foregroundStyle(.secondary)
+        }
+      }
     case let .notice(notice):
       SemanticText(
         notice.content.text, identifier: AccessibilityID.pillNotice,
@@ -131,7 +155,8 @@ struct PillView: View {
         identifier: AccessibilityID.pillAudioLevel, label: "Input level",
         value: "\(store.accessibilityLevel)%",
       )
-    case .transcribing:
+    case .polishing,
+         .transcribing:
       EmptyView()
     case let .notice(notice):
       semanticLeaf(
@@ -157,12 +182,15 @@ struct PillView: View {
 private struct PulsingDot: View {
   // MARK: Internal
 
+  var color = Color.dictation
+  var glow = Color.blue
+
   var body: some View {
     Circle()
-      .fill(Color(red: 0.20, green: 0.53, blue: 1))
+      .fill(color)
       .frame(width: 9, height: 9)
       .shadow(
-        color: .blue.opacity(0.45), radius: 3,
+        color: glow.opacity(0.45), radius: 3,
       )
       .scaleEffect(isPulsing ? 0.82 : 1)
       .opacity(isPulsing ? 0.48 : 1)
@@ -176,4 +204,13 @@ private struct PulsingDot: View {
   // MARK: Private
 
   @State private var isPulsing = false
+}
+
+// MARK: - Pill phase colours
+
+private extension Color {
+  /// The engine leg's blue and the network leg's purple, as chosen on real pixels in the pill
+  /// mock-up spike.
+  static let dictation = Color(red: 0.20, green: 0.53, blue: 1)
+  static let cleanup = Color(red: 0.62, green: 0.40, blue: 0.95)
 }

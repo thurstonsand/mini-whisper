@@ -7,6 +7,9 @@ import ComposableArchitecture
     enum Presentation: Equatable {
       case recording(Recording)
       case transcribing
+      /// The blocking cleanup pass. Its own phase and colour, because it is the network leg and
+      /// the only one the user can walk away from.
+      case polishing(Polishing)
       case notice(Notice)
 
       // MARK: Internal
@@ -17,6 +20,13 @@ import ComposableArchitecture
         var isLive: Bool
       }
 
+      /// The skip chord travels with the phase rather than being read at reveal time, so the chip
+      /// shows the binding the dictation actually started under.
+      struct Polishing: Equatable {
+        var skipComponents: [String]
+        var isSkipRevealed = false
+      }
+
       enum Notice: Equatable {
         case noSpeechDetected
         case noTranscriptToPaste
@@ -24,6 +34,7 @@ import ComposableArchitecture
         case noReceiver(pasteShortcut: String?)
         case cancelledSavedToHistory
         case fieldContextUnavailable
+        case cleanupUnavailable
         case speechModelUnavailable(String)
         case dictionarySaveFailed
 
@@ -69,6 +80,11 @@ import ComposableArchitecture
               phase: "Pasted without field context", isSubdued: true,
               duration: .milliseconds(1500),
             )
+          case .cleanupUnavailable:
+            Content(
+              text: "Cleanup unavailable — pasted as heard", phase: "Pasted without cleanup",
+              isSubdued: true, duration: .milliseconds(1500),
+            )
           case let .speechModelUnavailable(status):
             Content(
               text: status, phase: status, isSubdued: true, duration: .seconds(3),
@@ -104,12 +120,15 @@ import ComposableArchitecture
     case levelUpdated(Float)
     case latchEngaged
     case transcribingStarted
+    case polishingStarted(skipComponents: [String])
+    case skipAffordanceRevealed
     case noSpeechDetected
     case noTranscriptToPaste
     case copiedToClipboard
     case noReceiver(pasteShortcut: String?)
     case cancelledSavedToHistory
     case fieldContextUnavailable
+    case cleanupUnavailable
     case speechModelUnavailable(String)
     case dictionarySaveFailed
     case dismiss
@@ -129,7 +148,7 @@ import ComposableArchitecture
         )
         state.isFadingOut = false
         state.accessibilityLevel = 0
-        return .cancel(id: CancelID.notice)
+        return cancelPresentationTimers()
       case let .recordingStarted(inputDeviceName):
         state.presentation = .recording(
           State.Presentation.Recording(inputDeviceName: inputDeviceName, level: 0, isLive: true),
@@ -140,7 +159,7 @@ import ComposableArchitecture
           state.bounceCount += 1
           state.isLatchBouncePending = false
         }
-        return .cancel(id: CancelID.notice)
+        return cancelPresentationTimers()
       case let .levelUpdated(level):
         guard case var .recording(recording) = state.presentation, recording.isLive else {
           return .none
@@ -163,7 +182,33 @@ import ComposableArchitecture
         state.presentation = .transcribing
         state.isFadingOut = false
         state.isLatchBouncePending = false
-        return .cancel(id: CancelID.notice)
+        return cancelPresentationTimers()
+      case let .polishingStarted(skipComponents):
+        state.presentation = .polishing(
+          State.Presentation.Polishing(skipComponents: skipComponents),
+        )
+        state.isFadingOut = false
+        state.isLatchBouncePending = false
+        return .merge(
+          .cancel(id: CancelID.notice),
+          // Long enough that an ordinary cleanup finishes unannounced; short enough that a wait
+          // the user notices comes with its way out.
+          .run { send in
+            try await clock.sleep(for: .seconds(3))
+            await send(.skipAffordanceRevealed)
+          }.cancellable(id: CancelID.polishing, cancelInFlight: true),
+        )
+      // No generation to check: every presentation change cancels this timer, and a second
+      // Polishing cancels the first in flight, so a reveal that arrives is always its own.
+      case .skipAffordanceRevealed:
+        guard case var .polishing(polishing) = state.presentation,
+              !polishing.skipComponents.isEmpty
+        else {
+          return .none
+        }
+        polishing.isSkipRevealed = true
+        state.presentation = .polishing(polishing)
+        return .none
       case .noSpeechDetected:
         return showNotice(.noSpeechDetected, state: &state)
       case .noTranscriptToPaste:
@@ -182,6 +227,8 @@ import ComposableArchitecture
         default:
           return showNotice(.fieldContextUnavailable, state: &state)
         }
+      case .cleanupUnavailable:
+        return showNotice(.cleanupUnavailable, state: &state)
       case let .speechModelUnavailable(status):
         return showNotice(.speechModelUnavailable(status), state: &state)
       case .dictionarySaveFailed:
@@ -191,7 +238,7 @@ import ComposableArchitecture
         state.presentation = nil
         state.isFadingOut = false
         state.isLatchBouncePending = false
-        return .cancel(id: CancelID.notice)
+        return cancelPresentationTimers()
       case let .noticeDisplayElapsed(generation):
         guard generation == state.noticeGeneration, case .notice = state.presentation else {
           return .none
@@ -214,10 +261,19 @@ import ComposableArchitecture
 
   // MARK: Private
 
-  private enum CancelID { case notice }
+  private enum CancelID {
+    case notice
+    case polishing
+  }
 
   private static func accessibilityPercentageBucket(_ level: Float) -> Int {
     Int((min(max(level, 0), 1) * 10).rounded()) * 10
+  }
+
+  /// Every presentation change owns the whole pill, so it silences both of the pill's timers:
+  /// a notice's dismissal and a cleanup's skip reveal.
+  private func cancelPresentationTimers() -> Effect<Action> {
+    .merge(.cancel(id: CancelID.notice), .cancel(id: CancelID.polishing))
   }
 
   private func showNotice(
@@ -229,9 +285,12 @@ import ComposableArchitecture
     state.isFadingOut = false
     state.isLatchBouncePending = false
     let duration = notice.content.duration
-    return .run { send in
-      try await clock.sleep(for: duration)
-      await send(.noticeDisplayElapsed(generation))
-    }.cancellable(id: CancelID.notice, cancelInFlight: true)
+    return .merge(
+      .cancel(id: CancelID.polishing),
+      .run { send in
+        try await clock.sleep(for: duration)
+        await send(.noticeDisplayElapsed(generation))
+      }.cancellable(id: CancelID.notice, cancelInFlight: true),
+    )
   }
 }

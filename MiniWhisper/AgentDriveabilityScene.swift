@@ -6,6 +6,7 @@ import Foundation
 import History
 import HotkeyListener
 import SpeechDictionary
+import TranscriptCleanup
 
 // MARK: - PresentedWindow
 
@@ -36,6 +37,9 @@ enum PresentedWindow: Equatable {
     case settingsHistory = "settings-history"
     case settingsDictionary = "settings-dictionary"
     case settingsDictionaryUnreadable = "settings-dictionary-unreadable"
+    case settingsCleanup = "settings-cleanup"
+    case settingsCleanupKeyboard = "settings-cleanup-keyboard"
+    case settingsCleanupUnconfigured = "settings-cleanup-unconfigured"
     case about
     case pillRecording = "pill-recording"
     case pillTranscribing = "pill-transcribing"
@@ -69,6 +73,11 @@ enum PresentedWindow: Equatable {
       case .settingsDictionary,
            .settingsDictionaryUnreadable:
         .settings(.dictionary, initialFocus: nil)
+      case .settingsCleanup,
+           .settingsCleanupUnconfigured:
+        .settings(.cleanup, initialFocus: nil)
+      case .settingsCleanupKeyboard:
+        .settings(.cleanup, initialFocus: .detail)
       case .about:
         .about
       default:
@@ -78,6 +87,12 @@ enum PresentedWindow: Equatable {
 
     var initialAction: AppFeature.Action? {
       self == .pillRecording ? .pill(.levelUpdated(0.67)) : nil
+    }
+
+    /// What the scene's Keychain already holds. A pane that has a key and a pane that does not
+    /// are different screens, and only the Keychain can say which one this is.
+    var seededCleanupKey: String? {
+      self == .settingsCleanup || self == .settingsCleanupKeyboard ? "sk-agent-000000000000" : nil
     }
 
     var initialState: AppFeature.State {
@@ -169,6 +184,11 @@ enum PresentedWindow: Equatable {
         break
       case .settingsShortcutsKeyboard:
         state.settingsWindow.interaction.mode = .keyboard
+      case .settingsCleanup,
+           .settingsCleanupUnconfigured:
+        break
+      case .settingsCleanupKeyboard:
+        state.settingsWindow.interaction.mode = .keyboard
       case .pillRecording:
         state.pill.presentation = .recording(
           PillFeature.State.Presentation.Recording(
@@ -220,6 +240,19 @@ enum PresentedWindow: Equatable {
         )
       case .settingsSoundsNoAudio:
         settings.sounds.cancel = nil
+      case .settingsCleanup,
+           .settingsCleanupKeyboard:
+        settings.cleanup = CleanupSettings(
+          enabled: true, endpoint: URL(string: "https://gateway.example/v1"),
+          model: "gpt-oss-120b", timeout: 10,
+          additionalInstructions: "Keep my terminology. Never expand contractions.",
+        )
+        return settings
+      case .settingsCleanupUnconfigured:
+        settings.cleanup = CleanupSettings(
+          enabled: true, endpoint: nil, model: nil, timeout: 10, additionalInstructions: "",
+        )
+        return settings
       default:
         return settings
       }
@@ -246,9 +279,16 @@ enum PresentedWindow: Equatable {
           id: UUID(uuidString: "11111111-1111-1111-1111-111111111111")!,
           createdAt: today.addingTimeInterval(9 * 3600 + 42 * 60),
           targetApp: TargetApp(bundleID: "com.apple.dt.Xcode", name: "Xcode"),
+          // The one cleaned entry in the catalogue: the row shows the rewrite and holds the
+          // transcript underneath it.
           original: Transcription(
-            text: "The history pane keeps every transcript close at hand.",
+            text: "um the history pane keeps every transcript close at hand",
             engine: "test-engine", transcribedAt: today,
+            cleanup: CleanupRecord(
+              disposition: .cleaned("The history pane keeps every transcript close at hand."),
+              model: "gpt-oss-120b", endpoint: URL(string: "https://gateway.example/v1")!,
+              durationSeconds: 1.2,
+            ),
           ),
           delivery: Delivery(
             text: "The history pane keeps every transcript close at hand.",
@@ -261,9 +301,16 @@ enum PresentedWindow: Equatable {
           id: UUID(uuidString: "22222222-2222-2222-2222-222222222222")!,
           createdAt: calendar.date(byAdding: .day, value: -1, to: today)!,
           targetApp: TargetApp(bundleID: "com.mitchellh.ghostty", name: "Ghostty"),
+          // A second cleaned entry, so the catalogue can show that the peek is the pane's and
+          // not one row's.
           original: Transcription(
-            text: "A second deterministic transcript for search and deletion.",
+            text: "a second deterministic transcript for search and deletion",
             engine: "test-engine", transcribedAt: today,
+            cleanup: CleanupRecord(
+              disposition: .cleaned("A second deterministic transcript for search and deletion."),
+              model: "gpt-oss-120b", endpoint: URL(string: "https://gateway.example/v1")!,
+              durationSeconds: 0.9,
+            ),
           ),
           delivery: Delivery(
             text: "A second deterministic transcript for search and deletion.",

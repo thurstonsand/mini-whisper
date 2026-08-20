@@ -871,11 +871,13 @@ import Testing
     // The captured field ends in a sentence, so the joined paste gains a space and a capital.
     let captured = ContextCapture.available(context(before: "We arrived at noon."))
     var state = AppFeature.State()
-    state.transcriptionGeneration = 1
+    state.awaitingTranscript(generation: 1)
     state.pill.presentation = .transcribing
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
+      $0.date.now = Date(timeIntervalSince1970: 200)
+      $0.uuid = .incrementing
       $0.contextCapture.capture = { _ in captured }
       $0.delivery.deliver = { transcript in
         #expect(transcript == " Delivered text")
@@ -883,18 +885,22 @@ import Testing
       }
       $0.sounds.play = { cue in await sounds.record(cue) }
     }
+    store.exhaustivity = .off(showSkippedAssertions: false)
 
     await store.send(
       .transcriptionCompleted(1, .transcript("delivered text")),
-    ) { $0.lastTranscript = "delivered text" }
-    await store.receive(.contextCaptured(1, captured)) { $0.currentFocusedContext = captured }
+    ) {
+      $0.lastTranscript = "delivered text"
+    }
+    await store.receive(.contextCaptured(1, captured, nil)) {
+      $0.pendingDictation?.capture = captured
+    }
+    await store.receive(.cleanupResolved(1, .passedThrough))
     await store.receive(
       .deliveryCompleted(
         1, deliveryResult(" Delivered text", .pasted(.restored)),
       ),
-    ) {
-      $0.currentFocusedContext = nil
-    }
+    )
     await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
     #expect(await sounds.recorded == ["Pop"])
@@ -907,12 +913,14 @@ import Testing
       .available(context(before: "We were still typing.")),
     ])
     var state = AppFeature.State()
-    state.transcriptionGeneration = 1
+    state.awaitingTranscript(generation: 1)
     state.$health.withLock { $0 = .healthy }
     state.onboardingCompleted = true
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
+      $0.date.now = Date(timeIntervalSince1970: 200)
+      $0.uuid = .incrementing
       $0.contextCapture.capture = { _ in await captures.next() }
       // Only the delivery-time read can produce this joined text.
       $0.delivery.deliver = { transcript in
@@ -926,8 +934,12 @@ import Testing
     await store.send(
       .transcriptionCompleted(1, .transcript("delivered text")),
     )
-    await store.receive(.contextCaptured(1, .available(context(before: "We were still typing.")))) {
-      $0.currentFocusedContext = .available(context(before: "We were still typing."))
+    await store.receive(.contextCaptured(
+      1,
+      .available(context(before: "We were still typing.")),
+      nil,
+    )) {
+      $0.pendingDictation?.capture = .available(context(before: "We were still typing."))
     }
     await store.receive(
       .deliveryCompleted(
@@ -946,12 +958,14 @@ import Testing
       .available(context(before: "Field text.")),
     ])
     var state = AppFeature.State()
-    state.transcriptionGeneration = 1
+    state.awaitingTranscript(generation: 1)
     state.$health.withLock { $0 = .healthy }
     state.onboardingCompleted = true
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
+      $0.date.now = Date(timeIntervalSince1970: 200)
+      $0.uuid = .incrementing
       $0.contextCapture.capture = { _ in await captures.next() }
       $0.delivery.deliver = { _ in
         await deliveries.record()
@@ -966,7 +980,11 @@ import Testing
     await store.send(
       .transcriptionCompleted(1, .transcript("delivered text")),
     )
-    await store.receive(.contextCaptured(1, .available(context(before: "Field text."))))
+    await store.receive(.contextCaptured(
+      1,
+      .available(context(before: "Field text.")),
+      nil,
+    ))
     await store.receive(
       .deliveryCompleted(
         1, deliveryResult(" Delivered text", .pasted(.restored)),
@@ -994,7 +1012,6 @@ import Testing
     state.recording.captureGeneration = 1
     state.recording.captureSessionID = sessionID
     state.recording.phase = .recording
-    state.currentFocusedContext = .available(context(before: "Never deliver here."))
     state.pill.presentation = .recording(
       PillFeature.State.Presentation.Recording(
         inputDeviceName: "Test Microphone", level: 0.2, isLive: true,
@@ -1026,7 +1043,6 @@ import Testing
 
     await store.send(.hotkeyListenerEvent(.gesture(.cancelAndArchive))) {
       $0.dictationWasCancelled = true
-      $0.currentFocusedContext = nil
     }
     await store.receive(.recording(.stopAndRetain)) { $0.recording.phase = .stopping(nil) }
     await store.receive(.recording(.captureStopped(1, recording))) {
@@ -1124,7 +1140,7 @@ import Testing
     await store.send(.pill(.dismiss))
     await store.finish()
     #expect(await deliveries.isEmpty)
-    #expect(store.state.currentFocusedContext == nil)
+    #expect(store.state.pendingDictation?.capture == nil)
   }
 
   @Test func `a failed transcription drops the capture running beside it`() async {
@@ -1223,19 +1239,21 @@ import Testing
     openGate.finish()
     await store.finish()
     #expect(await deliveries.isEmpty)
-    #expect(store.state.currentFocusedContext == nil)
+    #expect(store.state.pendingDictation?.capture == nil)
   }
 
   @Test func `unavailable context pastes blind and says so`() async {
     let sounds = SoundRecorder()
     let clock = TestClock()
     var state = AppFeature.State()
-    state.transcriptionGeneration = 1
+    state.awaitingTranscript(generation: 1)
     state.pill.presentation = .transcribing
     let unavailable = ContextCapture.unavailable(.gridSemantics(bundleID: "com.mitchellh.ghostty"))
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
+      $0.date.now = Date(timeIntervalSince1970: 200)
+      $0.uuid = .incrementing
       $0.contextCapture.capture = { _ in unavailable }
       $0.delivery.deliver = { transcript in
         #expect(transcript == "delivered text")
@@ -1244,18 +1262,22 @@ import Testing
       $0.sounds.play = { cue in await sounds.record(cue) }
       $0.continuousClock = clock
     }
+    store.exhaustivity = .off(showSkippedAssertions: false)
 
     await store.send(
       .transcriptionCompleted(1, .transcript("delivered text")),
-    ) { $0.lastTranscript = "delivered text" }
-    await store.receive(.contextCaptured(1, unavailable)) { $0.currentFocusedContext = unavailable }
+    ) {
+      $0.lastTranscript = "delivered text"
+    }
+    await store.receive(.contextCaptured(1, unavailable, nil)) {
+      $0.pendingDictation?.capture = unavailable
+    }
+    await store.receive(.cleanupResolved(1, .passedThrough))
     await store.receive(
       .deliveryCompleted(
         1, deliveryResult("delivered text", .pasted(.restored)),
       ),
-    ) {
-      $0.currentFocusedContext = nil
-    }
+    )
     await store.receive(.pill(.fieldContextUnavailable)) {
       $0.pill.noticeGeneration = 1
       $0.pill.presentation = .notice(.fieldContextUnavailable)
@@ -1274,9 +1296,11 @@ import Testing
   ) async {
     let clock = TestClock()
     var state = AppFeature.State()
-    state.transcriptionGeneration = 1
+    state.awaitingTranscript(generation: 1)
     state.pill.presentation = .transcribing
     let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
+      $0.date.now = Date(timeIntervalSince1970: 200)
+      $0.uuid = .incrementing
       $0.contextCapture.capture = { _ in .unavailable(reason) }
       $0.continuousClock = clock
       $0.delivery.copy = { _ in
@@ -1287,13 +1311,15 @@ import Testing
         return .pasted(.restored)
       }
     }
+    store.exhaustivity = .off(showSkippedAssertions: false)
 
     await store.send(.transcriptionCompleted(1, .transcript("copy me"))) {
       $0.lastTranscript = "copy me"
     }
-    await store.receive(.contextCaptured(1, .unavailable(reason))) {
-      $0.currentFocusedContext = .unavailable(reason)
+    await store.receive(.contextCaptured(1, .unavailable(reason), nil)) {
+      $0.pendingDictation?.capture = .unavailable(reason)
     }
+    await store.receive(.cleanupResolved(1, .passedThrough))
     let receiverReason: NoReceiverReason =
       switch reason {
       case .noFocusedElement:
@@ -1307,9 +1333,7 @@ import Testing
       .deliveryCompleted(
         1, deliveryResult("copy me", .noReceiver(receiverReason)),
       ),
-    ) {
-      $0.currentFocusedContext = nil
-    }
+    )
     let pasteShortcut = HotkeyBindingsSettings.defaults
       .hotkeys(for: .pasteLastTranscript)
       .first?
@@ -1530,31 +1554,37 @@ import Testing
     let sounds = SoundRecorder()
     let clock = TestClock()
     var state = AppFeature.State()
-    state.transcriptionGeneration = 3
+    state.awaitingTranscript(generation: 3)
     state.pill.presentation = .transcribing
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
+      $0.date.now = Date(timeIntervalSince1970: 200)
+      $0.uuid = .incrementing
       $0.contextCapture.capture = { _ in .unavailable(.accessibilityPermissionMissing) }
       $0.delivery.deliver = { _ in .copied(.accessibilityPermissionMissing) }
       $0.sounds.play = { cue in await sounds.record(cue) }
       $0.continuousClock = clock
     }
+    store.exhaustivity = .off(showSkippedAssertions: false)
 
     await store.send(
       .transcriptionCompleted(3, .transcript("copy me")),
-    ) { $0.lastTranscript = "copy me" }
-    await store.receive(.contextCaptured(3, .unavailable(.accessibilityPermissionMissing))) {
-      $0.currentFocusedContext = .unavailable(.accessibilityPermissionMissing)
+    ) {
+      $0.lastTranscript = "copy me"
     }
+    await store.receive(
+      .contextCaptured(3, .unavailable(.accessibilityPermissionMissing), nil),
+    ) {
+      $0.pendingDictation?.capture = .unavailable(.accessibilityPermissionMissing)
+    }
+    await store.receive(.cleanupResolved(3, .passedThrough))
     await store.receive(
       .deliveryCompleted(
         3,
         deliveryResult("copy me", .copied(.accessibilityPermissionMissing)),
       ),
-    ) {
-      $0.currentFocusedContext = nil
-    }
+    )
     await store.receive(.pill(.copiedToClipboard)) {
       $0.pill.noticeGeneration = 1
       $0.pill.presentation = .notice(.copiedToClipboard)
@@ -1782,28 +1812,36 @@ import Testing
   @Test func `delivery failure dismisses the pill and plays the error cue`() async {
     let sounds = SoundRecorder()
     var state = AppFeature.State()
-    state.transcriptionGeneration = 5
+    state.awaitingTranscript(generation: 5)
     state.pill.presentation = .transcribing
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
+      $0.date.now = Date(timeIntervalSince1970: 200)
+      $0.uuid = .incrementing
       $0.contextCapture.capture = { _ in .unavailable(.noTextRange(role: "AXTextArea")) }
       $0.delivery.deliver = { _ in throw DeliveryError.pasteboardWriteFailed }
       $0.sounds.play = { cue in await sounds.record(cue) }
     }
+    store.exhaustivity = .off(showSkippedAssertions: false)
     let message = DeliveryError.pasteboardWriteFailed.localizedDescription
 
     await store.send(
       .transcriptionCompleted(5, .transcript("undeliverable")),
-    ) { $0.lastTranscript = "undeliverable" }
-    await store.receive(.contextCaptured(5, .unavailable(.noTextRange(role: "AXTextArea")))) {
-      $0.currentFocusedContext = .unavailable(.noTextRange(role: "AXTextArea"))
+    ) {
+      $0.lastTranscript = "undeliverable"
     }
+    await store.receive(
+      .contextCaptured(5, .unavailable(.noTextRange(role: "AXTextArea")), nil),
+    ) {
+      $0.pendingDictation?.capture = .unavailable(.noTextRange(role: "AXTextArea"))
+    }
+    await store.receive(.cleanupResolved(5, .passedThrough))
     await store.receive(
       .deliveryFailed(
         5, deliveryFailure("undeliverable", message: message),
       ),
-    ) { $0.currentFocusedContext = nil }
+    )
     await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
     #expect(await sounds.recorded == ["Basso"])
@@ -1856,4 +1894,20 @@ private func context(before: String) -> FocusedTextContext {
     selectedRange: before.utf16.count ..< before.utf16.count, beforeWasTruncated: false,
     selectionWasTruncated: false, afterWasTruncated: false,
   )
+}
+
+// MARK: - Delivery fixtures
+
+private extension AppFeature.State {
+  /// Seeds the dictation a finished recording always leaves behind, so a transcription has
+  /// something to complete. Audio retention goes off with it, and the delivery tests that use
+  /// this run non-exhaustively: the archive that follows a paste is History's own test.
+  mutating func awaitingTranscript(generation: Int) {
+    transcriptionGeneration = generation
+    $settings.withLock { $0.retention.audio = .never }
+    pendingDictation = AppFeature.PendingDictation(
+      generation: generation, recording: CanonicalRecording(samples: [0.25]),
+      createdAt: Date(timeIntervalSince1970: 100), engine: "test-engine", original: nil,
+    )
+  }
 }

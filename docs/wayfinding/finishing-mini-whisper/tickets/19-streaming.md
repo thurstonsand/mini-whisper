@@ -15,3 +15,7 @@ The division falls out of what the two gestures already mean. Hold is a short ut
 ## Question
 
 Excluded from the stakes, reopened by the Parakeet-first verdict: FluidAudio has streaming ASR paths whisper.cpp lacks. Decide whether live streaming transcription is worth its complexity, and design the pill's grow-into-live-text affordance recorded in the UX ticket (plus click-drag repositioning and the destination-app label, deferred there).
+
+## Note (added while implementing cleanup, 2026-08)
+
+Incremental polishing, per Aqua Voice's prior art: when the user pauses for a couple of seconds mid-latch, run the pipeline live on the input so far — including the cleanup pass — then reconcile incrementally as they continue. The cleanup vertical's shape helps: the pass is already a cancellable effect with typed outcomes, and history separates raw from cleaned. Open questions are the reconciliation strategy (re-clean the whole growing transcript vs. clean per-segment and join) and how delivery works when text has already landed in the field. Study Aqua Voice's observable behavior when this ticket opens.

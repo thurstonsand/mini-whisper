@@ -164,6 +164,57 @@ enum InstallState: String, CaseIterable, Identifiable {
   var endpointAddress = "https://gateway.internal/v1"
   let storedKey = "sk-proj-abcdefghijklmnopqrstuvwx"
   var keyState = KeyState.stored
+  var customPrompt = ""
+
+  /// Whether an endpoint fact changed since the last confirm — what arms variant C's Save.
+  var endpointDirty = false
+
+  func commitSave() {
+    if endpointAddress.hasPrefix("https") {
+      saveResult = .saved
+      keyState = .stored
+      endpointDirty = false
+    } else {
+      saveResult = .failed("Couldn't reach that address.")
+    }
+  }
+
+  /// Where the Save button lives — the question this round of the mock exists to answer.
+  /// Chosen by a `save-a` … `save-d` launch argument; A is today's shape, right-aligned.
+  var saveVariant: SaveVariant = {
+    for argument in CommandLine.arguments {
+      switch argument.lowercased() {
+      case "save-a": return .ownRowTrailing
+      case "save-b": return .paneBottom
+      case "save-c": return .modelRow
+      case "save-d": return .sectionHeader
+      default: continue
+      }
+    }
+    return .ownRowTrailing
+  }()
+
+  /// Seeds variant C's tri-state for capture: `pristine`, `dirty`, `saved`, or `error`.
+  func seedStage() {
+    for argument in CommandLine.arguments {
+      switch argument.lowercased() {
+      case "pristine":
+        endpointDirty = false
+        saveResult = .none
+      case "dirty":
+        endpointDirty = true
+        saveResult = .none
+      case "saved":
+        endpointDirty = false
+        saveResult = .saved
+      case "error":
+        endpointDirty = true
+        saveResult = .failed("Couldn't reach that address.")
+      default:
+        continue
+      }
+    }
+  }
   /// Nothing is reported until Save is pressed, so the resting state says nothing at all.
   var saveResult = SaveResult.none
 
@@ -559,79 +610,174 @@ struct CleanupPane: View {
   @Bindable var mock: Mock
 
   var body: some View {
-    Form {
-      Section {
-        Toggle("Clean up transcripts", isOn: $mock.cleanupEnabled)
-        Picker("Give up after", selection: $mock.cleanupTimeout) {
-          ForEach([5, 10, 20, 30], id: \.self) { seconds in
-            Text("\(seconds) seconds").tag(seconds)
+    VStack(spacing: 0) {
+      Form {
+        Section {
+          Toggle("Clean up transcripts", isOn: $mock.cleanupEnabled)
+          Picker("Give up after", selection: $mock.cleanupTimeout) {
+            ForEach([5, 10, 20, 30], id: \.self) { seconds in
+              Text("\(seconds) seconds").tag(seconds)
+            }
+          }
+          .disabled(!mock.cleanupEnabled)
+        }
+
+        Section {
+          TextField("Address", text: endpointField($mock.endpointAddress))
+          APIKeyField(mock: mock)
+          // Loading is best effort. Plenty of gateways never implement /v1/models, so a failed
+          // listing falls through to Custom with the field already open rather than leaving an
+          // empty dropdown that reads as "you may not enter a model".
+          LabeledContent("Model") {
+            HStack {
+              if case let .failed(reason) = mock.modelListing {
+                Text(reason)
+                  .foregroundStyle(.secondary)
+                Spacer()
+              }
+              Picker("", selection: modelField($mock.cleanupModel)) {
+                if case let .loaded(names) = mock.modelListing {
+                  ForEach(names, id: \.self, content: Text.init)
+                  Divider()
+                }
+                Text("Custom…").tag(customModelTag)
+              }
+              .labelsHidden()
+              Button("Load Models") { mock.loadModels() }
+              // C: one button, one place, three states — grey Save (nothing pending), blue Save
+              // (edits pending), grey Saved (confirmed). Nothing moves; only meaning changes.
+              if mock.saveVariant == .modelRow {
+                Button(mock.saveResult == .saved && !mock.endpointDirty ? "Saved" : "Save") {
+                  mock.commitSave()
+                }
+                .buttonStyle(.borderedProminent)
+                .frame(minWidth: 56)
+                .disabled(!mock.endpointDirty)
+              }
+            }
+          }
+          if mock.cleanupModel == customModelTag {
+            TextField("", text: $mock.customModel, prompt: Text("Model ID"))
+          }
+          // A: the row Save keeps its own row, pushed to the trailing edge.
+          if mock.saveVariant == .ownRowTrailing {
+            HStack {
+              Spacer()
+              SaveResultLabel(result: mock.saveResult)
+              saveButton
+            }
+          }
+
+        } header: {
+          // D: Save rides the section header's trailing edge, the Dictionary quick-add grammar.
+          if mock.saveVariant == .sectionHeader {
+            HStack {
+              Text("Endpoint")
+              Spacer()
+              SaveResultLabel(result: mock.saveResult)
+              saveButton
+                .controlSize(.small)
+            }
+          } else {
+            Text("Endpoint")
+          }
+        } footer: {
+          VStack(alignment: .leading, spacing: 4) {
+            // C's failure lives under the table, in red, above the promises.
+            if mock.saveVariant == .modelRow, case let .failed(reason) = mock.saveResult {
+              Text(reason)
+                .foregroundStyle(.red)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+            }
+            if mock.saveVariant != .paneBottom {
+              Text(privacyFooter)
+            }
           }
         }
         .disabled(!mock.cleanupEnabled)
-      } footer: {
-        Text(
-          "Transcripts are sent to this endpoint. Recorded audio never leaves this Mac. If cleanup fails or runs past the limit, the transcript is delivered as heard.",
-        )
-      }
 
-      Section {
-        TextField("Address", text: $mock.endpointAddress)
-        APIKeyField(mock: mock)
-        // Loading is best effort. Plenty of gateways never implement /v1/models, so a failed
-        // listing falls through to Custom with the field already open rather than leaving an empty
-        // dropdown that reads as "you may not enter a model".
-        LabeledContent("Model") {
-          HStack {
-            if case let .failed(reason) = mock.modelListing {
-              Text(reason)
-                .foregroundStyle(.secondary)
-              Spacer()
-            }
-            Picker("", selection: $mock.cleanupModel) {
-              if case let .loaded(names) = mock.modelListing {
-                ForEach(names, id: \.self, content: Text.init)
-                Divider()
+        Section {
+          TextEditor(text: $mock.customPrompt)
+            .frame(height: 64)
+            .overlay(alignment: .topLeading) {
+              if mock.customPrompt.isEmpty {
+                Text("Keep it casual — lowercase is fine, and don’t touch my contractions.")
+                  .foregroundStyle(.tertiary)
+                  .padding(.top, 1)
+                  .allowsHitTesting(false)
               }
-              Text("Custom…").tag(customModelTag)
             }
-            .labelsHidden()
-            Button("Load Models") { mock.loadModels() }
-          }
+        } header: {
+          Text("Custom prompt")
         }
-        if mock.cleanupModel == customModelTag {
-          TextField("", text: $mock.customModel, prompt: Text("Model ID"))
-        }
-        HStack {
-          Button("Save") {
-            if mock.endpointAddress.hasPrefix("https") {
-              mock.saveResult = .saved
-              // Storing the key is what saving means; until then it is only typed.
-              mock.keyState = .stored
-            } else {
-              mock.saveResult = .failed("Couldn't reach that address.")
-            }
-          }
-          .buttonStyle(.borderedProminent)
-          SaveResultLabel(result: mock.saveResult)
-          Spacer()
-        }
-      } header: {
-        Text("Endpoint")
+        .disabled(!mock.cleanupEnabled)
       }
-      .disabled(!mock.cleanupEnabled)
+      .formStyle(.grouped)
 
-      Section {
-        TextEditor(text: .constant("Keep my terminology. Never expand contractions."))
-          .frame(height: 64)
-      } header: {
-        Text("Additional instructions")
-      } footer: {
-        Text("Added to the built-in prompt rather than replacing it.")
+      // B: Save leaves the form entirely — a pane-scoped bar under the scroll, bottom-right,
+      // with the privacy promise beneath the button that enacts it.
+      if mock.saveVariant == .paneBottom {
+        VStack(alignment: .trailing, spacing: 6) {
+          HStack {
+            Spacer()
+            SaveResultLabel(result: mock.saveResult)
+            saveButton
+          }
+          Text(privacyFooter)
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+            .multilineTextAlignment(.trailing)
+        }
+        .padding(.horizontal, 20)
+        .padding(.bottom, 14)
+        .disabled(!mock.cleanupEnabled)
       }
-      .disabled(!mock.cleanupEnabled)
     }
-    .formStyle(.grouped)
+    .animation(.easeOut(duration: 0.2), value: mock.saveResult)
   }
+
+  // MARK: Private
+
+  private var privacyFooter: String {
+    "Transcripts are sent to this endpoint. Recorded audio never leaves this Mac. If cleanup fails or runs past the limit, the transcript is delivered as heard."
+  }
+
+  private var saveButton: some View {
+    Button("Save") {
+      if mock.endpointAddress.hasPrefix("https") {
+        mock.saveResult = .saved
+        // Storing the key is what saving means; until then it is only typed.
+        mock.keyState = .stored
+      } else {
+        mock.saveResult = .failed("Couldn't reach that address.")
+      }
+    }
+    .buttonStyle(.borderedProminent)
+  }
+
+  /// Editing any endpoint fact marks the section dirty, which is what arms the Save button.
+  private func endpointField(_ binding: Binding<String>) -> Binding<String> {
+    Binding(
+      get: { binding.wrappedValue },
+      set: { binding.wrappedValue = $0; mock.endpointDirty = true },
+    )
+  }
+
+  private func modelField(_ binding: Binding<String>) -> Binding<String> {
+    Binding(
+      get: { binding.wrappedValue },
+      set: { binding.wrappedValue = $0; mock.endpointDirty = true },
+    )
+  }
+}
+
+// MARK: - Save variant
+
+enum SaveVariant {
+  case ownRowTrailing
+  case paneBottom
+  case modelRow
+  case sectionHeader
 }
 
 // MARK: - Save result
@@ -1488,6 +1634,7 @@ final class Delegate: NSObject, NSApplicationDelegate {
   var window: NSWindow!
 
   func applicationDidFinishLaunching(_: Notification) {
+    mock.seedStage()
     if CommandLine.arguments.contains("light") {
       NSApp.appearance = NSAppearance(named: .aqua)
     } else if CommandLine.arguments.contains("dark") {

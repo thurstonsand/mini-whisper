@@ -1,3 +1,4 @@
+import FieldContext
 import Foundation
 
 // MARK: - HistoryLog
@@ -25,8 +26,10 @@ extension HistoryLog: Codable {
   }
 
   /// Bumped when `HistoryEntry`'s persisted shape changes incompatibly; decoding rejects files
-  /// from a version it does not know rather than misreading them.
-  public static let version = 1
+  /// from a version it does not know rather than misreading them. Version 2 moved the cleanup
+  /// record from the entry onto the transcription it polished, so every transcription — the
+  /// original and every re-transcription — carries its own.
+  public static let version = 2
 
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -63,6 +66,7 @@ public struct HistoryEntry: Equatable, Codable, Sendable, Identifiable {
     original: Transcription?,
     retranscriptions: [Transcription] = [],
     reference: String? = nil,
+    fieldContext: FocusedTextContext? = nil,
     delivery: Delivery?,
     audio: AudioMetadata?,
   ) {
@@ -72,6 +76,7 @@ public struct HistoryEntry: Equatable, Codable, Sendable, Identifiable {
     self.original = original
     self.retranscriptions = retranscriptions
     self.reference = reference
+    self.fieldContext = fieldContext
     self.delivery = delivery
     self.audio = audio
   }
@@ -88,12 +93,37 @@ public struct HistoryEntry: Equatable, Codable, Sendable, Identifiable {
   /// Human-verified ground truth: what was actually said, supplied by a person who listened.
   /// Nil until then — engine output is never promoted to reference.
   public var reference: String?
+  /// The field context that conditioned this dictation, captured once before cleanup and reused
+  /// by delivery's join. Persisted so the benchmark harness can replay the real prompt — and so a
+  /// re-transcription's cleanup pass can be conditioned exactly as the dictation's was; nil when
+  /// the capture failed or delivery was never reached.
+  public var fieldContext: FocusedTextContext?
   public var delivery: Delivery?
   public var audio: AudioMetadata?
 
-  /// The text the pane shows: the newest transcription of the audio, original included.
+  /// The newest opinion on the audio, original included. Every question the pane asks of an
+  /// entry's text is a question about this one transcription.
+  public var currentTranscription: Transcription? {
+    retranscriptions.last ?? original
+  }
+
+  /// What the engine said, without its polish.
   public var currentText: String? {
-    (retranscriptions.last ?? original)?.text
+    currentTranscription?.text
+  }
+
+  /// The text the pane shows.
+  public var displayText: String? {
+    currentTranscription.map { $0.cleanup?.cleanedText ?? $0.text }
+  }
+
+  /// The transcript underneath the displayed text, or nil when the row already shows it — which
+  /// is also what says whether there is anything to reveal.
+  public var revealedText: String? {
+    guard let current = currentTranscription, current.cleanup?.cleanedText != nil else {
+      return nil
+    }
+    return current.text
   }
 
   public mutating func addRetranscription(_ transcription: Transcription) {
@@ -103,13 +133,17 @@ public struct HistoryEntry: Equatable, Codable, Sendable, Identifiable {
 
 // MARK: - Transcription
 
+/// One pass of the engine over a recording, and whatever the cleanup pass made of it. The two
+/// travel together because they are one processing run: a transcription's polish is a fact about
+/// that transcription, not about the entry, so a re-transcription answers for its own.
 public struct Transcription: Equatable, Codable, Sendable {
   // MARK: Lifecycle
 
-  public init(text: String, engine: String, transcribedAt: Date) {
+  public init(text: String, engine: String, transcribedAt: Date, cleanup: CleanupRecord? = nil) {
     self.text = text
     self.engine = engine
     self.transcribedAt = transcribedAt
+    self.cleanup = cleanup
   }
 
   // MARK: Public
@@ -118,6 +152,7 @@ public struct Transcription: Equatable, Codable, Sendable {
   /// Fixed model identity, e.g. the Hugging Face repository the engine loaded.
   public let engine: String
   public let transcribedAt: Date
+  public var cleanup: CleanupRecord?
 }
 
 // MARK: - TargetApp

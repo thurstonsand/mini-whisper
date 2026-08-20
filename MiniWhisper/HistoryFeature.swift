@@ -5,6 +5,7 @@ import History
 import OSLog
 import SpeechDictionary
 import SwiftUI
+import TranscriptCleanup
 
 // MARK: - HistoryFeature
 
@@ -28,11 +29,13 @@ import SwiftUI
       log: Shared<HistoryLog>, retention: Shared<RetentionPolicy>,
       dictionary: Shared<DictionaryContents>,
       improveRecognition: Shared<Bool>,
+      cleanup: Shared<CleanupSettings>,
     ) {
       _log = log
       _retention = retention
       _dictionary = dictionary
       _improveRecognition = improveRecognition
+      _cleanup = cleanup
     }
 
     // MARK: Internal
@@ -40,9 +43,14 @@ import SwiftUI
     @Shared var log: HistoryLog
     @Shared var dictionary: DictionaryContents
     @Shared var improveRecognition: Bool
+    /// A re-transcription is a dictation minus the delivery, so it polishes under whatever the
+    /// pane says right now — not under whatever governed the dictation months ago.
+    @Shared var cleanup: CleanupSettings
     var search = ""
     var cursor: UUID?
     var copiedEntryID: UUID?
+    /// ⌥ held: every row with a transcript under its text shows it, and copying takes it.
+    var isRevealingRawText = false
     var playingEntryID: UUID?
     var retranscribingEntryIDs: Set<UUID> = []
     var retranscriptionFailures: [UUID: String] = [:]
@@ -56,7 +64,7 @@ import SwiftUI
         return log.entries
       }
       return log.entries.filter {
-        $0.currentText?.localizedCaseInsensitiveContains(query) == true
+        $0.displayText?.localizedCaseInsensitiveContains(query) == true
       }
     }
 
@@ -90,6 +98,7 @@ import SwiftUI
     case cursorHovered(UUID)
     case copyRequested
     case rowTapped(UUID)
+    case revealChanged(Bool)
     case copyFailed(String)
     case copyFinished(UUID)
     case playTapped(UUID)
@@ -99,7 +108,7 @@ import SwiftUI
     case deleteCompleted(UUID)
     case deleteFailed(UUID, String)
     case retranscribeTapped(UUID)
-    case retranscriptionCompleted(UUID, TranscriptionOutcome)
+    case retranscriptionCompleted(UUID, ProcessedTranscript)
     case retranscriptionFailed(UUID, String)
     case storagePresentationChanged(Bool)
     case retentionProposed(RetentionPolicy.Key, RetentionTTL)
@@ -156,6 +165,11 @@ import SwiftUI
       case let .rowTapped(id):
         state.cursor = id
         return copy(id, state: &state)
+      // The peek is the whole pane's, not one row's: every transcript a cleanup pass rewrote
+      // comes back for as long as the key is down.
+      case let .revealChanged(isRevealing):
+        state.isRevealingRawText = isRevealing
+        return .none
       case let .copyFailed(message):
         historyLogger.error("History copy failed: \(message, privacy: .public)")
         return .none
@@ -214,29 +228,41 @@ import SwiftUI
       case let .deleteFailed(_, message):
         historyLogger.error("History deletion failed: \(message, privacy: .public)")
         return .none
+      // A re-run is the same processing a dictation gets — the engine, then the cleanup pass —
+      // conditioned by the facts the entry kept: the field the words were meant for and the
+      // application they were bound for, against today's vocabulary and today's pane.
       case let .retranscribeTapped(id):
-        guard state.log.entries.first(where: { $0.id == id })?.audio != nil else {
+        guard let entry = state.log.entries.first(where: { $0.id == id }), entry.audio != nil
+        else {
           return .none
         }
         let dictionary = state.dictionary.transcriptionDictionary(
           boostsVocabulary: state.improveRecognition,
         )
+        let conditioning = CleanupConditioning(
+          fieldContext: entry.fieldContext,
+          vocabulary: state.dictionary.vocabulary.map(\.text),
+          targetBundleID: entry.targetApp?.bundleID,
+        )
+        let cleanup = state.cleanup
         state.retranscribingEntryIDs.insert(id)
         state.retranscriptionFailures[id] = nil
         return .run { send in
           do {
             let recording = try await historyClient.loadAudio(id)
-            let outcome = try await asrEngine.submit(recording, dictionary)
-            await send(.retranscriptionCompleted(id, outcome))
+            let processed = try await TranscriptPipeline().process(
+              recording, dictionary: dictionary, conditioning: conditioning, settings: cleanup,
+            )
+            await send(.retranscriptionCompleted(id, processed))
           } catch { await send(.retranscriptionFailed(id, error.localizedDescription)) }
         }
-      case let .retranscriptionCompleted(id, outcome):
+      case let .retranscriptionCompleted(id, processed):
         state.retranscribingEntryIDs.remove(id)
-        guard case let .transcript(text) = outcome,
+        guard case let .transcript(text) = processed.outcome,
               let index = state.log.entries.firstIndex(where: { $0.id == id })
         else {
           let message =
-            switch outcome {
+            switch processed.outcome {
             case .tooShort:
               "The recording is too short to transcribe."
             case .noSpeech:
@@ -252,7 +278,10 @@ import SwiftUI
         }
         state.$log.withLock {
           $0.entries[index].addRetranscription(
-            Transcription(text: text, engine: asrEngine.identity(), transcribedAt: now),
+            Transcription(
+              text: text, engine: asrEngine.identity(), transcribedAt: now,
+              cleanup: processed.cleanup,
+            ),
           )
         }
         return save(state.$log)
@@ -287,8 +316,14 @@ import SwiftUI
 
   // MARK: Private
 
+  /// A copy takes what the row is showing, which is what the peek changes: ⌥ held copies the
+  /// transcript, exactly as the row reads under the same key.
   private func copy(_ id: UUID, state: inout State) -> Effect<Action> {
-    guard let text = state.log.entries.first(where: { $0.id == id })?.currentText else {
+    guard let entry = state.log.entries.first(where: { $0.id == id }),
+          let text = state.isRevealingRawText
+          ? entry.revealedText ?? entry.displayText
+          : entry.displayText
+    else {
       return .none
     }
     state.copiedEntryID = id

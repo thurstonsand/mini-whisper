@@ -10,7 +10,10 @@
 /// `before` ends where the selection starts, `selected` is the text a paste replaces, and `after`
 /// starts where the selection ends. Each slice comes from its own bounded range read; a payload
 /// exists only when every slice succeeded, so there is no partial capture.
-public struct FocusedTextContext: Equatable, Sendable {
+///
+/// It is `Codable` because History persists the capture that conditioned a cleanup pass, so the
+/// benchmark harness can replay the prompt the model actually saw.
+public struct FocusedTextContext: Equatable, Codable, Sendable {
   // MARK: Lifecycle
 
   public init(

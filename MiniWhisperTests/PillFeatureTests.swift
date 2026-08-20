@@ -241,6 +241,59 @@ import Testing
     await clock.advance(by: .seconds(4))
   }
 
+  @Test func `the skip affordance stays hidden until the wait is worth naming`() async {
+    let clock = TestClock()
+    var state = PillFeature.State()
+    state.presentation = .transcribing
+    let store = TestStore(initialState: state) { PillFeature() } withDependencies: {
+      $0.continuousClock = clock
+    }
+
+    await store.send(.polishingStarted(skipComponents: ["⌥ Opt →"])) {
+      $0.presentation = .polishing(
+        PillFeature.State.Presentation.Polishing(skipComponents: ["⌥ Opt →"]),
+      )
+    }
+    await clock.advance(by: .milliseconds(2999))
+    await clock.advance(by: .milliseconds(1))
+    await store.receive(.skipAffordanceRevealed) {
+      $0.presentation = .polishing(
+        PillFeature.State.Presentation.Polishing(
+          skipComponents: ["⌥ Opt →"], isSkipRevealed: true,
+        ),
+      )
+    }
+  }
+
+  @Test func `a cleanup that finishes first takes its reveal with it`() async {
+    let clock = TestClock()
+    let store = TestStore(initialState: PillFeature.State()) { PillFeature() } withDependencies: {
+      $0.continuousClock = clock
+    }
+
+    await store.send(.polishingStarted(skipComponents: ["⌥ Opt →"])) {
+      $0.presentation = .polishing(
+        PillFeature.State.Presentation.Polishing(skipComponents: ["⌥ Opt →"]),
+      )
+    }
+    await store.send(.dismiss) { $0.presentation = nil }
+    await clock.advance(by: .seconds(5))
+  }
+
+  /// A binding the user has removed leaves nothing to press, so the chip has nothing to say.
+  @Test func `an unbound activation reveals no chip`() async {
+    let clock = TestClock()
+    let store = TestStore(initialState: PillFeature.State()) { PillFeature() } withDependencies: {
+      $0.continuousClock = clock
+    }
+
+    await store.send(.polishingStarted(skipComponents: [])) {
+      $0.presentation = .polishing(PillFeature.State.Presentation.Polishing(skipComponents: []))
+    }
+    await clock.advance(by: .seconds(3))
+    await store.receive(.skipAffordanceRevealed)
+  }
+
   @Test func `successful dismissal hides immediately`() async {
     var state = PillFeature.State()
     state.presentation = .transcribing

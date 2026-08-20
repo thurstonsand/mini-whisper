@@ -6,7 +6,7 @@ import Foundation
 /// A real socket on localhost speaking just enough HTTP to be an OpenAI-compatible gateway, so the
 /// smoke exercises URLSession itself rather than a protocol stub. `/slow` never answers, which is
 /// what a skip has to survive.
-final class MockEndpoint: @unchecked Sendable {
+public final class MockEndpoint: @unchecked Sendable {
   // MARK: Lifecycle
 
   private init(descriptor: Int32, port: UInt16) {
@@ -14,11 +14,11 @@ final class MockEndpoint: @unchecked Sendable {
     self.port = port
   }
 
-  // MARK: Internal
+  // MARK: Public
 
   /// Deliberately wrapped in the debris a real model produces, so the printed outcome shows
   /// shaping doing its job.
-  static let wrappedReply = """
+  public static let wrappedReply = """
   <think>The speaker dictated a shell command.</think>
   Cleaned transcript:
   ```
@@ -26,15 +26,15 @@ final class MockEndpoint: @unchecked Sendable {
   ```
   """
 
-  var baseURL: URL {
+  public var baseURL: URL {
     URL(string: "http://127.0.0.1:\(port)/v1")!
   }
 
-  var slowBaseURL: URL {
+  public var slowBaseURL: URL {
     URL(string: "http://127.0.0.1:\(port)/slow/v1")!
   }
 
-  static func start() -> MockEndpoint {
+  public static func start() -> MockEndpoint {
     let descriptor = socket(AF_INET, SOCK_STREAM, 0)
     precondition(descriptor >= 0, "socket() failed: \(errno)")
     var reuse: Int32 = 1
@@ -64,7 +64,7 @@ final class MockEndpoint: @unchecked Sendable {
     return endpoint
   }
 
-  func stop() {
+  public func stop() {
     close(descriptor)
   }
 

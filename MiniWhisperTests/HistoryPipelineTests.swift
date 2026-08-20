@@ -57,7 +57,10 @@ import TranscriptCleanup
         text: "dictated text", engine: "test-engine@revision", transcribedAt: transcribedAt,
       )
     }
-    await store.receive(.contextCaptured(1, captured)) { $0.currentFocusedContext = captured }
+    await store.receive(.contextCaptured(1, captured, targetApp)) {
+      $0.pendingDictation?.capture = captured
+      $0.pendingDictation?.targetApp = targetApp
+    }
     await store.receive(
       .deliveryCompleted(
         1,
@@ -66,7 +69,6 @@ import TranscriptCleanup
         ),
       ),
     ) {
-      $0.currentFocusedContext = nil
       $0.pendingDictation?.isFinishing = true
     }
     await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
@@ -75,6 +77,7 @@ import TranscriptCleanup
       original: History.Transcription(
         text: "dictated text", engine: "test-engine@revision", transcribedAt: transcribedAt,
       ),
+      fieldContext: historyContext(before: "Ready."),
       delivery: Delivery(text: " Dictated text", method: .pasted, detail: nil), audio: metadata,
     )
     await store.receive(.historyEntryPrepared(1, entry))
@@ -444,6 +447,44 @@ import TranscriptCleanup
     #expect(store.state.settings.retention == policy)
   }
 
+  /// After a relaunch the in-memory transcript is gone and the history head is the only source
+  /// left, so what it pastes is what the pane shows.
+  @Test func `paste last from the history head pastes the cleaned text`() async throws {
+    let id = try #require(UUID(uuidString: "00000000-0000-0000-0000-000000000009"))
+    let createdAt = Date(timeIntervalSince1970: 100)
+    let endpoint = try #require(URL(string: "https://gateway.example/v1"))
+    let entry = HistoryEntry(
+      id: id, createdAt: createdAt, targetApp: nil,
+      original: History.Transcription(
+        text: "dash dash help", engine: "test-engine", transcribedAt: createdAt,
+        cleanup: CleanupRecord(
+          disposition: .cleaned("Use --help."), model: "gpt-oss-120b",
+          endpoint: endpoint, durationSeconds: 1.2,
+        ),
+      ),
+      delivery: Delivery(text: "Use --help.", method: .pasted, detail: nil), audio: nil,
+    )
+    let state = AppFeature.State(
+      history: Shared(value: HistoryLog(entries: [entry])), settings: Shared(value: .defaults),
+    )
+    let delivered = DeliveredTextRecorder()
+    let store = TestStore(initialState: state) {
+      AppFeature()
+    } withDependencies: {
+      $0.contextCapture.capture = { _ in .available(historyContext(before: "")) }
+      $0.delivery.deliver = { text in
+        await delivered.record(text)
+        return .pasted(.restored)
+      }
+      $0.workspace.frontmostApplication = { nil }
+    }
+    store.exhaustivity = .off(showSkippedAssertions: false)
+
+    await store.send(.pasteLastTranscript)
+    await store.finish()
+    #expect(await delivered.texts == ["Use --help."])
+  }
+
   @Test func `unreadable history is not overwritten by a completed dictation`() async throws {
     let root = FileManager.default.temporaryDirectory.appending(
       path: "history-corrupt-\(UUID().uuidString)", directoryHint: .isDirectory,
@@ -574,6 +615,16 @@ private actor HistoryMaintenanceRecorder {
 
   func recordDeletion(_ ids: [UUID]) {
     deletedIDs.append(contentsOf: ids)
+  }
+}
+
+// MARK: - DeliveredTextRecorder
+
+private actor DeliveredTextRecorder {
+  private(set) var texts: [String] = []
+
+  func record(_ text: String) {
+    texts.append(text)
   }
 }
 

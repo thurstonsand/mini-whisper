@@ -3,6 +3,7 @@ import AudioCapture
 import ComposableArchitecture
 import Foundation
 import HotkeyListener
+import TranscriptCleanup
 
 #if DEBUG
   extension AgentDriveabilityScene {
@@ -54,6 +55,18 @@ import HotkeyListener
       // playback paint state, so the scene only has to keep the machine quiet.
       dependencies.sounds.availableNames = { ["Basso", "Funk", "Glass", "Pop"] }
       dependencies.sounds.play = { _ in }
+      // The pane's key really is read, stored, and re-read; only the Keychain behind it is the
+      // scene's, so a UI run cannot leave a credential on the machine.
+      dependencies.keychain = KeychainClient(
+        store: { secret, _ in sceneState.cleanupKey = secret },
+        read: { _ in sceneState.cleanupKey },
+        delete: { _ in sceneState.cleanupKey = nil },
+      )
+      dependencies.cleanup = CleanupClient(
+        clean: { _, _, _ in .cleaned("Agent scenes never dictate.") },
+        verify: { _, _ in .verified },
+        listModels: { _, _ in .models(["gpt-oss-120b", "gpt-oss-20b"]) },
+      )
       dependencies.launchAtLogin = LaunchAtLoginClient(
         isRegistered: { sceneState.launchAtLoginRegistered },
         setRegistered: { sceneState.launchAtLoginRegistered = $0 },
@@ -94,6 +107,7 @@ import HotkeyListener
       _microphoneStatus = seeded.health.micStatus
       _accessibilityGranted = seeded.health.accessibilityGranted
       _launchAtLoginRegistered = seeded.settingsWindow.settingsPane.launchAtLoginRegistered
+      _cleanupKey = scene.seededCleanupKey
     }
 
     // MARK: Internal
@@ -117,12 +131,18 @@ import HotkeyListener
       set { lock.withLock { _launchAtLoginRegistered = newValue } }
     }
 
+    var cleanupKey: String? {
+      get { lock.withLock { _cleanupKey } }
+      set { lock.withLock { _cleanupKey = newValue } }
+    }
+
     func reseed(for scene: AgentDriveabilityScene) {
       let seeded = scene.initialState
       lock.withLock {
         _microphoneStatus = seeded.health.micStatus
         _accessibilityGranted = seeded.health.accessibilityGranted
         _launchAtLoginRegistered = seeded.settingsWindow.settingsPane.launchAtLoginRegistered
+        _cleanupKey = scene.seededCleanupKey
       }
     }
 
@@ -132,5 +152,6 @@ import HotkeyListener
     private var _microphoneStatus: MicPermissionStatus
     private var _accessibilityGranted: Bool
     private var _launchAtLoginRegistered: Bool
+    private var _cleanupKey: String?
   }
 #endif

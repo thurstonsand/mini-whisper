@@ -99,6 +99,23 @@ enum AccessibilityID {
   static let dictionaryImproveRecognitionInfo = "miniwhisper.dictionary.improve-recognition.info"
   static let dictionaryImproveRecognitionPopover =
     "miniwhisper.dictionary.improve-recognition.popover"
+  static let cleanupEnabled = "miniwhisper.cleanup.enabled"
+  static let cleanupEnabledRing = "miniwhisper.cleanup.enabled.ring"
+  static let cleanupTimeout = "miniwhisper.cleanup.timeout"
+  static let cleanupEndpoint = "miniwhisper.cleanup.endpoint"
+  static let cleanupKeyRow = "miniwhisper.cleanup.key"
+  static let cleanupKeyField = "miniwhisper.cleanup.key.field"
+  static let cleanupKeyStored = "miniwhisper.cleanup.key.stored"
+  static let cleanupKeyReplace = "miniwhisper.cleanup.key.replace"
+  static let cleanupModelRow = "miniwhisper.cleanup.model.row"
+  static let cleanupModel = "miniwhisper.cleanup.model"
+  static let cleanupModelListing = "miniwhisper.cleanup.model.listing"
+  static let cleanupLoadModels = "miniwhisper.cleanup.model.load"
+  static let cleanupCustomModel = "miniwhisper.cleanup.model.custom"
+  static let cleanupSave = "miniwhisper.cleanup.save"
+  static let cleanupSaveResult = "miniwhisper.cleanup.save.result"
+  static let cleanupInstructions = "miniwhisper.cleanup.instructions"
+  static let cleanupEditing = "miniwhisper.cleanup.editing"
   static let dictionaryAdd = "miniwhisper.dictionary.add"
   static let dictionaryText = "miniwhisper.dictionary.text"
   static let dictionaryMisspelling = "miniwhisper.dictionary.misspelling"
@@ -188,11 +205,16 @@ enum AccessibilityID {
   static let pillInputDevice = "miniwhisper.pill.input-device"
   static let pillAudioLevel = "miniwhisper.pill.audio-level"
   static let pillNotice = "miniwhisper.pill.notice"
+  static let pillSkipAffordance = "miniwhisper.pill.skip-affordance"
 
   static let settingsEngineStatus = "miniwhisper.settings.engine-status"
 
   static func menuRepair(_ degradation: Degradation) -> String {
     "miniwhisper.menu.repair.\(degradation.rawValue)"
+  }
+
+  static func cleanupRowState(_ row: CleanupFeature.Row) -> String {
+    "miniwhisper.cleanup.row.\(row).state"
   }
 
   static func settingsRepairRow(_ degradation: Degradation) -> String {
@@ -225,6 +247,10 @@ enum AccessibilityID {
 
   static func historyCopied(_ id: UUID) -> String {
     "miniwhisper.history.copied.\(id.uuidString)"
+  }
+
+  static func historyCleaned(_ id: UUID) -> String {
+    "miniwhisper.history.cleaned.\(id.uuidString)"
   }
 
   static func dictionaryRow(_ id: DictionaryFeature.EntryID) -> String {
