@@ -154,7 +154,7 @@ No SDK (supply-chain surface on a strict allowlist), no Responses API (no primar
   - Work: the pane per the ticket-16 contract and mock — toggle with its footer, endpoint, the API-key state machine over the Keychain, model picker with best-effort listing falling through to Custom, the "Give up after" preset picker, additional instructions, Save as the bounded verify with quiet `Saved`/specific failure; full cursor-grammar citizenship; deterministic agent scenes.
   - Validation: XCUITest batch for the pane's laws via `mise run test:ui:settings`; `mise run lint`.
 
-- [ ] Phase 7: Evidence and closure
+- [x] Phase 7: Evidence and closure
   - Goal: the vertical proven and the docs honest.
   - Files: `CONTEXT.md`, `DEV.md` if commands changed; the map.
   - Work: an end-to-end pass against a real endpoint — dictation cleaned and delivered, skip exercised, outage exercised; update the glossary's cleanup-pass entry to the shipped meaning; run the update-docs skill.
