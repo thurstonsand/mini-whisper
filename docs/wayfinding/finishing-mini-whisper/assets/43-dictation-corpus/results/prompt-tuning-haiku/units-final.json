@@ -1,0 +1,27 @@
+[
+  {
+    "name": "identifier",
+    "remove": " Every name the speaker says as separate words that the context writes as one token is written the context's way, including a name introduced by \"the\" and including one that keeps its capitals.",
+    "replace": ""
+  },
+  {
+    "name": "conventional-spelling",
+    "remove": " Spell a well-known path, flag, or command the conventional way rather than as a homophone of it.",
+    "replace": ""
+  },
+  {
+    "name": "attachment",
+    "remove": " A converted symbol joins the word beside it with no space between them.",
+    "replace": ""
+  },
+  {
+    "name": "layout",
+    "remove": "\"New line\" is a single line break; \"new paragraph\" is a blank line between paragraphs. ",
+    "replace": ""
+  },
+  {
+    "name": "spell-out",
+    "remove": "When the speaker spells a word aloud — naming a letter it contains, or reciting it letter by letter — the letters say how to write the word and are not themselves content: write the word the spelled way and drop the spelling aside. ",
+    "replace": ""
+  }
+]

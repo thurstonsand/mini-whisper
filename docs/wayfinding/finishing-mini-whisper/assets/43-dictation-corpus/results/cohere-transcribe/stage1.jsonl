@@ -1,0 +1,25 @@
+{"audioSeconds": 2.5849375, "id": "harvard-01-01", "latencyMs": 123.73858294449747, "outcome": "transcript", "transcript": "The birch canoe slid on the smooth planks."}
+{"audioSeconds": 3.2989375, "id": "harvard-01-02", "latencyMs": 96.48991702124476, "outcome": "transcript", "transcript": "Glue the sheet to the dark blue background."}
+{"audioSeconds": 2.499625, "id": "harvard-01-03", "latencyMs": 263.19604204036295, "outcome": "transcript", "transcript": "It's easy to tell the depth of a well."}
+{"audioSeconds": 2.6869375, "id": "harvard-01-04", "latencyMs": 93.53175014257431, "outcome": "transcript", "transcript": "These days, a chicken leg is a rare dish."}
+{"audioSeconds": 3.2989375, "id": "harvard-01-05", "latencyMs": 97.29199996218085, "outcome": "transcript", "transcript": "Rice is often served in round bowls."}
+{"audioSeconds": 3.58825, "id": "harvard-01-06", "latencyMs": 97.40379196591675, "outcome": "transcript", "transcript": "The juice of lemons makes fine punch."}
+{"audioSeconds": 2.9929375, "id": "harvard-01-07", "latencyMs": 94.20316619798541, "outcome": "transcript", "transcript": "The box was thrown beside the parked truck."}
+{"audioSeconds": 4.1835625, "id": "harvard-01-08", "latencyMs": 162.59283386170864, "outcome": "transcript", "transcript": "The hogs were fed chopped corn and garbage."}
+{"audioSeconds": 4.2855625, "id": "harvard-01-09", "latencyMs": 99.07200001180172, "outcome": "transcript", "transcript": "Four hours of steady work faced us."}
+{"audioSeconds": 3.58825, "id": "harvard-01-10", "latencyMs": 97.31454215943813, "outcome": "transcript", "transcript": "A large size in stockings is hard to sell."}
+{"audioSeconds": 3.1969375, "id": "confusable-01", "latencyMs": 124.21841593459249, "outcome": "transcript", "transcript": "Their car's parked over there and they're already late."}
+{"audioSeconds": 4.6935625, "id": "confusable-02", "latencyMs": 100.03366693854332, "outcome": "transcript", "transcript": "Whether the weather holds will decide the hike."}
+{"audioSeconds": 3.69025, "id": "confusable-03", "latencyMs": 97.74116589687765, "outcome": "transcript", "transcript": "He had to brake hard to avoid the break in the road."}
+{"audioSeconds": 3.89425, "id": "confusable-05", "latencyMs": 98.68879080750048, "outcome": "transcript", "transcript": "The sight sighted on the sign was quite a sight."}
+{"audioSeconds": 4.09825, "id": "confusable-08", "latencyMs": 98.02445792593062, "outcome": "transcript", "transcript": "The effect of the change will affect everyone."}
+{"audioSeconds": 3.2989375, "id": "confusable-15", "latencyMs": 97.72250009700656, "outcome": "transcript", "transcript": "Clear the cache before you count the cache."}
+{"audioSeconds": 2.7889375, "id": "confusable-16", "latencyMs": 93.83175009861588, "outcome": "transcript", "transcript": "Use git to get the latest changes."}
+{"audioSeconds": 2.5849375, "id": "confusable-17", "latencyMs": 93.74716691672802, "outcome": "transcript", "transcript": "The kernel debugged the kernel."}
+{"audioSeconds": 3.1969375, "id": "confusable-18", "latencyMs": 96.69612511061132, "outcome": "transcript", "transcript": "A weak reference won't survive the weak."}
+{"audioSeconds": 3.48625, "id": "confusable-19", "latencyMs": 97.45745803229511, "outcome": "transcript", "transcript": "The daemon process haunted him like a demon."}
+{"audioSeconds": 3.38425, "id": "confusable-20", "latencyMs": 97.33066684566438, "outcome": "transcript", "transcript": "The whole file was corrupted by a hole in the disk."}
+{"audioSeconds": 2.7889375, "id": "confusable-21", "latencyMs": 94.46912491694093, "outcome": "transcript", "transcript": "Allowed values are read aloud."}
+{"audioSeconds": 3.99625, "id": "confusable-22", "latencyMs": 98.35683298297226, "outcome": "transcript", "transcript": "The compiler threw an error through the entire build."}
+{"audioSeconds": 3.0949375, "id": "confusable-23", "latencyMs": 94.62925000116229, "outcome": "transcript", "transcript": "He won one round and lost two."}
+{"audioSeconds": 2.7889375, "id": "confusable-24", "latencyMs": 93.95254193805158, "outcome": "transcript", "transcript": "The heir to the estate had an air of calm."}

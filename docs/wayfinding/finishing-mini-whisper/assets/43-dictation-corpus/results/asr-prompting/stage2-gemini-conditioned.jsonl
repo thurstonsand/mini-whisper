@@ -1,0 +1,24 @@
+{"audioSeconds": 4.09825, "id": "dict-01", "latencyMs": 2243.9657079521567, "outcome": "transcript", "transcript": "MiniWhisper delivers the transcript into the frontmost app."}
+{"audioSeconds": 2.7889375, "id": "dict-02", "latencyMs": 2587.5730828847736, "outcome": "transcript", "transcript": "I keep three terminals open in Ghostty."}
+{"audioSeconds": 3.1969375, "id": "dict-03", "latencyMs": 1570.4637500457466, "outcome": "transcript", "transcript": "Cerebras answered in under 400 milliseconds"}
+{"audioSeconds": 5.084875, "id": "dict-04", "latencyMs": 3174.7249998152256, "outcome": "transcript", "transcript": "The gate runs 1 Silero pass at release"}
+{"audioSeconds": 3.69025, "id": "dict-05", "latencyMs": 1576.3828749768436, "outcome": "transcript", "transcript": "Parakeet handles the transcription on device."}
+{"audioSeconds": 3.58825, "id": "dict-06", "latencyMs": 2121.381417149678, "outcome": "transcript", "transcript": "FluidAudio pins the model version for us."}
+{"audioSeconds": 4.3875625, "id": "dict-07", "latencyMs": 2647.3339169751853, "outcome": "transcript", "transcript": "Wrap the dev server with tuistory so agents can read it"}
+{"audioSeconds": 2.9929375, "id": "dict-08", "latencyMs": 2013.9636248350143, "outcome": "transcript", "transcript": "The settings window is plain SwiftUI"}
+{"audioSeconds": 3.58825, "id": "dict-09", "latencyMs": 1831.2122081406415, "outcome": "transcript", "transcript": "Every surface has an XCUITest slice"}
+{"audioSeconds": 2.6869375, "id": "dict-10", "latencyMs": 2386.729625053704, "outcome": "transcript", "transcript": "The sensor bridges over Zigbee to the hub"}
+{"audioSeconds": 2.6869375, "id": "dict-11", "latencyMs": 2794.0071248449385, "outcome": "transcript", "transcript": "The base model is Qwen 3."}
+{"audioSeconds": 3.1969375, "id": "dict-12", "latencyMs": 1879.898542072624, "outcome": "transcript", "transcript": "Running locally with llama.cpp"}
+{"audioSeconds": 3.2989375, "id": "dict-13", "latencyMs": 2544.3507090676576, "outcome": "transcript", "transcript": "The API key lives in the Keychain."}
+{"audioSeconds": 2.499625, "id": "dict-14", "latencyMs": 1766.092084115371, "outcome": "transcript", "transcript": "Install the cask through Homebrew."}
+{"audioSeconds": 2.9929375, "id": "dict-15", "latencyMs": 2285.265624988824, "outcome": "transcript", "transcript": "The reducers follow TCA conventions."}
+{"audioSeconds": 4.7955625, "id": "dict-16", "latencyMs": 2796.8684160150588, "outcome": "transcript", "transcript": "Ghostty and tuistory both survived the Cerebras outage writeup"}
+{"audioSeconds": 3.58825, "id": "trap-01", "latencyMs": 2123.3592089265585, "outcome": "transcript", "transcript": "A Parakeet chattered in the pet shop window."}
+{"audioSeconds": 3.79225, "id": "trap-02", "latencyMs": 2976.0357909835875, "outcome": "transcript", "transcript": "The hall went quiet, and silence settled over the room."}
+{"audioSeconds": 3.69025, "id": "trap-03", "latencyMs": 2204.5852500014007, "outcome": "transcript", "transcript": "A ghostly draft moved through the stairwell."}
+{"audioSeconds": 4.5915625, "id": "trap-04", "latencyMs": 3688.4125410579145, "outcome": "transcript", "transcript": "His approach was cerebral, all theory and no instinct."}
+{"audioSeconds": 3.79225, "id": "trap-05", "latencyMs": 1895.1592498924583, "outcome": "transcript", "transcript": "She answered with a MiniWhisper of her own."}
+{"audioSeconds": 2.9929375, "id": "trap-06", "latencyMs": 2893.3917498216033, "outcome": "transcript", "transcript": "The Keychain rattled against the door."}
+{"audioSeconds": 2.7889375, "id": "trap-07", "latencyMs": 1324.6149998158216, "outcome": "transcript", "transcript": "The queen moved across the board."}
+{"audioSeconds": 2.397625, "id": "trap-08", "latencyMs": 5777.873957995325, "outcome": "transcript", "transcript": "llama.cpp created by ggerganov"}

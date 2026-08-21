@@ -1,0 +1,24 @@
+{"id": "dict-01", "transcript": "MiniWhisper delivers the transcript into the frontmost app.", "latencyMs": 0.0}
+{"id": "dict-02", "transcript": "I keep three terminals open in Ghostty.", "latencyMs": 0.0}
+{"id": "dict-03", "transcript": "Cerebras answered in under 400 milliseconds.", "latencyMs": 0.0}
+{"id": "dict-04", "transcript": "The gate runs one Silero pass at release", "latencyMs": 0.0}
+{"id": "dict-05", "transcript": "Parakeet handles the transcription on device", "latencyMs": 0.0}
+{"id": "dict-06", "transcript": "FluidAudio pins the model version for us", "latencyMs": 0.0}
+{"id": "dict-07", "transcript": "Wrap the dev server with tuistory so agents can read it.", "latencyMs": 0.0}
+{"id": "dict-08", "transcript": "The settings window is plain SwiftUI.", "latencyMs": 0.0}
+{"id": "dict-09", "transcript": "Every surface has an XCUITest slice", "latencyMs": 0.0}
+{"id": "dict-10", "transcript": "The sensor bridges over Zigbee to the hub.", "latencyMs": 0.0}
+{"id": "dict-11", "transcript": "The base model is Qwen3.", "latencyMs": 0.0}
+{"id": "dict-12", "transcript": "Run it locally with llama.cpp.", "latencyMs": 0.0}
+{"id": "dict-13", "transcript": "The API key lives in the Keychain.", "latencyMs": 0.0}
+{"id": "dict-14", "transcript": "Install the cask through Homebrew.", "latencyMs": 0.0}
+{"id": "dict-15", "transcript": "The reducers follow TCA conventions", "latencyMs": 0.0}
+{"id": "dict-16", "transcript": "Ghostty and Tooie's Story both survived the Cerebras outage write up", "latencyMs": 0.0}
+{"id": "trap-01", "transcript": "A parakeet chattered in the pet shop window", "latencyMs": 0.0}
+{"id": "trap-02", "transcript": "The hall went quiet, and silence settled over the room.", "latencyMs": 0.0}
+{"id": "trap-03", "transcript": "A ghostly draft moved through the stairwell", "latencyMs": 0.0}
+{"id": "trap-04", "transcript": "His approach was cerebral, all theory and no instinct.", "latencyMs": 0.0}
+{"id": "trap-05", "transcript": "She answered with a miniwhisper of her own", "latencyMs": 0.0}
+{"id": "trap-06", "transcript": "The Keychain rattled against the door", "latencyMs": 0.0}
+{"id": "trap-07", "transcript": "The Queen moved across the board.", "latencyMs": 0.0}
+{"id": "trap-08", "transcript": "A llama grazed by the fence.", "latencyMs": 0.0}

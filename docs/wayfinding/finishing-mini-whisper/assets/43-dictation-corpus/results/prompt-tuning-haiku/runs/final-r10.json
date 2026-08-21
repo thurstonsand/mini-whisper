@@ -1,0 +1,31 @@
+{
+  "label": "final",
+  "model": "claude-haiku-4-5",
+  "prompt": "candidates/final.txt",
+  "raw": "/Users/thurstonsand/Develop/mini-whisper/docs/wayfinding/finishing-mini-whisper/assets/43-dictation-corpus/results/built-in-r2/stage3-raw.jsonl",
+  "scores": [
+    19,
+    18,
+    19,
+    19,
+    18,
+    19,
+    18,
+    19,
+    19,
+    18
+  ],
+  "entries": 25,
+  "failCounts": {
+    "polish-02": 1,
+    "polish-07": 3,
+    "polish-13": 1,
+    "polish-19": 9,
+    "polish-20": 10,
+    "polish-30": 10,
+    "polish-36": 10,
+    "polish-37": 10,
+    "polish-39": 10
+  },
+  "repeats": "pruned; 10 runs, rerun with tune.py --prompt candidates/final.txt"
+}

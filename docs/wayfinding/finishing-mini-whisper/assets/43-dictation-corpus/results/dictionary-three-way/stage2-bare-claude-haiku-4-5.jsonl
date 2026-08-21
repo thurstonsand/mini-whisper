@@ -1,0 +1,24 @@
+{"id": "dict-01", "transcript": "MiniWhisper delivers the transcript into the frontmost app.", "latencyMs": 898.2, "asrLatencyMs": 61.8, "cleanupLatencyMs": 836.4, "raw": "MiniWhisper delivers the transcript into the frontmost app."}
+{"id": "dict-02", "transcript": "I keep three terminals open in Ghostty.", "latencyMs": 705.0, "asrLatencyMs": 56.4, "cleanupLatencyMs": 648.6, "raw": "I keep three terminals open in Ghosty."}
+{"id": "dict-03", "transcript": "Cerebras answered in under 400 milliseconds.", "latencyMs": 757.5, "asrLatencyMs": 58.1, "cleanupLatencyMs": 699.4, "raw": "Cerebrus answered in under 400 milliseconds."}
+{"id": "dict-04", "transcript": "The gate runs one Silero pass at release", "latencyMs": 748.5, "asrLatencyMs": 56.6, "cleanupLatencyMs": 691.9, "raw": "The gate runs one Siliro pass at release"}
+{"id": "dict-05", "transcript": "Parakeet handles the transcription on device", "latencyMs": 609.1, "asrLatencyMs": 58.2, "cleanupLatencyMs": 550.9, "raw": "Parakeet handles the transcription on device"}
+{"id": "dict-06", "transcript": "FluidAudio pins the model version for us", "latencyMs": 704.8, "asrLatencyMs": 57.8, "cleanupLatencyMs": 647.0, "raw": "Fluid Audio pins the model version for us"}
+{"id": "dict-07", "transcript": "Wrap the dev server with tuistory so agents can read it.", "latencyMs": 620.1, "asrLatencyMs": 57.7, "cleanupLatencyMs": 562.4, "raw": "Wrap the dev server with TUI story so agents can read it."}
+{"id": "dict-08", "transcript": "The settings window is SwiftUI.", "latencyMs": 746.7, "asrLatencyMs": 56.8, "cleanupLatencyMs": 689.9, "raw": "The settings window is Plain Swift UI."}
+{"id": "dict-09", "transcript": "Every surface has an XCUITest slice", "latencyMs": 1132.4, "asrLatencyMs": 55.1, "cleanupLatencyMs": 1077.3, "raw": "Every surface has an Xcui test slice"}
+{"id": "dict-10", "transcript": "The sensor bridges over Zigbee to the hub.", "latencyMs": 633.9, "asrLatencyMs": 55.6, "cleanupLatencyMs": 578.3, "raw": "The sensor bridges over Zigby to the hub."}
+{"id": "dict-11", "transcript": "The base model is Qwen3.", "latencyMs": 764.8, "asrLatencyMs": 54.2, "cleanupLatencyMs": 710.6, "raw": "The base model is Quen3."}
+{"id": "dict-12", "transcript": "Run it locally with llama.cpp.", "latencyMs": 938.3, "asrLatencyMs": 54.6, "cleanupLatencyMs": 883.7, "raw": "Run it locally with llama.cpp."}
+{"id": "dict-13", "transcript": "The API key lives in the Keychain.", "latencyMs": 711.8, "asrLatencyMs": 54.7, "cleanupLatencyMs": 657.1, "raw": "The API key lives in the keychain."}
+{"id": "dict-14", "transcript": "Install the cask through Homebrew.", "latencyMs": 713.1, "asrLatencyMs": 55.5, "cleanupLatencyMs": 657.6, "raw": "Install the cask through Homebrew."}
+{"id": "dict-15", "transcript": "The reducers follow TCA conventions", "latencyMs": 745.6, "asrLatencyMs": 53.3, "cleanupLatencyMs": 692.3, "raw": "The reducers follow TCA conventions"}
+{"id": "dict-16", "transcript": "Ghostty and Tooie's Story both survived the Cerebras outage write-up", "latencyMs": 1396.2, "asrLatencyMs": 57.4, "cleanupLatencyMs": 1338.8, "raw": "Ghosty and Tooie's Story both survived the cerebrus outage write up"}
+{"id": "trap-01", "transcript": "A parakeet chattered in the pet shop window", "latencyMs": 621.2, "asrLatencyMs": 54.7, "cleanupLatencyMs": 566.5, "raw": "A parakeet chattered in the pet shop window"}
+{"id": "trap-02", "transcript": "The hall went quiet, and silence settled over the room.", "latencyMs": 949.4, "asrLatencyMs": 55.6, "cleanupLatencyMs": 893.8, "raw": "The hall went quiet, and silence settled over the room"}
+{"id": "trap-03", "transcript": "A ghostly draught moved through the stairwell", "latencyMs": 633.1, "asrLatencyMs": 55.5, "cleanupLatencyMs": 577.6, "raw": "A ghostly draught moved through the stairwell"}
+{"id": "trap-04", "transcript": "His approach was cerebral, all theory and no instinct.", "latencyMs": 610.4, "asrLatencyMs": 55.9, "cleanupLatencyMs": 554.5, "raw": "His approach was cerebral, all theory and no instinct."}
+{"id": "trap-05", "transcript": "She answered with a MiniWhisper of her own", "latencyMs": 676.9, "asrLatencyMs": 54.4, "cleanupLatencyMs": 622.5, "raw": "She answered with a mini whisper of her own"}
+{"id": "trap-06", "transcript": "The Keychain rattled against the door", "latencyMs": 724.7, "asrLatencyMs": 54.1, "cleanupLatencyMs": 670.6, "raw": "The keychain rattled against the door"}
+{"id": "trap-07", "transcript": "The Queen moved across the board.", "latencyMs": 596.7, "asrLatencyMs": 53.9, "cleanupLatencyMs": 542.8, "raw": "The Queen moved across the board."}
+{"id": "trap-08", "transcript": "A llama grazed by the fence.", "latencyMs": 755.7, "asrLatencyMs": 54.7, "cleanupLatencyMs": 701.0, "raw": "A llama grazed by the fence."}

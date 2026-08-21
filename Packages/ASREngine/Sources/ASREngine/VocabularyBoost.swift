@@ -61,18 +61,24 @@ actor VocabularyBoost {
 actor FluidVocabularyBoostBackend: VocabularyBoostBackend {
   // MARK: Lifecycle
 
-  private init(directory: URL, models: CtcModels, tokenizer: CtcTokenizer) {
+  private init(
+    directory: URL, models: CtcModels, tokenizer: CtcTokenizer,
+    thresholds: RecognitionBoostThresholds,
+  ) {
     self.directory = directory
     self.tokenizer = tokenizer
+    self.thresholds = thresholds
     spotter = CtcKeywordSpotter(models: models, blankId: models.vocabulary.count)
   }
 
   // MARK: Internal
 
-  static func load(from directory: URL) async throws -> FluidVocabularyBoostBackend {
+  static func load(
+    from directory: URL, thresholds: RecognitionBoostThresholds,
+  ) async throws -> FluidVocabularyBoostBackend {
     try await FluidVocabularyBoostBackend(
       directory: directory, models: CtcModels.loadDirect(from: directory),
-      tokenizer: CtcTokenizer.load(from: directory),
+      tokenizer: CtcTokenizer.load(from: directory), thresholds: thresholds,
     )
   }
 
@@ -83,22 +89,21 @@ actor FluidVocabularyBoostBackend: VocabularyBoostBackend {
         return nil
       }
       return CustomVocabularyTerm(
-        text: text, ctcTokenIds: tokenIDs,
-        minSimilarity: RecognitionBoostThresholds.minimumSimilarity,
+        text: text, ctcTokenIds: tokenIDs, minSimilarity: thresholds.minimumSimilarity,
       )
     }
     let vocabulary = CustomVocabularyContext(
       terms: tokenizedTerms,
       minCtcScore: RecognitionBoostThresholds.minimumVocabularyCTCScore,
-      minSimilarity: RecognitionBoostThresholds.minimumSimilarity,
+      minSimilarity: thresholds.minimumSimilarity,
       minTermLength: RecognitionBoostThresholds.minimumTermLength,
     )
     self.vocabulary = vocabulary
     rescorer = try await VocabularyRescorer.create(
       spotter: spotter, vocabulary: vocabulary,
       config: VocabularyRescorer.Config(
-        spotterRescueMinSimilarity: RecognitionBoostThresholds.minimumSimilarity,
-        spotterRescueMultiWordMinSimilarity: RecognitionBoostThresholds.minimumSimilarity,
+        spotterRescueMinSimilarity: thresholds.minimumSimilarity,
+        spotterRescueMultiWordMinSimilarity: thresholds.minimumSimilarity,
       ),
       ctcModelDirectory: directory,
     )
@@ -122,7 +127,7 @@ actor FluidVocabularyBoostBackend: VocabularyBoostBackend {
       frameDuration: spotted.frameDuration,
       cbw: RecognitionBoostThresholds.contextBiasingWeight,
       marginSeconds: RecognitionBoostThresholds.marginSeconds,
-      minSimilarity: RecognitionBoostThresholds.minimumSimilarity,
+      minSimilarity: thresholds.minimumSimilarity,
     )
     .text
   }
@@ -130,6 +135,7 @@ actor FluidVocabularyBoostBackend: VocabularyBoostBackend {
   // MARK: Private
 
   private let directory: URL
+  private let thresholds: RecognitionBoostThresholds
   private let tokenizer: CtcTokenizer
   private let spotter: CtcKeywordSpotter
   private var vocabulary: CustomVocabularyContext?

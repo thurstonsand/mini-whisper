@@ -1,0 +1,1923 @@
+{
+  "label": "final",
+  "model": "claude-haiku-4-5",
+  "prompt": "candidates/final.txt",
+  "raw": "/Users/thurstonsand/Develop/mini-whisper/docs/wayfinding/finishing-mini-whisper/assets/43-dictation-corpus/results/holdout/stage3-raw.jsonl",
+  "scores": [
+    8,
+    8,
+    7,
+    7,
+    7,
+    8,
+    7,
+    7,
+    8,
+    8
+  ],
+  "entries": 15,
+  "failCounts": {
+    "hpolish-01": 10,
+    "hpolish-02": 1,
+    "hpolish-03": 10,
+    "hpolish-04": 10,
+    "hpolish-05": 4,
+    "hpolish-07": 10,
+    "hpolish-10": 10,
+    "hpolish-11": 10,
+    "hpolish-14": 9,
+    "hpolish-15": 1
+  },
+  "repeats": [
+    [
+      {
+        "id": "hpolish-01",
+        "tags": [
+          "disfluency",
+          "restart"
+        ],
+        "say": "Um so the deploy is... wait actually no, hold off until the tests uh finish.",
+        "expect": "Hold off until the tests finish.",
+        "raw": "Um so the deploy is wait actually no, hold off until the tests uh finish",
+        "cleaned": "So the deploy is, wait, actually no, hold off until the tests finish.",
+        "match": false
+      },
+      {
+        "id": "hpolish-02",
+        "tags": [
+          "symbols",
+          "flag"
+        ],
+        "say": "Run the linter with dash dash fix and commit the result period",
+        "expect": "Run the linter with --fix and commit the result.",
+        "raw": "Run the linter with dash dash fix and commit the result, period.",
+        "cleaned": "Run the linter with --fix and commit the result.",
+        "match": true
+      },
+      {
+        "id": "hpolish-03",
+        "tags": [
+          "identifier",
+          "context"
+        ],
+        "say": "Have retry queue call on failure with the last error period",
+        "expect": "Have RetryQueue call onFailure with the last error.",
+        "context": {
+          "before": "final class RetryQueue {\n  var onFailure: ((Error) -> Void)?"
+        },
+        "raw": "Have retryQ call on failure with the last error period.",
+        "cleaned": "Have retryQ call onFailure with the last error.",
+        "match": false
+      },
+      {
+        "id": "hpolish-04",
+        "tags": [
+          "spell-out",
+          "disambiguation"
+        ],
+        "say": "Send the invoice through Xero with an X period",
+        "expect": "Send the invoice through Xero.",
+        "raw": "Send the invoice through zero with an X.",
+        "cleaned": "Send the invoice through 0X.",
+        "match": false
+      },
+      {
+        "id": "hpolish-05",
+        "tags": [
+          "numbers",
+          "time"
+        ],
+        "say": "Let's meet at eleven thirty AM on June ninth period",
+        "expect": "Let's meet at 11:30 a.m. on June 9th.",
+        "raw": "Let's meet at 11.30am on June 9th.",
+        "cleaned": "Let's meet at 11:30 a.m. on June 9th.",
+        "match": true
+      },
+      {
+        "id": "hpolish-06",
+        "tags": [
+          "disfluency",
+          "repetition"
+        ],
+        "say": "We we should land the the patch today.",
+        "expect": "We should land the patch today.",
+        "raw": "We we should land the the patch today.",
+        "cleaned": "We should land the patch today.",
+        "match": true
+      },
+      {
+        "id": "hpolish-07",
+        "tags": [
+          "disfluency",
+          "backtrack"
+        ],
+        "say": "Merge it tonight... actually no, wait for CI.",
+        "expect": "Wait for CI.",
+        "raw": "Merge it tonight, actually no, wait for C I",
+        "cleaned": "Merge it tonight, actually no, wait for CI",
+        "match": false
+      },
+      {
+        "id": "hpolish-08",
+        "tags": [
+          "disfluency",
+          "backtrack"
+        ],
+        "say": "Add a comment there. Scratch that, rename the variable instead.",
+        "expect": "Rename the variable instead.",
+        "raw": "Add a comment there, scratch that, rename the variable instead.",
+        "cleaned": "Rename the variable instead.",
+        "match": true
+      },
+      {
+        "id": "hpolish-09",
+        "tags": [
+          "disfluency",
+          "repair"
+        ],
+        "say": "Put it in the utils folder, I mean the helpers folder.",
+        "expect": "Put it in the helpers folder.",
+        "raw": "Put it in the utils folder. Uh I mean the helpers folder.",
+        "cleaned": "Put it in the helpers folder.",
+        "match": true
+      },
+      {
+        "id": "hpolish-10",
+        "tags": [
+          "disfluency",
+          "backtrack",
+          "restart"
+        ],
+        "say": "So the fix is... um hold on. Just revert the last commit.",
+        "expect": "Just revert the last commit.",
+        "raw": "So the fix is um hold on, just revert the last commit",
+        "cleaned": "So the fix is, hold on, just revert the last commit.",
+        "match": false
+      },
+      {
+        "id": "hpolish-11",
+        "tags": [
+          "disfluency",
+          "repair",
+          "numbers"
+        ],
+        "say": "Set the timeout to thirty, no wait, forty five seconds.",
+        "expect": "Set the timeout to 45 seconds.",
+        "raw": "Set the timeout to thirty, no wait, forty-five seconds",
+        "cleaned": "Set the timeout to forty-five seconds",
+        "match": false
+      },
+      {
+        "id": "hpolish-12",
+        "tags": [
+          "disfluency",
+          "repair"
+        ],
+        "say": "The meeting is Tuesday, no Wednesday, no wait, Thursday.",
+        "expect": "The meeting is Thursday.",
+        "raw": "The meeting is Tuesday, no Wednesday, no wait Thursday.",
+        "cleaned": "The meeting is Thursday.",
+        "match": true
+      },
+      {
+        "id": "hpolish-13",
+        "tags": [
+          "disfluency",
+          "backtrack",
+          "spell-out"
+        ],
+        "say": "Email Mia, that's M I A, no wait, email Mara about it.",
+        "expect": "Email Mara about it.",
+        "raw": "Email Mia, that's mi-a no wait, email Mara about it.",
+        "cleaned": "Email Mara about it.",
+        "match": true
+      },
+      {
+        "id": "hpolish-14",
+        "tags": [
+          "disfluency",
+          "filler"
+        ],
+        "say": "Send the uh the report to to Dana by Friday.",
+        "expect": "Send the report to Dana by Friday.",
+        "raw": "Send the uh the report to uh to Dana by Friday",
+        "cleaned": "Send the report to Dana by Friday",
+        "match": false
+      },
+      {
+        "id": "hpolish-15",
+        "tags": [
+          "disfluency",
+          "backtrack",
+          "symbols"
+        ],
+        "say": "Run it with dash dash force, hmm actually, run it plain first.",
+        "expect": "Run it plain first.",
+        "raw": "Run it with dash dash force. Actually, run it plain first.",
+        "cleaned": "Run it plain first.",
+        "match": true
+      }
+    ],
+    [
+      {
+        "id": "hpolish-01",
+        "tags": [
+          "disfluency",
+          "restart"
+        ],
+        "say": "Um so the deploy is... wait actually no, hold off until the tests uh finish.",
+        "expect": "Hold off until the tests finish.",
+        "raw": "Um so the deploy is wait actually no, hold off until the tests uh finish",
+        "cleaned": "So the deploy is — wait, actually no, hold off until the tests finish.",
+        "match": false
+      },
+      {
+        "id": "hpolish-02",
+        "tags": [
+          "symbols",
+          "flag"
+        ],
+        "say": "Run the linter with dash dash fix and commit the result period",
+        "expect": "Run the linter with --fix and commit the result.",
+        "raw": "Run the linter with dash dash fix and commit the result, period.",
+        "cleaned": "Run the linter with --fix and commit the result.",
+        "match": true
+      },
+      {
+        "id": "hpolish-03",
+        "tags": [
+          "identifier",
+          "context"
+        ],
+        "say": "Have retry queue call on failure with the last error period",
+        "expect": "Have RetryQueue call onFailure with the last error.",
+        "context": {
+          "before": "final class RetryQueue {\n  var onFailure: ((Error) -> Void)?"
+        },
+        "raw": "Have retryQ call on failure with the last error period.",
+        "cleaned": "Have retryQueue call onFailure with the last error.",
+        "match": false
+      },
+      {
+        "id": "hpolish-04",
+        "tags": [
+          "spell-out",
+          "disambiguation"
+        ],
+        "say": "Send the invoice through Xero with an X period",
+        "expect": "Send the invoice through Xero.",
+        "raw": "Send the invoice through zero with an X.",
+        "cleaned": "Send the invoice through 0x.",
+        "match": false
+      },
+      {
+        "id": "hpolish-05",
+        "tags": [
+          "numbers",
+          "time"
+        ],
+        "say": "Let's meet at eleven thirty AM on June ninth period",
+        "expect": "Let's meet at 11:30 a.m. on June 9th.",
+        "raw": "Let's meet at 11.30am on June 9th.",
+        "cleaned": "Let's meet at 11:30 a.m. on June 9th.",
+        "match": true
+      },
+      {
+        "id": "hpolish-06",
+        "tags": [
+          "disfluency",
+          "repetition"
+        ],
+        "say": "We we should land the the patch today.",
+        "expect": "We should land the patch today.",
+        "raw": "We we should land the the patch today.",
+        "cleaned": "We should land the patch today.",
+        "match": true
+      },
+      {
+        "id": "hpolish-07",
+        "tags": [
+          "disfluency",
+          "backtrack"
+        ],
+        "say": "Merge it tonight... actually no, wait for CI.",
+        "expect": "Wait for CI.",
+        "raw": "Merge it tonight, actually no, wait for C I",
+        "cleaned": "Merge it tonight, actually no, wait for CI",
+        "match": false
+      },
+      {
+        "id": "hpolish-08",
+        "tags": [
+          "disfluency",
+          "backtrack"
+        ],
+        "say": "Add a comment there. Scratch that, rename the variable instead.",
+        "expect": "Rename the variable instead.",
+        "raw": "Add a comment there, scratch that, rename the variable instead.",
+        "cleaned": "Rename the variable instead.",
+        "match": true
+      },
+      {
+        "id": "hpolish-09",
+        "tags": [
+          "disfluency",
+          "repair"
+        ],
+        "say": "Put it in the utils folder, I mean the helpers folder.",
+        "expect": "Put it in the helpers folder.",
+        "raw": "Put it in the utils folder. Uh I mean the helpers folder.",
+        "cleaned": "Put it in the helpers folder.",
+        "match": true
+      },
+      {
+        "id": "hpolish-10",
+        "tags": [
+          "disfluency",
+          "backtrack",
+          "restart"
+        ],
+        "say": "So the fix is... um hold on. Just revert the last commit.",
+        "expect": "Just revert the last commit.",
+        "raw": "So the fix is um hold on, just revert the last commit",
+        "cleaned": "So the fix is, hold on, just revert the last commit.",
+        "match": false
+      },
+      {
+        "id": "hpolish-11",
+        "tags": [
+          "disfluency",
+          "repair",
+          "numbers"
+        ],
+        "say": "Set the timeout to thirty, no wait, forty five seconds.",
+        "expect": "Set the timeout to 45 seconds.",
+        "raw": "Set the timeout to thirty, no wait, forty-five seconds",
+        "cleaned": "Set the timeout to forty-five seconds.",
+        "match": false
+      },
+      {
+        "id": "hpolish-12",
+        "tags": [
+          "disfluency",
+          "repair"
+        ],
+        "say": "The meeting is Tuesday, no Wednesday, no wait, Thursday.",
+        "expect": "The meeting is Thursday.",
+        "raw": "The meeting is Tuesday, no Wednesday, no wait Thursday.",
+        "cleaned": "The meeting is Thursday.",
+        "match": true
+      },
+      {
+        "id": "hpolish-13",
+        "tags": [
+          "disfluency",
+          "backtrack",
+          "spell-out"
+        ],
+        "say": "Email Mia, that's M I A, no wait, email Mara about it.",
+        "expect": "Email Mara about it.",
+        "raw": "Email Mia, that's mi-a no wait, email Mara about it.",
+        "cleaned": "Email Mara about it.",
+        "match": true
+      },
+      {
+        "id": "hpolish-14",
+        "tags": [
+          "disfluency",
+          "filler"
+        ],
+        "say": "Send the uh the report to to Dana by Friday.",
+        "expect": "Send the report to Dana by Friday.",
+        "raw": "Send the uh the report to uh to Dana by Friday",
+        "cleaned": "Send the report to Dana by Friday",
+        "match": false
+      },
+      {
+        "id": "hpolish-15",
+        "tags": [
+          "disfluency",
+          "backtrack",
+          "symbols"
+        ],
+        "say": "Run it with dash dash force, hmm actually, run it plain first.",
+        "expect": "Run it plain first.",
+        "raw": "Run it with dash dash force. Actually, run it plain first.",
+        "cleaned": "Run it plain first.",
+        "match": true
+      }
+    ],
+    [
+      {
+        "id": "hpolish-01",
+        "tags": [
+          "disfluency",
+          "restart"
+        ],
+        "say": "Um so the deploy is... wait actually no, hold off until the tests uh finish.",
+        "expect": "Hold off until the tests finish.",
+        "raw": "Um so the deploy is wait actually no, hold off until the tests uh finish",
+        "cleaned": "So the deploy is—wait, actually no, hold off until the tests finish.",
+        "match": false
+      },
+      {
+        "id": "hpolish-02",
+        "tags": [
+          "symbols",
+          "flag"
+        ],
+        "say": "Run the linter with dash dash fix and commit the result period",
+        "expect": "Run the linter with --fix and commit the result.",
+        "raw": "Run the linter with dash dash fix and commit the result, period.",
+        "cleaned": "Run the linter with --fix and commit the result.",
+        "match": true
+      },
+      {
+        "id": "hpolish-03",
+        "tags": [
+          "identifier",
+          "context"
+        ],
+        "say": "Have retry queue call on failure with the last error period",
+        "expect": "Have RetryQueue call onFailure with the last error.",
+        "context": {
+          "before": "final class RetryQueue {\n  var onFailure: ((Error) -> Void)?"
+        },
+        "raw": "Have retryQ call on failure with the last error period.",
+        "cleaned": "Have retryQ call onFailure with the last error.",
+        "match": false
+      },
+      {
+        "id": "hpolish-04",
+        "tags": [
+          "spell-out",
+          "disambiguation"
+        ],
+        "say": "Send the invoice through Xero with an X period",
+        "expect": "Send the invoice through Xero.",
+        "raw": "Send the invoice through zero with an X.",
+        "cleaned": "Send the invoice through 0X.",
+        "match": false
+      },
+      {
+        "id": "hpolish-05",
+        "tags": [
+          "numbers",
+          "time"
+        ],
+        "say": "Let's meet at eleven thirty AM on June ninth period",
+        "expect": "Let's meet at 11:30 a.m. on June 9th.",
+        "raw": "Let's meet at 11.30am on June 9th.",
+        "cleaned": "Let's meet at 11:30 AM on June 9th.",
+        "match": false
+      },
+      {
+        "id": "hpolish-06",
+        "tags": [
+          "disfluency",
+          "repetition"
+        ],
+        "say": "We we should land the the patch today.",
+        "expect": "We should land the patch today.",
+        "raw": "We we should land the the patch today.",
+        "cleaned": "We should land the patch today.",
+        "match": true
+      },
+      {
+        "id": "hpolish-07",
+        "tags": [
+          "disfluency",
+          "backtrack"
+        ],
+        "say": "Merge it tonight... actually no, wait for CI.",
+        "expect": "Wait for CI.",
+        "raw": "Merge it tonight, actually no, wait for C I",
+        "cleaned": "Merge it tonight, actually no, wait for CI.",
+        "match": false
+      },
+      {
+        "id": "hpolish-08",
+        "tags": [
+          "disfluency",
+          "backtrack"
+        ],
+        "say": "Add a comment there. Scratch that, rename the variable instead.",
+        "expect": "Rename the variable instead.",
+        "raw": "Add a comment there, scratch that, rename the variable instead.",
+        "cleaned": "Rename the variable instead.",
+        "match": true
+      },
+      {
+        "id": "hpolish-09",
+        "tags": [
+          "disfluency",
+          "repair"
+        ],
+        "say": "Put it in the utils folder, I mean the helpers folder.",
+        "expect": "Put it in the helpers folder.",
+        "raw": "Put it in the utils folder. Uh I mean the helpers folder.",
+        "cleaned": "Put it in the helpers folder.",
+        "match": true
+      },
+      {
+        "id": "hpolish-10",
+        "tags": [
+          "disfluency",
+          "backtrack",
+          "restart"
+        ],
+        "say": "So the fix is... um hold on. Just revert the last commit.",
+        "expect": "Just revert the last commit.",
+        "raw": "So the fix is um hold on, just revert the last commit",
+        "cleaned": "So the fix is, hold on, just revert the last commit.",
+        "match": false
+      },
+      {
+        "id": "hpolish-11",
+        "tags": [
+          "disfluency",
+          "repair",
+          "numbers"
+        ],
+        "say": "Set the timeout to thirty, no wait, forty five seconds.",
+        "expect": "Set the timeout to 45 seconds.",
+        "raw": "Set the timeout to thirty, no wait, forty-five seconds",
+        "cleaned": "Set the timeout to forty-five seconds.",
+        "match": false
+      },
+      {
+        "id": "hpolish-12",
+        "tags": [
+          "disfluency",
+          "repair"
+        ],
+        "say": "The meeting is Tuesday, no Wednesday, no wait, Thursday.",
+        "expect": "The meeting is Thursday.",
+        "raw": "The meeting is Tuesday, no Wednesday, no wait Thursday.",
+        "cleaned": "The meeting is Thursday.",
+        "match": true
+      },
+      {
+        "id": "hpolish-13",
+        "tags": [
+          "disfluency",
+          "backtrack",
+          "spell-out"
+        ],
+        "say": "Email Mia, that's M I A, no wait, email Mara about it.",
+        "expect": "Email Mara about it.",
+        "raw": "Email Mia, that's mi-a no wait, email Mara about it.",
+        "cleaned": "Email Mara about it.",
+        "match": true
+      },
+      {
+        "id": "hpolish-14",
+        "tags": [
+          "disfluency",
+          "filler"
+        ],
+        "say": "Send the uh the report to to Dana by Friday.",
+        "expect": "Send the report to Dana by Friday.",
+        "raw": "Send the uh the report to uh to Dana by Friday",
+        "cleaned": "Send the report to Dana by Friday",
+        "match": false
+      },
+      {
+        "id": "hpolish-15",
+        "tags": [
+          "disfluency",
+          "backtrack",
+          "symbols"
+        ],
+        "say": "Run it with dash dash force, hmm actually, run it plain first.",
+        "expect": "Run it plain first.",
+        "raw": "Run it with dash dash force. Actually, run it plain first.",
+        "cleaned": "Run it plain first.",
+        "match": true
+      }
+    ],
+    [
+      {
+        "id": "hpolish-01",
+        "tags": [
+          "disfluency",
+          "restart"
+        ],
+        "say": "Um so the deploy is... wait actually no, hold off until the tests uh finish.",
+        "expect": "Hold off until the tests finish.",
+        "raw": "Um so the deploy is wait actually no, hold off until the tests uh finish",
+        "cleaned": "So the deploy is wait, actually no, hold off until the tests finish.",
+        "match": false
+      },
+      {
+        "id": "hpolish-02",
+        "tags": [
+          "symbols",
+          "flag"
+        ],
+        "say": "Run the linter with dash dash fix and commit the result period",
+        "expect": "Run the linter with --fix and commit the result.",
+        "raw": "Run the linter with dash dash fix and commit the result, period.",
+        "cleaned": "Run the linter with --fix and commit the result.",
+        "match": true
+      },
+      {
+        "id": "hpolish-03",
+        "tags": [
+          "identifier",
+          "context"
+        ],
+        "say": "Have retry queue call on failure with the last error period",
+        "expect": "Have RetryQueue call onFailure with the last error.",
+        "context": {
+          "before": "final class RetryQueue {\n  var onFailure: ((Error) -> Void)?"
+        },
+        "raw": "Have retryQ call on failure with the last error period.",
+        "cleaned": "Have retryQ call onFailure with the last error.",
+        "match": false
+      },
+      {
+        "id": "hpolish-04",
+        "tags": [
+          "spell-out",
+          "disambiguation"
+        ],
+        "say": "Send the invoice through Xero with an X period",
+        "expect": "Send the invoice through Xero.",
+        "raw": "Send the invoice through zero with an X.",
+        "cleaned": "Send the invoice through 0x.",
+        "match": false
+      },
+      {
+        "id": "hpolish-05",
+        "tags": [
+          "numbers",
+          "time"
+        ],
+        "say": "Let's meet at eleven thirty AM on June ninth period",
+        "expect": "Let's meet at 11:30 a.m. on June 9th.",
+        "raw": "Let's meet at 11.30am on June 9th.",
+        "cleaned": "Let's meet at 11:30 AM on June 9th.",
+        "match": false
+      },
+      {
+        "id": "hpolish-06",
+        "tags": [
+          "disfluency",
+          "repetition"
+        ],
+        "say": "We we should land the the patch today.",
+        "expect": "We should land the patch today.",
+        "raw": "We we should land the the patch today.",
+        "cleaned": "We should land the patch today.",
+        "match": true
+      },
+      {
+        "id": "hpolish-07",
+        "tags": [
+          "disfluency",
+          "backtrack"
+        ],
+        "say": "Merge it tonight... actually no, wait for CI.",
+        "expect": "Wait for CI.",
+        "raw": "Merge it tonight, actually no, wait for C I",
+        "cleaned": "Merge it tonight, actually no, wait for CI",
+        "match": false
+      },
+      {
+        "id": "hpolish-08",
+        "tags": [
+          "disfluency",
+          "backtrack"
+        ],
+        "say": "Add a comment there. Scratch that, rename the variable instead.",
+        "expect": "Rename the variable instead.",
+        "raw": "Add a comment there, scratch that, rename the variable instead.",
+        "cleaned": "Rename the variable instead.",
+        "match": true
+      },
+      {
+        "id": "hpolish-09",
+        "tags": [
+          "disfluency",
+          "repair"
+        ],
+        "say": "Put it in the utils folder, I mean the helpers folder.",
+        "expect": "Put it in the helpers folder.",
+        "raw": "Put it in the utils folder. Uh I mean the helpers folder.",
+        "cleaned": "Put it in the helpers folder.",
+        "match": true
+      },
+      {
+        "id": "hpolish-10",
+        "tags": [
+          "disfluency",
+          "backtrack",
+          "restart"
+        ],
+        "say": "So the fix is... um hold on. Just revert the last commit.",
+        "expect": "Just revert the last commit.",
+        "raw": "So the fix is um hold on, just revert the last commit",
+        "cleaned": "So the fix is, hold on, just revert the last commit.",
+        "match": false
+      },
+      {
+        "id": "hpolish-11",
+        "tags": [
+          "disfluency",
+          "repair",
+          "numbers"
+        ],
+        "say": "Set the timeout to thirty, no wait, forty five seconds.",
+        "expect": "Set the timeout to 45 seconds.",
+        "raw": "Set the timeout to thirty, no wait, forty-five seconds",
+        "cleaned": "Set the timeout to forty-five seconds.",
+        "match": false
+      },
+      {
+        "id": "hpolish-12",
+        "tags": [
+          "disfluency",
+          "repair"
+        ],
+        "say": "The meeting is Tuesday, no Wednesday, no wait, Thursday.",
+        "expect": "The meeting is Thursday.",
+        "raw": "The meeting is Tuesday, no Wednesday, no wait Thursday.",
+        "cleaned": "The meeting is Thursday.",
+        "match": true
+      },
+      {
+        "id": "hpolish-13",
+        "tags": [
+          "disfluency",
+          "backtrack",
+          "spell-out"
+        ],
+        "say": "Email Mia, that's M I A, no wait, email Mara about it.",
+        "expect": "Email Mara about it.",
+        "raw": "Email Mia, that's mi-a no wait, email Mara about it.",
+        "cleaned": "Email Mara about it.",
+        "match": true
+      },
+      {
+        "id": "hpolish-14",
+        "tags": [
+          "disfluency",
+          "filler"
+        ],
+        "say": "Send the uh the report to to Dana by Friday.",
+        "expect": "Send the report to Dana by Friday.",
+        "raw": "Send the uh the report to uh to Dana by Friday",
+        "cleaned": "Send the report to Dana by Friday",
+        "match": false
+      },
+      {
+        "id": "hpolish-15",
+        "tags": [
+          "disfluency",
+          "backtrack",
+          "symbols"
+        ],
+        "say": "Run it with dash dash force, hmm actually, run it plain first.",
+        "expect": "Run it plain first.",
+        "raw": "Run it with dash dash force. Actually, run it plain first.",
+        "cleaned": "Run it plain first.",
+        "match": true
+      }
+    ],
+    [
+      {
+        "id": "hpolish-01",
+        "tags": [
+          "disfluency",
+          "restart"
+        ],
+        "say": "Um so the deploy is... wait actually no, hold off until the tests uh finish.",
+        "expect": "Hold off until the tests finish.",
+        "raw": "Um so the deploy is wait actually no, hold off until the tests uh finish",
+        "cleaned": "So the deploy is wait, actually no, hold off until the tests finish.",
+        "match": false
+      },
+      {
+        "id": "hpolish-02",
+        "tags": [
+          "symbols",
+          "flag"
+        ],
+        "say": "Run the linter with dash dash fix and commit the result period",
+        "expect": "Run the linter with --fix and commit the result.",
+        "raw": "Run the linter with dash dash fix and commit the result, period.",
+        "cleaned": "Run the linter with `--fix` and commit the result.",
+        "match": false
+      },
+      {
+        "id": "hpolish-03",
+        "tags": [
+          "identifier",
+          "context"
+        ],
+        "say": "Have retry queue call on failure with the last error period",
+        "expect": "Have RetryQueue call onFailure with the last error.",
+        "context": {
+          "before": "final class RetryQueue {\n  var onFailure: ((Error) -> Void)?"
+        },
+        "raw": "Have retryQ call on failure with the last error period.",
+        "cleaned": "Have retryQ call onFailure with the last error.",
+        "match": false
+      },
+      {
+        "id": "hpolish-04",
+        "tags": [
+          "spell-out",
+          "disambiguation"
+        ],
+        "say": "Send the invoice through Xero with an X period",
+        "expect": "Send the invoice through Xero.",
+        "raw": "Send the invoice through zero with an X.",
+        "cleaned": "Send the invoice through 0X.",
+        "match": false
+      },
+      {
+        "id": "hpolish-05",
+        "tags": [
+          "numbers",
+          "time"
+        ],
+        "say": "Let's meet at eleven thirty AM on June ninth period",
+        "expect": "Let's meet at 11:30 a.m. on June 9th.",
+        "raw": "Let's meet at 11.30am on June 9th.",
+        "cleaned": "Let's meet at 11:30 a.m. on June 9th.",
+        "match": true
+      },
+      {
+        "id": "hpolish-06",
+        "tags": [
+          "disfluency",
+          "repetition"
+        ],
+        "say": "We we should land the the patch today.",
+        "expect": "We should land the patch today.",
+        "raw": "We we should land the the patch today.",
+        "cleaned": "We should land the patch today.",
+        "match": true
+      },
+      {
+        "id": "hpolish-07",
+        "tags": [
+          "disfluency",
+          "backtrack"
+        ],
+        "say": "Merge it tonight... actually no, wait for CI.",
+        "expect": "Wait for CI.",
+        "raw": "Merge it tonight, actually no, wait for C I",
+        "cleaned": "Merge it tonight, actually no, wait for CI.",
+        "match": false
+      },
+      {
+        "id": "hpolish-08",
+        "tags": [
+          "disfluency",
+          "backtrack"
+        ],
+        "say": "Add a comment there. Scratch that, rename the variable instead.",
+        "expect": "Rename the variable instead.",
+        "raw": "Add a comment there, scratch that, rename the variable instead.",
+        "cleaned": "Rename the variable instead.",
+        "match": true
+      },
+      {
+        "id": "hpolish-09",
+        "tags": [
+          "disfluency",
+          "repair"
+        ],
+        "say": "Put it in the utils folder, I mean the helpers folder.",
+        "expect": "Put it in the helpers folder.",
+        "raw": "Put it in the utils folder. Uh I mean the helpers folder.",
+        "cleaned": "Put it in the helpers folder.",
+        "match": true
+      },
+      {
+        "id": "hpolish-10",
+        "tags": [
+          "disfluency",
+          "backtrack",
+          "restart"
+        ],
+        "say": "So the fix is... um hold on. Just revert the last commit.",
+        "expect": "Just revert the last commit.",
+        "raw": "So the fix is um hold on, just revert the last commit",
+        "cleaned": "So the fix is hold on, just revert the last commit.",
+        "match": false
+      },
+      {
+        "id": "hpolish-11",
+        "tags": [
+          "disfluency",
+          "repair",
+          "numbers"
+        ],
+        "say": "Set the timeout to thirty, no wait, forty five seconds.",
+        "expect": "Set the timeout to 45 seconds.",
+        "raw": "Set the timeout to thirty, no wait, forty-five seconds",
+        "cleaned": "Set the timeout to forty-five seconds.",
+        "match": false
+      },
+      {
+        "id": "hpolish-12",
+        "tags": [
+          "disfluency",
+          "repair"
+        ],
+        "say": "The meeting is Tuesday, no Wednesday, no wait, Thursday.",
+        "expect": "The meeting is Thursday.",
+        "raw": "The meeting is Tuesday, no Wednesday, no wait Thursday.",
+        "cleaned": "The meeting is Thursday.",
+        "match": true
+      },
+      {
+        "id": "hpolish-13",
+        "tags": [
+          "disfluency",
+          "backtrack",
+          "spell-out"
+        ],
+        "say": "Email Mia, that's M I A, no wait, email Mara about it.",
+        "expect": "Email Mara about it.",
+        "raw": "Email Mia, that's mi-a no wait, email Mara about it.",
+        "cleaned": "Email Mara about it.",
+        "match": true
+      },
+      {
+        "id": "hpolish-14",
+        "tags": [
+          "disfluency",
+          "filler"
+        ],
+        "say": "Send the uh the report to to Dana by Friday.",
+        "expect": "Send the report to Dana by Friday.",
+        "raw": "Send the uh the report to uh to Dana by Friday",
+        "cleaned": "Send the report to Dana by Friday",
+        "match": false
+      },
+      {
+        "id": "hpolish-15",
+        "tags": [
+          "disfluency",
+          "backtrack",
+          "symbols"
+        ],
+        "say": "Run it with dash dash force, hmm actually, run it plain first.",
+        "expect": "Run it plain first.",
+        "raw": "Run it with dash dash force. Actually, run it plain first.",
+        "cleaned": "Run it plain first.",
+        "match": true
+      }
+    ],
+    [
+      {
+        "id": "hpolish-01",
+        "tags": [
+          "disfluency",
+          "restart"
+        ],
+        "say": "Um so the deploy is... wait actually no, hold off until the tests uh finish.",
+        "expect": "Hold off until the tests finish.",
+        "raw": "Um so the deploy is wait actually no, hold off until the tests uh finish",
+        "cleaned": "So the deploy is—wait, actually no, hold off until the tests finish.",
+        "match": false
+      },
+      {
+        "id": "hpolish-02",
+        "tags": [
+          "symbols",
+          "flag"
+        ],
+        "say": "Run the linter with dash dash fix and commit the result period",
+        "expect": "Run the linter with --fix and commit the result.",
+        "raw": "Run the linter with dash dash fix and commit the result, period.",
+        "cleaned": "Run the linter with --fix and commit the result.",
+        "match": true
+      },
+      {
+        "id": "hpolish-03",
+        "tags": [
+          "identifier",
+          "context"
+        ],
+        "say": "Have retry queue call on failure with the last error period",
+        "expect": "Have RetryQueue call onFailure with the last error.",
+        "context": {
+          "before": "final class RetryQueue {\n  var onFailure: ((Error) -> Void)?"
+        },
+        "raw": "Have retryQ call on failure with the last error period.",
+        "cleaned": "Have retryQ call onFailure with the last error.",
+        "match": false
+      },
+      {
+        "id": "hpolish-04",
+        "tags": [
+          "spell-out",
+          "disambiguation"
+        ],
+        "say": "Send the invoice through Xero with an X period",
+        "expect": "Send the invoice through Xero.",
+        "raw": "Send the invoice through zero with an X.",
+        "cleaned": "Send the invoice through 0x.",
+        "match": false
+      },
+      {
+        "id": "hpolish-05",
+        "tags": [
+          "numbers",
+          "time"
+        ],
+        "say": "Let's meet at eleven thirty AM on June ninth period",
+        "expect": "Let's meet at 11:30 a.m. on June 9th.",
+        "raw": "Let's meet at 11.30am on June 9th.",
+        "cleaned": "Let's meet at 11:30 a.m. on June 9th.",
+        "match": true
+      },
+      {
+        "id": "hpolish-06",
+        "tags": [
+          "disfluency",
+          "repetition"
+        ],
+        "say": "We we should land the the patch today.",
+        "expect": "We should land the patch today.",
+        "raw": "We we should land the the patch today.",
+        "cleaned": "We should land the patch today.",
+        "match": true
+      },
+      {
+        "id": "hpolish-07",
+        "tags": [
+          "disfluency",
+          "backtrack"
+        ],
+        "say": "Merge it tonight... actually no, wait for CI.",
+        "expect": "Wait for CI.",
+        "raw": "Merge it tonight, actually no, wait for C I",
+        "cleaned": "Merge it tonight, actually no, wait for CI",
+        "match": false
+      },
+      {
+        "id": "hpolish-08",
+        "tags": [
+          "disfluency",
+          "backtrack"
+        ],
+        "say": "Add a comment there. Scratch that, rename the variable instead.",
+        "expect": "Rename the variable instead.",
+        "raw": "Add a comment there, scratch that, rename the variable instead.",
+        "cleaned": "Rename the variable instead.",
+        "match": true
+      },
+      {
+        "id": "hpolish-09",
+        "tags": [
+          "disfluency",
+          "repair"
+        ],
+        "say": "Put it in the utils folder, I mean the helpers folder.",
+        "expect": "Put it in the helpers folder.",
+        "raw": "Put it in the utils folder. Uh I mean the helpers folder.",
+        "cleaned": "Put it in the helpers folder.",
+        "match": true
+      },
+      {
+        "id": "hpolish-10",
+        "tags": [
+          "disfluency",
+          "backtrack",
+          "restart"
+        ],
+        "say": "So the fix is... um hold on. Just revert the last commit.",
+        "expect": "Just revert the last commit.",
+        "raw": "So the fix is um hold on, just revert the last commit",
+        "cleaned": "So the fix is hold on, just revert the last commit.",
+        "match": false
+      },
+      {
+        "id": "hpolish-11",
+        "tags": [
+          "disfluency",
+          "repair",
+          "numbers"
+        ],
+        "say": "Set the timeout to thirty, no wait, forty five seconds.",
+        "expect": "Set the timeout to 45 seconds.",
+        "raw": "Set the timeout to thirty, no wait, forty-five seconds",
+        "cleaned": "Set the timeout to forty-five seconds.",
+        "match": false
+      },
+      {
+        "id": "hpolish-12",
+        "tags": [
+          "disfluency",
+          "repair"
+        ],
+        "say": "The meeting is Tuesday, no Wednesday, no wait, Thursday.",
+        "expect": "The meeting is Thursday.",
+        "raw": "The meeting is Tuesday, no Wednesday, no wait Thursday.",
+        "cleaned": "The meeting is Thursday.",
+        "match": true
+      },
+      {
+        "id": "hpolish-13",
+        "tags": [
+          "disfluency",
+          "backtrack",
+          "spell-out"
+        ],
+        "say": "Email Mia, that's M I A, no wait, email Mara about it.",
+        "expect": "Email Mara about it.",
+        "raw": "Email Mia, that's mi-a no wait, email Mara about it.",
+        "cleaned": "Email Mara about it.",
+        "match": true
+      },
+      {
+        "id": "hpolish-14",
+        "tags": [
+          "disfluency",
+          "filler"
+        ],
+        "say": "Send the uh the report to to Dana by Friday.",
+        "expect": "Send the report to Dana by Friday.",
+        "raw": "Send the uh the report to uh to Dana by Friday",
+        "cleaned": "Send the report to Dana by Friday",
+        "match": false
+      },
+      {
+        "id": "hpolish-15",
+        "tags": [
+          "disfluency",
+          "backtrack",
+          "symbols"
+        ],
+        "say": "Run it with dash dash force, hmm actually, run it plain first.",
+        "expect": "Run it plain first.",
+        "raw": "Run it with dash dash force. Actually, run it plain first.",
+        "cleaned": "Run it plain first.",
+        "match": true
+      }
+    ],
+    [
+      {
+        "id": "hpolish-01",
+        "tags": [
+          "disfluency",
+          "restart"
+        ],
+        "say": "Um so the deploy is... wait actually no, hold off until the tests uh finish.",
+        "expect": "Hold off until the tests finish.",
+        "raw": "Um so the deploy is wait actually no, hold off until the tests uh finish",
+        "cleaned": "So the deploy is wait, actually no, hold off until the tests finish.",
+        "match": false
+      },
+      {
+        "id": "hpolish-02",
+        "tags": [
+          "symbols",
+          "flag"
+        ],
+        "say": "Run the linter with dash dash fix and commit the result period",
+        "expect": "Run the linter with --fix and commit the result.",
+        "raw": "Run the linter with dash dash fix and commit the result, period.",
+        "cleaned": "Run the linter with --fix and commit the result.",
+        "match": true
+      },
+      {
+        "id": "hpolish-03",
+        "tags": [
+          "identifier",
+          "context"
+        ],
+        "say": "Have retry queue call on failure with the last error period",
+        "expect": "Have RetryQueue call onFailure with the last error.",
+        "context": {
+          "before": "final class RetryQueue {\n  var onFailure: ((Error) -> Void)?"
+        },
+        "raw": "Have retryQ call on failure with the last error period.",
+        "cleaned": "Have retryQ call onFailure with the last error.",
+        "match": false
+      },
+      {
+        "id": "hpolish-04",
+        "tags": [
+          "spell-out",
+          "disambiguation"
+        ],
+        "say": "Send the invoice through Xero with an X period",
+        "expect": "Send the invoice through Xero.",
+        "raw": "Send the invoice through zero with an X.",
+        "cleaned": "Send the invoice through 0x.",
+        "match": false
+      },
+      {
+        "id": "hpolish-05",
+        "tags": [
+          "numbers",
+          "time"
+        ],
+        "say": "Let's meet at eleven thirty AM on June ninth period",
+        "expect": "Let's meet at 11:30 a.m. on June 9th.",
+        "raw": "Let's meet at 11.30am on June 9th.",
+        "cleaned": "Let's meet at 11:30 a.m. on June 9th.",
+        "match": true
+      },
+      {
+        "id": "hpolish-06",
+        "tags": [
+          "disfluency",
+          "repetition"
+        ],
+        "say": "We we should land the the patch today.",
+        "expect": "We should land the patch today.",
+        "raw": "We we should land the the patch today.",
+        "cleaned": "We should land the patch today.",
+        "match": true
+      },
+      {
+        "id": "hpolish-07",
+        "tags": [
+          "disfluency",
+          "backtrack"
+        ],
+        "say": "Merge it tonight... actually no, wait for CI.",
+        "expect": "Wait for CI.",
+        "raw": "Merge it tonight, actually no, wait for C I",
+        "cleaned": "Merge it tonight, actually no, wait for CI",
+        "match": false
+      },
+      {
+        "id": "hpolish-08",
+        "tags": [
+          "disfluency",
+          "backtrack"
+        ],
+        "say": "Add a comment there. Scratch that, rename the variable instead.",
+        "expect": "Rename the variable instead.",
+        "raw": "Add a comment there, scratch that, rename the variable instead.",
+        "cleaned": "Rename the variable instead.",
+        "match": true
+      },
+      {
+        "id": "hpolish-09",
+        "tags": [
+          "disfluency",
+          "repair"
+        ],
+        "say": "Put it in the utils folder, I mean the helpers folder.",
+        "expect": "Put it in the helpers folder.",
+        "raw": "Put it in the utils folder. Uh I mean the helpers folder.",
+        "cleaned": "Put it in the helpers folder.",
+        "match": true
+      },
+      {
+        "id": "hpolish-10",
+        "tags": [
+          "disfluency",
+          "backtrack",
+          "restart"
+        ],
+        "say": "So the fix is... um hold on. Just revert the last commit.",
+        "expect": "Just revert the last commit.",
+        "raw": "So the fix is um hold on, just revert the last commit",
+        "cleaned": "So the fix is, hold on, just revert the last commit.",
+        "match": false
+      },
+      {
+        "id": "hpolish-11",
+        "tags": [
+          "disfluency",
+          "repair",
+          "numbers"
+        ],
+        "say": "Set the timeout to thirty, no wait, forty five seconds.",
+        "expect": "Set the timeout to 45 seconds.",
+        "raw": "Set the timeout to thirty, no wait, forty-five seconds",
+        "cleaned": "Set the timeout to forty-five seconds.",
+        "match": false
+      },
+      {
+        "id": "hpolish-12",
+        "tags": [
+          "disfluency",
+          "repair"
+        ],
+        "say": "The meeting is Tuesday, no Wednesday, no wait, Thursday.",
+        "expect": "The meeting is Thursday.",
+        "raw": "The meeting is Tuesday, no Wednesday, no wait Thursday.",
+        "cleaned": "The meeting is Thursday.",
+        "match": true
+      },
+      {
+        "id": "hpolish-13",
+        "tags": [
+          "disfluency",
+          "backtrack",
+          "spell-out"
+        ],
+        "say": "Email Mia, that's M I A, no wait, email Mara about it.",
+        "expect": "Email Mara about it.",
+        "raw": "Email Mia, that's mi-a no wait, email Mara about it.",
+        "cleaned": "Email Mara about it.",
+        "match": true
+      },
+      {
+        "id": "hpolish-14",
+        "tags": [
+          "disfluency",
+          "filler"
+        ],
+        "say": "Send the uh the report to to Dana by Friday.",
+        "expect": "Send the report to Dana by Friday.",
+        "raw": "Send the uh the report to uh to Dana by Friday",
+        "cleaned": "Send the report to Dana by Friday",
+        "match": false
+      },
+      {
+        "id": "hpolish-15",
+        "tags": [
+          "disfluency",
+          "backtrack",
+          "symbols"
+        ],
+        "say": "Run it with dash dash force, hmm actually, run it plain first.",
+        "expect": "Run it plain first.",
+        "raw": "Run it with dash dash force. Actually, run it plain first.",
+        "cleaned": "Run it plain first. Actually, run it with --force.",
+        "match": false
+      }
+    ],
+    [
+      {
+        "id": "hpolish-01",
+        "tags": [
+          "disfluency",
+          "restart"
+        ],
+        "say": "Um so the deploy is... wait actually no, hold off until the tests uh finish.",
+        "expect": "Hold off until the tests finish.",
+        "raw": "Um so the deploy is wait actually no, hold off until the tests uh finish",
+        "cleaned": "So the deploy is wait, actually no, hold off until the tests finish.",
+        "match": false
+      },
+      {
+        "id": "hpolish-02",
+        "tags": [
+          "symbols",
+          "flag"
+        ],
+        "say": "Run the linter with dash dash fix and commit the result period",
+        "expect": "Run the linter with --fix and commit the result.",
+        "raw": "Run the linter with dash dash fix and commit the result, period.",
+        "cleaned": "Run the linter with --fix and commit the result.",
+        "match": true
+      },
+      {
+        "id": "hpolish-03",
+        "tags": [
+          "identifier",
+          "context"
+        ],
+        "say": "Have retry queue call on failure with the last error period",
+        "expect": "Have RetryQueue call onFailure with the last error.",
+        "context": {
+          "before": "final class RetryQueue {\n  var onFailure: ((Error) -> Void)?"
+        },
+        "raw": "Have retryQ call on failure with the last error period.",
+        "cleaned": "Have retryQ call onFailure with the last error.",
+        "match": false
+      },
+      {
+        "id": "hpolish-04",
+        "tags": [
+          "spell-out",
+          "disambiguation"
+        ],
+        "say": "Send the invoice through Xero with an X period",
+        "expect": "Send the invoice through Xero.",
+        "raw": "Send the invoice through zero with an X.",
+        "cleaned": "Send the invoice through 0x.",
+        "match": false
+      },
+      {
+        "id": "hpolish-05",
+        "tags": [
+          "numbers",
+          "time"
+        ],
+        "say": "Let's meet at eleven thirty AM on June ninth period",
+        "expect": "Let's meet at 11:30 a.m. on June 9th.",
+        "raw": "Let's meet at 11.30am on June 9th.",
+        "cleaned": "Let's meet at 11:30 AM on June 9th.",
+        "match": false
+      },
+      {
+        "id": "hpolish-06",
+        "tags": [
+          "disfluency",
+          "repetition"
+        ],
+        "say": "We we should land the the patch today.",
+        "expect": "We should land the patch today.",
+        "raw": "We we should land the the patch today.",
+        "cleaned": "We should land the patch today.",
+        "match": true
+      },
+      {
+        "id": "hpolish-07",
+        "tags": [
+          "disfluency",
+          "backtrack"
+        ],
+        "say": "Merge it tonight... actually no, wait for CI.",
+        "expect": "Wait for CI.",
+        "raw": "Merge it tonight, actually no, wait for C I",
+        "cleaned": "Merge it tonight, actually no, wait for CI",
+        "match": false
+      },
+      {
+        "id": "hpolish-08",
+        "tags": [
+          "disfluency",
+          "backtrack"
+        ],
+        "say": "Add a comment there. Scratch that, rename the variable instead.",
+        "expect": "Rename the variable instead.",
+        "raw": "Add a comment there, scratch that, rename the variable instead.",
+        "cleaned": "Rename the variable instead.",
+        "match": true
+      },
+      {
+        "id": "hpolish-09",
+        "tags": [
+          "disfluency",
+          "repair"
+        ],
+        "say": "Put it in the utils folder, I mean the helpers folder.",
+        "expect": "Put it in the helpers folder.",
+        "raw": "Put it in the utils folder. Uh I mean the helpers folder.",
+        "cleaned": "Put it in the helpers folder.",
+        "match": true
+      },
+      {
+        "id": "hpolish-10",
+        "tags": [
+          "disfluency",
+          "backtrack",
+          "restart"
+        ],
+        "say": "So the fix is... um hold on. Just revert the last commit.",
+        "expect": "Just revert the last commit.",
+        "raw": "So the fix is um hold on, just revert the last commit",
+        "cleaned": "So the fix is just revert the last commit.",
+        "match": false
+      },
+      {
+        "id": "hpolish-11",
+        "tags": [
+          "disfluency",
+          "repair",
+          "numbers"
+        ],
+        "say": "Set the timeout to thirty, no wait, forty five seconds.",
+        "expect": "Set the timeout to 45 seconds.",
+        "raw": "Set the timeout to thirty, no wait, forty-five seconds",
+        "cleaned": "Set the timeout to forty-five seconds.",
+        "match": false
+      },
+      {
+        "id": "hpolish-12",
+        "tags": [
+          "disfluency",
+          "repair"
+        ],
+        "say": "The meeting is Tuesday, no Wednesday, no wait, Thursday.",
+        "expect": "The meeting is Thursday.",
+        "raw": "The meeting is Tuesday, no Wednesday, no wait Thursday.",
+        "cleaned": "The meeting is Thursday.",
+        "match": true
+      },
+      {
+        "id": "hpolish-13",
+        "tags": [
+          "disfluency",
+          "backtrack",
+          "spell-out"
+        ],
+        "say": "Email Mia, that's M I A, no wait, email Mara about it.",
+        "expect": "Email Mara about it.",
+        "raw": "Email Mia, that's mi-a no wait, email Mara about it.",
+        "cleaned": "Email Mara about it.",
+        "match": true
+      },
+      {
+        "id": "hpolish-14",
+        "tags": [
+          "disfluency",
+          "filler"
+        ],
+        "say": "Send the uh the report to to Dana by Friday.",
+        "expect": "Send the report to Dana by Friday.",
+        "raw": "Send the uh the report to uh to Dana by Friday",
+        "cleaned": "Send the report to Dana by Friday",
+        "match": false
+      },
+      {
+        "id": "hpolish-15",
+        "tags": [
+          "disfluency",
+          "backtrack",
+          "symbols"
+        ],
+        "say": "Run it with dash dash force, hmm actually, run it plain first.",
+        "expect": "Run it plain first.",
+        "raw": "Run it with dash dash force. Actually, run it plain first.",
+        "cleaned": "Run it plain first.",
+        "match": true
+      }
+    ],
+    [
+      {
+        "id": "hpolish-01",
+        "tags": [
+          "disfluency",
+          "restart"
+        ],
+        "say": "Um so the deploy is... wait actually no, hold off until the tests uh finish.",
+        "expect": "Hold off until the tests finish.",
+        "raw": "Um so the deploy is wait actually no, hold off until the tests uh finish",
+        "cleaned": "So the deploy is wait actually no, hold off until the tests finish.",
+        "match": false
+      },
+      {
+        "id": "hpolish-02",
+        "tags": [
+          "symbols",
+          "flag"
+        ],
+        "say": "Run the linter with dash dash fix and commit the result period",
+        "expect": "Run the linter with --fix and commit the result.",
+        "raw": "Run the linter with dash dash fix and commit the result, period.",
+        "cleaned": "Run the linter with --fix and commit the result.",
+        "match": true
+      },
+      {
+        "id": "hpolish-03",
+        "tags": [
+          "identifier",
+          "context"
+        ],
+        "say": "Have retry queue call on failure with the last error period",
+        "expect": "Have RetryQueue call onFailure with the last error.",
+        "context": {
+          "before": "final class RetryQueue {\n  var onFailure: ((Error) -> Void)?"
+        },
+        "raw": "Have retryQ call on failure with the last error period.",
+        "cleaned": "Have retryQueue call onFailure with the last error.",
+        "match": false
+      },
+      {
+        "id": "hpolish-04",
+        "tags": [
+          "spell-out",
+          "disambiguation"
+        ],
+        "say": "Send the invoice through Xero with an X period",
+        "expect": "Send the invoice through Xero.",
+        "raw": "Send the invoice through zero with an X.",
+        "cleaned": "Send the invoice through 0X.",
+        "match": false
+      },
+      {
+        "id": "hpolish-05",
+        "tags": [
+          "numbers",
+          "time"
+        ],
+        "say": "Let's meet at eleven thirty AM on June ninth period",
+        "expect": "Let's meet at 11:30 a.m. on June 9th.",
+        "raw": "Let's meet at 11.30am on June 9th.",
+        "cleaned": "Let's meet at 11:30 AM on June 9th.",
+        "match": false
+      },
+      {
+        "id": "hpolish-06",
+        "tags": [
+          "disfluency",
+          "repetition"
+        ],
+        "say": "We we should land the the patch today.",
+        "expect": "We should land the patch today.",
+        "raw": "We we should land the the patch today.",
+        "cleaned": "We should land the patch today.",
+        "match": true
+      },
+      {
+        "id": "hpolish-07",
+        "tags": [
+          "disfluency",
+          "backtrack"
+        ],
+        "say": "Merge it tonight... actually no, wait for CI.",
+        "expect": "Wait for CI.",
+        "raw": "Merge it tonight, actually no, wait for C I",
+        "cleaned": "Merge it tonight, actually no, wait for CI.",
+        "match": false
+      },
+      {
+        "id": "hpolish-08",
+        "tags": [
+          "disfluency",
+          "backtrack"
+        ],
+        "say": "Add a comment there. Scratch that, rename the variable instead.",
+        "expect": "Rename the variable instead.",
+        "raw": "Add a comment there, scratch that, rename the variable instead.",
+        "cleaned": "Rename the variable instead.",
+        "match": true
+      },
+      {
+        "id": "hpolish-09",
+        "tags": [
+          "disfluency",
+          "repair"
+        ],
+        "say": "Put it in the utils folder, I mean the helpers folder.",
+        "expect": "Put it in the helpers folder.",
+        "raw": "Put it in the utils folder. Uh I mean the helpers folder.",
+        "cleaned": "Put it in the helpers folder.",
+        "match": true
+      },
+      {
+        "id": "hpolish-10",
+        "tags": [
+          "disfluency",
+          "backtrack",
+          "restart"
+        ],
+        "say": "So the fix is... um hold on. Just revert the last commit.",
+        "expect": "Just revert the last commit.",
+        "raw": "So the fix is um hold on, just revert the last commit",
+        "cleaned": "So the fix is just revert the last commit.",
+        "match": false
+      },
+      {
+        "id": "hpolish-11",
+        "tags": [
+          "disfluency",
+          "repair",
+          "numbers"
+        ],
+        "say": "Set the timeout to thirty, no wait, forty five seconds.",
+        "expect": "Set the timeout to 45 seconds.",
+        "raw": "Set the timeout to thirty, no wait, forty-five seconds",
+        "cleaned": "Set the timeout to forty-five seconds",
+        "match": false
+      },
+      {
+        "id": "hpolish-12",
+        "tags": [
+          "disfluency",
+          "repair"
+        ],
+        "say": "The meeting is Tuesday, no Wednesday, no wait, Thursday.",
+        "expect": "The meeting is Thursday.",
+        "raw": "The meeting is Tuesday, no Wednesday, no wait Thursday.",
+        "cleaned": "The meeting is Thursday.",
+        "match": true
+      },
+      {
+        "id": "hpolish-13",
+        "tags": [
+          "disfluency",
+          "backtrack",
+          "spell-out"
+        ],
+        "say": "Email Mia, that's M I A, no wait, email Mara about it.",
+        "expect": "Email Mara about it.",
+        "raw": "Email Mia, that's mi-a no wait, email Mara about it.",
+        "cleaned": "Email Mara about it.",
+        "match": true
+      },
+      {
+        "id": "hpolish-14",
+        "tags": [
+          "disfluency",
+          "filler"
+        ],
+        "say": "Send the uh the report to to Dana by Friday.",
+        "expect": "Send the report to Dana by Friday.",
+        "raw": "Send the uh the report to uh to Dana by Friday",
+        "cleaned": "Send the report to Dana by Friday.",
+        "match": true
+      },
+      {
+        "id": "hpolish-15",
+        "tags": [
+          "disfluency",
+          "backtrack",
+          "symbols"
+        ],
+        "say": "Run it with dash dash force, hmm actually, run it plain first.",
+        "expect": "Run it plain first.",
+        "raw": "Run it with dash dash force. Actually, run it plain first.",
+        "cleaned": "Run it plain first.",
+        "match": true
+      }
+    ],
+    [
+      {
+        "id": "hpolish-01",
+        "tags": [
+          "disfluency",
+          "restart"
+        ],
+        "say": "Um so the deploy is... wait actually no, hold off until the tests uh finish.",
+        "expect": "Hold off until the tests finish.",
+        "raw": "Um so the deploy is wait actually no, hold off until the tests uh finish",
+        "cleaned": "So the deploy is, wait, actually no, hold off until the tests finish.",
+        "match": false
+      },
+      {
+        "id": "hpolish-02",
+        "tags": [
+          "symbols",
+          "flag"
+        ],
+        "say": "Run the linter with dash dash fix and commit the result period",
+        "expect": "Run the linter with --fix and commit the result.",
+        "raw": "Run the linter with dash dash fix and commit the result, period.",
+        "cleaned": "Run the linter with --fix and commit the result.",
+        "match": true
+      },
+      {
+        "id": "hpolish-03",
+        "tags": [
+          "identifier",
+          "context"
+        ],
+        "say": "Have retry queue call on failure with the last error period",
+        "expect": "Have RetryQueue call onFailure with the last error.",
+        "context": {
+          "before": "final class RetryQueue {\n  var onFailure: ((Error) -> Void)?"
+        },
+        "raw": "Have retryQ call on failure with the last error period.",
+        "cleaned": "Have retryQ call onFailure with the last error.",
+        "match": false
+      },
+      {
+        "id": "hpolish-04",
+        "tags": [
+          "spell-out",
+          "disambiguation"
+        ],
+        "say": "Send the invoice through Xero with an X period",
+        "expect": "Send the invoice through Xero.",
+        "raw": "Send the invoice through zero with an X.",
+        "cleaned": "Send the invoice through 0X.",
+        "match": false
+      },
+      {
+        "id": "hpolish-05",
+        "tags": [
+          "numbers",
+          "time"
+        ],
+        "say": "Let's meet at eleven thirty AM on June ninth period",
+        "expect": "Let's meet at 11:30 a.m. on June 9th.",
+        "raw": "Let's meet at 11.30am on June 9th.",
+        "cleaned": "Let's meet at 11:30 a.m. on June 9th.",
+        "match": true
+      },
+      {
+        "id": "hpolish-06",
+        "tags": [
+          "disfluency",
+          "repetition"
+        ],
+        "say": "We we should land the the patch today.",
+        "expect": "We should land the patch today.",
+        "raw": "We we should land the the patch today.",
+        "cleaned": "We should land the patch today.",
+        "match": true
+      },
+      {
+        "id": "hpolish-07",
+        "tags": [
+          "disfluency",
+          "backtrack"
+        ],
+        "say": "Merge it tonight... actually no, wait for CI.",
+        "expect": "Wait for CI.",
+        "raw": "Merge it tonight, actually no, wait for C I",
+        "cleaned": "Merge it tonight, actually no, wait for CI.",
+        "match": false
+      },
+      {
+        "id": "hpolish-08",
+        "tags": [
+          "disfluency",
+          "backtrack"
+        ],
+        "say": "Add a comment there. Scratch that, rename the variable instead.",
+        "expect": "Rename the variable instead.",
+        "raw": "Add a comment there, scratch that, rename the variable instead.",
+        "cleaned": "Rename the variable instead.",
+        "match": true
+      },
+      {
+        "id": "hpolish-09",
+        "tags": [
+          "disfluency",
+          "repair"
+        ],
+        "say": "Put it in the utils folder, I mean the helpers folder.",
+        "expect": "Put it in the helpers folder.",
+        "raw": "Put it in the utils folder. Uh I mean the helpers folder.",
+        "cleaned": "Put it in the helpers folder.",
+        "match": true
+      },
+      {
+        "id": "hpolish-10",
+        "tags": [
+          "disfluency",
+          "backtrack",
+          "restart"
+        ],
+        "say": "So the fix is... um hold on. Just revert the last commit.",
+        "expect": "Just revert the last commit.",
+        "raw": "So the fix is um hold on, just revert the last commit",
+        "cleaned": "So the fix is, hold on, just revert the last commit.",
+        "match": false
+      },
+      {
+        "id": "hpolish-11",
+        "tags": [
+          "disfluency",
+          "repair",
+          "numbers"
+        ],
+        "say": "Set the timeout to thirty, no wait, forty five seconds.",
+        "expect": "Set the timeout to 45 seconds.",
+        "raw": "Set the timeout to thirty, no wait, forty-five seconds",
+        "cleaned": "Set the timeout to forty-five seconds.",
+        "match": false
+      },
+      {
+        "id": "hpolish-12",
+        "tags": [
+          "disfluency",
+          "repair"
+        ],
+        "say": "The meeting is Tuesday, no Wednesday, no wait, Thursday.",
+        "expect": "The meeting is Thursday.",
+        "raw": "The meeting is Tuesday, no Wednesday, no wait Thursday.",
+        "cleaned": "The meeting is Thursday.",
+        "match": true
+      },
+      {
+        "id": "hpolish-13",
+        "tags": [
+          "disfluency",
+          "backtrack",
+          "spell-out"
+        ],
+        "say": "Email Mia, that's M I A, no wait, email Mara about it.",
+        "expect": "Email Mara about it.",
+        "raw": "Email Mia, that's mi-a no wait, email Mara about it.",
+        "cleaned": "Email Mara about it.",
+        "match": true
+      },
+      {
+        "id": "hpolish-14",
+        "tags": [
+          "disfluency",
+          "filler"
+        ],
+        "say": "Send the uh the report to to Dana by Friday.",
+        "expect": "Send the report to Dana by Friday.",
+        "raw": "Send the uh the report to uh to Dana by Friday",
+        "cleaned": "Send the report to Dana by Friday",
+        "match": false
+      },
+      {
+        "id": "hpolish-15",
+        "tags": [
+          "disfluency",
+          "backtrack",
+          "symbols"
+        ],
+        "say": "Run it with dash dash force, hmm actually, run it plain first.",
+        "expect": "Run it plain first.",
+        "raw": "Run it with dash dash force. Actually, run it plain first.",
+        "cleaned": "Run it plain first.",
+        "match": true
+      }
+    ]
+  ]
+}

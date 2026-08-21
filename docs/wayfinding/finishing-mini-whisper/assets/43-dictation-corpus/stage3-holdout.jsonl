@@ -1,0 +1,15 @@
+{"id": "hpolish-01", "tags": ["disfluency", "restart"], "say": "Um so the deploy is... wait actually no, hold off until the tests uh finish.", "expect": "Hold off until the tests finish."}
+{"id": "hpolish-02", "tags": ["symbols", "flag"], "say": "Run the linter with dash dash fix and commit the result period", "expect": "Run the linter with --fix and commit the result."}
+{"id": "hpolish-03", "tags": ["identifier", "context"], "say": "Have retry queue call on failure with the last error period", "expect": "Have RetryQueue call onFailure with the last error.", "context": {"before": "final class RetryQueue {\n  var onFailure: ((Error) -> Void)?"}}
+{"id": "hpolish-04", "tags": ["spell-out", "disambiguation"], "say": "Send the invoice through Xero with an X period", "expect": "Send the invoice through Xero."}
+{"id": "hpolish-05", "tags": ["numbers", "time"], "say": "Let's meet at eleven thirty AM on June ninth period", "expect": "Let's meet at 11:30 a.m. on June 9th."}
+{"id": "hpolish-06", "tags": ["disfluency", "repetition"], "say": "We we should land the the patch today.", "expect": "We should land the patch today."}
+{"id": "hpolish-07", "tags": ["disfluency", "backtrack"], "say": "Merge it tonight... actually no, wait for CI.", "expect": "Wait for CI."}
+{"id": "hpolish-08", "tags": ["disfluency", "backtrack"], "say": "Add a comment there. Scratch that, rename the variable instead.", "expect": "Rename the variable instead."}
+{"id": "hpolish-09", "tags": ["disfluency", "repair"], "say": "Put it in the utils folder, I mean the helpers folder.", "expect": "Put it in the helpers folder."}
+{"id": "hpolish-10", "tags": ["disfluency", "backtrack", "restart"], "say": "So the fix is... um hold on. Just revert the last commit.", "expect": "Just revert the last commit."}
+{"id": "hpolish-11", "tags": ["disfluency", "repair", "numbers"], "say": "Set the timeout to thirty, no wait, forty five seconds.", "expect": "Set the timeout to 45 seconds."}
+{"id": "hpolish-12", "tags": ["disfluency", "repair"], "say": "The meeting is Tuesday, no Wednesday, no wait, Thursday.", "expect": "The meeting is Thursday."}
+{"id": "hpolish-13", "tags": ["disfluency", "backtrack", "spell-out"], "say": "Email Mia, that's M I A, no wait, email Mara about it.", "expect": "Email Mara about it."}
+{"id": "hpolish-14", "tags": ["disfluency", "filler"], "say": "Send the uh the report to to Dana by Friday.", "expect": "Send the report to Dana by Friday."}
+{"id": "hpolish-15", "tags": ["disfluency", "backtrack", "symbols"], "say": "Run it with dash dash force, hmm actually, run it plain first.", "expect": "Run it plain first."}

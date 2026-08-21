@@ -9,9 +9,9 @@ struct VocabularyBoostTests {
   // MARK: Internal
 
   @Test func `strict thresholds reject evidence accepted by FluidAudio defaults`() {
-    #expect(RecognitionBoostThresholds.minimumSimilarity == 0.65)
+    #expect(RecognitionBoostThresholds.default.minimumSimilarity == 0.65)
     #expect(
-      RecognitionBoostThresholds.minimumSimilarity
+      RecognitionBoostThresholds.default.minimumSimilarity
         > ContextBiasingConstants.rescorerConfig(forVocabSize: 101).minSimilarity,
     )
     #expect(

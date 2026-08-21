@@ -1,0 +1,585 @@
+[
+  {
+    "unit": "intact",
+    "mean": 19.375,
+    "scores": [
+      20,
+      20,
+      19,
+      20,
+      18,
+      19,
+      20,
+      19
+    ],
+    "failCounts": {
+      "polish-19": 8,
+      "polish-20": 8,
+      "polish-30": 8,
+      "polish-36": 8,
+      "polish-37": 8,
+      "polish-15": 2,
+      "polish-07": 3
+    }
+  },
+  {
+    "unit": "role",
+    "mean": 18.875,
+    "scores": [
+      18,
+      19,
+      19,
+      19,
+      18,
+      20,
+      20,
+      18
+    ],
+    "failCounts": {
+      "polish-02": 3,
+      "polish-07": 6,
+      "polish-19": 7,
+      "polish-20": 8,
+      "polish-30": 8,
+      "polish-36": 8,
+      "polish-37": 8,
+      "polish-15": 1
+    }
+  },
+  {
+    "unit": "source-material-gate",
+    "mean": 18.875,
+    "scores": [
+      19,
+      19,
+      18,
+      19,
+      18,
+      20,
+      19,
+      19
+    ],
+    "failCounts": {
+      "polish-07": 7,
+      "polish-19": 8,
+      "polish-20": 8,
+      "polish-30": 8,
+      "polish-36": 8,
+      "polish-37": 8,
+      "polish-39": 2
+    }
+  },
+  {
+    "unit": "edit-only-transcript",
+    "mean": 19.25,
+    "scores": [
+      19,
+      20,
+      19,
+      18,
+      18,
+      20,
+      20,
+      20
+    ],
+    "failCounts": {
+      "polish-07": 2,
+      "polish-19": 7,
+      "polish-20": 8,
+      "polish-30": 8,
+      "polish-36": 8,
+      "polish-37": 8,
+      "polish-02": 2,
+      "polish-01": 1,
+      "polish-39": 2
+    }
+  },
+  {
+    "unit": "preserve",
+    "mean": 19.0,
+    "scores": [
+      20,
+      19,
+      19,
+      19,
+      20,
+      19,
+      18,
+      18
+    ],
+    "failCounts": {
+      "polish-19": 8,
+      "polish-20": 8,
+      "polish-30": 8,
+      "polish-36": 8,
+      "polish-37": 8,
+      "polish-39": 3,
+      "polish-07": 3,
+      "polish-02": 1,
+      "polish-01": 1
+    }
+  },
+  {
+    "unit": "do-not-add",
+    "mean": 18.875,
+    "scores": [
+      18,
+      19,
+      19,
+      19,
+      19,
+      19,
+      20,
+      18
+    ],
+    "failCounts": {
+      "polish-02": 2,
+      "polish-07": 6,
+      "polish-19": 8,
+      "polish-20": 8,
+      "polish-30": 8,
+      "polish-36": 8,
+      "polish-37": 8,
+      "polish-39": 1
+    }
+  },
+  {
+    "unit": "do-not-summarize",
+    "mean": 19.25,
+    "scores": [
+      19,
+      19,
+      20,
+      19,
+      19,
+      20,
+      19,
+      19
+    ],
+    "failCounts": {
+      "polish-15": 2,
+      "polish-19": 8,
+      "polish-20": 8,
+      "polish-30": 8,
+      "polish-36": 8,
+      "polish-37": 8,
+      "polish-02": 2,
+      "polish-07": 2
+    }
+  },
+  {
+    "unit": "ordinary-edits",
+    "mean": 17.625,
+    "scores": [
+      17,
+      18,
+      18,
+      18,
+      18,
+      18,
+      16,
+      18
+    ],
+    "failCounts": {
+      "polish-02": 8,
+      "polish-03": 8,
+      "polish-15": 1,
+      "polish-19": 8,
+      "polish-20": 8,
+      "polish-30": 8,
+      "polish-36": 8,
+      "polish-37": 8,
+      "polish-07": 1,
+      "polish-39": 1
+    }
+  },
+  {
+    "unit": "bare-ending",
+    "mean": 19.125,
+    "scores": [
+      18,
+      20,
+      20,
+      20,
+      18,
+      20,
+      18,
+      19
+    ],
+    "failCounts": {
+      "polish-07": 4,
+      "polish-15": 2,
+      "polish-19": 8,
+      "polish-20": 8,
+      "polish-30": 8,
+      "polish-36": 8,
+      "polish-37": 8,
+      "polish-39": 1
+    }
+  },
+  {
+    "unit": "typing-commands",
+    "mean": 16.625,
+    "scores": [
+      16,
+      18,
+      17,
+      17,
+      16,
+      16,
+      16,
+      17
+    ],
+    "failCounts": {
+      "polish-07": 8,
+      "polish-15": 1,
+      "polish-19": 8,
+      "polish-20": 8,
+      "polish-28": 6,
+      "polish-30": 8,
+      "polish-32": 8,
+      "polish-36": 8,
+      "polish-37": 8,
+      "polish-39": 3,
+      "polish-29": 1
+    }
+  },
+  {
+    "unit": "layout",
+    "mean": 18.0,
+    "scores": [
+      18,
+      18,
+      17,
+      18,
+      18,
+      19,
+      19,
+      17
+    ],
+    "failCounts": {
+      "polish-07": 8,
+      "polish-15": 2,
+      "polish-19": 8,
+      "polish-20": 8,
+      "polish-30": 8,
+      "polish-36": 8,
+      "polish-37": 8,
+      "polish-02": 3,
+      "polish-39": 3
+    }
+  },
+  {
+    "unit": "symbols",
+    "mean": 18.0,
+    "scores": [
+      19,
+      19,
+      18,
+      17,
+      16,
+      19,
+      19,
+      17
+    ],
+    "failCounts": {
+      "polish-07": 7,
+      "polish-19": 8,
+      "polish-20": 8,
+      "polish-30": 8,
+      "polish-36": 8,
+      "polish-37": 8,
+      "polish-13": 5,
+      "polish-39": 3,
+      "polish-02": 1
+    }
+  },
+  {
+    "unit": "symbols-worked-example",
+    "mean": 18.75,
+    "scores": [
+      18,
+      20,
+      18,
+      20,
+      18,
+      20,
+      19,
+      17
+    ],
+    "failCounts": {
+      "polish-07": 5,
+      "polish-13": 4,
+      "polish-19": 8,
+      "polish-20": 8,
+      "polish-30": 8,
+      "polish-36": 8,
+      "polish-37": 8,
+      "polish-39": 1
+    }
+  },
+  {
+    "unit": "symbols-enumeration",
+    "mean": 18.375,
+    "scores": [
+      18,
+      18,
+      19,
+      17,
+      19,
+      19,
+      18,
+      19
+    ],
+    "failCounts": {
+      "polish-07": 6,
+      "polish-13": 6,
+      "polish-19": 8,
+      "polish-20": 8,
+      "polish-30": 8,
+      "polish-36": 8,
+      "polish-37": 8,
+      "polish-39": 1
+    }
+  },
+  {
+    "unit": "ambiguous-symbol",
+    "mean": 19.625,
+    "scores": [
+      19,
+      20,
+      19,
+      20,
+      19,
+      20,
+      20,
+      20
+    ],
+    "failCounts": {
+      "polish-15": 2,
+      "polish-19": 8,
+      "polish-20": 8,
+      "polish-30": 8,
+      "polish-36": 8,
+      "polish-37": 8,
+      "polish-07": 1
+    }
+  },
+  {
+    "unit": "spell-out",
+    "mean": 18.5,
+    "scores": [
+      19,
+      18,
+      18,
+      18,
+      19,
+      19,
+      19,
+      18
+    ],
+    "failCounts": {
+      "polish-19": 8,
+      "polish-20": 8,
+      "polish-30": 8,
+      "polish-36": 8,
+      "polish-37": 8,
+      "polish-39": 8,
+      "polish-07": 1,
+      "polish-01": 1,
+      "polish-02": 1,
+      "polish-15": 1
+    }
+  },
+  {
+    "unit": "spell-out-examples",
+    "mean": 18.375,
+    "scores": [
+      19,
+      18,
+      18,
+      17,
+      18,
+      18,
+      19,
+      20
+    ],
+    "failCounts": {
+      "polish-19": 7,
+      "polish-20": 8,
+      "polish-30": 8,
+      "polish-36": 8,
+      "polish-37": 8,
+      "polish-39": 8,
+      "polish-07": 5,
+      "polish-02": 1
+    }
+  },
+  {
+    "unit": "conventional-spelling",
+    "mean": 19.0,
+    "scores": [
+      19,
+      19,
+      20,
+      19,
+      20,
+      18,
+      18,
+      19
+    ],
+    "failCounts": {
+      "polish-15": 5,
+      "polish-19": 8,
+      "polish-20": 8,
+      "polish-30": 8,
+      "polish-36": 8,
+      "polish-37": 8,
+      "polish-07": 3
+    }
+  },
+  {
+    "unit": "dictionary-exact",
+    "mean": 19.125,
+    "scores": [
+      19,
+      19,
+      20,
+      18,
+      20,
+      19,
+      19,
+      19
+    ],
+    "failCounts": {
+      "polish-02": 1,
+      "polish-19": 8,
+      "polish-20": 8,
+      "polish-30": 8,
+      "polish-36": 8,
+      "polish-37": 8,
+      "polish-07": 4,
+      "polish-01": 1,
+      "polish-39": 1
+    }
+  },
+  {
+    "unit": "dictionary-restraint",
+    "mean": 19.125,
+    "scores": [
+      20,
+      19,
+      19,
+      19,
+      19,
+      18,
+      20,
+      19
+    ],
+    "failCounts": {
+      "polish-19": 8,
+      "polish-20": 8,
+      "polish-30": 8,
+      "polish-36": 8,
+      "polish-37": 8,
+      "polish-07": 5,
+      "polish-02": 1,
+      "polish-39": 1
+    }
+  },
+  {
+    "unit": "context-scope",
+    "mean": 18.625,
+    "scores": [
+      17,
+      19,
+      18,
+      20,
+      20,
+      18,
+      19,
+      18
+    ],
+    "failCounts": {
+      "polish-07": 4,
+      "polish-15": 3,
+      "polish-19": 8,
+      "polish-20": 8,
+      "polish-30": 8,
+      "polish-33": 1,
+      "polish-36": 8,
+      "polish-37": 8,
+      "polish-39": 2,
+      "polish-02": 1
+    }
+  },
+  {
+    "unit": "identifier",
+    "mean": 19.5,
+    "scores": [
+      18,
+      20,
+      20,
+      20,
+      19,
+      20,
+      19,
+      20
+    ],
+    "failCounts": {
+      "polish-07": 2,
+      "polish-15": 1,
+      "polish-19": 8,
+      "polish-20": 8,
+      "polish-30": 8,
+      "polish-36": 8,
+      "polish-37": 8,
+      "polish-39": 1
+    }
+  },
+  {
+    "unit": "no-copying-context",
+    "mean": 19.5,
+    "scores": [
+      19,
+      20,
+      20,
+      19,
+      19,
+      20,
+      20,
+      19
+    ],
+    "failCounts": {
+      "polish-07": 4,
+      "polish-19": 8,
+      "polish-20": 8,
+      "polish-30": 8,
+      "polish-36": 8,
+      "polish-37": 8
+    }
+  },
+  {
+    "unit": "return-only",
+    "mean": 19.125,
+    "scores": [
+      18,
+      19,
+      19,
+      19,
+      21,
+      19,
+      19,
+      19
+    ],
+    "failCounts": {
+      "polish-07": 7,
+      "polish-19": 7,
+      "polish-20": 8,
+      "polish-30": 8,
+      "polish-33": 1,
+      "polish-36": 8,
+      "polish-37": 8
+    }
+  }
+]

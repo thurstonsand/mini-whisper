@@ -1,0 +1,15 @@
+{"audioSeconds":6.0880000000000001,"id":"hpolish-01","latencyMs":61.200000000000003,"outcome":"transcript","transcript":"Um so the deploy is wait actually no, hold off until the tests uh finish"}
+{"audioSeconds":5.5949999999999998,"id":"hpolish-02","latencyMs":58.399999999999999,"outcome":"transcript","transcript":"Run the linter with dash dash fix and commit the result, period."}
+{"audioSeconds":5.6970000000000001,"id":"hpolish-03","latencyMs":57.5,"outcome":"transcript","transcript":"Have retryQ call on failure with the last error period."}
+{"audioSeconds":5.4930000000000003,"id":"hpolish-04","latencyMs":56.700000000000003,"outcome":"transcript","transcript":"Send the invoice through zero with an X."}
+{"audioSeconds":5,"id":"hpolish-05","latencyMs":57.100000000000001,"outcome":"transcript","transcript":"Let's meet at 11.30am on June 9th."}
+{"audioSeconds":4.1840000000000002,"id":"hpolish-06","latencyMs":55.100000000000001,"outcome":"transcript","transcript":"We we should land the the patch today."}
+{"audioSeconds":3.6899999999999999,"id":"hpolish-07","latencyMs":56.399999999999999,"outcome":"transcript","transcript":"Merge it tonight, actually no, wait for C I"}
+{"audioSeconds":4.694,"id":"hpolish-08","latencyMs":58.600000000000001,"outcome":"transcript","transcript":"Add a comment there, scratch that, rename the variable instead."}
+{"audioSeconds":4.8979999999999997,"id":"hpolish-09","latencyMs":58.600000000000001,"outcome":"transcript","transcript":"Put it in the utils folder. Uh I mean the helpers folder."}
+{"audioSeconds":5.4930000000000003,"id":"hpolish-10","latencyMs":57,"outcome":"transcript","transcript":"So the fix is um hold on, just revert the last commit"}
+{"audioSeconds":4.2859999999999996,"id":"hpolish-11","latencyMs":57.399999999999999,"outcome":"transcript","transcript":"Set the timeout to thirty, no wait, forty-five seconds"}
+{"audioSeconds":5.4930000000000003,"id":"hpolish-12","latencyMs":57.899999999999999,"outcome":"transcript","transcript":"The meeting is Tuesday, no Wednesday, no wait Thursday."}
+{"audioSeconds":6.9900000000000002,"id":"hpolish-13","latencyMs":59.899999999999999,"outcome":"transcript","transcript":"Email Mia, that's mi-a no wait, email Mara about it."}
+{"audioSeconds":5.7990000000000004,"id":"hpolish-14","latencyMs":57.100000000000001,"outcome":"transcript","transcript":"Send the uh the report to uh to Dana by Friday"}
+{"audioSeconds":6.1900000000000004,"id":"hpolish-15","latencyMs":58.600000000000001,"outcome":"transcript","transcript":"Run it with dash dash force. Actually, run it plain first."}

@@ -1,0 +1,15 @@
+{"id": "hdict-01", "say": "Point Homebrew at the private tap before installing.", "wants": ["Homebrew"]}
+{"id": "hdict-02", "say": "Zigbee dropped off the mesh again overnight.", "wants": ["Zigbee"]}
+{"id": "hdict-03", "say": "FluidAudio and Parakeet ship as one bundle.", "wants": ["FluidAudio", "Parakeet"]}
+{"id": "htrap-01", "say": "The silo stood empty after the harvest.", "traps": ["Silero"]}
+{"id": "htrap-02", "say": "A ghastly chill settled over the cabin.", "traps": ["Ghostty"]}
+{"id": "hdict-04", "say": "MiniWhisper prewarns the model during onboarding.", "wants": ["MiniWhisper"]}
+{"id": "hdict-05", "say": "The pill is plain SwiftUI over an AppKit panel.", "wants": ["SwiftUI"]}
+{"id": "hdict-06", "say": "Every XCUITest slice runs against a deterministic scene.", "wants": ["XCUITest"]}
+{"id": "hdict-07", "say": "Qwen three underpins the local cleanup model.", "wants": ["Qwen"]}
+{"id": "hdict-08", "say": "Serve it with llama.cpp on port eight three one seven.", "wants": ["llama.cpp"]}
+{"id": "hdict-09", "say": "The reducers and clients follow TCA all the way down.", "wants": ["TCA"]}
+{"id": "htrap-03", "say": "The cerebral scan came back completely clean.", "traps": ["Cerebras"]}
+{"id": "htrap-04", "say": "The parquet floor creaked under the movers.", "traps": ["Parakeet"]}
+{"id": "htrap-05", "say": "His keychain jangled with a dozen old keys.", "traps": ["Keychain"]}
+{"id": "htrap-06", "say": "The kids loved story time at the library.", "traps": ["tuistory"]}

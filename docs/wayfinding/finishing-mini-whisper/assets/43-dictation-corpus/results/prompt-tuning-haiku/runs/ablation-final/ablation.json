@@ -1,0 +1,167 @@
+[
+  {
+    "unit": "intact",
+    "mean": 18.3,
+    "scores": [
+      19,
+      17,
+      19,
+      18,
+      18,
+      19,
+      18,
+      19,
+      19,
+      17
+    ],
+    "failCounts": {
+      "polish-19": 10,
+      "polish-20": 10,
+      "polish-30": 10,
+      "polish-36": 10,
+      "polish-37": 10,
+      "polish-39": 10,
+      "polish-01": 1,
+      "polish-13": 2,
+      "polish-07": 3,
+      "polish-15": 1
+    }
+  },
+  {
+    "unit": "identifier",
+    "mean": 17.6,
+    "scores": [
+      17,
+      19,
+      17,
+      17,
+      17,
+      17,
+      19,
+      16,
+      18,
+      19
+    ],
+    "failCounts": {
+      "polish-07": 6,
+      "polish-15": 4,
+      "polish-19": 10,
+      "polish-20": 10,
+      "polish-30": 10,
+      "polish-36": 10,
+      "polish-37": 10,
+      "polish-39": 10,
+      "polish-02": 3,
+      "polish-13": 1
+    }
+  },
+  {
+    "unit": "conventional-spelling",
+    "mean": 17.5,
+    "scores": [
+      18,
+      18,
+      17,
+      18,
+      17,
+      18,
+      17,
+      17,
+      18,
+      17
+    ],
+    "failCounts": {
+      "polish-15": 7,
+      "polish-19": 10,
+      "polish-20": 10,
+      "polish-30": 10,
+      "polish-36": 10,
+      "polish-37": 10,
+      "polish-39": 10,
+      "polish-07": 4,
+      "polish-02": 1,
+      "polish-13": 3
+    }
+  },
+  {
+    "unit": "attachment",
+    "mean": 17.6,
+    "scores": [
+      17,
+      17,
+      17,
+      16,
+      18,
+      17,
+      19,
+      17,
+      19,
+      19
+    ],
+    "failCounts": {
+      "polish-07": 6,
+      "polish-13": 7,
+      "polish-19": 10,
+      "polish-20": 10,
+      "polish-30": 10,
+      "polish-36": 10,
+      "polish-37": 10,
+      "polish-39": 10,
+      "polish-15": 1
+    }
+  },
+  {
+    "unit": "layout",
+    "mean": 17.4,
+    "scores": [
+      17,
+      17,
+      17,
+      17,
+      18,
+      18,
+      18,
+      17,
+      18,
+      17
+    ],
+    "failCounts": {
+      "polish-07": 10,
+      "polish-13": 3,
+      "polish-19": 10,
+      "polish-20": 10,
+      "polish-30": 10,
+      "polish-36": 10,
+      "polish-37": 10,
+      "polish-39": 10,
+      "polish-15": 2,
+      "polish-02": 1
+    }
+  },
+  {
+    "unit": "spell-out",
+    "mean": 18.7,
+    "scores": [
+      20,
+      18,
+      18,
+      18,
+      19,
+      19,
+      18,
+      19,
+      19,
+      19
+    ],
+    "failCounts": {
+      "polish-20": 10,
+      "polish-30": 10,
+      "polish-36": 10,
+      "polish-37": 10,
+      "polish-39": 10,
+      "polish-07": 3,
+      "polish-19": 9,
+      "polish-01": 1
+    }
+  }
+]

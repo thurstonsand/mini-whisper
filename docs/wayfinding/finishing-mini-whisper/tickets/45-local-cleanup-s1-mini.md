@@ -23,3 +23,7 @@ Output: findings asset with citations; recommend, don't decide.
 ## Spike results (2026-08-20)
 
 Runtime and quality spike run at [`spikes/s1-mini-cleanup/`](../../../spikes/s1-mini-cleanup/); findings with the full latency matrix and quality probes in [the asset](../assets/45-local-cleanup-s1-mini.md). Headline: 222 ms median at Q4 GGUF vs 3295 ms for the gateway baseline — 15× — with frontier-equal disfluency handling, working styling axes, but a hard fail on spoken-symbol coded speech and no prompt surface (no dictionary, context, or instructions; empty output is valid). It is a tier, not a drop-in. Remaining: the integration grilling (engine picker shape, empty-output semantics, base-model provenance, runtime choice GGUF-vs-MLX-4-bit) and the ticket-43 corpus comparison once recorded.
+
+**Corpus round 2:** Parakeet + s1-mini scores 12/27 stage-3 exact at 107 ms end-to-end — 63% of gemini's accuracy at 4% of its latency, fully offline. Every failure is structural (no prompt surface: spell-out 0/3, identifier/context 0/3, no dictionary), not quality: it holds all the invariants and ordinary spoken punctuation. The tier framing is confirmed by measurement.
+
+**Round 2 addendum:** Parakeet+s1-mini (12/27 @ 107 ms) beats superwhisper's own recommended offline stack, Cohere Transcribe+s1-mini (9/27 @ 172 ms), on both axes — the engine gap is ASR damage, not cleanup. The offline tier's best pairing is our incumbent engine plus their model.

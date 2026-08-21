@@ -13,13 +13,18 @@ let minimumUtteranceDuration: TimeInterval = 0.5
 public actor LocalASREngine {
   // MARK: Lifecycle
 
-  public init(modelRoot: URL, gateConfiguration: GateConfiguration = .calibrated) {
+  public init(
+    modelRoot: URL, gateConfiguration: GateConfiguration = .calibrated,
+    boostThresholds: RecognitionBoostThresholds = .default,
+  ) {
     self.gateConfiguration = gateConfiguration
+    self.boostThresholds = boostThresholds
     modelStore = PinnedModelStore(root: modelRoot)
   }
 
   init(gateConfiguration: GateConfiguration, modelStore: PinnedModelStore) {
     self.gateConfiguration = gateConfiguration
+    boostThresholds = .default
     self.modelStore = modelStore
   }
 
@@ -53,8 +58,7 @@ public actor LocalASREngine {
       )
       return .tooShort
     }
-    guard readiness == .ready, let vadManager, let asrManager, let decoderLayerCount, let boost
-    else {
+    guard readiness == .ready, let vadManager else {
       throw ASREngineError.notReady
     }
 
@@ -68,6 +72,36 @@ public actor LocalASREngine {
       return .noSpeech
     }
 
+    return try await decode(samples, dictionary: dictionary)
+  }
+
+  /// Offline replay of recordings that were made on purpose. The gate answers "did the user mean
+  /// to say anything", a question a corpus fixture has already answered, so replay decodes
+  /// directly and the gate's own thresholds stay out of the measurement.
+  public func transcribeIgnoringGate(
+    _ samples: [Float], sampleRate: Double, dictionary: TranscriptionDictionary,
+  ) async throws -> TranscriptionOutcome {
+    precondition(sampleRate > 0)
+    return try await decode(samples, dictionary: dictionary)
+  }
+
+  // MARK: Private
+
+  private let gateConfiguration: GateConfiguration
+  private let boostThresholds: RecognitionBoostThresholds
+  private let modelStore: PinnedModelStore
+  private var readiness: EngineReadiness = .modelMissing
+  private var vadManager: VadManager?
+  private var asrManager: AsrManager?
+  private var decoderLayerCount: Int?
+  private var boost: VocabularyBoost?
+
+  private func decode(
+    _ samples: [Float], dictionary: TranscriptionDictionary,
+  ) async throws -> TranscriptionOutcome {
+    guard readiness == .ready, let asrManager, let decoderLayerCount, let boost else {
+      throw ASREngineError.notReady
+    }
     var decoderState = try TdtDecoderState(decoderLayers: decoderLayerCount)
     let transcript = try await asrManager.transcribe(samples, decoderState: &decoderState)
     let boosted: String
@@ -88,16 +122,6 @@ public actor LocalASREngine {
     }
     return TranscriptionOutcomeFinisher.finish(transcript: boosted, dictionary: dictionary)
   }
-
-  // MARK: Private
-
-  private let gateConfiguration: GateConfiguration
-  private let modelStore: PinnedModelStore
-  private var readiness: EngineReadiness = .modelMissing
-  private var vadManager: VadManager?
-  private var asrManager: AsrManager?
-  private var decoderLayerCount: Int?
-  private var boost: VocabularyBoost?
 
   private func prepareInstalled(continuation: AsyncStream<EngineReadiness>.Continuation) async {
     defer { continuation.finish() }
@@ -160,7 +184,9 @@ public actor LocalASREngine {
     self.asrManager = asrManager
     decoderLayerCount = models.version.decoderLayers
     boost = try await VocabularyBoost(
-      backend: FluidVocabularyBoostBackend.load(from: modelStore.ctcDirectory),
+      backend: FluidVocabularyBoostBackend.load(
+        from: modelStore.ctcDirectory, thresholds: boostThresholds,
+      ),
     )
     updateReadiness(.ready, progress: progress)
   }

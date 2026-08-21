@@ -1,0 +1,24 @@
+{"id": "dict-01", "say": "MiniWhisper delivers the transcript into the frontmost app.", "wants": ["MiniWhisper"]}
+{"id": "dict-02", "say": "I keep three terminals open in Ghostty.", "wants": ["Ghostty"]}
+{"id": "dict-03", "say": "Cerebras answered in under four hundred milliseconds.", "wants": ["Cerebras"]}
+{"id": "dict-04", "say": "The gate runs one Silero pass at release.", "wants": ["Silero"]}
+{"id": "dict-05", "say": "Parakeet handles the transcription on device.", "wants": ["Parakeet"]}
+{"id": "dict-06", "say": "FluidAudio pins the model version for us.", "wants": ["FluidAudio"]}
+{"id": "dict-07", "say": "Wrap the dev server with tuistory so agents can read it.", "wants": ["tuistory"]}
+{"id": "dict-08", "say": "The settings window is plain SwiftUI.", "wants": ["SwiftUI"]}
+{"id": "dict-09", "say": "Every surface has an XCUITest slice.", "wants": ["XCUITest"]}
+{"id": "dict-10", "say": "The sensor bridges over Zigbee to the hub.", "wants": ["Zigbee"]}
+{"id": "dict-11", "say": "The base model is Qwen three.", "wants": ["Qwen"]}
+{"id": "dict-12", "say": "Run it locally with llama.cpp.", "wants": ["llama.cpp"]}
+{"id": "dict-13", "say": "The API key lives in the Keychain.", "wants": ["Keychain"]}
+{"id": "dict-14", "say": "Install the cask through Homebrew.", "wants": ["Homebrew"]}
+{"id": "dict-15", "say": "The reducers follow TCA conventions.", "wants": ["TCA"]}
+{"id": "dict-16", "say": "Ghostty and tuistory both survived the Cerebras outage writeup.", "wants": ["Ghostty", "tuistory", "Cerebras"]}
+{"id": "trap-01", "say": "A parakeet chattered in the pet shop window.", "traps": ["Parakeet"]}
+{"id": "trap-02", "say": "The hall went quiet, and silence settled over the room.", "traps": ["Silero"]}
+{"id": "trap-03", "say": "A ghostly draft moved through the stairwell.", "traps": ["Ghostty"]}
+{"id": "trap-04", "say": "His approach was cerebral, all theory and no instinct.", "traps": ["Cerebras"]}
+{"id": "trap-05", "say": "She answered with a mini whisper of her own.", "traps": ["MiniWhisper"]}
+{"id": "trap-06", "say": "The key chain rattled against the door.", "traps": ["Keychain"]}
+{"id": "trap-07", "say": "The queen moved across the board.", "traps": ["Qwen"]}
+{"id": "trap-08", "say": "A llama grazed by the fence.", "traps": ["llama.cpp"]}

@@ -75,6 +75,18 @@ struct EngineLifecycleTests {
     }
   }
 
+  @Test func `replay below the duration floor still reaches the engine`() async {
+    let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+    let engine = LocalASREngine(
+      gateConfiguration: .calibrated, modelStore: PinnedModelStore(root: root),
+    )
+    let samples = Array(repeating: Float.zero, count: 7984)
+
+    await #expect(throws: ASREngineError.notReady) {
+      try await engine.transcribeIgnoringGate(samples, sampleRate: 16000, dictionary: .empty)
+    }
+  }
+
   @Test func `range responses append only when the offset and pinned size match`() {
     #expect(
       ResumeDecision.decide(

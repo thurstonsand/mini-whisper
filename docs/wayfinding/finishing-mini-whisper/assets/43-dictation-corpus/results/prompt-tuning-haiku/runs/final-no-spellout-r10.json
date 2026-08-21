@@ -1,0 +1,33 @@
+{
+  "label": "final-no-spellout",
+  "model": "claude-haiku-4-5",
+  "prompt": "candidates/final-no-spellout.txt",
+  "raw": "/Users/thurstonsand/Develop/mini-whisper/docs/wayfinding/finishing-mini-whisper/assets/43-dictation-corpus/results/built-in-r2/stage3-raw.jsonl",
+  "scores": [
+    19,
+    18,
+    17,
+    17,
+    18,
+    18,
+    18,
+    19,
+    18,
+    18
+  ],
+  "entries": 25,
+  "failCounts": {
+    "polish-01": 1,
+    "polish-02": 2,
+    "polish-07": 5,
+    "polish-13": 1,
+    "polish-15": 1,
+    "polish-19": 10,
+    "polish-20": 10,
+    "polish-30": 10,
+    "polish-36": 10,
+    "polish-37": 10,
+    "polish-39": 10
+  },
+  "repeats": "pruned; 10 runs, rerun with tune.py --prompt candidates/final-no-spellout.txt"
+}

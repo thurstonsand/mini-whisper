@@ -1,0 +1,725 @@
+# Harvard sentences (IEEE 297-1969, Appendix C: 1965 Revised List of Phonetically Balanced
+# Sentences). Public domain. Transcribed from Henning Schulzrinne's copy at
+# https://www.cs.columbia.edu/~hgs/audio/harvard.html, fetched 2026-08-20.
+# One sentence per line, prefixed by its list number.
+
+01	The birch canoe slid on the smooth planks.
+01	Glue the sheet to the dark blue background.
+01	It's easy to tell the depth of a well.
+01	These days a chicken leg is a rare dish.
+01	Rice is often served in round bowls.
+01	The juice of lemons makes fine punch.
+01	The box was thrown beside the parked truck.
+01	The hogs were fed chopped corn and garbage.
+01	Four hours of steady work faced us.
+01	A large size in stockings is hard to sell.
+02	The boy was there when the sun rose.
+02	A rod is used to catch pink salmon.
+02	The source of the huge river is the clear spring.
+02	Kick the ball straight and follow through.
+02	Help the woman get back to her feet.
+02	A pot of tea helps to pass the evening.
+02	Smoky fires lack flame and heat.
+02	The soft cushion broke the man's fall.
+02	The salt breeze came across from the sea.
+02	The girl at the booth sold fifty bonds.
+03	The small pup gnawed a hole in the sock.
+03	The fish twisted and turned on the bent hook.
+03	Press the pants and sew a button on the vest.
+03	The swan dive was far short of perfect.
+03	The beauty of the view stunned the young boy.
+03	Two blue fish swam in the tank.
+03	Her purse was full of useless trash.
+03	The colt reared and threw the tall rider.
+03	It snowed, rained, and hailed the same morning.
+03	Read verse out loud for pleasure.
+04	Hoist the load to your left shoulder.
+04	Take the winding path to reach the lake.
+04	Note closely the size of the gas tank.
+04	Wipe the grease off his dirty face.
+04	Mend the coat before you go out.
+04	The wrist was badly strained and hung limp.
+04	The stray cat gave birth to kittens.
+04	The young girl gave no clear response.
+04	The meal was cooked before the bell rang.
+04	What joy there is in living.
+05	A king ruled the state in the early days.
+05	The ship was torn apart on the sharp reef.
+05	Sickness kept him home the third week.
+05	The wide road shimmered in the hot sun.
+05	The lazy cow lay in the cool grass.
+05	Lift the square stone over the fence.
+05	The rope will bind the seven books at once.
+05	Hop over the fence and plunge in.
+05	The friendly gang left the drug store.
+05	Mesh wire keeps chicks inside.
+06	The frosty air passed through the coat.
+06	The crooked maze failed to fool the mouse.
+06	Adding fast leads to wrong sums.
+06	The show was a flop from the very start.
+06	A saw is a tool used for making boards.
+06	The wagon moved on well oiled wheels.
+06	March the soldiers past the next hill.
+06	A cup of sugar makes sweet fudge.
+06	Place a rosebush near the porch steps.
+06	Both lost their lives in the raging storm.
+07	We talked of the side show in the circus.
+07	Use a pencil to write the first draft.
+07	He ran half way to the hardware store.
+07	The clock struck to mark the third period.
+07	A small creek cut across the field.
+07	Cars and busses stalled in snow drifts.
+07	The set of china hit the floor with a crash.
+07	This is a grand season for hikes on the road.
+07	The dune rose from the edge of the water.
+07	Those words were the cue for the actor to leave.
+08	A yacht slid around the point into the bay.
+08	The two met while playing on the sand.
+08	The ink stain dried on the finished page.
+08	The walled town was seized without a fight.
+08	The lease ran out in sixteen weeks.
+08	A tame squirrel makes a nice pet.
+08	The horn of the car woke the sleeping cop.
+08	The heart beat strongly and with firm strokes.
+08	The pearl was worn in a thin silver ring.
+08	The fruit peel was cut in thick slices.
+09	The Navy attacked the big task force.
+09	See the cat glaring at the scared mouse.
+09	There are more than two factors here.
+09	The hat brim was wide and too droopy.
+09	The lawyer tried to lose his case.
+09	The grass curled around the fence post.
+09	Cut the pie into large parts.
+09	Men strive but seldom get rich.
+09	Always close the barn door tight.
+09	He lay prone and hardly moved a limb.
+10	The slush lay deep along the street.
+10	A wisp of cloud hung in the blue air.
+10	A pound of sugar costs more than eggs.
+10	The fin was sharp and cut the clear water.
+10	The play seems dull and quite stupid.
+10	Bail the boat to stop it from sinking.
+10	The term ended in late June that year.
+10	A tusk is used to make costly gifts.
+10	Ten pins were set in order.
+10	The bill was paid every third week.
+11	Oak is strong and also gives shade.
+11	Cats and dogs each hate the other.
+11	The pipe began to rust while new.
+11	Open the crate but don't break the glass.
+11	Add the sum to the product of these three.
+11	Thieves who rob friends deserve jail.
+11	The ripe taste of cheese improves with age.
+11	Act on these orders with great speed.
+11	The hog crawled under the high fence.
+11	Move the vat over the hot fire.
+12	The bark of the pine tree was shiny and dark.
+12	Leaves turn brown and yellow in the fall.
+12	The pennant waved when the wind blew.
+12	Split the log with a quick, sharp blow.
+12	Burn peat after the logs give out.
+12	He ordered peach pie with ice cream.
+12	Weave the carpet on the right hand side.
+12	Hemp is a weed found in parts of the tropics.
+12	A lame back kept his score low.
+12	We find joy in the simplest things.
+13	Type out three lists of orders.
+13	The harder he tried the less he got done.
+13	The boss ran the show with a watchful eye.
+13	The cup cracked and spilled its contents.
+13	Paste can cleanse the most dirty brass.
+13	The slang word for raw whiskey is booze.
+13	It caught its hind paw in a rusty trap.
+13	The wharf could be seen at the farther shore.
+13	Feel the heat of the weak dying flame.
+13	The tiny girl took off her hat.
+14	A cramp is no small danger on a swim.
+14	He said the same phrase thirty times.
+14	Pluck the bright rose without leaves.
+14	Two plus seven is less than ten.
+14	The glow deepened in the eyes of the sweet girl.
+14	Bring your problems to the wise chief.
+14	Write a fond note to the friend you cherish.
+14	Clothes and lodging are free to new men.
+14	We frown when events take a bad turn.
+14	Port is a strong wine with a smoky taste.
+15	The young kid jumped the rusty gate.
+15	Guess the results from the first scores.
+15	A salt pickle tastes fine with ham.
+15	The just claim got the right verdict.
+15	These thistles bend in a high wind.
+15	Pure bred poodles have curls.
+15	The tree top waved in a graceful way.
+15	The spot on the blotter was made by green ink.
+15	Mud was spattered on the front of his white shirt.
+15	The cigar burned a hole in the desk top.
+16	The empty flask stood on the tin tray.
+16	A speedy man can beat this track mark.
+16	He broke a new shoelace that day.
+16	The coffee stand is too high for the couch.
+16	The urge to write short stories is rare.
+16	The pencils have all been used.
+16	The pirates seized the crew of the lost ship.
+16	We tried to replace the coin but failed.
+16	She sewed the torn coat quite neatly.
+16	The sofa cushion is red and of light weight.
+17	The jacket hung on the back of the wide chair.
+17	At that high level the air is pure.
+17	Drop the two when you add the figures.
+17	A filing case is now hard to buy.
+17	An abrupt start does not win the prize.
+17	Wood is best for making toys and blocks.
+17	The office paint was a dull, sad tan.
+17	He knew the skill of the great young actress.
+17	A rag will soak up spilled water.
+17	A shower of dirt fell from the hot pipes.
+18	Steam hissed from the broken valve.
+18	The child almost hurt the small dog.
+18	There was a sound of dry leaves outside.
+18	The sky that morning was clear and bright blue.
+18	Torn scraps littered the stone floor.
+18	Sunday is the best part of the week.
+18	The doctor cured him with these pills.
+18	The new girl was fired today at noon.
+18	They felt gay when the ship arrived in port.
+18	Add the store's account to the last cent.
+19	Acid burns holes in wool cloth.
+19	Fairy tales should be fun to write.
+19	Eight miles of woodland burned to waste.
+19	The third act was dull and tired the players.
+19	A young child should not suffer fright.
+19	Add the column and put the sum here.
+19	We admire and love a good cook.
+19	There the flood mark is ten inches.
+19	He carved a head from the round block of marble.
+19	She has a smart way of wearing clothes.
+20	The fruit of a fig tree is apple-shaped.
+20	Corn cobs can be used to kindle a fire.
+20	Where were they when the noise started.
+20	The paper box is full of thumb tacks.
+20	Sell your gift to a buyer at a good gain.
+20	The tongs lay beside the ice pail.
+20	The petals fall with the next puff of wind.
+20	Bring your best compass to the third class.
+20	They could laugh although they were sad.
+20	Farmers came in to thresh the oat crop.
+21	The brown house was on fire to the attic.
+21	The lure is used to catch trout and flounder.
+21	Float the soap on top of the bath water.
+21	A blue crane is a tall wading bird.
+21	A fresh start will work such wonders.
+21	The club rented the rink for the fifth night.
+21	After the dance, they went straight home.
+21	The hostess taught the new maid to serve.
+21	He wrote his last novel there at the inn.
+21	Even the worst will beat his low score.
+22	The cement had dried when he moved it.
+22	The loss of the second ship was hard to take.
+22	The fly made its way along the wall.
+22	Do that with a wooden stick.
+22	Live wires should be kept covered.
+22	The large house had hot water taps.
+22	It is hard to erase blue or red ink.
+22	Write at once or you may forget it.
+22	The doorknob was made of bright clean brass.
+22	The wreck occurred by the bank on Main Street.
+23	A pencil with black lead writes best.
+23	Coax a young calf to drink from a bucket.
+23	Schools for ladies teach charm and grace.
+23	The lamp shone with a steady green flame.
+23	They took the axe and the saw to the forest.
+23	The ancient coin was quite dull and worn.
+23	The shaky barn fell with a loud crash.
+23	Jazz and swing fans like fast music.
+23	Rake the rubbish up and then burn it.
+23	Slash the gold cloth into fine ribbons.
+24	Try to have the court decide the case.
+24	They are pushed back each time they attack.
+24	He broke his ties with groups of former friends.
+24	They floated on the raft to sun their white backs.
+24	The map had an X that meant nothing.
+24	Whitings are small fish caught in nets.
+24	Some ads serve to cheat buyers.
+24	Jerk the rope and the bell rings weakly.
+24	A waxed floor makes us lose balance.
+24	Madam, this is the best brand of corn.
+25	On the islands the sea breeze is soft and mild.
+25	The play began as soon as we sat down.
+25	This will lead the world to more sound and fury.
+25	Add salt before you fry the egg.
+25	The rush for funds reached its peak Tuesday.
+25	The birch looked stark white and lonesome.
+25	The box is held by a bright red snapper.
+25	To make pure ice, you freeze water.
+25	The first worm gets snapped early.
+25	Jump the fence and hurry up the bank.
+26	Yell and clap as the curtain slides back.
+26	They are men who walk the middle of the road.
+26	Both brothers wear the same size.
+26	In some form or other we need fun.
+26	The prince ordered his head chopped off.
+26	The houses are built of red clay bricks.
+26	Ducks fly north but lack a compass.
+26	Fruit flavors are used in fizz drinks.
+26	These pills do less good than others.
+26	Canned pears lack full flavor.
+27	The dark pot hung in the front closet.
+27	Carry the pail to the wall and spill it there.
+27	The train brought our hero to the big town.
+27	We are sure that one war is enough.
+27	Gray paint stretched for miles around.
+27	The rude laugh filled the empty room.
+27	High seats are best for football fans.
+27	Tea served from the brown jug is tasty.
+27	A dash of pepper spoils beef stew.
+27	A zestful food is the hot-cross bun.
+28	The horse trotted around the field at a brisk pace.
+28	Find the twin who stole the pearl necklace.
+28	Cut the cord that binds the box tightly.
+28	The red tape bound the smuggled food.
+28	Look in the corner to find the tan shirt.
+28	The cold drizzle will halt the bond drive.
+28	Nine men were hired to dig the ruins.
+28	The junk yard had a mouldy smell.
+28	The flint sputtered and lit a pine torch.
+28	Soak the cloth and drown the sharp odor.
+29	The shelves were bare of both jam or crackers.
+29	A joy to every child is the swan boat.
+29	All sat frozen and watched the screen.
+29	A cloud of dust stung his tender eyes.
+29	To reach the end he needs much courage.
+29	Shape the clay gently into block form.
+29	A ridge on a smooth surface is a bump or flaw.
+29	Hedge apples may stain your hands green.
+29	Quench your thirst, then eat the crackers.
+29	Tight curls get limp on rainy days.
+30	The mute muffled the high tones of the horn.
+30	The gold ring fits only a pierced ear.
+30	The old pan was covered with hard fudge.
+30	Watch the log float in the wide river.
+30	The node on the stalk of wheat grew daily.
+30	The heap of fallen leaves was set on fire.
+30	Write fast if you want to finish early.
+30	His shirt was clean but one button was gone.
+30	The barrel of beer was a brew of malt and hops.
+30	Tin cans are absent from store shelves.
+31	Slide the box into that empty space.
+31	The plant grew large and green in the window.
+31	The beam dropped down on the workmen's head.
+31	Pink clouds floated with the breeze.
+31	She danced like a swan, tall and graceful.
+31	The tube was blown and the tire flat and useless.
+31	It is late morning on the old wall clock.
+31	Let's all join as we sing the last chorus.
+31	The last switch cannot be turned off.
+31	The fight will end in just six minutes.
+32	The store walls were lined with colored frocks.
+32	The peace league met to discuss their plans.
+32	The rise to fame of a person takes luck.
+32	Paper is scarce, so write with much care.
+32	The quick fox jumped on the sleeping cat.
+32	The nozzle of the fire hose was bright brass.
+32	Screw the round cap on as tight as needed.
+32	Time brings us many changes.
+32	The purple tie was ten years old.
+32	Men think and plan and sometimes act.
+33	Fill the ink jar with sticky glue.
+33	He smoke a big pipe with strong contents.
+33	We need grain to keep our mules healthy.
+33	Pack the records in a neat thin case.
+33	The crunch of feet in the snow was the only sound.
+33	The copper bowl shone in the sun's rays.
+33	Boards will warp unless kept dry.
+33	The plush chair leaned against the wall.
+33	Glass will clink when struck by metal.
+33	Bathe and relax in the cool green grass.
+34	Nine rows of soldiers stood in line.
+34	The beach is dry and shallow at low tide.
+34	The idea is to sew both edges straight.
+34	The kitten chased the dog down the street.
+34	Pages bound in cloth make a book.
+34	Try to trace the fine lines of the painting.
+34	Women form less than half of the group.
+34	The zones merge in the central part of town.
+34	A gem in the rough needs work to polish.
+34	Code is used when secrets are sent.
+35	Most of the news is easy for us to hear.
+35	He used the lathe to make brass objects.
+35	The vane on top of the pole revolved in the wind.
+35	Mince pie is a dish served to children.
+35	The clan gathered on each dull night.
+35	Let it burn, it gives us warmth and comfort.
+35	A castle built from sand fails to endure.
+35	A child's wit saved the day for us.
+35	Tack the strip of carpet to the worn floor.
+35	Next Tuesday we must vote.
+36	Pour the stew from the pot into the plate.
+36	Each penny shone like new.
+36	The man went to the woods to gather sticks.
+36	The dirt piles were lines along the road.
+36	The logs fell and tumbled into the clear stream.
+36	Just hoist it up and take it away.
+36	A ripe plum is fit for a king's palate.
+36	Our plans right now are hazy.
+36	Brass rings are sold by these natives.
+36	It takes a good trap to capture a bear.
+37	Feed the white mouse some flower seeds.
+37	The thaw came early and freed the stream.
+37	He took the lead and kept it the whole distance.
+37	The key you designed will fit the lock.
+37	Plead to the council to free the poor thief.
+37	Better hash is made of rare beef.
+37	This plank was made for walking on.
+37	The lake sparkled in the red hot sun.
+37	He crawled with care along the ledge.
+37	Tend the sheep while the dog wanders.
+38	It takes a lot of help to finish these.
+38	Mark the spot with a sign painted red.
+38	Take two shares as a fair profit.
+38	The fur of cats goes by many names.
+38	North winds bring colds and fevers.
+38	He asks no person to vouch for him.
+38	Go now and come here later.
+38	A sash of gold silk will trim her dress.
+38	Soap can wash most dirt away.
+38	That move means the game is over.
+39	He wrote down a long list of items.
+39	A siege will crack the strong defense.
+39	Grape juice and water mix well.
+39	Roads are paved with sticky tar.
+39	Fake stones shine but cost little.
+39	The drip of the rain made a pleasant sound.
+39	Smoke poured out of every crack.
+39	Serve the hot rum to the tired heroes.
+39	Much of the story makes good sense.
+39	The sun came up to light the eastern sky.
+40	Heave the line over the port side.
+40	A lathe cuts and trims any wood.
+40	It's a dense crowd in two distinct ways.
+40	His hip struck the knee of the next player.
+40	The stale smell of old beer lingers.
+40	The desk was firm on the shaky floor.
+40	It takes heat to bring out the odor.
+40	Beef is scarcer than some lamb.
+40	Raise the sail and steer the ship northward.
+40	A cone costs five cents on Mondays.
+41	A pod is what peas always grow in.
+41	Jerk the dart from the cork target.
+41	No cement will hold hard wood.
+41	We now have a new base for shipping.
+41	A list of names is carved around the base.
+41	The sheep were led home by a dog.
+41	Three for a dime, the young peddler cried.
+41	The sense of smell is better than that of touch.
+41	No hardship seemed to keep him sad.
+41	Grace makes up for lack of beauty.
+42	Nudge gently but wake her now.
+42	The news struck doubt into restless minds.
+42	Once we stood beside the shore.
+42	A chink in the wall allowed a draft to blow.
+42	Fasten two pins on each side.
+42	A cold dip restores health and zest.
+42	He takes the oath of office each March.
+42	The sand drifts over the sill of the old house.
+42	The point of the steel pen was bent and twisted.
+42	There is a lag between thought and act.
+43	Seed is needed to plant the spring corn.
+43	Draw the chart with heavy black lines.
+43	The boy owed his pal thirty cents.
+43	The chap slipped into the crowd and was lost.
+43	Hats are worn to tea and not to dinner.
+43	The ramp led up to the wide highway.
+43	Beat the dust from the rug onto the lawn.
+43	Say it slowly but make it ring clear.
+43	The straw nest housed five robins.
+43	Screen the porch with woven straw mats.
+44	This horse will nose his way to the finish.
+44	The dry wax protects the deep scratch.
+44	He picked up the dice for a second roll.
+44	These coins will be needed to pay his debt.
+44	The nag pulled the frail cart along.
+44	Twist the valve and release hot steam.
+44	The vamp of the shoe had a gold buckle.
+44	The smell of burned rags itches my nose.
+44	New pants lack cuffs and pockets.
+44	The marsh will freeze when cold enough.
+45	They slice the sausage thin with a knife.
+45	The bloom of the rose lasts a few days.
+45	A gray mare walked before the colt.
+45	Breakfast buns are fine with a hot drink.
+45	Bottles hold four kinds of rum.
+45	The man wore a feather in his felt hat.
+45	He wheeled the bike past the winding road.
+45	Drop the ashes on the worn old rug.
+45	The desk and both chairs were painted tan.
+45	Throw out the used paper cup and plate.
+46	A clean neck means a neat collar.
+46	The couch cover and hall drapes were blue.
+46	The stems of the tall glasses cracked and broke.
+46	The wall phone rang loud and often.
+46	The clothes dried on a thin wooden rack.
+46	Turn on the lantern which gives us light.
+46	The cleat sank deeply into the soft turf.
+46	The bills were mailed promptly on the tenth of the month.
+46	To have is better than to wait and hope.
+46	The price is fair for a good antique clock.
+47	The music played on while they talked.
+47	Dispense with a vest on a day like this.
+47	The bunch of grapes was pressed into wine.
+47	He sent the figs, but kept the ripe cherries.
+47	The hinge on the door creaked with old age.
+47	The screen before the fire kept in the sparks.
+47	Fly by night, and you waste little time.
+47	Thick glasses helped him read the print.
+47	Birth and death mark the limits of life.
+47	The chair looked strong but had no bottom.
+48	The kite flew wildly in the high wind.
+48	A fur muff is stylish once more.
+48	The tin box held priceless stones.
+48	We need an end of all such matter.
+48	The case was puzzling to the old and wise.
+48	The bright lanterns were gay on the dark lawn.
+48	We don't get much money but we have fun.
+48	The youth drove with zest, but little skill.
+48	Five years he lived with a shaggy dog.
+48	A fence cuts through the corner lot.
+49	The way to save money is not to spend much.
+49	Shut the hatch before the waves push it in.
+49	The odor of spring makes young hearts jump.
+49	Crack the walnut with your sharp side teeth.
+49	He offered proof in the form of a large chart.
+49	Send the stuff in a thick paper bag.
+49	A quart of milk is water for the most part.
+49	They told wild tales to frighten him.
+49	The three story house was built of stone.
+49	In the rear of the ground floor was a large passage.
+50	A man in a blue sweater sat at the desk.
+50	Oats are a food eaten by horse and man.
+50	Their eyelids droop for want of sleep.
+50	A sip of tea revives his tired friend.
+50	There are many ways to do these things.
+50	Tuck the sheet under the edge of the mat.
+50	A force equal to that would move the earth.
+50	We like to see clear weather.
+50	The work of the tailor is seen on each side.
+50	Take a chance and win a china doll.
+51	Shake the dust from your shoes, stranger.
+51	She was kind to sick old people.
+51	The square wooden crate was packed to be shipped.
+51	The dusty bench stood by the stone wall.
+51	We dress to suit the weather of most days.
+51	Smile when you say nasty words.
+51	A bowl of rice is free with chicken stew.
+51	The water in this well is a source of good health.
+51	Take shelter in this tent, but keep still.
+51	That guy is the writer of a few banned books.
+52	The little tales they tell are false.
+52	The door was barred, locked, and bolted as well.
+52	Ripe pears are fit for a queen's table.
+52	A big wet stain was on the round carpet.
+52	The kite dipped and swayed, but stayed aloft.
+52	The pleasant hours fly by much too soon.
+52	The room was crowded with a wild mob.
+52	This strong arm shall shield your honor.
+52	She blushed when he gave her a white orchid.
+52	The beetle droned in the hot June sun.
+53	Press the pedal with your left foot.
+53	Neat plans fail without luck.
+53	The black trunk fell from the landing.
+53	The bank pressed for payment of the debt.
+53	The theft of the pearl pin was kept secret.
+53	Shake hands with this friendly child.
+53	The vast space stretched into the far distance.
+53	A rich farm is rare in this sandy waste.
+53	His wide grin earned many friends.
+53	Flax makes a fine brand of paper.
+54	Hurdle the pit with the aid of a long pole.
+54	A strong bid may scare your partner stiff.
+54	Even a just cause needs power to win.
+54	Peep under the tent and see the clowns.
+54	The leaf drifts along with a slow spin.
+54	Cheap clothes are flashy but don't last.
+54	A thing of small note can cause despair.
+54	Flood the mails with requests for this book.
+54	A thick coat of black paint covered all.
+54	The pencil was cut to be sharp at both ends.
+55	Those last words were a strong statement.
+55	He wrote his name boldly at the top of the sheet.
+55	Dill pickles are sour but taste fine.
+55	Down that road is the way to the grain farmer.
+55	Either mud or dust are found at all times.
+55	The best method is to fix it in place with clips.
+55	If you mumble your speech will be lost.
+55	At night the alarm roused him from a deep sleep.
+55	Read just what the meter says.
+55	Fill your pack with bright trinkets for the poor.
+56	The small red neon lamp went out.
+56	Clams are small, round, soft, and tasty.
+56	The fan whirled its round blades softly.
+56	The line where the edges join was clean.
+56	Breathe deep and smell the piny air.
+56	It matters not if he reads these words or those.
+56	A brown leather bag hung from its strap.
+56	A toad and a frog are hard to tell apart.
+56	A white silk jacket goes with any shoes.
+56	A break in the dam almost caused a flood.
+57	Paint the sockets in the wall dull green.
+57	The child crawled into the dense grass.
+57	Bribes fail where honest men work.
+57	Trample the spark, else the flames will spread.
+57	The hilt of the sword was carved with fine designs.
+57	A round hole was drilled through the thin board.
+57	Footprints showed the path he took up the beach.
+57	She was waiting at my front lawn.
+57	A vent near the edge brought in fresh air.
+57	Prod the old mule with a crooked stick.
+58	It is a band of steel three inches wide.
+58	The pipe ran almost the length of the ditch.
+58	It was hidden from sight by a mass of leaves and shrubs.
+58	The weight of the package was seen on the high scale.
+58	Wake and rise, and step into the green outdoors.
+58	The green light in the brown box flickered.
+58	The brass tube circled the high wall.
+58	The lobes of her ears were pierced to hold rings.
+58	Hold the hammer near the end to drive the nail.
+58	Next Sunday is the twelfth of the month.
+59	Every word and phrase he speaks is true.
+59	He put his last cartridge into the gun and fired.
+59	They took their kids from the public school.
+59	Drive the screw straight into the wood.
+59	Keep the hatch tight and the watch constant.
+59	Sever the twine with a quick snip of the knife.
+59	Paper will dry out when wet.
+59	Slide the catch back and open the desk.
+59	Help the weak to preserve their strength.
+59	A sullen smile gets few friends.
+60	Stop whistling and watch the boys march.
+60	Jerk the cord, and out tumbles the gold.
+60	Slide the tray across the glass top.
+60	The cloud moved in a stately way and was gone.
+60	Light maple makes for a swell room.
+60	Set the piece here and say nothing.
+60	Dull stories make her laugh.
+60	A stiff cord will do to fasten your shoe.
+60	Get the trust fund to the bank early.
+60	Choose between the high road and the low.
+61	A plea for funds seems to come again.
+61	He lent his coat to the tall gaunt stranger.
+61	There is a strong chance it will happen once more.
+61	The duke left the park in a silver coach.
+61	Greet the new guests and leave quickly.
+61	When the frost has come it is time for turkey.
+61	Sweet words work better than fierce.
+61	A thin stripe runs down the middle.
+61	A six comes up more often than a ten.
+61	Lush fern grow on the lofty rocks.
+62	The ram scared the school children off.
+62	The team with the best timing looks good.
+62	The farmer swapped his horse for a brown ox.
+62	Sit on the perch and tell the others what to do.
+62	A steep trail is painful for our feet.
+62	The early phase of life moves fast.
+62	Green moss grows on the northern side.
+62	Tea in thin china has a sweet taste.
+62	Pitch the straw through the door of the stable.
+62	The latch on the back gate needed a nail.
+63	The goose was brought straight from the old market.
+63	The sink is the thing in which we pile dishes.
+63	A whiff of it will cure the most stubborn cold.
+63	The facts don't always show who is right.
+63	She flaps her cape as she parades the street.
+63	The loss of the cruiser was a blow to the fleet.
+63	Loop the braid to the left and then over.
+63	Plead with the lawyer to drop the lost cause.
+63	Calves thrive on tender spring grass.
+63	Post no bills on this office wall.
+64	Tear a thin sheet from the yellow pad.
+64	A cruise in warm waters in a sleek yacht is fun.
+64	A streak of color ran down the left edge.
+64	It was done before the boy could see it.
+64	Crouch before you jump or miss the mark.
+64	Pack the kits and don't forget the salt.
+64	The square peg will settle in the round hole.
+64	Fine soap saves tender skin.
+64	Poached eggs and tea must suffice.
+64	Bad nerves are jangled by a door slam.
+65	Ship maps are different from those for planes.
+65	Dimes showered down from all sides.
+65	They sang the same tunes at each party.
+65	The sky in the west is tinged with orange red.
+65	The pods of peas ferment in bare fields.
+65	The horse balked and threw the tall rider.
+65	The hitch between the horse and cart broke.
+65	Pile the coal high in the shed corner.
+65	A gold vase is both rare and costly.
+65	The knife was hung inside its bright sheath.
+66	The rarest spice comes from the far East.
+66	The roof should be tilted at a sharp slant.
+66	A smatter of French is worse than none.
+66	The mule trod the treadmill day and night.
+66	The aim of the contest is to raise a great fund.
+66	To send it now in large amounts is bad.
+66	There is a fine hard tang in salty air.
+66	Cod is the main business of the north shore.
+66	The slab was hewn from heavy blocks of slate.
+66	Dunk the stale biscuits into strong drink.
+67	Hang tinsel from both branches.
+67	Cap the jar with a tight brass cover.
+67	The poor boy missed the boat again.
+67	Be sure to set the lamp firmly in the hole.
+67	Pick a card and slip it under the pack.
+67	A round mat will cover the dull spot.
+67	The first part of the plan needs changing.
+67	A good book informs of what we ought to know.
+67	The mail comes in three batches per day.
+67	You cannot brew tea in a cold pot.
+68	Dots of light betrayed the black cat.
+68	Put the chart on the mantel and tack it down.
+68	The night shift men rate extra pay.
+68	The red paper brightened the dim stage.
+68	See the player scoot to third base.
+68	Slide the bill between the two leaves.
+68	Many hands help get the job done.
+68	We don't like to admit our small faults.
+68	No doubt about the way the wind blows.
+68	Dig deep in the earth for pirate's gold.
+69	The steady drip is worse than a drenching rain.
+69	A flat pack takes less luggage space.
+69	Green ice frosted the punch bowl.
+69	A stuffed chair slipped from the moving van.
+69	The stitch will serve but needs to be shortened.
+69	A thin book fits in the side pocket.
+69	The gloss on top made it unfit to read.
+69	The hail pattered on the burnt brown grass.
+69	Seven seals were stamped on great sheets.
+69	Our troops are set to strike heavy blows.
+70	The store was jammed before the sale could start.
+70	It was a bad error on the part of the new judge.
+70	One step more and the board will collapse.
+70	Take the match and strike it against your shoe.
+70	The pot boiled, but the contents failed to jell.
+70	The baby puts his right foot in his mouth.
+70	The bombs left most of the town in ruins.
+70	Stop and stare at the hard working man.
+70	The streets are narrow and full of sharp turns.
+70	The pup jerked the leash as he saw a feline shape.
+71	Open your book to the first page.
+71	Fish evade the net and swim off.
+71	Dip the pail once and let it settle.
+71	Will you please answer that phone.
+71	The big red apple fell to the ground.
+71	The curtain rose and the show was on.
+71	The young prince became heir to the throne.
+71	He sent the boy on a short errand.
+71	Leave now and you will arrive on time.
+71	The corner store was robbed last night.
+72	A gold ring will please most any girl.
+72	The long journey home took a year.
+72	She saw a cat in the neighbor's house.
+72	A pink shell was found on the sandy beach.
+72	Small children came to see him.
+72	The grass and bushes were wet with dew.
+72	The blind man counted his old coins.
+72	A severe storm tore down the barn.
+72	She called his name many times.
+72	When you hear the bell, come quickly.

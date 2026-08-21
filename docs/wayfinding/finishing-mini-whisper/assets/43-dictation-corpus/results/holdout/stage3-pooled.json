@@ -1,0 +1,138 @@
+{
+ "base": {
+  "runs": [
+   8,
+   9,
+   7,
+   8,
+   6,
+   9,
+   8,
+   8,
+   7,
+   7
+  ],
+  "mean": 7.7,
+  "perEntry": {
+   "hpolish-01": 0,
+   "hpolish-02": 10,
+   "hpolish-03": 2,
+   "hpolish-04": 0,
+   "hpolish-05": 5,
+   "hpolish-06": 10,
+   "hpolish-07": 0,
+   "hpolish-08": 10,
+   "hpolish-09": 10,
+   "hpolish-10": 0,
+   "hpolish-11": 0,
+   "hpolish-12": 10,
+   "hpolish-13": 10,
+   "hpolish-14": 1,
+   "hpolish-15": 9
+  },
+  "topMisses": {
+   "hpolish-01": [
+    "So the deploy is\u2014wait, actually no, hold off until the tests finish.",
+    5
+   ],
+   "hpolish-03": [
+    "Have retryQ call onFailure with the last error.",
+    4
+   ],
+   "hpolish-04": [
+    "Send the invoice through 0x.",
+    6
+   ],
+   "hpolish-05": [
+    "Let's meet at 11:30 AM on June 9th.",
+    5
+   ],
+   "hpolish-07": [
+    "Merge it tonight, actually no, wait for CI",
+    5
+   ],
+   "hpolish-10": [
+    "So the fix is, hold on, just revert the last commit.",
+    4
+   ],
+   "hpolish-11": [
+    "Set the timeout to forty-five seconds.",
+    5
+   ],
+   "hpolish-14": [
+    "Send the report to Dana by Friday",
+    9
+   ],
+   "hpolish-15": [
+    "Run it plain first. Actually, run it with --force.",
+    1
+   ]
+  }
+ },
+ "final": {
+  "runs": [
+   7,
+   7,
+   8,
+   7,
+   8,
+   8,
+   7,
+   7,
+   7,
+   7
+  ],
+  "mean": 7.3,
+  "perEntry": {
+   "hpolish-01": 0,
+   "hpolish-02": 10,
+   "hpolish-03": 0,
+   "hpolish-04": 0,
+   "hpolish-05": 2,
+   "hpolish-06": 10,
+   "hpolish-07": 0,
+   "hpolish-08": 10,
+   "hpolish-09": 10,
+   "hpolish-10": 0,
+   "hpolish-11": 0,
+   "hpolish-12": 10,
+   "hpolish-13": 10,
+   "hpolish-14": 1,
+   "hpolish-15": 10
+  },
+  "topMisses": {
+   "hpolish-01": [
+    "So the deploy is, wait, actually no, hold off until the tests finish.",
+    6
+   ],
+   "hpolish-03": [
+    "Have retryQ call onFailure with the last error.",
+    7
+   ],
+   "hpolish-04": [
+    "Send the invoice through 0X.",
+    6
+   ],
+   "hpolish-05": [
+    "Let's meet at 11:30 AM on June 9th.",
+    6
+   ],
+   "hpolish-07": [
+    "Merge it tonight, actually no, wait for CI",
+    10
+   ],
+   "hpolish-10": [
+    "So the fix is, hold on, just revert the last commit.",
+    5
+   ],
+   "hpolish-11": [
+    "Set the timeout to forty-five seconds",
+    6
+   ],
+   "hpolish-14": [
+    "Send the report to Dana by Friday",
+    9
+   ]
+  }
+ }
+}

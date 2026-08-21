@@ -21,10 +21,45 @@ struct CleanupPromptTests {
     "\"underscore\" is `_`",
     "\"slash\" is `/`",
     "\"at sign\" is `@`",
-    "\"dash dash help\" becomes \"--help\"",
-    "including repeated symbols"
+    "including repeated symbols",
+    "joins the word beside it with no space"
   ]) func `the symbol enumeration is explicit`(fragment: String) {
     #expect(CleanupPrompt.builtIn.contains(fragment))
+  }
+
+  /// The corpus measured what each of these is worth, and the search that removed everything else
+  /// kept them: results/prompt-tuning-haiku/ in the dictation-corpus asset.
+  @Test(arguments: [
+    "\"new paragraph\" is a blank line",
+    "the letters say how to write the word",
+    "conventional way rather than as a homophone",
+    "is written the context's way",
+    "cancels the whole thought",
+    "whether the context declares the name or calls it"
+  ]) func `the tuned rules survive`(fragment: String) {
+    #expect(CleanupPrompt.builtIn.contains(fragment))
+  }
+
+  /// Three rules only work with an example, and the perturbation grid measured each one's worth.
+  @Test(arguments: [
+    "is typed --offline",
+    "The label is called Vybe.",
+    "\"compute totals\" is written computeTotals",
+    "is edited down to \"Drive around the bay.\""
+  ]) func `the examples that paid for themselves ship`(example: String) {
+    #expect(CleanupPrompt.builtIn.contains(example))
+  }
+
+  /// An example may be invented; it may never be copied out of the material the prompt is scored
+  /// on, or the score stops meaning anything. These are the literals the eval owns: entries from
+  /// stage 3, from the recorded holdout, and the vocabularies the perturbation grid is built from.
+  /// `leakcheck.py` in the corpus asset enforces the general rule over all six JSONLs and the grid
+  /// templates; this is the same rule with the tripwires named, so a regression fails here first.
+  @Test(arguments: [
+    "dash dash help", "Grok with a Q", "Kathryn with a K and a Y", "with a Z", "fetchUsers",
+    "maxRetryCount", "RetryQueue", "APIController", "/usr/local/bin", "retryQ", "onFailure"
+  ]) func `no example quotes the corpus it is scored on`(example: String) {
+    #expect(!CleanupPrompt.builtIn.contains(example))
   }
 
   @Test func `no additional instructions leaves the built in prompt alone`() {
