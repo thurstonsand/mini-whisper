@@ -22,9 +22,9 @@ enter = "mise bootstrap --yes --quiet && ([ -f buildServer.json ] || mise run bs
 [tools]
 "aqua:cpisciotta/xcbeautify" = "latest"
 hk = "1.50.0"
-swiftformat = "0.62.1"
-markdownlint-cli2 = "0.23.1"
-ruff = "0.15.14"
+swiftformat = "0.63.0"
+markdownlint-cli2 = "0.23.2"
+ruff = "0.16.6"
 "http:xcode-build-server" = { version = "1.3.0", url = "https://github.com/SolaWing/xcode-build-server/archive/refs/tags/v{{ version }}.tar.gz", strip_components = 1, bin_path = "." }
 
 [tasks.bootstrap]
