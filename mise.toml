@@ -31,7 +31,7 @@ ruff = "0.15.14"
 description = "Install tools and git hooks"
 run = ["mise install", "hk install --mise --quiet"]
 sources = ["mise.toml", "hk.pkl"]
-outputs = [".git/config"]
+outputs = { auto = true }
 quiet = true
 
 # === App Build Targets ===
