@@ -8,7 +8,7 @@ let package = Package(
     .package(name: "ASREngine", path: "../../../../../Packages/ASREngine"),
     .package(
       url: "https://github.com/FluidInference/FluidAudio.git",
-      exact: "0.17.5",
+      exact: "0.17.7",
       traits: [],
     ),
   ],
