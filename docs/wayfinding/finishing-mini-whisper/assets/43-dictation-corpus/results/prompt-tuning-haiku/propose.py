@@ -297,7 +297,7 @@ def main() -> int:
     parser.add_argument(
         "--provider",
         choices=sorted(tune.PROVIDERS),
-        default="sdk-haiku",
+        default="proxy-haiku",
         help="The scorer: the model the prompt is being written for, reached over the "
         "subscription. A search is thousands of calls; it does not go on a metered key by "
         "default, and `--metered` is required before it can.",

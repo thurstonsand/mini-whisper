@@ -96,6 +96,12 @@ Run in full: [`results/prompt-tuning-r5/`](../assets/43-dictation-corpus/results
 - **Sol found 328 words and the guards refused them.** `propose.py` now has a proposer-only `codex-sol` ChatGPT-subscription transport. Its guarded winner lost identifier-from-context 88.9% → 80.0%, never-obey 97.1% → 94.6%, and spell-out 57.5% → 51.2%, n=10. Exact incumbent transplants recovered the first two; the 48-word spell-out transplant still scored 54.2% against 59.4%, n=12, and all three repairs already totalled 417 words. The automated route rediscovered the hand floor rather than beating it.
 - **No metered inference ran.** SDK Haiku scored the v1 factory profile and Sol proposed over ChatGPT OAuth. No Cerebras, Gemini, or Anthropic API arm was opened.
 
+### Haiku 5.5 — the prompt does not transfer
+
+Run in full: [`results/haiku-5-5/`](../assets/43-dictation-corpus/results/haiku-5-5/README.md). The factory profile moved to `claude-haiku-5-5`, and round 5's prompt was measured on it against 4.5 through one transport: frozen 25 **16.50 → 7.40**, holdout **9.10 → 7.40**, n=10 each. The failures are four behaviours rather than noise: 5.5 extracts the token from a sentence instead of editing it, keeps `period` as a word, corrects grammar and sentence breaks it was told to leave, and rewrites an injected instruction instead of preserving it. The next round tunes for 5.5.
+
+The scorer of record is now `proxy-haiku`: `claude-haiku-5-5` through CLIProxyAPI on the Claude subscription, an OpenAI-compatible endpoint the app's own client could call. It replaces the per-call Claude Code process of `sdk-haiku` with one HTTP request, and reproduces `sdk-haiku`'s numbers for 4.5 within noise.
+
 ### Long form crosses the chunk boundary intact (side finding)
 
 Six Alice passages of 15 to 54 seconds, the first material in this corpus over fifteen seconds and so the first to exercise FluidAudio's merger. **Adjusted WER 1.07% over 560 reference words, against 1.95% on stage 1's short sentences**; the two longest passages, four chunks each, are the cleanest in the set. The 8.11% the scorer prints is two artifacts — the reader voiced the script's typographic quotes as "quote"/"end quote", and `score_corpus.py` splits a curly apostrophe into two tokens — leaving six real errors, none near a boundary. Latency is 173 ms for 54 seconds of audio. The engine bakeoff's choice holds up.

@@ -12,8 +12,9 @@ The objective is frozen: stage 3 minus `polish-11` and `polish-38`, the two entr
 cannot support (it deletes the quote/unquote and the letter-by-letter spelling before cleanup ever
 sees them). Scoring those would grade the engine, not the prompt.
 
-`sdk-haiku` is the scorer of record as of round 4: the same `claude-haiku-4-5`, reached over the
-Claude subscription instead of a metered key. `api.anthropic.com` is gone from `PROVIDERS`
+`proxy-haiku` is the scorer of record: `claude-haiku-5-5`, the factory profile's model, reached
+through CLIProxyAPI on the Claude subscription. Rounds 4 and 5 scored `claude-haiku-4-5` through
+`sdk-haiku` instead, and their numbers belong to that model. `api.anthropic.com` is gone from `PROVIDERS`
 entirely, because rounds 1 to 3 quietly spent real money on scoring loops that had a free path to
 the identical model. The transport is not free of consequences — Claude Code injects about 119
 tokens of environment context ahead of every request, measured in
@@ -78,12 +79,22 @@ PROVIDERS = {
         "model": "gpt-oss-120b",
         "env": "CEREBRAS_APIKEY",
     },
+    # The factory profile's model, through CLIProxyAPI on the Claude subscription: an ordinary
+    # OpenAI-compatible endpoint, so the scorer speaks the same protocol the app's client does and
+    # costs one HTTP request a call instead of a Claude Code process. The proxy injects about 135
+    # tokens of its own ahead of every request; like the SDK's 119, every arm pays it.
+    "proxy-haiku": {
+        "endpoint": "https://aig.thurstons.house/v1",
+        "model": "claude-haiku-5-5",
+        "env": "AIG_APIKEY",
+        "subscription": True,
+    },
     # Not an endpoint at all: Claude Code over the subscription's OAuth session. It scored
     # identically to the metered Haiku above (results/agent-sdk-haiku/) and bills nothing.
     # Claude Code names its own models: `haiku` resolves to claude-haiku-4-5, `opus[1m]` to
     # claude-opus-5. The API's own identifiers are not accepted for Opus.
-    "sdk-haiku": {"sdk": True, "model": "claude-haiku-4-5"},
-    "sdk-opus": {"sdk": True, "model": "opus[1m]"},
+    "sdk-haiku": {"sdk": True, "subscription": True, "model": "claude-haiku-4-5"},
+    "sdk-opus": {"sdk": True, "subscription": True, "model": "opus[1m]"},
 }
 
 # `corpus_cleanup.complete`'s two arguments that vary per call; the rest belong to the transport.
@@ -104,9 +115,10 @@ def resolve_model(name: str, override: str | None) -> str:
 def transport_arguments(parser: argparse.ArgumentParser) -> None:
     """The transport switches, in one place, so a new tool cannot invent a different default.
 
-    `sdk-haiku` is the default because it is free and `anthropic` is not. Three rounds of this
-    harness defaulted the other way and the bill arrived accordingly."""
-    parser.add_argument("--provider", choices=sorted(PROVIDERS), default="sdk-haiku")
+    `proxy-haiku` is the default because it is the factory profile's model and it is free;
+    `anthropic` was neither. Three rounds of this harness defaulted the other way and the bill
+    arrived accordingly."""
+    parser.add_argument("--provider", choices=sorted(PROVIDERS), default="proxy-haiku")
     parser.add_argument("--model")
     parser.add_argument("--workers", type=int, default=9)
     parser.add_argument(
@@ -122,7 +134,7 @@ def authorize(name: str, model: str, calls: int, metered: bool) -> None:
     Cerebras and Gemini still bill. Neither has an ambient credential to fall back to, so they are
     announced rather than refused — gating them would gate the measurement itself. What they do not
     get is silence: a sweep that cannot say how many calls it is about to make does not start."""
-    if PROVIDERS[name].get("sdk"):
+    if PROVIDERS[name].get("subscription"):
         return
     plan = f"{calls} calls to {model} via {name}"
     if not metered:

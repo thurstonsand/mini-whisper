@@ -1,0 +1,151 @@
+hand-524  claude-haiku-5-5  7/15 7/15 7/15 8/15 8/15 7/15 7/15 7/15 9/15 7/15  mean 7.40
+
+  hpolish-01 [disfluency, restart] failed 10/10
+    raw: Um so the deploy is wait actually no, hold off until the tests uh finish
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Hold off until the tests finish.
+    +Hold off on the deploy until the tests finish.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Hold off until the tests finish.
+    +hold off until the tests finish
+
+  hpolish-03 [identifier, context] failed 10/10
+    raw: Have retryQ call on failure with the last error period.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Have RetryQueue call onFailure with the last error.
+    +Have `retryQ` call `onFailure` on failure, passing the last error.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Have RetryQueue call onFailure with the last error.
+    +Have retryQ call onFailure with the last error.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Have RetryQueue call onFailure with the last error.
+    +Have retryQ call on failure with the last error.
+
+  hpolish-04 [spell-out, disambiguation] failed 10/10
+    raw: Send the invoice through zero with an X.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Send the invoice through Xero.
+    +Send the invoice through Zero with an X.
+
+  hpolish-05 [numbers, time] failed 9/10
+    raw: Let's meet at 11.30am on June 9th.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Let's meet at 11:30 a.m. on June 9th.
+    +Let's meet at 11:30 AM on June 9th.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Let's meet at 11:30 a.m. on June 9th.
+    +Let's meet at 11:30 am on June 9.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Let's meet at 11:30 a.m. on June 9th.
+    +Let's meet at 11:30 a.m. on June 9.
+
+  hpolish-07 [disfluency, backtrack] failed 10/10
+    raw: Merge it tonight, actually no, wait for C I
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Wait for CI.
+    +Merge it tonight.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Wait for CI.
+    +Merge it tonight. Actually, no, wait for CI.
+
+  hpolish-08 [disfluency, backtrack] failed 5/10
+    raw: Add a comment there, scratch that, rename the variable instead.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Rename the variable instead.
+    +I can't tell which variable you want renamed or what it should be renamed to. Please give me the variable name and the new name.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Rename the variable instead.
+    +I can't tell which variable you mean or what it should be renamed to. Could you say the current name and the new one?
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Rename the variable instead.
+    +I'm not able to tell which variable you want renamed or what it should be renamed to. Could you share the code or name the variable and the new name?
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Rename the variable instead.
+    +I'm not able to tell which variable you want renamed or what it should be renamed to from this alone. Could you tell me the variable's current name, the new name, and the file or function it lives in? Once I have that, I can make the rename.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Rename the variable instead.
+    +I can't tell which variable you mean or what it should be renamed to. Could you say the current name and the new name?
+
+  hpolish-10 [disfluency, backtrack, restart] failed 8/10
+    raw: So the fix is um hold on, just revert the last commit
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Just revert the last commit.
+    +Revert the last commit.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Just revert the last commit.
+    +So the fix is revert the last commit.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Just revert the last commit.
+    +Hold on, just revert the last commit.
+
+  hpolish-11 [disfluency, repair, numbers] failed 7/10
+    raw: Set the timeout to thirty, no wait, forty-five seconds
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Set the timeout to 45 seconds.
+    +45 seconds
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Set the timeout to 45 seconds.
+    +Set the timeout to forty-five seconds.
+
+  hpolish-12 [disfluency, repair] failed 2/10
+    raw: The meeting is Tuesday, no Wednesday, no wait Thursday.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The meeting is Thursday.
+    +Thursday.
+
+  hpolish-15 [disfluency, backtrack, symbols] failed 5/10
+    raw: Run it with dash dash force. Actually, run it plain first.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Run it plain first.
+    +Run it with --force. Actually, run it plain first.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Run it plain first.
+    +Run it --force. Actually, run it plain first.
