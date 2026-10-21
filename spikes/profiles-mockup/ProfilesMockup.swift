@@ -15,6 +15,7 @@
 //   offline          start on the offline profile (the multi-model download case)
 //   custom-selected  start with Custom selected, so its own detail rows are on screen
 //   light | dark  force an appearance
+//   tall          a settings window tall enough to reach Downloaded models
 //
 // Written against .agents/skills/native-macos-ui: system containers own the layout, text styles
 // instead of point sizes, semantic colors only, no control drawn by hand that AppKit provides.
@@ -67,7 +68,7 @@ let haikuProfile = Profile(
   tagline: "Speech stays on this Mac; transcripts go to Anthropic for cleanup.",
   symbol: "sparkles", isFactory: true, engine: "Parakeet TDT v2",
   vocabulary: "Staged in the cleanup prompt",
-  endpoint: "https://api.anthropic.com/v1", model: "claude-haiku-4-5", needsKey: true,
+  endpoint: "https://api.anthropic.com/v1", model: "claude-haiku-5-5", needsKey: true,
   keyProvider: "Anthropic", keyRequirement: "an Anthropic key", models: [parakeet],
 )
 
@@ -145,7 +146,8 @@ enum Screen: String {
   init() {
     let arguments = CommandLine.arguments.dropFirst().map { $0.lowercased() }
     screen = arguments.compactMap(Screen.init(rawValue:)).first ?? .paneA
-    showsFullLineup = arguments.contains("full")
+    // The cards page always shows the whole lineup: comparing every option is what it is for.
+    showsFullLineup = arguments.contains("full") || screen == .welcomeB
     isOverridden = arguments.contains("overridden")
     if arguments.contains("offline") {
       showsFullLineup = true
@@ -453,7 +455,7 @@ struct CustomDetail: View {
         HStack(spacing: 8) {
           Picker("", selection: .constant("gpt-oss-120b")) {
             Text("gpt-oss-120b").tag("gpt-oss-120b")
-            Text("claude-haiku-4-5").tag("claude-haiku-4-5")
+            Text("claude-haiku-5-5").tag("claude-haiku-5-5")
             Divider()
             Text("Custom…").tag("custom")
           }
@@ -550,9 +552,13 @@ struct ModelStorage: View {
     mock.showsFullLineup ? [parakeet, ctcHelper, s1mini] : [parakeet, ctcHelper]
   }
 
+  /// A model the active profile does not use says so, because a download the user walked away
+  /// from is exactly what they come here to delete.
   private func usedBy(_ asset: ModelAsset) -> String {
     let users = mock.profiles.filter { $0.models.contains(asset) }.map(\.name)
-    return users.isEmpty ? "\(asset.role) · not used by any profile" : "\(asset.role) · \(users.joined(separator: ", "))"
+    let owners = users.isEmpty ? "not used by any profile" : users.joined(separator: ", ")
+    let idle = mock.selectedProfile.models.contains(asset) || users.isEmpty ? "" : " — not in use"
+    return "\(asset.role) · \(owners)\(idle)"
   }
 }
 
@@ -833,25 +839,30 @@ struct WelcomeList: View {
 
 // MARK: - Welcome B: cards
 
-/// The profiles side by side, so the tradeoffs are compared rather than read in turn. Each card
-/// ends with what it costs to set up. Five profiles is two rows of three and no hero glyph.
+/// Every profile side by side, so the tradeoffs are compared rather than read in turn. Each card
+/// ends with what it costs to set up. Five profiles is a row of three over a centered row of two,
+/// and no hero glyph.
 struct WelcomeCards: View {
   @Bindable var mock: Mock
 
   var body: some View {
     let isCrowded = mock.profiles.count > 3
+    let perRow = isCrowded ? 3 : 2
+    let rows = stride(from: 0, to: mock.profiles.count, by: perRow).map {
+      Array(mock.profiles[$0 ..< min($0 + perRow, mock.profiles.count)])
+    }
     WelcomeShell(mock: mock, compactHero: isCrowded) {
-      LazyVGrid(
-        columns: Array(
-          repeating: GridItem(.flexible(), spacing: 12), count: isCrowded ? 3 : 2,
-        ),
-        spacing: 12,
-      ) {
-        ForEach(mock.profiles) { profile in
-          card(profile, isCrowded: isCrowded)
+      VStack(spacing: 12) {
+        ForEach(rows, id: \.first!.id) { row in
+          HStack(spacing: 12) {
+            ForEach(row) { profile in
+              card(profile, isCrowded: isCrowded)
+                .frame(width: isCrowded ? 198 : 254)
+            }
+          }
+          .fixedSize(horizontal: false, vertical: true)
         }
       }
-      .frame(width: isCrowded ? 620 : 520)
     }
   }
 
@@ -877,7 +888,7 @@ struct WelcomeCards: View {
         .foregroundStyle(profile.needsKey ? Color.secondary : Color.green)
     }
     .padding(10)
-    .frame(maxWidth: .infinity, minHeight: isCrowded ? 92 : 104, alignment: .topLeading)
+    .frame(maxWidth: .infinity, minHeight: isCrowded ? 92 : 104, maxHeight: .infinity, alignment: .topLeading)
     .background(
       Color(nsColor: .controlBackgroundColor).opacity(0.5),
       in: RoundedRectangle(cornerRadius: 9),
@@ -1074,7 +1085,7 @@ final class Delegate: NSObject, NSApplicationDelegate {
       window.titlebarAppearsTransparent = true
     } else {
       window = NSWindow(
-        contentRect: NSRect(x: 0, y: 0, width: 880, height: 680),
+        contentRect: NSRect(x: 0, y: 0, width: 880, height: arguments.contains("tall") ? 1180 : 680),
         styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
         backing: .buffered, defer: false,
       )

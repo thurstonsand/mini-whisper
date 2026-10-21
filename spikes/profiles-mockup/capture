@@ -36,13 +36,13 @@ shoot pane-c-full pane-c full
 shoot pane-a-needssetup pane-a needs-setup
 shoot pane-a-custom pane-a custom-selected
 shoot pane-b-overridden pane-b overridden
+shoot pane-b-leftover pane-b full tall
 
 # Onboarding: profile choice on the welcome page, then the two pages it falls into.
 shoot welcome-a welcome-a
 shoot welcome-b welcome-b
 shoot welcome-c welcome-c
 shoot welcome-a-full welcome-a full
-shoot welcome-b-full welcome-b full
 shoot welcome-c-offline welcome-c offline
 shoot onb-key onb-key
 shoot onb-models onb-models

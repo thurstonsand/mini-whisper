@@ -22,6 +22,7 @@ Flags stack after the screen, in any order:
 | `overridden`      | its endpoint has been edited in place, so Reset to Default exists |
 | `offline`         | start on the offline profile — the three-file download case       |
 | `custom-selected` | start on Custom, so its own detail rows are on screen             |
+| `tall`            | a settings window tall enough to reach Downloaded models          |
 | `light` / `dark`  | force an appearance                                               |
 
 Everything is live: profiles select, the key field stores, the welcome button walks the real branch (a factory profile with no key goes to the key step, Custom goes straight to the downloads).
@@ -54,7 +55,7 @@ Radio rows in a card under the hero, the grammar of the Permissions page. Each r
 
 ### B — cards
 
-The profiles side by side, so tradeoffs are compared rather than read in turn; each card ends with what it costs to set up. Two cards sit comfortably under the full hero. Five is two rows of three with no hero glyph, and the page is visibly full.
+Every profile side by side, so tradeoffs are compared rather than read in turn; each card ends with what it costs to set up. This variant always shows the whole lineup, not just the two v1 ships, because comparing every option is what cards are for. At five the hero drops its glyph and the cards sit as three over a centered two.
 
 ### C — pop-up
 
@@ -64,7 +65,7 @@ Today's welcome page plus one `Picker`, preselected to the default, the selected
 
 A factory profile is prescriptive, so this page has no Skip. The only way past it is a different profile, and the link says which one and what it costs: "Use the Custom profile instead — no key, no cleanup". Continue is disabled while the field is empty.
 
-The link goes straight on to the downloads rather than back to the welcome page, because the download has already started. That only works while Custom shares the factory profile's model set; switching to a profile with a different set mid-download is a case the design doc has to answer.
+The link goes straight on to the downloads rather than back to the welcome page, because the download has already started. That only works while Custom shares the factory profile's model set; switching to a profile with a different set mid-download is decided: the running download finishes, the new profile asks for its own download the normal way, and neither blocks the other. A model nobody wants anymore is deleted from the pane's Downloaded models section, where one the active profile does not use says `not in use` (`pane-b full tall`).
 
 ### The download page
 
