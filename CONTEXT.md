@@ -23,4 +23,5 @@
 - Boost: recognition-time vocabulary biasing via a CTC helper model.
 - Field context: the text around the insertion point of the focused field.
 - Cleanup pass: the optional post-transcription LLM pass, talking to a configurable OpenAI-compatible endpoint.
+- Profile: a named dictation stack — engine, vocabulary strategy, cleanup model and key, prompt — exactly one active. Factory profiles are compiled in and user-overridable by delta; Custom is the fully open one, and its cleanup is optional. A profile missing its key, model, or download is needs-setup, and dictation falls back to raw until it is ready.
 - The allowlist: A list of permitted software/libraries.

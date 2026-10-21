@@ -1,0 +1,49 @@
+#!/bin/bash
+# Screenshot every variant, light and dark, by launching the mock-up once per screen. The process
+# prints its CGWindowID and `screencapture -l` takes that, so a capture never depends on which
+# window happens to be frontmost.
+set -euo pipefail
+
+cd "$(dirname "$0")/../.."
+out="${1:-.build}"
+mkdir -p "$out"
+
+swiftc -O -framework AppKit -framework SwiftUI \
+  spikes/profiles-mockup/ProfilesMockup.swift -o .build/profiles-mockup
+
+shoot() {
+  local name="$1"
+  shift
+  for appearance in light dark; do
+    pkill -x profiles-mockup 2>/dev/null || true
+    sleep 0.3
+    .build/profiles-mockup "$@" "$appearance" >/tmp/profiles-mockup-wid 2>/dev/null &
+    sleep 2.2
+    screencapture -o -l "$(cat /tmp/profiles-mockup-wid)" "$out/$name-$appearance.png"
+    echo "$out/$name-$appearance.png"
+  done
+}
+
+# The pane, at the two-profile lineup v1 ships and at the five it grows into.
+shoot pane-a pane-a
+shoot pane-b pane-b
+shoot pane-c pane-c
+shoot pane-a-full pane-a full
+shoot pane-b-full pane-b full
+shoot pane-c-full pane-c full
+
+# The states the picker has to carry.
+shoot pane-a-needssetup pane-a needs-setup
+shoot pane-a-custom pane-a custom-selected
+shoot pane-b-overridden pane-b overridden
+
+# Onboarding: the profile step, then the two pages it falls into.
+shoot onb-a onb-a
+shoot onb-b onb-b
+shoot onb-a-full onb-a full
+shoot onb-b-full onb-b full
+shoot onb-key onb-key
+shoot onb-models onb-models
+shoot onb-models-offline onb-models offline
+
+pkill -x profiles-mockup 2>/dev/null || true
