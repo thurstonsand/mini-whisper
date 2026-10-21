@@ -1,0 +1,106 @@
+[
+  {
+    "file": null,
+    "project": "VoiceInk",
+    "repo": "Beingpax/VoiceInk",
+    "commit": "fda316996d87bc0c7b68d11a741b5c5aec8d8617",
+    "licence": "GPL-3.0-only",
+    "url": "https://github.com/Beingpax/VoiceInk/blob/fda316996d87bc0c7b68d11a741b5c5aec8d8617/VoiceInk/Models/AIPrompts.swift#L4-L52"
+  },
+  {
+    "file": null,
+    "project": "Whispering / Epicenter",
+    "repo": "EpicenterHQ/epicenter",
+    "commit": "abe10f3867e4e8b367bcc48d30ce69c8ed8c59da",
+    "licence": "AGPL-3.0-only (apps/whispering)",
+    "url": "https://github.com/EpicenterHQ/epicenter/blob/abe10f3867e4e8b367bcc48d30ce69c8ed8c59da/apps/whispering/src/lib/operations/build-system-prompt.ts#L35-L63"
+  },
+  {
+    "file": null,
+    "project": "FluidVoice",
+    "repo": "altic-dev/FluidVoice",
+    "commit": "ab46bf3dd29fd33d79f9fed00172f51af3982625",
+    "licence": "GPL-3.0-only",
+    "url": "https://github.com/altic-dev/FluidVoice/blob/ab46bf3dd29fd33d79f9fed00172f51af3982625/Sources/Fluid/Persistence/SettingsStore.swift#L983-L1097"
+  },
+  {
+    "file": null,
+    "project": "Hex",
+    "repo": "kitlangton/Hex",
+    "commit": "881c46f236f529a8f6c7eed61ed1f4cbca9ac267",
+    "licence": "MIT",
+    "url": "https://github.com/kitlangton/Hex/blob/881c46f236f529a8f6c7eed61ed1f4cbca9ac267/Hex/Features/Transcription/TranscriptionFeature.swift#L441-L503"
+  },
+  {
+    "file": "yappy.txt",
+    "project": "Yappy",
+    "repo": "karandeepbhardwaj/Yappy",
+    "commit": "e347f33a12a99a858afb88d4734c806b5ebb45b0",
+    "licence": "MIT",
+    "url": "https://github.com/karandeepbhardwaj/Yappy/blob/e347f33a12a99a858afb88d4734c806b5ebb45b0/src/llm/CopilotRefiner.ts#L4-L31"
+  },
+  {
+    "file": "whisper-dictate.txt",
+    "project": "Whisper Dictate",
+    "repo": "dancwilliams/whisper-dictate",
+    "commit": "ce4b65f5350a2116146fab26762f0b161c2adc28",
+    "licence": "MIT",
+    "url": "https://github.com/dancwilliams/whisper-dictate/blob/ce4b65f5350a2116146fab26762f0b161c2adc28/whisper_dictate/config.py#L27-L65"
+  },
+  {
+    "file": "whisper-local.txt",
+    "project": "Whisper Local",
+    "repo": "drajb/whisper-local",
+    "commit": "0138c6b19af57d36ad79809d1888035eca7b22b3",
+    "licence": "MIT",
+    "url": "https://github.com/drajb/whisper-local/blob/0138c6b19af57d36ad79809d1888035eca7b22b3/src/whisper_key/config.defaults.yaml#L484-L494"
+  },
+  {
+    "file": "openwhispr.txt",
+    "project": "OpenWhispr",
+    "repo": "OpenWhispr/openwhispr",
+    "commit": "8b77a599ce91172e421ca0cd4f8bd5fd3cbae47f",
+    "licence": "MIT",
+    "url": "https://github.com/OpenWhispr/openwhispr/blob/8b77a599ce91172e421ca0cd4f8bd5fd3cbae47f/src/locales/en/prompts.json#L2"
+  },
+  {
+    "file": "voicebox.txt",
+    "project": "Voicebox",
+    "repo": "jamiepine/voicebox",
+    "commit": "51f49dea198384b4eb6087b72c17057c6eb1c1cd",
+    "licence": "MIT",
+    "url": "https://github.com/jamiepine/voicebox/blob/51f49dea198384b4eb6087b72c17057c6eb1c1cd/backend/services/refinement.py#L140-L195"
+  },
+  {
+    "file": null,
+    "project": "Whisper Dictate (andrew99666)",
+    "repo": "andrew99666/whisper-dictate",
+    "commit": "25c32ea7f436d4a1a69b8ffec32934282a6dff70",
+    "licence": "PolyForm Noncommercial 1.0.0 (non-permissive)",
+    "url": "https://github.com/andrew99666/whisper-dictate/blob/25c32ea7f436d4a1a69b8ffec32934282a6dff70/llm.py"
+  },
+  {
+    "file": null,
+    "project": "Handy",
+    "repo": "cjpais/Handy",
+    "commit": "0e5036721ef6f26c3b89ab31bc10cd2ffd6096fb",
+    "licence": "MIT",
+    "url": "https://github.com/cjpais/Handy/blob/0e5036721ef6f26c3b89ab31bc10cd2ffd6096fb/src-tauri/src/managers/transcription.rs"
+  },
+  {
+    "file": null,
+    "project": "Vibe",
+    "repo": "thewh1teagle/vibe",
+    "commit": "949149631cdc58ef5644495f3db9701231baf17b",
+    "licence": "MIT",
+    "url": "https://github.com/thewh1teagle/vibe/blob/949149631cdc58ef5644495f3db9701231baf17b/desktop/src/lib/prompt-templates.ts#L1-L29"
+  },
+  {
+    "file": null,
+    "project": "Whisper Writer",
+    "repo": "savbell/whisper-writer",
+    "commit": "370333b115417b03bf51c9f5bffd6578ecf6986e",
+    "licence": "GPL-3.0-only",
+    "url": "https://github.com/savbell/whisper-writer/blob/370333b115417b03bf51c9f5bffd6578ecf6986e/src/transcription.py"
+  }
+]

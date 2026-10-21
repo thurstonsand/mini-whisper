@@ -10,7 +10,9 @@ Every number is from this corpus: one voice, one built-in microphone, 27 stage-3
 | ------------------------- | ------------------------ | ----------------------------- | ------------------------- | --------- | ---------- |
 | speed-to-accuracy, online | Parakeet                 | DICTIONARY block              | gpt-oss-120b (Cerebras)   | 15/27     | **420 ms** |
 | best accuracy             | **ElevenLabs Scribe v2** | `keyterms` + DICTIONARY block | gemini-3.6-flash (direct) | **21/27** | 2443 ms    |
-| best offline              | Parakeet                 | sidecar                       | s1-mini                   | 12/27     | **107 ms** |
+| best offline              | Parakeet                 | sidecar                       | s1-mini                   | 14/27¹    | **107 ms** |
+
+¹ Originally published as 12/27; two expectation amendments (`polish-01`, `polish-22`) later moved the ruler. The transcripts are bit-identical; see [offline-crosses](offline-crosses/README.md).
 
 The ticket's guesses survive at both ends and break in the middle: a hosted engine does take the accuracy crown, and it is not one anybody guessed.
 
@@ -54,17 +56,17 @@ Scribe + s1-mini is 11/27; Parakeet + s1-mini is 12/27. The best engine in the t
 
 ## 3. Best offline — Parakeet + sidecar + s1-mini, unchanged and uncontested
 
-12/27 at 107 ms, and it is the only stack in the table that runs on a plane. Cohere + s1-mini, the superwhisper-shaped alternative, loses on both axes (9/27 at 172 ms). Nothing hosted competes by definition.
+14/27 (as re-scored; see footnote) at 107 ms, and it is the only stack in the table that runs on a plane. Cohere + s1-mini, the superwhisper-shaped alternative, loses on both axes (9/27 at 172 ms). Nothing hosted competes by definition.
 
 The sidecar stays here and only here. With cleanup that cannot read a dictionary, acoustic biasing is the entire vocabulary story: 16/18 recall against bare Parakeet's 5/18. It costs five of eight trap sentences, which is the price of the profile.
 
 s1-mini's seven-entry gap to gemini is structural, not quality — spell-out 0/3, identifier 0/3, staged context 0/3, all axes its card never mentions and its control line never states. It holds every invariant. That is the correct shape for an offline fallback, and [ticket 48](../../../tickets/48-prompt-eval-automation.md) is where anyone tries to close it.
 
-**The untested hypothesis in [ticket 47](../../../tickets/47-cleanup-endpoint-profiles.md) remains untested**: whether sidecar + s1-mini specifically shore each other up. Round 3 measured sidecar arms and s1-mini arms, never crossed. It is one corpus run.
+**The ticket-47 hypothesis is now answered: no** ([offline-crosses](offline-crosses/README.md)). Sidecar + s1-mini produces stage-3 output character-identical to bare Parakeet + s1-mini — stage-3 audio contains none of the vocabulary, so the boost buys nothing and costs +107 ms. The sidecar is purely a stage-2 trade: 16/18 recall against 5/18 bare, priced at four destroyed trap sentences in eight.
 
 ## A local wrinkle worth one more run
 
-whisper.cpp large-v3-turbo with `--prompt` reaches 12/18 recall and bites **zero traps for +3 ms** — a local, non-destructive vocabulary channel, which is exactly what the offline profile lacks. Its engine accuracy is worse than Parakeet's (3.90% vs 1.95%) and its e2e cells are worse, so it does not win the profile as it stands. But "Parakeet + sidecar" is offline vocabulary at the cost of five sentences, and "whisper + prompt" is offline vocabulary at the cost of none, and no run has yet crossed whisper + prompt with s1-mini to see which stack the trade favours.
+whisper.cpp large-v3-turbo with `--prompt` reaches 12/18 recall and bites **zero traps for +3 ms** — a local, non-destructive vocabulary channel, which is exactly what the offline profile lacks. Its engine accuracy is worse than Parakeet's (3.90% vs 1.95%) and its e2e cells are worse, so it does not win the profile as it stands. But "Parakeet + sidecar" is offline vocabulary at the cost of five sentences, and "whisper + prompt" is offline vocabulary at the cost of none. The cross has now run ([offline-crosses](offline-crosses/README.md)): whisper-prompt + s1-mini loses — 12/27 stage 3, 12/18 recall, and 2.7× the latency. Zero traps does not pay for a worse engine; Parakeet + sidecar keeps the profile.
 
 ## What no longer needs shopping
 

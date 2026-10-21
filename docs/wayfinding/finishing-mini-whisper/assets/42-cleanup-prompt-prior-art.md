@@ -1,6 +1,6 @@
 # Cleanup prompt prior art
 
-Research checked 2026-08-17. This is prompt evidence, not a product decision. The open-source references are pinned to the commit named in each citation. The proprietary products expose capabilities rather than their internal prompts, so an undisclosed behavior is recorded as such, not reverse-engineered from marketing. FluidVoice is GPLv3; its prompt is **described only**, never reproduced or adapted verbatim.
+Research checked 2026-08-17, re-checked and extended 2026-08-21 (see [Re-check and extension](#re-check-and-extension-2026-08-21) below). This is prompt evidence, not a product decision. The open-source references are pinned to the commit named in each citation. The proprietary products expose capabilities rather than their internal prompts, so an undisclosed behavior is recorded as such, not reverse-engineered from marketing. FluidVoice is GPLv3; its prompt is **described only**, never reproduced or adapted verbatim.
 
 ## What the readable implementations establish
 
@@ -101,8 +101,57 @@ Start the corpus with **Candidate A**, then compare **B** and **C** against it o
 
 Do not decide from synthetic phrase checks alone. Record both ordinary prose and the failure boundaries: a spoken question that must remain a question, a correction (`five—actually six`), `comma`/`new line`, repeated symbols (`dash dash help`), a dictionary near-match, and an identifier that is present in field context but absent from the transcript.
 
+## Re-check and extension, 2026-08-21
+
+Re-run for [round 4](43-dictation-corpus/results/prompt-tuning-r4/README.md), which needed the exemplars' **verbatim text** rather than a description of it: the prompt proposer was to be shown other projects' cleanup prompts as style reference. The working material, with per-project licence evidence, is [`43-dictation-corpus/results/prompt-tuning-r4/exemplars/`](43-dictation-corpus/results/prompt-tuning-r4/exemplars/NOTES.md); the permissively licensed texts sit there as plain files with a machine-readable index.
+
+**The licence discipline this asset started with is now mechanical.** GPL and AGPL prompts are still described and never reproduced, and they were deliberately never written to disk, so a proposer cannot be shown one by accident. `leakcheck.py` fails any candidate prompt that reproduces five consecutive words of a permissive exemplar, on the same footing as one quoting the corpus — style is not ownable and sentences are.
+
+### Nothing above has moved
+
+| app | commit re-checked | verdict |
+| --- | ----------------- | ------- |
+| VoiceInk | [`fda316996d87`](https://github.com/Beingpax/VoiceInk/blob/fda316996d87bc0c7b68d11a741b5c5aec8d8617/VoiceInk/Models/AIPrompts.swift#L4-L52) | template unchanged; the one intervening commit touched model defaults and app icons. GPL-3.0-only. |
+| Whispering / Epicenter | [`abe10f3867e4`](https://github.com/EpicenterHQ/epicenter/blob/abe10f3867e4e8b367bcc48d30ce69c8ed8c59da/apps/whispering/src/lib/operations/build-system-prompt.ts#L35-L63) | scaffold and dictionary combiner unchanged. Now explicitly **AGPL-3.0-only at the app boundary**, so its text stays excluded. |
+| FluidVoice | [`ab46bf3dd29f`](https://github.com/altic-dev/FluidVoice/blob/ab46bf3dd29fd33d79f9fed00172f51af3982625/Sources/Fluid/Persistence/SettingsStore.swift#L983-L1097) | default cleanup body unchanged; the diff adds dictation finalization, spoken-send, and private-model plumbing, no new cleanup rule. GPL-3.0-only, still described only. |
+| Hex | [`881c46f236f5`](https://github.com/kitlangton/Hex/blob/881c46f236f529a8f6c7eed61ed1f4cbca9ac267/Hex/Features/Transcription/TranscriptionFeature.swift#L441-L503) | the survey's pin is still HEAD. Still no LLM cleanup at all. MIT. |
+
+### Five permissively licensed prompts, quotable
+
+All MIT, all with a readable cleanup prompt in source, all captured verbatim in the exemplars directory.
+
+| app | what it is | prompt source | register |
+| --- | ---------- | ------------- | -------- |
+| **Yappy** | VS Code extension that hands the raw transcription to Copilot | [CopilotRefiner.ts:4-31](https://github.com/karandeepbhardwaj/Yappy/blob/e347f33a12a99a858afb88d4734c806b5ebb45b0/src/llm/CopilotRefiner.ts#L4-L31) | a two-sentence role, seven numbered rules, two examples, one output-only line. No injection boundary at all. **Rule 5 instructs paragraph breaks where topics change.** |
+| **Whisper Dictate** | Windows app against a local OpenAI-compatible endpoint | [config.py:27-65](https://github.com/dancwilliams/whisper-dictate/blob/ce4b65f5350a2116146fab26762f0b161c2adc28/whisper_dictate/config.py#L27-L65) | headings over eighteen dash rules split into WHAT YOU DO / WHAT YOU NEVER DO, plus one wrong-versus-correct example. **Instructs paragraphing of anything over twenty words, two to five sentences a paragraph.** |
+| **Whisper Local** | opt-in Ollama polish after a deterministic prepass | [config.defaults.yaml:484-494](https://github.com/drajb/whisper-local/blob/0138c6b19af57d36ad79809d1888035eca7b22b3/src/whisper_key/config.defaults.yaml#L484-L494) | **21 words, four imperative sentences, no examples and no guard.** The minimal register in its purest form, affordable because the deterministic layer owns the conversions. |
+| **OpenWhispr** | cross-platform app with separate cleanup and command modes | [prompts.json](https://github.com/OpenWhispr/openwhispr/blob/8b77a599ce91172e421ca0cd4f8bd5fd3cbae47f/src/locales/en/prompts.json#L2) | headed eight-bullet checklist with four worked examples. Its anti-answering boundary is the most explicit in the set, covering attempts to alter the prompt itself. |
+| **Voicebox** | local LLM refinement, three default-on toggles composed into one prompt | [refinement.py:140-195](https://github.com/jamiepine/voicebox/blob/51f49dea198384b4eb6087b72c17057c6eb1c1cd/backend/services/refinement.py#L140-L195) | nineteen bullets, three examples, explicit technical-symbol rules — and long clause-bearing prose inside them. **The counterexample: list structure alone does not prevent documentation register.** |
+
+Checked and excluded: **Handy** (MIT, high use, but deterministic normalization with no LLM cleanup call), **Vibe** (MIT, LLM templates that summarize or write meeting notes rather than clean a transcript), **Whisper Writer** (GPL-3.0, no LLM component in current source), **andrew99666/whisper-dictate** (has Gemini polish prompts, but PolyForm Noncommercial 1.0.0 — not permissive, so not quoted).
+
+### What the register measurement says
+
+Word tokens over sentences ending in terminal punctuation, same measure for every prompt.
+
+| prompt | words | sentences | words/sentence | bullets |
+| ------ | ----: | --------: | -------------: | ------: |
+| MiniWhisper `builtIn`, before round 4 | 523 | 26 | **20.1** | 0 |
+| Yappy | 205 | 23 | 8.9 | 7 |
+| Whisper Dictate | 216 | 9 | 24.0 | 18 |
+| Whisper Local | 21 | 3 | 7.0 | 0 |
+| OpenWhispr | 338 | 22 | 15.4 | 8 |
+| Voicebox | 552 | 36 | 15.3 | 19 |
+
+Token-weighted, the five average **14.3 words per sentence and 52 list rules over 1,332 words**. Ours is 41% longer by sentence and the only one expressing every executable rule as a paragraph. Whisper Dictate's outlying 24.0 is the caution: most of its eighteen bullets are fragments carrying no terminal punctuation, so sentence length alone does not measure register.
+
+**Two of the five instruct unrequested paragraph breaks at a change of topic**, which is independent support for the product objection that round 3's absolute no-break rule was wrong. What round 4 then measured is that a _permissive_ version of that instruction does nothing on a small model: four wordings that allow or narrow a break produced one 0 times in 80, and only an imperative wording produced it at all.
+
+**The rewrite was measured and did not ship.** Two register rewrites — one by hand from these exemplars, one by a proposer shown them — tie the incumbent on the frozen objective, the recorded holdout, the dictionary gate and the nine-rule grid, and cost half the effect of the new paragraph rule. Details in [round 4](43-dictation-corpus/results/prompt-tuning-r4/README.md). The register finding stands; the rewrite is parked, not refuted.
+
 ## Source notes
 
 - Open-source source was inspected at **Beingpax/VoiceInk@304db118f655**, **epicenter-so/epicenter@210c3d3691a0**, **kitlangton/Hex@881c46f236f5**, and **altic-dev/FluidVoice@b44a898c0749**. FluidVoice’s GPLv3 status is documented in its [README:293-297](https://github.com/altic-dev/FluidVoice/blob/b44a898c0749/README.md#L293-L297) and [LICENSE:1-12](https://github.com/altic-dev/FluidVoice/blob/b44a898c0749/LICENSE#L1-L12); this asset deliberately contains no FluidVoice prompt text.
 - Hex previously had LLM transformations, but current Hex removed that UI; it is reported here as current deterministic prior art, not as a shipping prompt. [CHANGELOG:143-149](https://github.com/kitlangton/Hex/blob/881c46f236f5/CHANGELOG.md#L143-L149)
 - Whispering’s archived standalone repository redirects to Epicenter, which is why this asset cites `apps/whispering` in the Epicenter monorepo. [archived README:33-36](https://github.com/braden-w/whispering/blob/HEAD/README.md#L33-L36)
+- The 2026-08-21 extension inspected **Beingpax/VoiceInk@fda316996d87**, **EpicenterHQ/epicenter@abe10f3867e4**, **altic-dev/FluidVoice@ab46bf3dd29f**, **kitlangton/Hex@881c46f236f5**, **karandeepbhardwaj/Yappy@e347f33a12a9**, **dancwilliams/whisper-dictate@ce4b65f5350a**, **drajb/whisper-local@0138c6b19af5**, **OpenWhispr/openwhispr@8b77a599ce91**, and **jamiepine/voicebox@51f49dea1983**. Every licence claim above was read from the repository's own LICENSE file rather than inferred from a badge.

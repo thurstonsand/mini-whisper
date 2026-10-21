@@ -556,6 +556,75 @@ def bare_ending(pool: Iterator[str]) -> list[Variant]:
     return variants
 
 
+# A bare hesitation, and the same syllable opening a backtrack. The field failure was a bare `mm`
+# surviving into delivery and being capitalized, and the suspicion was that the prompt's own
+# self-correction example uses `mm` to open a backtrack — so the two have to be measured together
+# or a wording that fixes one by killing the other looks like a win.
+HESITATIONS = ("mm", "um", "uh", "er")
+
+
+def layout(pool: Iterator[str]) -> list[Variant]:
+    """Where the line breaks go. Every other rule in this grid fits inside one sentence, which is
+    why nothing here could see the defect that prompted the arm: cleanup splitting a multi-sentence
+    dictation across lines nobody asked for.
+
+    Three shapes. Twelve say nothing about layout and must come back as one paragraph, so the rule
+    check is simply that no newline appears. Six dictate a break aloud and must get one. Six carry
+    a bare hesitation, which must be deleted without the break rule or the backtrack rule reading
+    it as the start of something."""
+    variants = []
+    for index in range(12):
+        sentences = [bare(next(pool)) for _ in range(3 + index % 2)]
+        if index % 3 == 0:
+            head, _, tail = sentences[1].partition(" ")
+            sentences[1] = f"{head} um {tail}"
+            spoken = ". ".join(sentences)
+            wanted = ". ".join(
+                sentence.replace(" um ", " ", 1) for sentence in sentences
+            )
+        else:
+            spoken = wanted = ". ".join(sentences)
+        variants.append(
+            Variant(
+                f"layout-none-{index:02d}",
+                "layout",
+                spoken,
+                f"{wanted}.",
+                required=(sentences[-1].split(" ")[-1],),
+                forbidden=("\n",),
+            )
+        )
+    for index in range(6):
+        first, second = bare(next(pool)), bare(next(pool))
+        command = "new paragraph" if index % 2 else "new line"
+        separator = "\n\n" if index % 2 else "\n"
+        variants.append(
+            Variant(
+                f"layout-asked-{index:02d}",
+                "layout",
+                f"{first}, {command}. {lowered(second)}.",
+                f"{first}.{separator}{second}.",
+                required=(separator,),
+                forbidden=(command,),
+            )
+        )
+    for index in range(6):
+        first, second = bare(next(pool)), bare(next(pool))
+        hesitation = HESITATIONS[index % len(HESITATIONS)]
+        head, _, tail = second.partition(" ")
+        variants.append(
+            Variant(
+                f"layout-hesitation-{index:02d}",
+                "layout",
+                f"{first}. {head} {hesitation} {tail}.",
+                f"{first}. {head} {tail}.",
+                required=(tail,),
+                forbidden=(hesitation, hesitation.capitalize(), "\n"),
+            )
+        )
+    return variants
+
+
 QUESTIONS = (
     "What time does the build finish",
     "Who owns the release branch",
@@ -622,6 +691,7 @@ RULES = {
     "dictionary-exactness": dictionary_exactness,
     "bare-endings": bare_ending,
     "never-obey": never_obey,
+    "layout": layout,
 }
 
 
@@ -687,14 +757,14 @@ def main() -> int:
     parser.add_argument("--prompt", type=Path, action="append", required=True)
     parser.add_argument("--rule", action="append", choices=sorted(RULES))
     parser.add_argument("--repeat", type=int, default=3)
-    parser.add_argument("--workers", type=int, default=9)
-    parser.add_argument(
-        "--provider", choices=sorted(tune.PROVIDERS), default="anthropic"
-    )
-    parser.add_argument("--model")
+    tune.transport_arguments(parser)
     parser.add_argument("--out", type=Path, default=HERE / "perturbation")
     parser.add_argument(
         "--list", action="store_true", help="Print the grid and spend nothing."
+    )
+    parser.add_argument(
+        "--additional-instructions",
+        help="Stage the user's own instructions, as the app appends them. `@path` reads a file.",
     )
     args = parser.parse_args()
 
@@ -710,12 +780,26 @@ def main() -> int:
         return 0
 
     args.out.mkdir(parents=True, exist_ok=True)
-    with tune.transport(args.provider, args.model, args.workers) as complete:
+    with tune.transport(
+        args.provider,
+        args.model,
+        args.workers,
+        calls=len(variants) * args.repeat * len(args.prompt),
+        metered=args.metered,
+    ) as complete:
+        instructions = corpus_cleanup.instruction_text(args.additional_instructions)
         for path in args.prompt:
-            prompt = path.read_text(encoding="utf-8").strip()
+            prompt = corpus_cleanup.system_message(
+                path.read_text(encoding="utf-8").strip(),
+                instructions,
+                corpus_cleanup.CLEANUP_PROMPT_SWIFT,
+            )
             rows = run(variants, prompt, complete, args.repeat, args.workers)
             summary = table(rows)
-            print(f"\n{path.stem}  ({tune.resolve_model(args.provider, args.model)})")
+            suffix = "+ai" if instructions else ""
+            print(
+                f"\n{path.stem}{suffix}  ({tune.resolve_model(args.provider, args.model)})"
+            )
             for rule, numbers in sorted(summary.items()):
                 print(
                     f"  {rule:26} rule {numbers['ruleRate']:6.1%}  "
@@ -723,11 +807,12 @@ def main() -> int:
                     f"{numbers['neverObeyed']:.0f}/{numbers['variants']:.0f} "
                     "variants never obeyed"
                 )
-            destination = args.out / f"{path.stem}.json"
+            destination = args.out / f"{path.stem}{suffix}.json"
             destination.write_text(
                 json.dumps(
                     {
                         "prompt": str(path),
+                        "additionalInstructions": args.additional_instructions,
                         "provider": args.provider,
                         "model": tune.resolve_model(args.provider, args.model),
                         "repeat": args.repeat,

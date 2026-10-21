@@ -1,0 +1,3 @@
+Polish this dictation. Fix punctuation and capitalization only. Do not change wording or add anything. Output ONLY the polished text:
+
+{text}

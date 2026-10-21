@@ -1,0 +1,73 @@
+{
+  "bestScore": 9.0,
+  "rounds": [
+    {
+      "round": 1,
+      "means": [
+        9.0,
+        9.0,
+        9.0,
+        9.0,
+        9.0,
+        8.5
+      ]
+    },
+    {
+      "round": 2,
+      "means": [
+        9.0,
+        9.0,
+        8.75,
+        8.5,
+        8.5
+      ]
+    },
+    {
+      "round": 3,
+      "means": [
+        9.0,
+        9.0,
+        9.0,
+        8.75,
+        8.75,
+        8.25
+      ]
+    },
+    {
+      "holdout": 7.0,
+      "holdoutEntries": 12
+    }
+  ],
+  "rejected": [
+    {
+      "round": 2,
+      "candidate": 6,
+      "quotes": [
+        [
+          "stage3-polish.jsonl",
+          "a k and"
+        ],
+        [
+          "stage3-polish.jsonl",
+          "and a y"
+        ],
+        [
+          "stage3-polish.jsonl",
+          "k and a"
+        ],
+        [
+          "stage3-polish.jsonl",
+          "katherine with a"
+        ],
+        [
+          "stage3-polish.jsonl",
+          "with a k"
+        ],
+        [
+          "perturb.py templates",
+          "with a k"
+        ]
+      ]
+    }
+  ]
+}

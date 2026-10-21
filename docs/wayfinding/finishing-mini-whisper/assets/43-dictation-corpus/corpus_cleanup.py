@@ -42,15 +42,50 @@ CLEANUP_PROMPT_SWIFT = (
     / "Packages/TranscriptCleanup/Sources/TranscriptCleanup/CleanupPrompt.swift"
 )
 BUILT_IN = re.compile(r'public static let builtIn = """\n(.*?)\n  """', re.DOTALL)
+# The sentence CleanupPrompt.systemMessage puts between the built-in rules and the user's own
+# instructions. Lifted rather than copied for the same reason the prompt is: a sentence duplicated
+# into Python is a sentence that silently stops matching the app.
+ADDITIONAL_FRAME = re.compile(
+    r'return """\n\s*\\\(builtIn\)\n(.*?)\\\(instructions\)\n\s*"""', re.DOTALL
+)
 
 
 def built_in_prompt(source: Path) -> str:
-    """The app's own system message. Additional user instructions are deliberately excluded: the
-    corpus `expect` values are written against the built-in rules alone."""
+    """The app's own system message, without the user's instructions."""
     match = BUILT_IN.search(source.read_text(encoding="utf-8"))
     if match is None:
         sys.exit(f"{source}: no `builtIn` prompt literal found")
     return textwrap.dedent(match.group(1))
+
+
+def system_message(
+    built_in: str, additional_instructions: str | None, source: Path
+) -> str:
+    """Mirrors CleanupPrompt.systemMessage, frame sentence and all.
+
+    Three rounds of this harness scored `builtIn` alone while the app sent this. The scripted
+    stages' `expect` values are still written against the built-in rules, so an arm that stages
+    instructions is measuring what the instructions do to the rules — which is the question, not
+    a contamination of it."""
+    instructions = (additional_instructions or "").strip()
+    if not instructions:
+        return built_in
+    match = ADDITIONAL_FRAME.search(source.read_text(encoding="utf-8"))
+    if match is None:
+        sys.exit(f"{source}: no `systemMessage` frame found")
+    frame = textwrap.dedent(match.group(1))
+    return f"{built_in}\n{frame}{instructions}"
+
+
+def instruction_text(value: str | None) -> str | None:
+    """`--additional-instructions` takes the text itself, or `@path` to read it from a file. The
+    two texts this round cares about are long enough that a shell quoting mistake would be a
+    silent measurement error."""
+    if value is None:
+        return None
+    if value.startswith("@"):
+        return Path(value[1:]).read_text(encoding="utf-8")
+    return value
 
 
 def tagged(tag: str, body: str) -> str:
@@ -58,10 +93,18 @@ def tagged(tag: str, body: str) -> str:
 
 
 def user_message(
-    transcript: str, context_before: str | None, vocabulary: list[str]
+    transcript: str,
+    context_before: str | None,
+    vocabulary: list[str],
+    target_bundle_id: str | None = None,
 ) -> str:
-    """Mirrors CleanupPrompt.userMessage, including its field order. The corpus stages no bundle
-    identifier, and an absent field is omitted whole rather than sent empty."""
+    """Mirrors CleanupPrompt.userMessage, including its field order. An absent field is omitted
+    whole rather than sent empty.
+
+    The scripted stages stage no bundle identifier — every entry is written to be app-independent.
+    A field case is not: it was dictated into a named application, and the prompt grants
+    TARGET_BUNDLE_ID authority over "local formatting", so replaying one without its bundle is
+    replaying a different request than the one that failed."""
     blocks = [tagged("TRANSCRIPT", transcript)]
     if context_before:
         blocks.append(
@@ -71,6 +114,8 @@ def user_message(
         blocks.append(
             tagged("DICTIONARY", "\n".join(f"- {term}" for term in vocabulary))
         )
+    if target_bundle_id:
+        blocks.append(tagged("TARGET_BUNDLE_ID", target_bundle_id))
     return "\n\n".join(blocks)
 
 
@@ -280,6 +325,11 @@ def arguments() -> argparse.Namespace:
             help="CleanupPrompt.swift",
         )
         stage.add_argument(
+            "--additional-instructions",
+            help="The user's own instructions, appended as CleanupPrompt.systemMessage appends "
+            "them. `@path` reads them from a file.",
+        )
+        stage.add_argument(
             "--results-dir",
             type=Path,
             help="Write the run's output files here.",
@@ -315,7 +365,11 @@ def clean(
         system, user = S1_MINI_SYSTEM, f"{S1_MINI_CONTROL}\n{transcript}"
         extra_body = S1_MINI_BODY
     else:
-        system = built_in_prompt(args.prompt_source)
+        system = system_message(
+            built_in_prompt(args.prompt_source),
+            instruction_text(getattr(args, "additional_instructions", None)),
+            args.prompt_source,
+        )
         user = user_message(transcript, context_before, vocabulary)
         extra_body = {}
     content, latency, throttled = complete(
@@ -329,6 +383,12 @@ def clean(
         args.retries,
     )
     return shape(content), latency, throttled
+
+
+# Round 4's standing rule: the Anthropic key pays for transcription and nothing else. This harness
+# reaches Haiku over the Claude subscription instead, so a request aimed at the metered endpoint is
+# a mistake rather than a choice, and it is refused here rather than discovered on an invoice.
+METERED_ANTHROPIC = "api.anthropic.com"
 
 
 def prepare(
@@ -346,6 +406,11 @@ def prepare(
     )
     if not args.no_api_key and args.prompt != "none" and not api_key:
         sys.exit(f"No API key in ${args.api_key_env}.")
+    if args.endpoint and METERED_ANTHROPIC in args.endpoint:
+        sys.exit(
+            f"Refusing {args.endpoint}: the Anthropic key is the transcription key. Score Haiku "
+            "over the subscription with results/prompt-tuning-haiku/tune.py --provider sdk-haiku."
+        )
     if args.prompt == "none":
         args.model = ["none"]
     elif not args.model or not args.endpoint:

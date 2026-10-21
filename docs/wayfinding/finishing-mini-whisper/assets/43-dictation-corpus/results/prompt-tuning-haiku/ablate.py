@@ -29,15 +29,11 @@ def main() -> int:
     parser.add_argument("--prompt", type=Path, required=True)
     parser.add_argument("--units", type=Path, required=True)
     parser.add_argument("--repeat", type=int, default=8)
-    parser.add_argument("--workers", type=int, default=9)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument(
         "--stage2", action="store_true", help="Also run the dictionary gate."
     )
-    parser.add_argument(
-        "--provider", choices=sorted(tune.PROVIDERS), default="anthropic"
-    )
-    parser.add_argument("--model")
+    tune.transport_arguments(parser)
     args = parser.parse_args()
 
     prompt = args.prompt.read_text(encoding="utf-8").strip()
@@ -51,7 +47,15 @@ def main() -> int:
                 vocabulary.append(term)
     args.out.mkdir(parents=True, exist_ok=True)
 
-    with tune.transport(args.provider, args.model, args.workers) as complete:
+    # The intact prompt plus one candidate per removed unit, on stage 3 and optionally stage 2.
+    per_candidate = len(stage3) * args.repeat + (len(stage2) if args.stage2 else 0)
+    with tune.transport(
+        args.provider,
+        args.model,
+        args.workers,
+        calls=(1 + len(units)) * per_candidate,
+        metered=args.metered,
+    ) as complete:
         table = ablate(args, prompt, units, complete, stage3, stage2, vocabulary)
     (args.out / "ablation.json").write_text(
         json.dumps(table, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"

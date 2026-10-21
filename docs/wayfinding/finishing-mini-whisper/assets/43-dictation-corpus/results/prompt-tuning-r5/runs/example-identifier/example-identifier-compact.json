@@ -1,0 +1,3619 @@
+{
+  "prompt": "../prompt-tuning-r5/candidates/example-identifier-compact.txt",
+  "additionalInstructions": null,
+  "provider": "sdk-haiku",
+  "model": "claude-haiku-4-5",
+  "repeat": 10,
+  "summary": {
+    "identifier-from-context": {
+      "runs": 360,
+      "variants": 36,
+      "exactRate": 0.21944444444444444,
+      "ruleRate": 0.8055555555555556,
+      "everObeyed": 31,
+      "neverObeyed": 5
+    }
+  },
+  "rows": [
+    {
+      "id": "ident-m00",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Push it onto retryQ before the retry period. Hoist the load to your left shoulder.",
+      "expect": "Push it onto RetryQueue before the retry. Hoist the load to your left shoulder.",
+      "cleaned": "Push it onto retryQ before the retry period. Hoist the load to your left shoulder.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m01",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Push it onto fetchUsr before the retry period. Take the winding path to reach the lake.",
+      "expect": "Push it onto fetchUsers before the retry. Take the winding path to reach the lake.",
+      "cleaned": "Push it onto fetchUsers before the retry period. Take the winding path to reach the lake.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m02",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Push it onto maxRetry before the retry period. Note closely the size of the gas tank.",
+      "expect": "Push it onto maxRetryCount before the retry. Note closely the size of the gas tank.",
+      "cleaned": "Push it onto maxRetryCount before the retry period. Note closely the size of the gas tank.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m03",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Push it onto parseHdr before the retry period. Wipe the grease off his dirty face.",
+      "expect": "Push it onto parseHeader before the retry. Wipe the grease off his dirty face.",
+      "cleaned": "Push it onto parseHeader before the retry period. Wipe the grease off his dirty face.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m04",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Push it onto sendPld before the retry period. Mend the coat before you go out.",
+      "expect": "Push it onto sendPayload before the retry. Mend the coat before you go out.",
+      "cleaned": "Push it onto sendPayload before the retry period. Mend the coat before you go out.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m05",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Push it onto cacheRt before the retry period. The wrist was badly strained and hung limp.",
+      "expect": "Push it onto cacheRoot before the retry. The wrist was badly strained and hung limp.",
+      "cleaned": "Push it onto cacheRoot before the retry period. The wrist was badly strained and hung limp.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m06",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Push it onto beginSess before the retry period. The stray cat gave birth to kittens.",
+      "expect": "Push it onto beginSession before the retry. The stray cat gave birth to kittens.",
+      "cleaned": "Push it onto beginSession before the retry period. The stray cat gave birth to kittens.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m07",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Push it onto flushBuf before the retry period. The young girl gave no clear response.",
+      "expect": "Push it onto flushBuffer before the retry. The young girl gave no clear response.",
+      "cleaned": "Push it onto flushBuf before the retry period. The young girl gave no clear response.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m08",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Push it onto resolveDev before the retry period. The meal was cooked before the bell rang.",
+      "expect": "Push it onto resolveDevice before the retry. The meal was cooked before the bell rang.",
+      "cleaned": "Push it onto resolveDevice before the retry period. The meal was cooked before the bell rang.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m09",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Push it onto decodeFrm before the retry period. What joy there is in living.",
+      "expect": "Push it onto decodeFrame before the retry. What joy there is in living.",
+      "cleaned": "Push it onto decodeFrame before the retry period. What joy there is in living.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m10",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Push it onto warmUp before the retry period. A king ruled the state in the early days.",
+      "expect": "Push it onto warmUpModel before the retry. A king ruled the state in the early days.",
+      "cleaned": "Push it onto warmUp before the retry period. A king ruled the state in the early days.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m11",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Push it onto apiCtrl before the retry period. The ship was torn apart on the sharp reef.",
+      "expect": "Push it onto APIController before the retry. The ship was torn apart on the sharp reef.",
+      "cleaned": "Push it onto apiCtrl before the retry period. The ship was torn apart on the sharp reef.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-00",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Call fetch users on the client, period. Sickness kept him home the third week.",
+      "expect": "Call fetchUsers on the client. Sickness kept him home the third week.",
+      "cleaned": "Call fetchUsers() on the client. Sickness kept him home the third week.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-01",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Then fetch users runs twice period. The wide road shimmered in the hot sun.",
+      "expect": "Then fetchUsers runs twice. The wide road shimmered in the hot sun.",
+      "cleaned": "Then fetchUsers() runs twice. The wide road shimmered in the hot sun.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-02",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Call max retry count on the client, period. The lazy cow lay in the cool grass.",
+      "expect": "Call maxRetryCount on the client. The lazy cow lay in the cool grass.",
+      "cleaned": "Call maxRetryCount on the client. The lazy cow lay in the cool grass.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-03",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Then max retry count runs twice period. Lift the square stone over the fence.",
+      "expect": "Then maxRetryCount runs twice. Lift the square stone over the fence.",
+      "cleaned": "Then maxRetryCount runs twice. Lift the square stone over the fence.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-04",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Call parse header on the client, period. The rope will bind the seven books at once.",
+      "expect": "Call parseHeader on the client. The rope will bind the seven books at once.",
+      "cleaned": "Call parseHeader() on the client. The rope will bind the seven books at once.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-05",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Then parse header runs twice period. Hop over the fence and plunge in.",
+      "expect": "Then parseHeader runs twice. Hop over the fence and plunge in.",
+      "cleaned": "Then parseHeader() runs twice. Hop over the fence and plunge in.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-06",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Call send payload on the client, period. The friendly gang left the drug store.",
+      "expect": "Call sendPayload on the client. The friendly gang left the drug store.",
+      "cleaned": "Call sendPayload() on the client. The friendly gang left the drug store.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-07",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Then send payload runs twice period. Mesh wire keeps chicks inside.",
+      "expect": "Then sendPayload runs twice. Mesh wire keeps chicks inside.",
+      "cleaned": "Then sendPayload() runs twice. Mesh wire keeps chicks inside.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-08",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Call cache root on the client, period. The frosty air passed through the coat.",
+      "expect": "Call cacheRoot on the client. The frosty air passed through the coat.",
+      "cleaned": "Call cacheRoot() on the client. The frosty air passed through the coat.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-09",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Then cache root runs twice period. The crooked maze failed to fool the mouse.",
+      "expect": "Then cacheRoot runs twice. The crooked maze failed to fool the mouse.",
+      "cleaned": "Then cacheRoot() runs twice. The crooked maze failed to fool the mouse.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-10",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Call begin session on the client, period. Adding fast leads to wrong sums.",
+      "expect": "Call beginSession on the client. Adding fast leads to wrong sums.",
+      "cleaned": "Call beginSession on the client. Adding fast leads to wrong sums.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-11",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Then begin session runs twice period. The show was a flop from the very start.",
+      "expect": "Then beginSession runs twice. The show was a flop from the very start.",
+      "cleaned": "Then begin session runs twice. The show was a flop from the very start.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-12",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Call flush buffer on the client, period. A saw is a tool used for making boards.",
+      "expect": "Call flushBuffer on the client. A saw is a tool used for making boards.",
+      "cleaned": "Call flushBuffer on the client. A saw is a tool used for making boards.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-13",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Then flush buffer runs twice period. The wagon moved on well oiled wheels.",
+      "expect": "Then flushBuffer runs twice. The wagon moved on well oiled wheels.",
+      "cleaned": "Then flushBuffer() runs twice. The wagon moved on well oiled wheels.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-14",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Call resolve device on the client, period. March the soldiers past the next hill.",
+      "expect": "Call resolveDevice on the client. March the soldiers past the next hill.",
+      "cleaned": "resolveDevice(client).\nMarch the soldiers past the next hill.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-15",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Then resolve device runs twice period. A cup of sugar makes sweet fudge.",
+      "expect": "Then resolveDevice runs twice. A cup of sugar makes sweet fudge.",
+      "cleaned": "Then resolveDevice() runs twice. A cup of sugar makes sweet fudge.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-16",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Call API controller on the client, period. Place a rosebush near the porch steps.",
+      "expect": "Call APIController on the client. Place a rosebush near the porch steps.",
+      "cleaned": "Call APIController on the client. Place a rosebush near the porch steps.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-17",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Then API controller runs twice period. Both lost their lives in the raging storm.",
+      "expect": "Then APIController runs twice. Both lost their lives in the raging storm.",
+      "cleaned": "Then the API controller runs twice. Both lost their lives in the raging storm.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-18",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Call retry budget on the client, period. We talked of the side show in the circus.",
+      "expect": "Call retryBudget on the client. We talked of the side show in the circus.",
+      "cleaned": "Call retryBudget on the client. We talked of the side show in the circus.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-19",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Then retry budget runs twice period. Use a pencil to write the first draft.",
+      "expect": "Then retryBudget runs twice. Use a pencil to write the first draft.",
+      "cleaned": "Then retry budget runs twice. Use a pencil to write the first draft.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-20",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Call decode frame on the client, period. He ran half way to the hardware store.",
+      "expect": "Call decodeFrame on the client. He ran half way to the hardware store.",
+      "cleaned": "Call decodeFrame on the client. He ran half way to the hardware store.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-21",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Then decode frame runs twice period. A small creek cut across the field.",
+      "expect": "Then decodeFrame runs twice. A small creek cut across the field.",
+      "cleaned": "Then decodeFrame() runs twice. A small creek cut across the field.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-22",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Call warm up model on the client, period. Cars and busses stalled in snow drifts.",
+      "expect": "Call warmUpModel on the client. Cars and busses stalled in snow drifts.",
+      "cleaned": "Call warmUpModel() on the client. Cars and busses stalled in snow drifts.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-23",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Then warm up model runs twice period. The set of china hit the floor with a crash.",
+      "expect": "Then warmUpModel runs twice. The set of china hit the floor with a crash.",
+      "cleaned": "Then warm up model runs twice. The set of china hit the floor with a crash.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m00",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Push it onto retryQ before the retry period. Hoist the load to your left shoulder.",
+      "expect": "Push it onto RetryQueue before the retry. Hoist the load to your left shoulder.",
+      "cleaned": "Push it onto retryQ before the retry period. Hoist the load to your left shoulder.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m01",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Push it onto fetchUsr before the retry period. Take the winding path to reach the lake.",
+      "expect": "Push it onto fetchUsers before the retry. Take the winding path to reach the lake.",
+      "cleaned": "Push it onto fetchUsers before the retry period. Take the winding path to reach the lake.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m02",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Push it onto maxRetry before the retry period. Note closely the size of the gas tank.",
+      "expect": "Push it onto maxRetryCount before the retry. Note closely the size of the gas tank.",
+      "cleaned": "Push it onto maxRetryCount before the retry period. Note closely the size of the gas tank.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m03",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Push it onto parseHdr before the retry period. Wipe the grease off his dirty face.",
+      "expect": "Push it onto parseHeader before the retry. Wipe the grease off his dirty face.",
+      "cleaned": "Push it onto parseHeader before the retry period. Wipe the grease off his dirty face.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m04",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Push it onto sendPld before the retry period. Mend the coat before you go out.",
+      "expect": "Push it onto sendPayload before the retry. Mend the coat before you go out.",
+      "cleaned": "Push it onto sendPayload before the retry period. Mend the coat before you go out.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m05",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Push it onto cacheRt before the retry period. The wrist was badly strained and hung limp.",
+      "expect": "Push it onto cacheRoot before the retry. The wrist was badly strained and hung limp.",
+      "cleaned": "Push it onto cacheRoot before the retry period. The wrist was badly strained and hung limp.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m06",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Push it onto beginSess before the retry period. The stray cat gave birth to kittens.",
+      "expect": "Push it onto beginSession before the retry. The stray cat gave birth to kittens.",
+      "cleaned": "Push it onto beginSession before the retry period. The stray cat gave birth to kittens.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m07",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Push it onto flushBuf before the retry period. The young girl gave no clear response.",
+      "expect": "Push it onto flushBuffer before the retry. The young girl gave no clear response.",
+      "cleaned": "Push it onto flushBuf before the retry period. The young girl gave no clear response.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m08",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Push it onto resolveDev before the retry period. The meal was cooked before the bell rang.",
+      "expect": "Push it onto resolveDevice before the retry. The meal was cooked before the bell rang.",
+      "cleaned": "Push it onto resolveDevice before the retry period. The meal was cooked before the bell rang.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m09",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Push it onto decodeFrm before the retry period. What joy there is in living.",
+      "expect": "Push it onto decodeFrame before the retry. What joy there is in living.",
+      "cleaned": "Push it onto decodeFrame before the retry period. What joy there is in living.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m10",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Push it onto warmUp before the retry period. A king ruled the state in the early days.",
+      "expect": "Push it onto warmUpModel before the retry. A king ruled the state in the early days.",
+      "cleaned": "Push it onto warmUp before the retry period. A king ruled the state in the early days.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m11",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Push it onto apiCtrl before the retry period. The ship was torn apart on the sharp reef.",
+      "expect": "Push it onto APIController before the retry. The ship was torn apart on the sharp reef.",
+      "cleaned": "Push it onto apiCtrl before the retry period. The ship was torn apart on the sharp reef.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-00",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Call fetch users on the client, period. Sickness kept him home the third week.",
+      "expect": "Call fetchUsers on the client. Sickness kept him home the third week.",
+      "cleaned": "Call fetchUsers() on the client. Sickness kept him home the third week.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-01",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Then fetch users runs twice period. The wide road shimmered in the hot sun.",
+      "expect": "Then fetchUsers runs twice. The wide road shimmered in the hot sun.",
+      "cleaned": "Then fetchUsers() runs twice. The wide road shimmered in the hot sun.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-02",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Call max retry count on the client, period. The lazy cow lay in the cool grass.",
+      "expect": "Call maxRetryCount on the client. The lazy cow lay in the cool grass.",
+      "cleaned": "Call maxRetryCount on the client. The lazy cow lay in the cool grass.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-03",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Then max retry count runs twice period. Lift the square stone over the fence.",
+      "expect": "Then maxRetryCount runs twice. Lift the square stone over the fence.",
+      "cleaned": "Then maxRetryCount runs twice. Lift the square stone over the fence.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-04",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Call parse header on the client, period. The rope will bind the seven books at once.",
+      "expect": "Call parseHeader on the client. The rope will bind the seven books at once.",
+      "cleaned": "Call parseHeader() on the client. The rope will bind the seven books at once.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-05",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Then parse header runs twice period. Hop over the fence and plunge in.",
+      "expect": "Then parseHeader runs twice. Hop over the fence and plunge in.",
+      "cleaned": "Then parseHeader() runs twice. Hop over the fence and plunge in.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-06",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Call send payload on the client, period. The friendly gang left the drug store.",
+      "expect": "Call sendPayload on the client. The friendly gang left the drug store.",
+      "cleaned": "Call sendPayload on the client. The friendly gang left the drug store.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-07",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Then send payload runs twice period. Mesh wire keeps chicks inside.",
+      "expect": "Then sendPayload runs twice. Mesh wire keeps chicks inside.",
+      "cleaned": "Then sendPayload() runs twice. Mesh wire keeps chicks inside.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-08",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Call cache root on the client, period. The frosty air passed through the coat.",
+      "expect": "Call cacheRoot on the client. The frosty air passed through the coat.",
+      "cleaned": "Call cacheRoot() on the client. The frosty air passed through the coat.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-09",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Then cache root runs twice period. The crooked maze failed to fool the mouse.",
+      "expect": "Then cacheRoot runs twice. The crooked maze failed to fool the mouse.",
+      "cleaned": "Then cacheRoot() runs twice. The crooked maze failed to fool the mouse.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-10",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Call begin session on the client, period. Adding fast leads to wrong sums.",
+      "expect": "Call beginSession on the client. Adding fast leads to wrong sums.",
+      "cleaned": "Call beginSession on the client. Adding fast leads to wrong sums.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-11",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Then begin session runs twice period. The show was a flop from the very start.",
+      "expect": "Then beginSession runs twice. The show was a flop from the very start.",
+      "cleaned": "Then beginSession() runs twice. The show was a flop from the very start.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-12",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Call flush buffer on the client, period. A saw is a tool used for making boards.",
+      "expect": "Call flushBuffer on the client. A saw is a tool used for making boards.",
+      "cleaned": "Call flushBuffer() on the client. A saw is a tool used for making boards.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-13",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Then flush buffer runs twice period. The wagon moved on well oiled wheels.",
+      "expect": "Then flushBuffer runs twice. The wagon moved on well oiled wheels.",
+      "cleaned": "Then flushBuffer() runs twice. The wagon moved on well oiled wheels.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-14",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Call resolve device on the client, period. March the soldiers past the next hill.",
+      "expect": "Call resolveDevice on the client. March the soldiers past the next hill.",
+      "cleaned": "Call resolveDevice() on the client. March the soldiers past the next hill.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-15",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Then resolve device runs twice period. A cup of sugar makes sweet fudge.",
+      "expect": "Then resolveDevice runs twice. A cup of sugar makes sweet fudge.",
+      "cleaned": "Then resolveDevice() runs twice. A cup of sugar makes sweet fudge.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-16",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Call API controller on the client, period. Place a rosebush near the porch steps.",
+      "expect": "Call APIController on the client. Place a rosebush near the porch steps.",
+      "cleaned": "Call API controller on the client. Place a rosebush near the porch steps.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-17",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Then API controller runs twice period. Both lost their lives in the raging storm.",
+      "expect": "Then APIController runs twice. Both lost their lives in the raging storm.",
+      "cleaned": "Then APIController runs twice. Both lost their lives in the raging storm.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-18",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Call retry budget on the client, period. We talked of the side show in the circus.",
+      "expect": "Call retryBudget on the client. We talked of the side show in the circus.",
+      "cleaned": "Call retryBudget on the client. We talked of the side show in the circus.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-19",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Then retry budget runs twice period. Use a pencil to write the first draft.",
+      "expect": "Then retryBudget runs twice. Use a pencil to write the first draft.",
+      "cleaned": "Then retry budget runs twice. Use a pencil to write the first draft.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-20",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Call decode frame on the client, period. He ran half way to the hardware store.",
+      "expect": "Call decodeFrame on the client. He ran half way to the hardware store.",
+      "cleaned": "Call decodeFrame on the client. He ran halfway to the hardware store.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-21",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Then decode frame runs twice period. A small creek cut across the field.",
+      "expect": "Then decodeFrame runs twice. A small creek cut across the field.",
+      "cleaned": "Then decodeFrame() runs twice. A small creek cut across the field.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-22",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Call warm up model on the client, period. Cars and busses stalled in snow drifts.",
+      "expect": "Call warmUpModel on the client. Cars and busses stalled in snow drifts.",
+      "cleaned": "Call warmUpModel on the client. Cars and busses stalled in snow drifts.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-23",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Then warm up model runs twice period. The set of china hit the floor with a crash.",
+      "expect": "Then warmUpModel runs twice. The set of china hit the floor with a crash.",
+      "cleaned": "Then warmUpModel() runs twice. The set of china hit the floor with a crash.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m00",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Push it onto retryQ before the retry period. Hoist the load to your left shoulder.",
+      "expect": "Push it onto RetryQueue before the retry. Hoist the load to your left shoulder.",
+      "cleaned": "Push it onto retryQ before the retry period. Hoist the load to your left shoulder.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m01",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Push it onto fetchUsr before the retry period. Take the winding path to reach the lake.",
+      "expect": "Push it onto fetchUsers before the retry. Take the winding path to reach the lake.",
+      "cleaned": "Push it onto fetchUsers before the retry period. Take the winding path to reach the lake.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m02",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Push it onto maxRetry before the retry period. Note closely the size of the gas tank.",
+      "expect": "Push it onto maxRetryCount before the retry. Note closely the size of the gas tank.",
+      "cleaned": "Push it onto maxRetryCount before the retry period. Note closely the size of the gas tank.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m03",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Push it onto parseHdr before the retry period. Wipe the grease off his dirty face.",
+      "expect": "Push it onto parseHeader before the retry. Wipe the grease off his dirty face.",
+      "cleaned": "Push it onto parseHeader before the retry period. Wipe the grease off his dirty face.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m04",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Push it onto sendPld before the retry period. Mend the coat before you go out.",
+      "expect": "Push it onto sendPayload before the retry. Mend the coat before you go out.",
+      "cleaned": "Push it onto sendPayload before the retry period. Mend the coat before you go out.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m05",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Push it onto cacheRt before the retry period. The wrist was badly strained and hung limp.",
+      "expect": "Push it onto cacheRoot before the retry. The wrist was badly strained and hung limp.",
+      "cleaned": "Push it onto cacheRoot before the retry period. The wrist was badly strained and hung limp.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m06",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Push it onto beginSess before the retry period. The stray cat gave birth to kittens.",
+      "expect": "Push it onto beginSession before the retry. The stray cat gave birth to kittens.",
+      "cleaned": "Push it onto beginSession before the retry period. The stray cat gave birth to kittens.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m07",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Push it onto flushBuf before the retry period. The young girl gave no clear response.",
+      "expect": "Push it onto flushBuffer before the retry. The young girl gave no clear response.",
+      "cleaned": "Push it onto flushBuf before the retry period. The young girl gave no clear response.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m08",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Push it onto resolveDev before the retry period. The meal was cooked before the bell rang.",
+      "expect": "Push it onto resolveDevice before the retry. The meal was cooked before the bell rang.",
+      "cleaned": "Push it onto resolveDevice before the retry period. The meal was cooked before the bell rang.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m09",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Push it onto decodeFrm before the retry period. What joy there is in living.",
+      "expect": "Push it onto decodeFrame before the retry. What joy there is in living.",
+      "cleaned": "Push it onto decodeFrame before the retry period. What joy there is in living.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m10",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Push it onto warmUp before the retry period. A king ruled the state in the early days.",
+      "expect": "Push it onto warmUpModel before the retry. A king ruled the state in the early days.",
+      "cleaned": "Push it onto warmUp before the retry period. A king ruled the state in the early days.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m11",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Push it onto apiCtrl before the retry period. The ship was torn apart on the sharp reef.",
+      "expect": "Push it onto APIController before the retry. The ship was torn apart on the sharp reef.",
+      "cleaned": "Push it onto apiCtrl before the retry period. The ship was torn apart on the sharp reef.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-00",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Call fetch users on the client, period. Sickness kept him home the third week.",
+      "expect": "Call fetchUsers on the client. Sickness kept him home the third week.",
+      "cleaned": "Call fetchUsers() on the client. Sickness kept him home the third week.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-01",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Then fetch users runs twice period. The wide road shimmered in the hot sun.",
+      "expect": "Then fetchUsers runs twice. The wide road shimmered in the hot sun.",
+      "cleaned": "Then fetchUsers() runs twice. The wide road shimmered in the hot sun.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-02",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Call max retry count on the client, period. The lazy cow lay in the cool grass.",
+      "expect": "Call maxRetryCount on the client. The lazy cow lay in the cool grass.",
+      "cleaned": "Call maxRetryCount on the client. The lazy cow lay in the cool grass.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-03",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Then max retry count runs twice period. Lift the square stone over the fence.",
+      "expect": "Then maxRetryCount runs twice. Lift the square stone over the fence.",
+      "cleaned": "Then maxRetryCount runs twice. Lift the square stone over the fence.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-04",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Call parse header on the client, period. The rope will bind the seven books at once.",
+      "expect": "Call parseHeader on the client. The rope will bind the seven books at once.",
+      "cleaned": "Call parseHeader on the client. The rope will bind the seven books at once.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-05",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Then parse header runs twice period. Hop over the fence and plunge in.",
+      "expect": "Then parseHeader runs twice. Hop over the fence and plunge in.",
+      "cleaned": "Then parseHeader() runs twice. Hop over the fence and plunge in.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-06",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Call send payload on the client, period. The friendly gang left the drug store.",
+      "expect": "Call sendPayload on the client. The friendly gang left the drug store.",
+      "cleaned": "Call sendPayload on the client. The friendly gang left the drug store.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-07",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Then send payload runs twice period. Mesh wire keeps chicks inside.",
+      "expect": "Then sendPayload runs twice. Mesh wire keeps chicks inside.",
+      "cleaned": "Then sendPayload() runs twice. Mesh wire keeps chicks inside.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-08",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Call cache root on the client, period. The frosty air passed through the coat.",
+      "expect": "Call cacheRoot on the client. The frosty air passed through the coat.",
+      "cleaned": "Call cacheRoot() on the client. The frosty air passed through the coat.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-09",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Then cache root runs twice period. The crooked maze failed to fool the mouse.",
+      "expect": "Then cacheRoot runs twice. The crooked maze failed to fool the mouse.",
+      "cleaned": "Then cacheRoot() runs twice. The crooked maze failed to fool the mouse.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-10",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Call begin session on the client, period. Adding fast leads to wrong sums.",
+      "expect": "Call beginSession on the client. Adding fast leads to wrong sums.",
+      "cleaned": "Call beginSession on the client. Adding fast leads to wrong sums.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-11",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Then begin session runs twice period. The show was a flop from the very start.",
+      "expect": "Then beginSession runs twice. The show was a flop from the very start.",
+      "cleaned": "Then beginSession() runs twice. The show was a flop from the very start.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-12",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Call flush buffer on the client, period. A saw is a tool used for making boards.",
+      "expect": "Call flushBuffer on the client. A saw is a tool used for making boards.",
+      "cleaned": "Call flushBuffer on the client. A saw is a tool used for making boards.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-13",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Then flush buffer runs twice period. The wagon moved on well oiled wheels.",
+      "expect": "Then flushBuffer runs twice. The wagon moved on well oiled wheels.",
+      "cleaned": "Then flushBuffer() runs twice. The wagon moved on well oiled wheels.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-14",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Call resolve device on the client, period. March the soldiers past the next hill.",
+      "expect": "Call resolveDevice on the client. March the soldiers past the next hill.",
+      "cleaned": "Call resolveDevice() on the client. March the soldiers past the next hill.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-15",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Then resolve device runs twice period. A cup of sugar makes sweet fudge.",
+      "expect": "Then resolveDevice runs twice. A cup of sugar makes sweet fudge.",
+      "cleaned": "Then resolveDevice() runs twice. A cup of sugar makes sweet fudge.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-16",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Call API controller on the client, period. Place a rosebush near the porch steps.",
+      "expect": "Call APIController on the client. Place a rosebush near the porch steps.",
+      "cleaned": "Call APIController on the client. Place a rosebush near the porch steps.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-17",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Then API controller runs twice period. Both lost their lives in the raging storm.",
+      "expect": "Then APIController runs twice. Both lost their lives in the raging storm.",
+      "cleaned": "Then API controller runs twice. Both lost their lives in the raging storm.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-18",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Call retry budget on the client, period. We talked of the side show in the circus.",
+      "expect": "Call retryBudget on the client. We talked of the side show in the circus.",
+      "cleaned": "Call retryBudget on the client. We talked of the side show in the circus.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-19",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Then retry budget runs twice period. Use a pencil to write the first draft.",
+      "expect": "Then retryBudget runs twice. Use a pencil to write the first draft.",
+      "cleaned": "Then retry budget runs twice. Use a pencil to write the first draft.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-20",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Call decode frame on the client, period. He ran half way to the hardware store.",
+      "expect": "Call decodeFrame on the client. He ran half way to the hardware store.",
+      "cleaned": "Call decodeFrame on the client. He ran halfway to the hardware store.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-21",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Then decode frame runs twice period. A small creek cut across the field.",
+      "expect": "Then decodeFrame runs twice. A small creek cut across the field.",
+      "cleaned": "Then decodeFrame() runs twice. A small creek cut across the field.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-22",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Call warm up model on the client, period. Cars and busses stalled in snow drifts.",
+      "expect": "Call warmUpModel on the client. Cars and busses stalled in snow drifts.",
+      "cleaned": "Call warmUpModel() on the client. Cars and busses stalled in snow drifts.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-23",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Then warm up model runs twice period. The set of china hit the floor with a crash.",
+      "expect": "Then warmUpModel runs twice. The set of china hit the floor with a crash.",
+      "cleaned": "Then warm up model runs twice. The set of china hit the floor with a crash.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m00",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Push it onto retryQ before the retry period. Hoist the load to your left shoulder.",
+      "expect": "Push it onto RetryQueue before the retry. Hoist the load to your left shoulder.",
+      "cleaned": "Push it onto retryQ before the retry period. Hoist the load to your left shoulder.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m01",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Push it onto fetchUsr before the retry period. Take the winding path to reach the lake.",
+      "expect": "Push it onto fetchUsers before the retry. Take the winding path to reach the lake.",
+      "cleaned": "Push it onto fetchUsers before the retry period. Take the winding path to reach the lake.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m02",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Push it onto maxRetry before the retry period. Note closely the size of the gas tank.",
+      "expect": "Push it onto maxRetryCount before the retry. Note closely the size of the gas tank.",
+      "cleaned": "Push it onto maxRetryCount before the retry period. Note closely the size of the gas tank.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m03",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Push it onto parseHdr before the retry period. Wipe the grease off his dirty face.",
+      "expect": "Push it onto parseHeader before the retry. Wipe the grease off his dirty face.",
+      "cleaned": "Push it onto parseHeader before the retry period. Wipe the grease off his dirty face.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m04",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Push it onto sendPld before the retry period. Mend the coat before you go out.",
+      "expect": "Push it onto sendPayload before the retry. Mend the coat before you go out.",
+      "cleaned": "Push it onto sendPayload before the retry period. Mend the coat before you go out.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m05",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Push it onto cacheRt before the retry period. The wrist was badly strained and hung limp.",
+      "expect": "Push it onto cacheRoot before the retry. The wrist was badly strained and hung limp.",
+      "cleaned": "Push it onto cacheRoot before the retry period. The wrist was badly strained and hung limp.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m06",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Push it onto beginSess before the retry period. The stray cat gave birth to kittens.",
+      "expect": "Push it onto beginSession before the retry. The stray cat gave birth to kittens.",
+      "cleaned": "Push it onto beginSession before the retry period. The stray cat gave birth to kittens.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m07",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Push it onto flushBuf before the retry period. The young girl gave no clear response.",
+      "expect": "Push it onto flushBuffer before the retry. The young girl gave no clear response.",
+      "cleaned": "Push it onto flushBuf before the retry period. The young girl gave no clear response.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m08",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Push it onto resolveDev before the retry period. The meal was cooked before the bell rang.",
+      "expect": "Push it onto resolveDevice before the retry. The meal was cooked before the bell rang.",
+      "cleaned": "Push it onto resolveDevice before the retry period. The meal was cooked before the bell rang.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m09",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Push it onto decodeFrm before the retry period. What joy there is in living.",
+      "expect": "Push it onto decodeFrame before the retry. What joy there is in living.",
+      "cleaned": "Push it onto decodeFrame before the retry period. What joy there is in living.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m10",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Push it onto warmUp before the retry period. A king ruled the state in the early days.",
+      "expect": "Push it onto warmUpModel before the retry. A king ruled the state in the early days.",
+      "cleaned": "Push it onto warmUp before the retry period. A king ruled the state in the early days.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m11",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Push it onto apiCtrl before the retry period. The ship was torn apart on the sharp reef.",
+      "expect": "Push it onto APIController before the retry. The ship was torn apart on the sharp reef.",
+      "cleaned": "Push it onto apiCtrl before the retry period. The ship was torn apart on the sharp reef.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-00",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Call fetch users on the client, period. Sickness kept him home the third week.",
+      "expect": "Call fetchUsers on the client. Sickness kept him home the third week.",
+      "cleaned": "Call fetchUsers() on the client.\n\nSickness kept him home the third week.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-01",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Then fetch users runs twice period. The wide road shimmered in the hot sun.",
+      "expect": "Then fetchUsers runs twice. The wide road shimmered in the hot sun.",
+      "cleaned": "Then fetchUsers() runs twice. The wide road shimmered in the hot sun.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-02",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Call max retry count on the client, period. The lazy cow lay in the cool grass.",
+      "expect": "Call maxRetryCount on the client. The lazy cow lay in the cool grass.",
+      "cleaned": "Call maxRetryCount on the client. The lazy cow lay in the cool grass.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-03",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Then max retry count runs twice period. Lift the square stone over the fence.",
+      "expect": "Then maxRetryCount runs twice. Lift the square stone over the fence.",
+      "cleaned": "Then maxRetryCount() runs twice. Lift the square stone over the fence.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-04",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Call parse header on the client, period. The rope will bind the seven books at once.",
+      "expect": "Call parseHeader on the client. The rope will bind the seven books at once.",
+      "cleaned": "Call parseHeader() on the client. The rope will bind the seven books at once.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-05",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Then parse header runs twice period. Hop over the fence and plunge in.",
+      "expect": "Then parseHeader runs twice. Hop over the fence and plunge in.",
+      "cleaned": "Then parse header runs twice. Hop over the fence and plunge in.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-06",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Call send payload on the client, period. The friendly gang left the drug store.",
+      "expect": "Call sendPayload on the client. The friendly gang left the drug store.",
+      "cleaned": "Call sendPayload on the client. The friendly gang left the drug store.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-07",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Then send payload runs twice period. Mesh wire keeps chicks inside.",
+      "expect": "Then sendPayload runs twice. Mesh wire keeps chicks inside.",
+      "cleaned": "Then sendPayload() runs twice. Mesh wire keeps chicks inside.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-08",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Call cache root on the client, period. The frosty air passed through the coat.",
+      "expect": "Call cacheRoot on the client. The frosty air passed through the coat.",
+      "cleaned": "Call cacheRoot() on the client. The frosty air passed through the coat.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-09",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Then cache root runs twice period. The crooked maze failed to fool the mouse.",
+      "expect": "Then cacheRoot runs twice. The crooked maze failed to fool the mouse.",
+      "cleaned": "Then cacheRoot() runs twice. The crooked maze failed to fool the mouse.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-10",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Call begin session on the client, period. Adding fast leads to wrong sums.",
+      "expect": "Call beginSession on the client. Adding fast leads to wrong sums.",
+      "cleaned": "Call beginSession on the client. Adding fast leads to wrong sums.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-11",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Then begin session runs twice period. The show was a flop from the very start.",
+      "expect": "Then beginSession runs twice. The show was a flop from the very start.",
+      "cleaned": "Then beginSession() runs twice. The show was a flop from the very start.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-12",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Call flush buffer on the client, period. A saw is a tool used for making boards.",
+      "expect": "Call flushBuffer on the client. A saw is a tool used for making boards.",
+      "cleaned": "Call flushBuffer on the client. A saw is a tool used for making boards.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-13",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Then flush buffer runs twice period. The wagon moved on well oiled wheels.",
+      "expect": "Then flushBuffer runs twice. The wagon moved on well oiled wheels.",
+      "cleaned": "Then flushBuffer() runs twice. The wagon moved on well oiled wheels.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-14",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Call resolve device on the client, period. March the soldiers past the next hill.",
+      "expect": "Call resolveDevice on the client. March the soldiers past the next hill.",
+      "cleaned": "Call resolveDevice() on the client. March the soldiers past the next hill.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-15",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Then resolve device runs twice period. A cup of sugar makes sweet fudge.",
+      "expect": "Then resolveDevice runs twice. A cup of sugar makes sweet fudge.",
+      "cleaned": "Then resolveDevice() runs twice. A cup of sugar makes sweet fudge.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-16",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Call API controller on the client, period. Place a rosebush near the porch steps.",
+      "expect": "Call APIController on the client. Place a rosebush near the porch steps.",
+      "cleaned": "Call APIController on the client. Place a rosebush near the porch steps.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-17",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Then API controller runs twice period. Both lost their lives in the raging storm.",
+      "expect": "Then APIController runs twice. Both lost their lives in the raging storm.",
+      "cleaned": "Then APIController runs twice. Both lost their lives in the raging storm.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-18",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Call retry budget on the client, period. We talked of the side show in the circus.",
+      "expect": "Call retryBudget on the client. We talked of the side show in the circus.",
+      "cleaned": "Call retryBudget on the client. We talked of the side show in the circus.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-19",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Then retry budget runs twice period. Use a pencil to write the first draft.",
+      "expect": "Then retryBudget runs twice. Use a pencil to write the first draft.",
+      "cleaned": "Then retry budget runs twice. Use a pencil to write the first draft.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-20",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Call decode frame on the client, period. He ran half way to the hardware store.",
+      "expect": "Call decodeFrame on the client. He ran half way to the hardware store.",
+      "cleaned": "Call decodeFrame on the client. He ran half way to the hardware store.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-21",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Then decode frame runs twice period. A small creek cut across the field.",
+      "expect": "Then decodeFrame runs twice. A small creek cut across the field.",
+      "cleaned": "Then decodeFrame() runs twice. A small creek cut across the field.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-22",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Call warm up model on the client, period. Cars and busses stalled in snow drifts.",
+      "expect": "Call warmUpModel on the client. Cars and busses stalled in snow drifts.",
+      "cleaned": "Call warmUpModel on the client. Cars and busses stalled in snow drifts.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-23",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Then warm up model runs twice period. The set of china hit the floor with a crash.",
+      "expect": "Then warmUpModel runs twice. The set of china hit the floor with a crash.",
+      "cleaned": "Then warm up model runs twice. The set of china hit the floor with a crash.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m00",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Push it onto retryQ before the retry period. Hoist the load to your left shoulder.",
+      "expect": "Push it onto RetryQueue before the retry. Hoist the load to your left shoulder.",
+      "cleaned": "Push it onto retryQ before the retry period. Hoist the load to your left shoulder.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m01",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Push it onto fetchUsr before the retry period. Take the winding path to reach the lake.",
+      "expect": "Push it onto fetchUsers before the retry. Take the winding path to reach the lake.",
+      "cleaned": "Push it onto fetchUsers before the retry period. Take the winding path to reach the lake.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m02",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Push it onto maxRetry before the retry period. Note closely the size of the gas tank.",
+      "expect": "Push it onto maxRetryCount before the retry. Note closely the size of the gas tank.",
+      "cleaned": "Push it onto maxRetryCount before the retry period. Note closely the size of the gas tank.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m03",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Push it onto parseHdr before the retry period. Wipe the grease off his dirty face.",
+      "expect": "Push it onto parseHeader before the retry. Wipe the grease off his dirty face.",
+      "cleaned": "Push it onto parseHeader before the retry period. Wipe the grease off his dirty face.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m04",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Push it onto sendPld before the retry period. Mend the coat before you go out.",
+      "expect": "Push it onto sendPayload before the retry. Mend the coat before you go out.",
+      "cleaned": "Push it onto sendPayload before the retry period. Mend the coat before you go out.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m05",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Push it onto cacheRt before the retry period. The wrist was badly strained and hung limp.",
+      "expect": "Push it onto cacheRoot before the retry. The wrist was badly strained and hung limp.",
+      "cleaned": "Push it onto cacheRoot before the retry period. The wrist was badly strained and hung limp.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m06",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Push it onto beginSess before the retry period. The stray cat gave birth to kittens.",
+      "expect": "Push it onto beginSession before the retry. The stray cat gave birth to kittens.",
+      "cleaned": "Push it onto beginSession before the retry period. The stray cat gave birth to kittens.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m07",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Push it onto flushBuf before the retry period. The young girl gave no clear response.",
+      "expect": "Push it onto flushBuffer before the retry. The young girl gave no clear response.",
+      "cleaned": "Push it onto flushBuf before the retry period. The young girl gave no clear response.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m08",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Push it onto resolveDev before the retry period. The meal was cooked before the bell rang.",
+      "expect": "Push it onto resolveDevice before the retry. The meal was cooked before the bell rang.",
+      "cleaned": "Push it onto resolveDev before the retry period. The meal was cooked before the bell rang.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m09",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Push it onto decodeFrm before the retry period. What joy there is in living.",
+      "expect": "Push it onto decodeFrame before the retry. What joy there is in living.",
+      "cleaned": "Push it onto decodeFrame before the retry period. What joy there is in living.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m10",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Push it onto warmUp before the retry period. A king ruled the state in the early days.",
+      "expect": "Push it onto warmUpModel before the retry. A king ruled the state in the early days.",
+      "cleaned": "Push it onto warmUp before the retry period. A king ruled the state in the early days.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m11",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Push it onto apiCtrl before the retry period. The ship was torn apart on the sharp reef.",
+      "expect": "Push it onto APIController before the retry. The ship was torn apart on the sharp reef.",
+      "cleaned": "Push it onto apiCtrl before the retry period. The ship was torn apart on the sharp reef.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-00",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Call fetch users on the client, period. Sickness kept him home the third week.",
+      "expect": "Call fetchUsers on the client. Sickness kept him home the third week.",
+      "cleaned": "Call fetchUsers() on the client. Sickness kept him home the third week.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-01",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Then fetch users runs twice period. The wide road shimmered in the hot sun.",
+      "expect": "Then fetchUsers runs twice. The wide road shimmered in the hot sun.",
+      "cleaned": "Then fetchUsers() runs twice. The wide road shimmered in the hot sun.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-02",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Call max retry count on the client, period. The lazy cow lay in the cool grass.",
+      "expect": "Call maxRetryCount on the client. The lazy cow lay in the cool grass.",
+      "cleaned": "Call maxRetryCount on the client. The lazy cow lay in the cool grass.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-03",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Then max retry count runs twice period. Lift the square stone over the fence.",
+      "expect": "Then maxRetryCount runs twice. Lift the square stone over the fence.",
+      "cleaned": "Then maxRetryCount runs twice. Lift the square stone over the fence.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-04",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Call parse header on the client, period. The rope will bind the seven books at once.",
+      "expect": "Call parseHeader on the client. The rope will bind the seven books at once.",
+      "cleaned": "Call parseHeader() on the client. The rope will bind the seven books at once.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-05",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Then parse header runs twice period. Hop over the fence and plunge in.",
+      "expect": "Then parseHeader runs twice. Hop over the fence and plunge in.",
+      "cleaned": "Then parseHeader() runs twice. Hop over the fence and plunge in.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-06",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Call send payload on the client, period. The friendly gang left the drug store.",
+      "expect": "Call sendPayload on the client. The friendly gang left the drug store.",
+      "cleaned": "Call sendPayload on the client. The friendly gang left the drug store.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-07",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Then send payload runs twice period. Mesh wire keeps chicks inside.",
+      "expect": "Then sendPayload runs twice. Mesh wire keeps chicks inside.",
+      "cleaned": "Then sendPayload() runs twice. Mesh wire keeps chicks inside.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-08",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Call cache root on the client, period. The frosty air passed through the coat.",
+      "expect": "Call cacheRoot on the client. The frosty air passed through the coat.",
+      "cleaned": "Call cacheRoot on the client. The frosty air passed through the coat.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-09",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Then cache root runs twice period. The crooked maze failed to fool the mouse.",
+      "expect": "Then cacheRoot runs twice. The crooked maze failed to fool the mouse.",
+      "cleaned": "Then cacheRoot() runs twice. The crooked maze failed to fool the mouse.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-10",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Call begin session on the client, period. Adding fast leads to wrong sums.",
+      "expect": "Call beginSession on the client. Adding fast leads to wrong sums.",
+      "cleaned": "Call beginSession on the client. Adding fast leads to wrong sums.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-11",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Then begin session runs twice period. The show was a flop from the very start.",
+      "expect": "Then beginSession runs twice. The show was a flop from the very start.",
+      "cleaned": "Then beginSession() runs twice. The show was a flop from the very start.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-12",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Call flush buffer on the client, period. A saw is a tool used for making boards.",
+      "expect": "Call flushBuffer on the client. A saw is a tool used for making boards.",
+      "cleaned": "Call flushBuffer() on the client. A saw is a tool used for making boards.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-13",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Then flush buffer runs twice period. The wagon moved on well oiled wheels.",
+      "expect": "Then flushBuffer runs twice. The wagon moved on well oiled wheels.",
+      "cleaned": "Then flushBuffer() runs twice. The wagon moved on well oiled wheels.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-14",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Call resolve device on the client, period. March the soldiers past the next hill.",
+      "expect": "Call resolveDevice on the client. March the soldiers past the next hill.",
+      "cleaned": "Call resolveDevice() on the client. March the soldiers past the next hill.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-15",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Then resolve device runs twice period. A cup of sugar makes sweet fudge.",
+      "expect": "Then resolveDevice runs twice. A cup of sugar makes sweet fudge.",
+      "cleaned": "Then resolveDevice() runs twice. A cup of sugar makes sweet fudge.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-16",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Call API controller on the client, period. Place a rosebush near the porch steps.",
+      "expect": "Call APIController on the client. Place a rosebush near the porch steps.",
+      "cleaned": "Call APIController() on the client. Place a rosebush near the porch steps.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-17",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Then API controller runs twice period. Both lost their lives in the raging storm.",
+      "expect": "Then APIController runs twice. Both lost their lives in the raging storm.",
+      "cleaned": "Then APIController runs twice. Both lost their lives in the raging storm.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-18",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Call retry budget on the client, period. We talked of the side show in the circus.",
+      "expect": "Call retryBudget on the client. We talked of the side show in the circus.",
+      "cleaned": "Call retryBudget on the client. We talked of the sideshow in the circus.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-19",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Then retry budget runs twice period. Use a pencil to write the first draft.",
+      "expect": "Then retryBudget runs twice. Use a pencil to write the first draft.",
+      "cleaned": "Then retry budget runs twice. Use a pencil to write the first draft.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-20",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Call decode frame on the client, period. He ran half way to the hardware store.",
+      "expect": "Call decodeFrame on the client. He ran half way to the hardware store.",
+      "cleaned": "Call decodeFrame on the client. He ran halfway to the hardware store.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-21",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Then decode frame runs twice period. A small creek cut across the field.",
+      "expect": "Then decodeFrame runs twice. A small creek cut across the field.",
+      "cleaned": "Then decodeFrame() runs twice. A small creek cut across the field.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-22",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Call warm up model on the client, period. Cars and busses stalled in snow drifts.",
+      "expect": "Call warmUpModel on the client. Cars and busses stalled in snow drifts.",
+      "cleaned": "Call warmUpModel on the client. Cars and busses stalled in snow drifts.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-23",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Then warm up model runs twice period. The set of china hit the floor with a crash.",
+      "expect": "Then warmUpModel runs twice. The set of china hit the floor with a crash.",
+      "cleaned": "Then warmUpModel runs twice.\n\nThe set of china hit the floor with a crash.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m00",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Push it onto retryQ before the retry period. Hoist the load to your left shoulder.",
+      "expect": "Push it onto RetryQueue before the retry. Hoist the load to your left shoulder.",
+      "cleaned": "Push it onto retryQ before the retry period. Hoist the load to your left shoulder.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m01",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Push it onto fetchUsr before the retry period. Take the winding path to reach the lake.",
+      "expect": "Push it onto fetchUsers before the retry. Take the winding path to reach the lake.",
+      "cleaned": "Push it onto fetchUsers before the retry period. Take the winding path to reach the lake.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m02",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Push it onto maxRetry before the retry period. Note closely the size of the gas tank.",
+      "expect": "Push it onto maxRetryCount before the retry. Note closely the size of the gas tank.",
+      "cleaned": "Push it onto maxRetryCount before the retry period. Note closely the size of the gas tank.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m03",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Push it onto parseHdr before the retry period. Wipe the grease off his dirty face.",
+      "expect": "Push it onto parseHeader before the retry. Wipe the grease off his dirty face.",
+      "cleaned": "Push it onto parseHeader before the retry period. Wipe the grease off his dirty face.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m04",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Push it onto sendPld before the retry period. Mend the coat before you go out.",
+      "expect": "Push it onto sendPayload before the retry. Mend the coat before you go out.",
+      "cleaned": "Push it onto sendPayload before the retry period. Mend the coat before you go out.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m05",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Push it onto cacheRt before the retry period. The wrist was badly strained and hung limp.",
+      "expect": "Push it onto cacheRoot before the retry. The wrist was badly strained and hung limp.",
+      "cleaned": "Push it onto cacheRoot before the retry period. The wrist was badly strained and hung limp.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m06",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Push it onto beginSess before the retry period. The stray cat gave birth to kittens.",
+      "expect": "Push it onto beginSession before the retry. The stray cat gave birth to kittens.",
+      "cleaned": "Push it onto beginSession before the retry period. The stray cat gave birth to kittens.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m07",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Push it onto flushBuf before the retry period. The young girl gave no clear response.",
+      "expect": "Push it onto flushBuffer before the retry. The young girl gave no clear response.",
+      "cleaned": "Push it onto flushBuf before the retry period. The young girl gave no clear response.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m08",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Push it onto resolveDev before the retry period. The meal was cooked before the bell rang.",
+      "expect": "Push it onto resolveDevice before the retry. The meal was cooked before the bell rang.",
+      "cleaned": "Push it onto resolveDevice before the retry period. The meal was cooked before the bell rang.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m09",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Push it onto decodeFrm before the retry period. What joy there is in living.",
+      "expect": "Push it onto decodeFrame before the retry. What joy there is in living.",
+      "cleaned": "Push it onto decodeFrame before the retry period. What joy there is in living.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m10",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Push it onto warmUp before the retry period. A king ruled the state in the early days.",
+      "expect": "Push it onto warmUpModel before the retry. A king ruled the state in the early days.",
+      "cleaned": "Push it onto warmUp before the retry period. A king ruled the state in the early days.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m11",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Push it onto apiCtrl before the retry period. The ship was torn apart on the sharp reef.",
+      "expect": "Push it onto APIController before the retry. The ship was torn apart on the sharp reef.",
+      "cleaned": "Push it onto apiCtrl before the retry period. The ship was torn apart on the sharp reef.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-00",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Call fetch users on the client, period. Sickness kept him home the third week.",
+      "expect": "Call fetchUsers on the client. Sickness kept him home the third week.",
+      "cleaned": "Call fetchUsers on the client. Sickness kept him home the third week.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-01",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Then fetch users runs twice period. The wide road shimmered in the hot sun.",
+      "expect": "Then fetchUsers runs twice. The wide road shimmered in the hot sun.",
+      "cleaned": "Then fetchUsers() runs twice. The wide road shimmered in the hot sun.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-02",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Call max retry count on the client, period. The lazy cow lay in the cool grass.",
+      "expect": "Call maxRetryCount on the client. The lazy cow lay in the cool grass.",
+      "cleaned": "Call maxRetryCount on the client. The lazy cow lay in the cool grass.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-03",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Then max retry count runs twice period. Lift the square stone over the fence.",
+      "expect": "Then maxRetryCount runs twice. Lift the square stone over the fence.",
+      "cleaned": "Then maxRetryCount() runs twice. Lift the square stone over the fence.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-04",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Call parse header on the client, period. The rope will bind the seven books at once.",
+      "expect": "Call parseHeader on the client. The rope will bind the seven books at once.",
+      "cleaned": "Call parseHeader() on the client. The rope will bind the seven books at once.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-05",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Then parse header runs twice period. Hop over the fence and plunge in.",
+      "expect": "Then parseHeader runs twice. Hop over the fence and plunge in.",
+      "cleaned": "Then parse header runs twice. Hop over the fence and plunge in.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-06",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Call send payload on the client, period. The friendly gang left the drug store.",
+      "expect": "Call sendPayload on the client. The friendly gang left the drug store.",
+      "cleaned": "Call sendPayload on the client. The friendly gang left the drug store.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-07",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Then send payload runs twice period. Mesh wire keeps chicks inside.",
+      "expect": "Then sendPayload runs twice. Mesh wire keeps chicks inside.",
+      "cleaned": "Then sendPayload() runs twice. Mesh wire keeps chicks inside.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-08",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Call cache root on the client, period. The frosty air passed through the coat.",
+      "expect": "Call cacheRoot on the client. The frosty air passed through the coat.",
+      "cleaned": "Call cacheRoot on the client. The frosty air passed through the coat.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-09",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Then cache root runs twice period. The crooked maze failed to fool the mouse.",
+      "expect": "Then cacheRoot runs twice. The crooked maze failed to fool the mouse.",
+      "cleaned": "Then cacheRoot() runs twice. The crooked maze failed to fool the mouse.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-10",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Call begin session on the client, period. Adding fast leads to wrong sums.",
+      "expect": "Call beginSession on the client. Adding fast leads to wrong sums.",
+      "cleaned": "Call beginSession() on the client. Adding fast leads to wrong sums.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-11",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Then begin session runs twice period. The show was a flop from the very start.",
+      "expect": "Then beginSession runs twice. The show was a flop from the very start.",
+      "cleaned": "Then beginSession() runs twice. The show was a flop from the very start.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-12",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Call flush buffer on the client, period. A saw is a tool used for making boards.",
+      "expect": "Call flushBuffer on the client. A saw is a tool used for making boards.",
+      "cleaned": "Call flushBuffer on the client.\n\nA saw is a tool used for making boards.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-13",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Then flush buffer runs twice period. The wagon moved on well oiled wheels.",
+      "expect": "Then flushBuffer runs twice. The wagon moved on well oiled wheels.",
+      "cleaned": "Then flushBuffer() runs twice. The wagon moved on well oiled wheels.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-14",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Call resolve device on the client, period. March the soldiers past the next hill.",
+      "expect": "Call resolveDevice on the client. March the soldiers past the next hill.",
+      "cleaned": "Call resolveDevice() on the client.\n\nMarch the soldiers past the next hill.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-15",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Then resolve device runs twice period. A cup of sugar makes sweet fudge.",
+      "expect": "Then resolveDevice runs twice. A cup of sugar makes sweet fudge.",
+      "cleaned": "Then resolveDevice runs twice. A cup of sugar makes sweet fudge.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-16",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Call API controller on the client, period. Place a rosebush near the porch steps.",
+      "expect": "Call APIController on the client. Place a rosebush near the porch steps.",
+      "cleaned": "Call APIController on the client. Place a rosebush near the porch steps.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-17",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Then API controller runs twice period. Both lost their lives in the raging storm.",
+      "expect": "Then APIController runs twice. Both lost their lives in the raging storm.",
+      "cleaned": "Then APIController runs twice. Both lost their lives in the raging storm.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-18",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Call retry budget on the client, period. We talked of the side show in the circus.",
+      "expect": "Call retryBudget on the client. We talked of the side show in the circus.",
+      "cleaned": "Call retryBudget on the client. We talked of the side show in the circus.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-19",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Then retry budget runs twice period. Use a pencil to write the first draft.",
+      "expect": "Then retryBudget runs twice. Use a pencil to write the first draft.",
+      "cleaned": "Then retry budget runs twice. Use a pencil to write the first draft.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-20",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Call decode frame on the client, period. He ran half way to the hardware store.",
+      "expect": "Call decodeFrame on the client. He ran half way to the hardware store.",
+      "cleaned": "Call decodeFrame on the client. He ran halfway to the hardware store.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-21",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Then decode frame runs twice period. A small creek cut across the field.",
+      "expect": "Then decodeFrame runs twice. A small creek cut across the field.",
+      "cleaned": "Then decodeFrame() runs twice. A small creek cut across the field.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-22",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Call warm up model on the client, period. Cars and busses stalled in snow drifts.",
+      "expect": "Call warmUpModel on the client. Cars and busses stalled in snow drifts.",
+      "cleaned": "Call warmUpModel on the client. Cars and busses stalled in snow drifts.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-23",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Then warm up model runs twice period. The set of china hit the floor with a crash.",
+      "expect": "Then warmUpModel runs twice. The set of china hit the floor with a crash.",
+      "cleaned": "Then warm up model runs twice. The set of china hit the floor with a crash.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m00",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Push it onto retryQ before the retry period. Hoist the load to your left shoulder.",
+      "expect": "Push it onto RetryQueue before the retry. Hoist the load to your left shoulder.",
+      "cleaned": "Push it onto retryQ before the retry period. Hoist the load to your left shoulder.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m01",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Push it onto fetchUsr before the retry period. Take the winding path to reach the lake.",
+      "expect": "Push it onto fetchUsers before the retry. Take the winding path to reach the lake.",
+      "cleaned": "Push it onto fetchUsers before the retry period. Take the winding path to reach the lake.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m02",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Push it onto maxRetry before the retry period. Note closely the size of the gas tank.",
+      "expect": "Push it onto maxRetryCount before the retry. Note closely the size of the gas tank.",
+      "cleaned": "Push it onto maxRetryCount before the retry period. Note closely the size of the gas tank.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m03",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Push it onto parseHdr before the retry period. Wipe the grease off his dirty face.",
+      "expect": "Push it onto parseHeader before the retry. Wipe the grease off his dirty face.",
+      "cleaned": "Push it onto parseHeader before the retry period. Wipe the grease off his dirty face.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m04",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Push it onto sendPld before the retry period. Mend the coat before you go out.",
+      "expect": "Push it onto sendPayload before the retry. Mend the coat before you go out.",
+      "cleaned": "Push it onto sendPayload before the retry period. Mend the coat before you go out.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m05",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Push it onto cacheRt before the retry period. The wrist was badly strained and hung limp.",
+      "expect": "Push it onto cacheRoot before the retry. The wrist was badly strained and hung limp.",
+      "cleaned": "Push it onto cacheRoot before the retry period. The wrist was badly strained and hung limp.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m06",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Push it onto beginSess before the retry period. The stray cat gave birth to kittens.",
+      "expect": "Push it onto beginSession before the retry. The stray cat gave birth to kittens.",
+      "cleaned": "Push it onto beginSession before the retry period. The stray cat gave birth to kittens.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m07",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Push it onto flushBuf before the retry period. The young girl gave no clear response.",
+      "expect": "Push it onto flushBuffer before the retry. The young girl gave no clear response.",
+      "cleaned": "Push it onto flushBuf before the retry period. The young girl gave no clear response.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m08",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Push it onto resolveDev before the retry period. The meal was cooked before the bell rang.",
+      "expect": "Push it onto resolveDevice before the retry. The meal was cooked before the bell rang.",
+      "cleaned": "Push it onto resolveDevice before the retry period. The meal was cooked before the bell rang.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m09",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Push it onto decodeFrm before the retry period. What joy there is in living.",
+      "expect": "Push it onto decodeFrame before the retry. What joy there is in living.",
+      "cleaned": "Push it onto decodeFrame before the retry period. What joy there is in living.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m10",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Push it onto warmUp before the retry period. A king ruled the state in the early days.",
+      "expect": "Push it onto warmUpModel before the retry. A king ruled the state in the early days.",
+      "cleaned": "Push it onto warmUp before the retry period. A king ruled the state in the early days.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m11",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Push it onto apiCtrl before the retry period. The ship was torn apart on the sharp reef.",
+      "expect": "Push it onto APIController before the retry. The ship was torn apart on the sharp reef.",
+      "cleaned": "Push it onto apiCtrl before the retry period. The ship was torn apart on the sharp reef.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-00",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Call fetch users on the client, period. Sickness kept him home the third week.",
+      "expect": "Call fetchUsers on the client. Sickness kept him home the third week.",
+      "cleaned": "Call fetchUsers() on the client. Sickness kept him home the third week.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-01",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Then fetch users runs twice period. The wide road shimmered in the hot sun.",
+      "expect": "Then fetchUsers runs twice. The wide road shimmered in the hot sun.",
+      "cleaned": "Then fetchUsers() runs twice. The wide road shimmered in the hot sun.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-02",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Call max retry count on the client, period. The lazy cow lay in the cool grass.",
+      "expect": "Call maxRetryCount on the client. The lazy cow lay in the cool grass.",
+      "cleaned": "Call maxRetryCount on the client. The lazy cow lay in the cool grass.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-03",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Then max retry count runs twice period. Lift the square stone over the fence.",
+      "expect": "Then maxRetryCount runs twice. Lift the square stone over the fence.",
+      "cleaned": "Then maxRetryCount runs twice. Lift the square stone over the fence.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-04",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Call parse header on the client, period. The rope will bind the seven books at once.",
+      "expect": "Call parseHeader on the client. The rope will bind the seven books at once.",
+      "cleaned": "Call parseHeader() on the client. The rope will bind the seven books at once.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-05",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Then parse header runs twice period. Hop over the fence and plunge in.",
+      "expect": "Then parseHeader runs twice. Hop over the fence and plunge in.",
+      "cleaned": "Then parseHeader runs twice. Hop over the fence and plunge in.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-06",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Call send payload on the client, period. The friendly gang left the drug store.",
+      "expect": "Call sendPayload on the client. The friendly gang left the drug store.",
+      "cleaned": "Call sendPayload on the client. The friendly gang left the drug store.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-07",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Then send payload runs twice period. Mesh wire keeps chicks inside.",
+      "expect": "Then sendPayload runs twice. Mesh wire keeps chicks inside.",
+      "cleaned": "Then sendPayload() runs twice. Mesh wire keeps chicks inside.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-08",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Call cache root on the client, period. The frosty air passed through the coat.",
+      "expect": "Call cacheRoot on the client. The frosty air passed through the coat.",
+      "cleaned": "Call cacheRoot() on the client. The frosty air passed through the coat.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-09",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Then cache root runs twice period. The crooked maze failed to fool the mouse.",
+      "expect": "Then cacheRoot runs twice. The crooked maze failed to fool the mouse.",
+      "cleaned": "Then cacheRoot() runs twice. The crooked maze failed to fool the mouse.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-10",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Call begin session on the client, period. Adding fast leads to wrong sums.",
+      "expect": "Call beginSession on the client. Adding fast leads to wrong sums.",
+      "cleaned": "Call beginSession on the client. Adding fast leads to wrong sums.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-11",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Then begin session runs twice period. The show was a flop from the very start.",
+      "expect": "Then beginSession runs twice. The show was a flop from the very start.",
+      "cleaned": "Then beginSession() runs twice. The show was a flop from the very start.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-12",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Call flush buffer on the client, period. A saw is a tool used for making boards.",
+      "expect": "Call flushBuffer on the client. A saw is a tool used for making boards.",
+      "cleaned": "Call flushBuffer on the client. A saw is a tool used for making boards.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-13",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Then flush buffer runs twice period. The wagon moved on well oiled wheels.",
+      "expect": "Then flushBuffer runs twice. The wagon moved on well oiled wheels.",
+      "cleaned": "Then flushBuffer() runs twice. The wagon moved on well oiled wheels.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-14",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Call resolve device on the client, period. March the soldiers past the next hill.",
+      "expect": "Call resolveDevice on the client. March the soldiers past the next hill.",
+      "cleaned": "Call resolveDevice() on the client. March the soldiers past the next hill.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-15",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Then resolve device runs twice period. A cup of sugar makes sweet fudge.",
+      "expect": "Then resolveDevice runs twice. A cup of sugar makes sweet fudge.",
+      "cleaned": "Then resolveDevice() runs twice. A cup of sugar makes sweet fudge.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-16",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Call API controller on the client, period. Place a rosebush near the porch steps.",
+      "expect": "Call APIController on the client. Place a rosebush near the porch steps.",
+      "cleaned": "Call APIController on the client. Place a rosebush near the porch steps.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-17",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Then API controller runs twice period. Both lost their lives in the raging storm.",
+      "expect": "Then APIController runs twice. Both lost their lives in the raging storm.",
+      "cleaned": "Then APIController runs twice. Both lost their lives in the raging storm.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-18",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Call retry budget on the client, period. We talked of the side show in the circus.",
+      "expect": "Call retryBudget on the client. We talked of the side show in the circus.",
+      "cleaned": "Call retryBudget on the client. We talked of the side show in the circus.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-19",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Then retry budget runs twice period. Use a pencil to write the first draft.",
+      "expect": "Then retryBudget runs twice. Use a pencil to write the first draft.",
+      "cleaned": "Then retry budget runs twice. Use a pencil to write the first draft.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-20",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Call decode frame on the client, period. He ran half way to the hardware store.",
+      "expect": "Call decodeFrame on the client. He ran half way to the hardware store.",
+      "cleaned": "Call decodeFrame on the client. He ran halfway to the hardware store.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-21",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Then decode frame runs twice period. A small creek cut across the field.",
+      "expect": "Then decodeFrame runs twice. A small creek cut across the field.",
+      "cleaned": "Then decodeFrame() runs twice. A small creek cut across the field.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-22",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Call warm up model on the client, period. Cars and busses stalled in snow drifts.",
+      "expect": "Call warmUpModel on the client. Cars and busses stalled in snow drifts.",
+      "cleaned": "Call warmUpModel on the client. Cars and busses stalled in snow drifts.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-23",
+      "rule": "identifier-from-context",
+      "attempt": 6,
+      "raw": "Then warm up model runs twice period. The set of china hit the floor with a crash.",
+      "expect": "Then warmUpModel runs twice. The set of china hit the floor with a crash.",
+      "cleaned": "Then warm up model runs twice. The set of china hit the floor with a crash.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m00",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Push it onto retryQ before the retry period. Hoist the load to your left shoulder.",
+      "expect": "Push it onto RetryQueue before the retry. Hoist the load to your left shoulder.",
+      "cleaned": "Push it onto retryQ before the retry period. Hoist the load to your left shoulder.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m01",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Push it onto fetchUsr before the retry period. Take the winding path to reach the lake.",
+      "expect": "Push it onto fetchUsers before the retry. Take the winding path to reach the lake.",
+      "cleaned": "Push it onto fetchUsers before the retry period. Take the winding path to reach the lake.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m02",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Push it onto maxRetry before the retry period. Note closely the size of the gas tank.",
+      "expect": "Push it onto maxRetryCount before the retry. Note closely the size of the gas tank.",
+      "cleaned": "Push it onto maxRetryCount before the retry period. Note closely the size of the gas tank.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m03",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Push it onto parseHdr before the retry period. Wipe the grease off his dirty face.",
+      "expect": "Push it onto parseHeader before the retry. Wipe the grease off his dirty face.",
+      "cleaned": "Push it onto parseHeader before the retry period. Wipe the grease off his dirty face.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m04",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Push it onto sendPld before the retry period. Mend the coat before you go out.",
+      "expect": "Push it onto sendPayload before the retry. Mend the coat before you go out.",
+      "cleaned": "Push it onto sendPayload before the retry period. Mend the coat before you go out.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m05",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Push it onto cacheRt before the retry period. The wrist was badly strained and hung limp.",
+      "expect": "Push it onto cacheRoot before the retry. The wrist was badly strained and hung limp.",
+      "cleaned": "Push it onto cacheRoot before the retry period. The wrist was badly strained and hung limp.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m06",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Push it onto beginSess before the retry period. The stray cat gave birth to kittens.",
+      "expect": "Push it onto beginSession before the retry. The stray cat gave birth to kittens.",
+      "cleaned": "Push it onto beginSession before the retry period. The stray cat gave birth to kittens.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m07",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Push it onto flushBuf before the retry period. The young girl gave no clear response.",
+      "expect": "Push it onto flushBuffer before the retry. The young girl gave no clear response.",
+      "cleaned": "Push it onto flushBuf before the retry period. The young girl gave no clear response.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m08",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Push it onto resolveDev before the retry period. The meal was cooked before the bell rang.",
+      "expect": "Push it onto resolveDevice before the retry. The meal was cooked before the bell rang.",
+      "cleaned": "Push it onto resolveDev before the retry period. The meal was cooked before the bell rang.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m09",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Push it onto decodeFrm before the retry period. What joy there is in living.",
+      "expect": "Push it onto decodeFrame before the retry. What joy there is in living.",
+      "cleaned": "Push it onto decodeFrame before the retry period. What joy there is in living.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m10",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Push it onto warmUp before the retry period. A king ruled the state in the early days.",
+      "expect": "Push it onto warmUpModel before the retry. A king ruled the state in the early days.",
+      "cleaned": "Push it onto warmUp before the retry period. A king ruled the state in the early days.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m11",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Push it onto apiCtrl before the retry period. The ship was torn apart on the sharp reef.",
+      "expect": "Push it onto APIController before the retry. The ship was torn apart on the sharp reef.",
+      "cleaned": "Push it onto apiCtrl before the retry period. The ship was torn apart on the sharp reef.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-00",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Call fetch users on the client, period. Sickness kept him home the third week.",
+      "expect": "Call fetchUsers on the client. Sickness kept him home the third week.",
+      "cleaned": "Call fetchUsers() on the client. Sickness kept him home the third week.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-01",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Then fetch users runs twice period. The wide road shimmered in the hot sun.",
+      "expect": "Then fetchUsers runs twice. The wide road shimmered in the hot sun.",
+      "cleaned": "Then fetchUsers() runs twice. The wide road shimmered in the hot sun.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-02",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Call max retry count on the client, period. The lazy cow lay in the cool grass.",
+      "expect": "Call maxRetryCount on the client. The lazy cow lay in the cool grass.",
+      "cleaned": "Call maxRetryCount on the client. The lazy cow lay in the cool grass.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-03",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Then max retry count runs twice period. Lift the square stone over the fence.",
+      "expect": "Then maxRetryCount runs twice. Lift the square stone over the fence.",
+      "cleaned": "Then `maxRetryCount()` runs twice. Lift the square stone over the fence.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-04",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Call parse header on the client, period. The rope will bind the seven books at once.",
+      "expect": "Call parseHeader on the client. The rope will bind the seven books at once.",
+      "cleaned": "Call parseHeader() on the client. The rope will bind the seven books at once.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-05",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Then parse header runs twice period. Hop over the fence and plunge in.",
+      "expect": "Then parseHeader runs twice. Hop over the fence and plunge in.",
+      "cleaned": "Then parseHeader() runs twice. Hop over the fence and plunge in.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-06",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Call send payload on the client, period. The friendly gang left the drug store.",
+      "expect": "Call sendPayload on the client. The friendly gang left the drug store.",
+      "cleaned": "Call sendPayload on the client. The friendly gang left the drug store.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-07",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Then send payload runs twice period. Mesh wire keeps chicks inside.",
+      "expect": "Then sendPayload runs twice. Mesh wire keeps chicks inside.",
+      "cleaned": "Then sendPayload() runs twice. Mesh wire keeps chicks inside.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-08",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Call cache root on the client, period. The frosty air passed through the coat.",
+      "expect": "Call cacheRoot on the client. The frosty air passed through the coat.",
+      "cleaned": "Call cacheRoot() on the client. The frosty air passed through the coat.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-09",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Then cache root runs twice period. The crooked maze failed to fool the mouse.",
+      "expect": "Then cacheRoot runs twice. The crooked maze failed to fool the mouse.",
+      "cleaned": "Then cacheRoot() runs twice. The crooked maze failed to fool the mouse.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-10",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Call begin session on the client, period. Adding fast leads to wrong sums.",
+      "expect": "Call beginSession on the client. Adding fast leads to wrong sums.",
+      "cleaned": "Call beginSession on the client. Adding fast leads to wrong sums.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-11",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Then begin session runs twice period. The show was a flop from the very start.",
+      "expect": "Then beginSession runs twice. The show was a flop from the very start.",
+      "cleaned": "Then begin session runs twice. The show was a flop from the very start.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-12",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Call flush buffer on the client, period. A saw is a tool used for making boards.",
+      "expect": "Call flushBuffer on the client. A saw is a tool used for making boards.",
+      "cleaned": "Call flushBuffer() on the client. A saw is a tool used for making boards.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-13",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Then flush buffer runs twice period. The wagon moved on well oiled wheels.",
+      "expect": "Then flushBuffer runs twice. The wagon moved on well oiled wheels.",
+      "cleaned": "Then flushBuffer() runs twice. The wagon moved on well oiled wheels.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-14",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Call resolve device on the client, period. March the soldiers past the next hill.",
+      "expect": "Call resolveDevice on the client. March the soldiers past the next hill.",
+      "cleaned": "Call resolveDevice() on the client. March the soldiers past the next hill.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-15",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Then resolve device runs twice period. A cup of sugar makes sweet fudge.",
+      "expect": "Then resolveDevice runs twice. A cup of sugar makes sweet fudge.",
+      "cleaned": "Then resolveDevice() runs twice. A cup of sugar makes sweet fudge.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-16",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Call API controller on the client, period. Place a rosebush near the porch steps.",
+      "expect": "Call APIController on the client. Place a rosebush near the porch steps.",
+      "cleaned": "Call APIController on the client. Place a rosebush near the porch steps.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-17",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Then API controller runs twice period. Both lost their lives in the raging storm.",
+      "expect": "Then APIController runs twice. Both lost their lives in the raging storm.",
+      "cleaned": "Then APIController runs twice. Both lost their lives in the raging storm.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-18",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Call retry budget on the client, period. We talked of the side show in the circus.",
+      "expect": "Call retryBudget on the client. We talked of the side show in the circus.",
+      "cleaned": "Call retryBudget on the client. We talked of the side show in the circus.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-19",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Then retry budget runs twice period. Use a pencil to write the first draft.",
+      "expect": "Then retryBudget runs twice. Use a pencil to write the first draft.",
+      "cleaned": "Then retry budget runs twice. Use a pencil to write the first draft.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-20",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Call decode frame on the client, period. He ran half way to the hardware store.",
+      "expect": "Call decodeFrame on the client. He ran half way to the hardware store.",
+      "cleaned": "Call decodeFrame on the client. He ran halfway to the hardware store.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-21",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Then decode frame runs twice period. A small creek cut across the field.",
+      "expect": "Then decodeFrame runs twice. A small creek cut across the field.",
+      "cleaned": "Then decodeFrame() runs twice. A small creek cut across the field.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-22",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Call warm up model on the client, period. Cars and busses stalled in snow drifts.",
+      "expect": "Call warmUpModel on the client. Cars and busses stalled in snow drifts.",
+      "cleaned": "Call warmUpModel on the client. Cars and busses stalled in snow drifts.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-23",
+      "rule": "identifier-from-context",
+      "attempt": 7,
+      "raw": "Then warm up model runs twice period. The set of china hit the floor with a crash.",
+      "expect": "Then warmUpModel runs twice. The set of china hit the floor with a crash.",
+      "cleaned": "Then warm up model runs twice. The set of china hit the floor with a crash.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m00",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Push it onto retryQ before the retry period. Hoist the load to your left shoulder.",
+      "expect": "Push it onto RetryQueue before the retry. Hoist the load to your left shoulder.",
+      "cleaned": "Push it onto retryQ before the retry period. Hoist the load to your left shoulder.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m01",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Push it onto fetchUsr before the retry period. Take the winding path to reach the lake.",
+      "expect": "Push it onto fetchUsers before the retry. Take the winding path to reach the lake.",
+      "cleaned": "Push it onto fetchUsers before the retry period. Take the winding path to reach the lake.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m02",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Push it onto maxRetry before the retry period. Note closely the size of the gas tank.",
+      "expect": "Push it onto maxRetryCount before the retry. Note closely the size of the gas tank.",
+      "cleaned": "Push it onto maxRetryCount before the retry period. Note closely the size of the gas tank.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m03",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Push it onto parseHdr before the retry period. Wipe the grease off his dirty face.",
+      "expect": "Push it onto parseHeader before the retry. Wipe the grease off his dirty face.",
+      "cleaned": "Push it onto parseHeader before the retry period. Wipe the grease off his dirty face.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m04",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Push it onto sendPld before the retry period. Mend the coat before you go out.",
+      "expect": "Push it onto sendPayload before the retry. Mend the coat before you go out.",
+      "cleaned": "Push it onto sendPayload before the retry period. Mend the coat before you go out.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m05",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Push it onto cacheRt before the retry period. The wrist was badly strained and hung limp.",
+      "expect": "Push it onto cacheRoot before the retry. The wrist was badly strained and hung limp.",
+      "cleaned": "Push it onto cacheRoot before the retry period. The wrist was badly strained and hung limp.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m06",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Push it onto beginSess before the retry period. The stray cat gave birth to kittens.",
+      "expect": "Push it onto beginSession before the retry. The stray cat gave birth to kittens.",
+      "cleaned": "Push it onto beginSession before the retry period. The stray cat gave birth to kittens.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m07",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Push it onto flushBuf before the retry period. The young girl gave no clear response.",
+      "expect": "Push it onto flushBuffer before the retry. The young girl gave no clear response.",
+      "cleaned": "Push it onto flushBuf before the retry period. The young girl gave no clear response.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m08",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Push it onto resolveDev before the retry period. The meal was cooked before the bell rang.",
+      "expect": "Push it onto resolveDevice before the retry. The meal was cooked before the bell rang.",
+      "cleaned": "Push it onto resolveDev before the retry period. The meal was cooked before the bell rang.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m09",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Push it onto decodeFrm before the retry period. What joy there is in living.",
+      "expect": "Push it onto decodeFrame before the retry. What joy there is in living.",
+      "cleaned": "Push it onto decodeFrame before the retry period. What joy there is in living.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m10",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Push it onto warmUp before the retry period. A king ruled the state in the early days.",
+      "expect": "Push it onto warmUpModel before the retry. A king ruled the state in the early days.",
+      "cleaned": "Push it onto warmUp before the retry period. A king ruled the state in the early days.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m11",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Push it onto apiCtrl before the retry period. The ship was torn apart on the sharp reef.",
+      "expect": "Push it onto APIController before the retry. The ship was torn apart on the sharp reef.",
+      "cleaned": "Push it onto apiCtrl before the retry period. The ship was torn apart on the sharp reef.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-00",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Call fetch users on the client, period. Sickness kept him home the third week.",
+      "expect": "Call fetchUsers on the client. Sickness kept him home the third week.",
+      "cleaned": "Call fetchUsers() on the client. Sickness kept him home the third week.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-01",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Then fetch users runs twice period. The wide road shimmered in the hot sun.",
+      "expect": "Then fetchUsers runs twice. The wide road shimmered in the hot sun.",
+      "cleaned": "Then fetchUsers() runs twice. The wide road shimmered in the hot sun.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-02",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Call max retry count on the client, period. The lazy cow lay in the cool grass.",
+      "expect": "Call maxRetryCount on the client. The lazy cow lay in the cool grass.",
+      "cleaned": "Call maxRetryCount on the client. The lazy cow lay in the cool grass.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-03",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Then max retry count runs twice period. Lift the square stone over the fence.",
+      "expect": "Then maxRetryCount runs twice. Lift the square stone over the fence.",
+      "cleaned": "Then maxRetryCount runs twice. Lift the square stone over the fence.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-04",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Call parse header on the client, period. The rope will bind the seven books at once.",
+      "expect": "Call parseHeader on the client. The rope will bind the seven books at once.",
+      "cleaned": "Call parseHeader on the client. The rope will bind the seven books at once.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-05",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Then parse header runs twice period. Hop over the fence and plunge in.",
+      "expect": "Then parseHeader runs twice. Hop over the fence and plunge in.",
+      "cleaned": "Then parseHeader() runs twice. Hop over the fence and plunge in.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-06",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Call send payload on the client, period. The friendly gang left the drug store.",
+      "expect": "Call sendPayload on the client. The friendly gang left the drug store.",
+      "cleaned": "Call sendPayload() on the client. The friendly gang left the drug store.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-07",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Then send payload runs twice period. Mesh wire keeps chicks inside.",
+      "expect": "Then sendPayload runs twice. Mesh wire keeps chicks inside.",
+      "cleaned": "Then sendPayload() runs twice. Mesh wire keeps chicks inside.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-08",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Call cache root on the client, period. The frosty air passed through the coat.",
+      "expect": "Call cacheRoot on the client. The frosty air passed through the coat.",
+      "cleaned": "Call cacheRoot() on the client. The frosty air passed through the coat.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-09",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Then cache root runs twice period. The crooked maze failed to fool the mouse.",
+      "expect": "Then cacheRoot runs twice. The crooked maze failed to fool the mouse.",
+      "cleaned": "Then cacheRoot() runs twice. The crooked maze failed to fool the mouse.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-10",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Call begin session on the client, period. Adding fast leads to wrong sums.",
+      "expect": "Call beginSession on the client. Adding fast leads to wrong sums.",
+      "cleaned": "Call beginSession on the client. Adding fast leads to wrong sums.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-11",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Then begin session runs twice period. The show was a flop from the very start.",
+      "expect": "Then beginSession runs twice. The show was a flop from the very start.",
+      "cleaned": "Then beginSession() runs twice. The show was a flop from the very start.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-12",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Call flush buffer on the client, period. A saw is a tool used for making boards.",
+      "expect": "Call flushBuffer on the client. A saw is a tool used for making boards.",
+      "cleaned": "Call flushBuffer() on the client. A saw is a tool used for making boards.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-13",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Then flush buffer runs twice period. The wagon moved on well oiled wheels.",
+      "expect": "Then flushBuffer runs twice. The wagon moved on well oiled wheels.",
+      "cleaned": "Then flushBuffer() runs twice. The wagon moved on well oiled wheels.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-14",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Call resolve device on the client, period. March the soldiers past the next hill.",
+      "expect": "Call resolveDevice on the client. March the soldiers past the next hill.",
+      "cleaned": "Call resolveDevice() on the client. March the soldiers past the next hill.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-15",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Then resolve device runs twice period. A cup of sugar makes sweet fudge.",
+      "expect": "Then resolveDevice runs twice. A cup of sugar makes sweet fudge.",
+      "cleaned": "Then resolveDevice() runs twice. A cup of sugar makes sweet fudge.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-16",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Call API controller on the client, period. Place a rosebush near the porch steps.",
+      "expect": "Call APIController on the client. Place a rosebush near the porch steps.",
+      "cleaned": "Call APIController on the client. Place a rosebush near the porch steps.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-17",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Then API controller runs twice period. Both lost their lives in the raging storm.",
+      "expect": "Then APIController runs twice. Both lost their lives in the raging storm.",
+      "cleaned": "Then APIController runs twice. Both lost their lives in the raging storm.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-18",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Call retry budget on the client, period. We talked of the side show in the circus.",
+      "expect": "Call retryBudget on the client. We talked of the side show in the circus.",
+      "cleaned": "Call retryBudget on the client. We talked of the side show in the circus.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-19",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Then retry budget runs twice period. Use a pencil to write the first draft.",
+      "expect": "Then retryBudget runs twice. Use a pencil to write the first draft.",
+      "cleaned": "Then retry budget runs twice. Use a pencil to write the first draft.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-20",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Call decode frame on the client, period. He ran half way to the hardware store.",
+      "expect": "Call decodeFrame on the client. He ran half way to the hardware store.",
+      "cleaned": "Call decodeFrame() on the client. He ran halfway to the hardware store.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-21",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Then decode frame runs twice period. A small creek cut across the field.",
+      "expect": "Then decodeFrame runs twice. A small creek cut across the field.",
+      "cleaned": "Then decodeFrame() runs twice. A small creek cut across the field.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-22",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Call warm up model on the client, period. Cars and busses stalled in snow drifts.",
+      "expect": "Call warmUpModel on the client. Cars and busses stalled in snow drifts.",
+      "cleaned": "Call warmUpModel on the client. Cars and busses stalled in snow drifts.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-23",
+      "rule": "identifier-from-context",
+      "attempt": 8,
+      "raw": "Then warm up model runs twice period. The set of china hit the floor with a crash.",
+      "expect": "Then warmUpModel runs twice. The set of china hit the floor with a crash.",
+      "cleaned": "Then warm up model runs twice. The set of china hit the floor with a crash.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m00",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Push it onto retryQ before the retry period. Hoist the load to your left shoulder.",
+      "expect": "Push it onto RetryQueue before the retry. Hoist the load to your left shoulder.",
+      "cleaned": "Push it onto retryQ before the retry period. Hoist the load to your left shoulder.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m01",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Push it onto fetchUsr before the retry period. Take the winding path to reach the lake.",
+      "expect": "Push it onto fetchUsers before the retry. Take the winding path to reach the lake.",
+      "cleaned": "Push it onto fetchUsers before the retry period. Take the winding path to reach the lake.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m02",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Push it onto maxRetry before the retry period. Note closely the size of the gas tank.",
+      "expect": "Push it onto maxRetryCount before the retry. Note closely the size of the gas tank.",
+      "cleaned": "Push it onto maxRetryCount before the retry period. Note closely the size of the gas tank.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m03",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Push it onto parseHdr before the retry period. Wipe the grease off his dirty face.",
+      "expect": "Push it onto parseHeader before the retry. Wipe the grease off his dirty face.",
+      "cleaned": "Push it onto parseHeader before the retry period. Wipe the grease off his dirty face.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m04",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Push it onto sendPld before the retry period. Mend the coat before you go out.",
+      "expect": "Push it onto sendPayload before the retry. Mend the coat before you go out.",
+      "cleaned": "Push it onto sendPayload before the retry period. Mend the coat before you go out.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m05",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Push it onto cacheRt before the retry period. The wrist was badly strained and hung limp.",
+      "expect": "Push it onto cacheRoot before the retry. The wrist was badly strained and hung limp.",
+      "cleaned": "Push it onto cacheRoot before the retry period. The wrist was badly strained and hung limp.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m06",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Push it onto beginSess before the retry period. The stray cat gave birth to kittens.",
+      "expect": "Push it onto beginSession before the retry. The stray cat gave birth to kittens.",
+      "cleaned": "Push it onto beginSession before the retry period. The stray cat gave birth to kittens.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m07",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Push it onto flushBuf before the retry period. The young girl gave no clear response.",
+      "expect": "Push it onto flushBuffer before the retry. The young girl gave no clear response.",
+      "cleaned": "Push it onto flushBuf before the retry period. The young girl gave no clear response.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m08",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Push it onto resolveDev before the retry period. The meal was cooked before the bell rang.",
+      "expect": "Push it onto resolveDevice before the retry. The meal was cooked before the bell rang.",
+      "cleaned": "Push it onto resolveDev before the retry period. The meal was cooked before the bell rang.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m09",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Push it onto decodeFrm before the retry period. What joy there is in living.",
+      "expect": "Push it onto decodeFrame before the retry. What joy there is in living.",
+      "cleaned": "Push it onto decodeFrame before the retry period. What joy there is in living.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m10",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Push it onto warmUp before the retry period. A king ruled the state in the early days.",
+      "expect": "Push it onto warmUpModel before the retry. A king ruled the state in the early days.",
+      "cleaned": "Push it onto warmUp before the retry period. A king ruled the state in the early days.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m11",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Push it onto apiCtrl before the retry period. The ship was torn apart on the sharp reef.",
+      "expect": "Push it onto APIController before the retry. The ship was torn apart on the sharp reef.",
+      "cleaned": "Push it onto apiCtrl before the retry period. The ship was torn apart on the sharp reef.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-00",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Call fetch users on the client, period. Sickness kept him home the third week.",
+      "expect": "Call fetchUsers on the client. Sickness kept him home the third week.",
+      "cleaned": "Call fetchUsers on the client.\n\nSickness kept him home the third week.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-01",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Then fetch users runs twice period. The wide road shimmered in the hot sun.",
+      "expect": "Then fetchUsers runs twice. The wide road shimmered in the hot sun.",
+      "cleaned": "Then fetchUsers() runs twice. The wide road shimmered in the hot sun.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-02",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Call max retry count on the client, period. The lazy cow lay in the cool grass.",
+      "expect": "Call maxRetryCount on the client. The lazy cow lay in the cool grass.",
+      "cleaned": "Call maxRetryCount on the client. The lazy cow lay in the cool grass.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-03",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Then max retry count runs twice period. Lift the square stone over the fence.",
+      "expect": "Then maxRetryCount runs twice. Lift the square stone over the fence.",
+      "cleaned": "Then maxRetryCount runs twice. Lift the square stone over the fence.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-04",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Call parse header on the client, period. The rope will bind the seven books at once.",
+      "expect": "Call parseHeader on the client. The rope will bind the seven books at once.",
+      "cleaned": "Call parseHeader() on the client. The rope will bind the seven books at once.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-05",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Then parse header runs twice period. Hop over the fence and plunge in.",
+      "expect": "Then parseHeader runs twice. Hop over the fence and plunge in.",
+      "cleaned": "Then parseHeader() runs twice. Hop over the fence and plunge in.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-06",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Call send payload on the client, period. The friendly gang left the drug store.",
+      "expect": "Call sendPayload on the client. The friendly gang left the drug store.",
+      "cleaned": "Call sendPayload() on the client. The friendly gang left the drug store.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-07",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Then send payload runs twice period. Mesh wire keeps chicks inside.",
+      "expect": "Then sendPayload runs twice. Mesh wire keeps chicks inside.",
+      "cleaned": "Then sendPayload() runs twice. Mesh wire keeps chicks inside.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-08",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Call cache root on the client, period. The frosty air passed through the coat.",
+      "expect": "Call cacheRoot on the client. The frosty air passed through the coat.",
+      "cleaned": "Call cacheRoot on the client. The frosty air passed through the coat.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-09",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Then cache root runs twice period. The crooked maze failed to fool the mouse.",
+      "expect": "Then cacheRoot runs twice. The crooked maze failed to fool the mouse.",
+      "cleaned": "Then cacheRoot() runs twice. The crooked maze failed to fool the mouse.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-10",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Call begin session on the client, period. Adding fast leads to wrong sums.",
+      "expect": "Call beginSession on the client. Adding fast leads to wrong sums.",
+      "cleaned": "Call beginSession() on the client. Adding fast leads to wrong sums.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-11",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Then begin session runs twice period. The show was a flop from the very start.",
+      "expect": "Then beginSession runs twice. The show was a flop from the very start.",
+      "cleaned": "Then beginSession() runs twice. The show was a flop from the very start.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-12",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Call flush buffer on the client, period. A saw is a tool used for making boards.",
+      "expect": "Call flushBuffer on the client. A saw is a tool used for making boards.",
+      "cleaned": "Call flushBuffer() on the client. A saw is a tool used for making boards.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-13",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Then flush buffer runs twice period. The wagon moved on well oiled wheels.",
+      "expect": "Then flushBuffer runs twice. The wagon moved on well oiled wheels.",
+      "cleaned": "Then flushBuffer() runs twice. The wagon moved on well oiled wheels.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-14",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Call resolve device on the client, period. March the soldiers past the next hill.",
+      "expect": "Call resolveDevice on the client. March the soldiers past the next hill.",
+      "cleaned": "resolveDevice(client);\nMarch the soldiers past the next hill.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-15",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Then resolve device runs twice period. A cup of sugar makes sweet fudge.",
+      "expect": "Then resolveDevice runs twice. A cup of sugar makes sweet fudge.",
+      "cleaned": "Then resolveDevice() runs twice. A cup of sugar makes sweet fudge.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-16",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Call API controller on the client, period. Place a rosebush near the porch steps.",
+      "expect": "Call APIController on the client. Place a rosebush near the porch steps.",
+      "cleaned": "Call APIController on the client. Place a rosebush near the porch steps.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-17",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Then API controller runs twice period. Both lost their lives in the raging storm.",
+      "expect": "Then APIController runs twice. Both lost their lives in the raging storm.",
+      "cleaned": "Then API controller runs twice. Both lost their lives in the raging storm.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-18",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Call retry budget on the client, period. We talked of the side show in the circus.",
+      "expect": "Call retryBudget on the client. We talked of the side show in the circus.",
+      "cleaned": "Call retryBudget on the client. We talked of the side show in the circus.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-19",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Then retry budget runs twice period. Use a pencil to write the first draft.",
+      "expect": "Then retryBudget runs twice. Use a pencil to write the first draft.",
+      "cleaned": "Then retry budget runs twice. Use a pencil to write the first draft.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-20",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Call decode frame on the client, period. He ran half way to the hardware store.",
+      "expect": "Call decodeFrame on the client. He ran half way to the hardware store.",
+      "cleaned": "Call decodeFrame on the client. He ran halfway to the hardware store.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-21",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Then decode frame runs twice period. A small creek cut across the field.",
+      "expect": "Then decodeFrame runs twice. A small creek cut across the field.",
+      "cleaned": "Then decodeFrame runs twice. A small creek cut across the field.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-22",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Call warm up model on the client, period. Cars and busses stalled in snow drifts.",
+      "expect": "Call warmUpModel on the client. Cars and busses stalled in snow drifts.",
+      "cleaned": "Call warmUpModel on the client. Cars and busses stalled in snow drifts.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-23",
+      "rule": "identifier-from-context",
+      "attempt": 9,
+      "raw": "Then warm up model runs twice period. The set of china hit the floor with a crash.",
+      "expect": "Then warmUpModel runs twice. The set of china hit the floor with a crash.",
+      "cleaned": "Then warm up model runs twice. The set of china hit the floor with a crash.",
+      "match": false,
+      "obeyed": false
+    }
+  ]
+}

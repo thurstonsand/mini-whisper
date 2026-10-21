@@ -1,0 +1,75 @@
+{
+  "bestScore": 17.333333333333332,
+  "rounds": [
+    {
+      "round": 1,
+      "means": [
+        16.666666666666668,
+        16.666666666666668,
+        16.333333333333332,
+        16.0,
+        15.666666666666666,
+        15.333333333333334
+      ]
+    },
+    {
+      "round": 2,
+      "means": [
+        17.333333333333332,
+        17.0,
+        16.666666666666668,
+        16.666666666666668,
+        16.333333333333332,
+        16.0
+      ]
+    },
+    {
+      "round": 3,
+      "means": [
+        17.0,
+        16.0,
+        15.333333333333334
+      ]
+    }
+  ],
+  "rejected": [
+    {
+      "round": 3,
+      "candidate": 1,
+      "quotes": [
+        [
+          "stage3-layout.jsonl",
+          "at the end"
+        ],
+        [
+          "stage3-layout.jsonl",
+          "the end of"
+        ]
+      ]
+    },
+    {
+      "round": 3,
+      "candidate": 5,
+      "quotes": [
+        [
+          "stage3-layout.jsonl",
+          "at the end"
+        ],
+        [
+          "stage3-layout.jsonl",
+          "the end of"
+        ]
+      ]
+    },
+    {
+      "round": 3,
+      "candidate": 6,
+      "quotes": [
+        [
+          "stage3-layout.jsonl",
+          "at the end"
+        ]
+      ]
+    }
+  ]
+}

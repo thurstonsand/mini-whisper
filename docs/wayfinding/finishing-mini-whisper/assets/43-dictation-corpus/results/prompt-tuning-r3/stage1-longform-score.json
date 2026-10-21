@@ -1,0 +1,91 @@
+{
+  "stage": "stage1-intelligibility",
+  "entries": 6,
+  "words": 567,
+  "substitutions": 10,
+  "deletions": 9,
+  "insertions": 27,
+  "wer": 0.0811,
+  "cleanEntries": 1,
+  "latency": {
+    "n": 6,
+    "medianMs": 119.1,
+    "meanMs": 124.6,
+    "minMs": 87.7,
+    "maxMs": 173.3
+  },
+  "entriesByWer": [
+    {
+      "id": "longform-05",
+      "words": 85,
+      "substitutions": 4,
+      "deletions": 3,
+      "insertions": 7,
+      "wer": 0.16470588235294117,
+      "latencyMs": 118.2,
+      "diff": "soon her eye fell on a little glass box that was lying under the table she opened it and found in it a very small cake on which the words eat me [+all uppercase end quote] were beautifully marked in [currants \u2192 currents quote] well [i ll \u2192 i'll] eat it [+end quote] said alice and if it makes me grow larger i can reach the key and if it makes me grow smaller i can creep under the door so either way [i ll \u2192 i'll] get into the garden and i [don t \u2192 don't] care which happens",
+      "reference": "Soon her eye fell on a little glass box that was lying under the table: she opened it, and found in it a very small cake, on which the words \u201cEAT ME\u201d were beautifully marked in currants. \u201cWell, I\u2019ll eat it,\u201d said Alice, \u201cand if it makes me grow larger, I can reach the key; and if it makes me grow smaller, I can creep under the door; so either way I\u2019ll get into the garden, and I don\u2019t care which happens!\u201d",
+      "transcript": "Soon her eye fell on a little glass box that was lying under the table. She opened it and found in it a very small cake on which the words, Eat me, all uppercase, end quote, were beautifully marked in currents. Quote, well, I'll eat it, end quote, said Alice. And if it makes me grow larger, I can reach the key, and if it makes me grow smaller, I can creep under the door. So either way I'll get into the garden and I don't care which happens."
+    },
+    {
+      "id": "longform-02",
+      "words": 91,
+      "substitutions": 3,
+      "deletions": 3,
+      "insertions": 8,
+      "wer": 0.15384615384615385,
+      "latencyMs": 120,
+      "diff": "the rabbit hole went straight on like a tunnel for some way and then dipped suddenly down so suddenly that alice had not a moment to think about stopping herself before she found herself falling down a very deep well [+quote] well [+end quote] thought alice to herself after such a fall as this i shall think nothing of tumbling [down stairs \u2192 downstairs] how brave [they ll \u2192 they'll] all think me at home why i [wouldn t \u2192 wouldn't] say anything about it even if i fell off the top of the house [+end quote parentheses] which was very likely true [+end parentheses]",
+      "reference": "The rabbit-hole went straight on like a tunnel for some way, and then dipped suddenly down, so suddenly that Alice had not a moment to think about stopping herself before she found herself falling down a very deep well. \u201cWell!\u201d thought Alice to herself, \u201cafter such a fall as this, I shall think nothing of tumbling down stairs! How brave they\u2019ll all think me at home! Why, I wouldn\u2019t say anything about it, even if I fell off the top of the house!\u201d (Which was very likely true.)",
+      "transcript": "The rabbit hole went straight on like a tunnel for some way and then dipped suddenly down, so suddenly that Alice had not a moment to think about stopping herself before she found herself falling down a very deep well. Quote, well, end quote, thought Alice to herself. After such a fall as this, I shall think nothing of tumbling downstairs. How brave they'll all think me at home. Why, I wouldn't say anything about it, even if I fell off the top of the house. End quote. Parentheses, which was very likely true, end parentheses."
+    },
+    {
+      "id": "longform-01",
+      "words": 57,
+      "substitutions": 0,
+      "deletions": 0,
+      "insertions": 6,
+      "wer": 0.10526315789473684,
+      "latencyMs": 98.2,
+      "diff": "alice was beginning to get very tired of sitting by her sister on the bank and of having nothing to do once or twice she had peeped into the book her sister was reading but it had no pictures or conversations in it [+quote] and what is the use of a book [+end quote] thought alice [+quote] without pictures or conversations [+end quote]",
+      "reference": "Alice was beginning to get very tired of sitting by her sister on the bank, and of having nothing to do: once or twice she had peeped into the book her sister was reading, but it had no pictures or conversations in it, \u201cand what is the use of a book,\u201d thought Alice \u201cwithout pictures or conversations?\u201d",
+      "transcript": "Alice was beginning to get very tired of sitting by her sister on the bank, and of having nothing to do. Once or twice she had peeped into the book her sister was reading, but it had no pictures or conversations in it. Quote, and what is the use of a book? End quote, thought Alice, quote, without pictures or conversations. End quote."
+    },
+    {
+      "id": "longform-06",
+      "words": 142,
+      "substitutions": 2,
+      "deletions": 2,
+      "insertions": 3,
+      "wer": 0.04929577464788732,
+      "latencyMs": 173.3,
+      "diff": "i wish i [hadn t \u2192 hadn't] cried so much said alice as she swam about trying to find her way out i shall be punished for it now i suppose by being drowned in my own tears that will be a queer thing to be sure however everything is queer to day that was a narrow escape said alice a good deal frightened at the sudden change but very glad to find herself still in existence [+quote] and now for the garden [+end quote] and she ran with all speed back to the little door but alas the little door was shut again and the little golden key was lying on the glass table as before and things are worse than ever thought the poor child for i never was so small as this before never and i declare [it s \u2192 it's] too bad that it is",
+      "reference": "\u201cI wish I hadn\u2019t cried so much!\u201d said Alice, as she swam about, trying to find her way out. \u201cI shall be punished for it now, I suppose, by being drowned in my own tears! That will be a queer thing, to be sure! However, everything is queer to-day.\u201d \u201cThat was a narrow escape!\u201d said Alice, a good deal frightened at the sudden change, but very glad to find herself still in existence; \u201cand now for the garden!\u201d and she ran with all speed back to the little door: but, alas! the little door was shut again, and the little golden key was lying on the glass table as before, \u201cand things are worse than ever,\u201d thought the poor child, \u201cfor I never was so small as this before, never! And I declare it\u2019s too bad, that it is!\u201d",
+      "transcript": "I wish I hadn't cried so much, said Alice, as she swam about, trying to find her way out. I shall be punished for it now, I suppose, by being drowned in my own tears. That will be a queer thing, to be sure. However, everything is queer to day. That was a narrow escape, said Alice, a good deal frightened at the sudden change, but very glad to find herself still in existence, quote, and now for the garden, end quote, and she ran with all speed back to the little door. But alas, the little door was shut again, and the little golden key was lying on the glass table as before. And things are worse than ever, thought the poor child. For I never was so small as this before, never, and I declare it's too bad that it is."
+    },
+    {
+      "id": "longform-04",
+      "words": 147,
+      "substitutions": 1,
+      "deletions": 1,
+      "insertions": 3,
+      "wer": 0.034013605442176874,
+      "latencyMs": 150.2,
+      "diff": "however this bottle was not marked poison so alice ventured to taste it and finding it very nice [+parentheses] it had in fact a sort of mixed flavour of cherry tart custard [pine apple \u2192 pineapple] roast turkey toffee and hot buttered toast [+and parentheses] she very soon finished it off after a while finding that nothing more happened she decided on going into the garden at once but alas for poor alice when she got to the door she found she had forgotten the little golden key and when she went back to the table for it she found she could not possibly reach it she could see it quite plainly through the glass and she tried her best to climb up one of the legs of the table but it was too slippery and when she had tired herself out with trying the poor little thing sat down and cried",
+      "reference": "However, this bottle was not marked \u201cpoison,\u201d so Alice ventured to taste it, and finding it very nice, (it had, in fact, a sort of mixed flavour of cherry-tart, custard, pine-apple, roast turkey, toffee, and hot buttered toast,) she very soon finished it off. After a while, finding that nothing more happened, she decided on going into the garden at once; but, alas for poor Alice! when she got to the door, she found she had forgotten the little golden key, and when she went back to the table for it, she found she could not possibly reach it: she could see it quite plainly through the glass, and she tried her best to climb up one of the legs of the table, but it was too slippery; and when she had tired herself out with trying, the poor little thing sat down and cried.",
+      "transcript": "However, this bottle was not marked poison, so Alice ventured to taste it, and finding it very nice, parentheses, it had, in fact, a sort of mixed flavour of cherry tart, custard, pineapple, roast turkey, toffee, and hot buttered toast, and parentheses. She very soon finished it off. After a while, finding that nothing more happened, she decided on going into the garden at once. But alas for poor Alice, when she got to the door, she found she had forgotten the little golden key, and when she went back to the table for it, she found she could not possibly reach it. She could see it quite plainly through the glass, and she tried her best to climb up one of the legs of the table, but it was too slippery. And when she had tired herself out with trying, the poor little thing sat down and cried."
+    },
+    {
+      "id": "longform-03",
+      "words": 45,
+      "substitutions": 0,
+      "deletions": 0,
+      "insertions": 0,
+      "wer": 0.0,
+      "latencyMs": 87.7,
+      "diff": "there were doors all round the hall but they were all locked and when alice had been all the way down one side and up the other trying every door she walked sadly down the middle wondering how she was ever to get out again",
+      "reference": "There were doors all round the hall, but they were all locked; and when Alice had been all the way down one side and up the other, trying every door, she walked sadly down the middle, wondering how she was ever to get out again.",
+      "transcript": "There were doors all round the hall, but they were all locked, and when Alice had been all the way down one side and up the other, trying every door, she walked sadly down the middle, wondering how she was ever to get out again."
+    }
+  ]
+}

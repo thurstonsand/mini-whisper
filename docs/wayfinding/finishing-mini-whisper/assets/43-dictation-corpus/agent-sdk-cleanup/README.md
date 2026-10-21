@@ -24,6 +24,31 @@ Auth is the subscription and nothing else: `ANTHROPIC_API_KEY`, `ANTHROPIC_APIKE
 
 The SDK is imported from `pi-doppelclaude`'s `node_modules` rather than installed here, since nothing under `docs/` carries a `node_modules`; `--sdk` points the client at another copy.
 
-The pool is fresh-mode only, and reports how many distinct session IDs a run used so isolation is measured rather than claimed — 150 calls, 150 sessions. It is not a free substitute for the metered endpoint, though: Claude Code's own framing rides in front of every request, and the shipped prompt scores 19.00/25 through `api.anthropic.com` against 16.25/25 through the SDK at the same n. Use it where the framing is not what is being measured — an Opus proposer writing prose, a screening pass whose survivors get re-scored.
+The pool is fresh-mode only, and reports how many distinct session IDs a run used so isolation is measured rather than claimed — 150 calls, 150 sessions.
+
+## This is the only transport now
+
+As of [round 4](../results/prompt-tuning-r4/README.md) the metered endpoint is gone: `api.anthropic.com` was removed from `tune.PROVIDERS`, and `corpus_cleanup.py` refuses an endpoint pointed at it. The Anthropic key pays for transcription and nothing else. Earlier text here said the pool "is not a free substitute for the metered endpoint" and cited 19.00/25 against 16.25/25; the second half of that sentence is still true and the first half is no longer a choice anyone has.
+
+So the framing has to be described exactly rather than warned about.
+
+**It is one injected block of about 119 tokens, and it is unconditional.** A request of `system: "x"`, `user: "x"` reports 123 input tokens. It is not in the system prompt — a plain-string `systemPrompt` already replaces Claude Code's preset — but an injected meta user turn ahead of ours, which the model will quote back on request:
+
+```text
+# userEmail
+The user's email address is <account address>.
+# currentDate
+Today's date is <today>.
+
+      IMPORTANT: this context may or may not be relevant to your tasks. You should not respond to this context unless it is highly relevant to your task.
+```
+
+That is roughly 55 of the 119 tokens; the rest is its `<system-reminder>` wrapper and Claude Code's one residual line.
+
+**`settingSources: []` already prunes the other half, and this is the non-obvious part.** The CLI assembles git status and `CLAUDE.md` into the same context block, so a run from inside a repository could have carried far more. It does not: the floor measured from an empty non-git directory is 123 tokens, identical. Nothing further is removable — the SDK's `Options` type has no switch for the environment context, and its nearest relative, `additionalContext`, only adds. `--debug-file` does not help either; it logs CA certificates, plugin init and an `[API REQUEST]` line, never a request body.
+
+**What the block costs is measured, and it is 1.80 points.** The prompt `CleanupPrompt.builtIn` shipped after round 3 scores **18.50/25 on the frozen objective through `api.anthropic.com`** and **16.70/25 through this pool**, n=10 each, same prompt and same frozen raws. The loss is concentrated rather than diffuse: `polish-07` goes from failing 0 of 10 to 10 of 10, leaving the dictated word *period* standing inside "the review period", and `polish-02` drops a question mark 5 times in 10. Round 2 measured the same gap at 2.75 points on a different prompt and lost the same entries, so the effect replicates.
+
+Every number measured before round 4 is therefore on the far side of a transport change and must not be compared with one measured after it.
 
 Results: [`../results/agent-sdk-haiku/`](../results/agent-sdk-haiku/).

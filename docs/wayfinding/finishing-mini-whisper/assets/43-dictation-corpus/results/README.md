@@ -29,13 +29,15 @@ Parakeet's one measured weakness is unchanged: it deletes meta-speech (quote/unq
 | claude-haiku-4-5 (Claude subscription, Agent SDK) | 17/27     | 1047 ms     | 685 ms on a warm session              |
 | gpt-5.6-luna                                      | 17/27     | 2579 ms     | no remaining argument                 |
 | gpt-oss-120b (Cerebras)                           | 15/27     | 420 ms      | rule failures, incl. one invariant    |
-| s1-mini (local)                                   | 12/27     | **107 ms**  | fully offline; misses are structural  |
+| s1-mini (local)                                   | 14/27¹    | **107 ms**  | fully offline; misses are structural  |
 
 Those cleanup scores are the prompt as it stood before [prompt-tuning-haiku](prompt-tuning-haiku/), which tuned `CleanupPrompt.builtIn` against Parakeet raw + haiku and removed its worked examples. Two stage-3 expectations were amended there (`polish-01`, `polish-22`), so scores measured before it are not directly comparable to scores measured after.
 
 Detail: [built-in-r2](built-in-r2/) (four providers, per-tag tables, the seven entries all four fail), [gemini-direct](gemini-direct/) (what the gateway costs: identical score, 618 ms), [agent-sdk-haiku](agent-sdk-haiku/) (the same Haiku on the Claude subscription: identical score, 255 ms of per-call Claude Code startup, 4 ms if the session is reused, and 4.4 s if adaptive thinking is left on).
 
-The superwhisper offline stack, Cohere+s1-mini, loses to Parakeet+s1-mini on both axes (9/27 @ 172 ms vs 12/27 @ 107 ms).
+The superwhisper offline stack, Cohere+s1-mini, loses to Parakeet+s1-mini on both axes (9/27 @ 172 ms vs 12/27 @ 107 ms, scores as originally published).
+
+¹ Published as 12/27; expectation amendments to `polish-01`/`polish-22` re-score the identical transcripts at 14/27 ([offline-crosses](offline-crosses/README.md)). That run also answered ticket 47's open hypothesis: sidecar+s1-mini has no synergy (stage-3 output identical to bare), and whisper-prompt+s1-mini loses the offline column — the sidecar's remaining case is stage-2 recall only.
 
 ## Vocabulary (stage 2: where a dictionary should be spent)
 

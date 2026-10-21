@@ -1,0 +1,382 @@
+{
+  "label": "baseline-field-ghostty",
+  "model": "gpt-oss-120b",
+  "prompt": "../prompt-tuning-r3/candidates/baseline.txt",
+  "raw": "../prompt-tuning-r3/field-cases-raw.jsonl",
+  "bundleID": "com.mitchellh.ghostty",
+  "scores": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+  ],
+  "entries": 3,
+  "failCounts": {
+    "field-01": 6,
+    "field-02": 6
+  },
+  "repeats": [
+    [
+      {
+        "id": "field-01",
+        "tags": [
+          "layout",
+          "no-break",
+          "hesitation"
+        ],
+        "say": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech mm sidecar model, but still pass the dictionary values through to the LLM. Like it's either both or none, and obviously I'd probably prefer it to be just to the LLM. I suspect this is going to happen naturally as part of the rewrite here, so if so, don't worry about it. I just wanted to call out that I noticed that behavior in the current build.",
+        "expect": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech sidecar model, but still pass the dictionary values through to the LLM. Like it's either both or none, and obviously I'd probably prefer it to be just to the LLM. I suspect this is going to happen naturally as part of the rewrite here, so, if so, don't worry about it I just wanted to call out that I noticed that behavior in the current build.",
+        "source": "3947C08F-ABA0-4BBB-8220-A233A578238D",
+        "recordedAt": "2026-08-21T12:14:57.931535-04:00",
+        "targetApp": "Ghostty",
+        "engine": "FluidInference/parakeet-tdt-0.6b-v2-coreml@ee09c569f73759e6d44c9bd16766f477b2b36d39",
+        "engineRaw": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech mm sidecar model, but still pass the dictionary values through to the LLM. Like it's either both or none, and obviously I'd probably prefer it to be just to the LLM. I suspect this is going to happen naturally as part of the rewrite here, so if so, don't worry about it. I just wanted to call out that I noticed that behavior in the current build.",
+        "shippedCleanup": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech mm sidecar model, but still pass the dictionary values through to the LLM  \nLike it's either both or none, and obviously I'd probably prefer it to be just to the LLM  \nI suspect this is going to happen naturally as part of the rewrite here, so if so, don't worry about it  \nI just wanted to call out that I noticed that behavior in the current build",
+        "cleanupModel": "gpt-oss-120b",
+        "raw": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech mm sidecar model, but still pass the dictionary values through to the LLM. Like it's either both or none, and obviously I'd probably prefer it to be just to the LLM. I suspect this is going to happen naturally as part of the rewrite here, so if so, don't worry about it. I just wanted to call out that I noticed that behavior in the current build.",
+        "cleaned": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech sidecar model, but still pass the dictionary values through to the LLM. Like it's either both or none, and obviously I'd probably prefer it to be just to the LLM. I suspect this is going to happen naturally as part of the rewrite here, so if so, don't worry about it. I just wanted to call out that I noticed that behavior in the current build.",
+        "match": false
+      },
+      {
+        "id": "field-02",
+        "tags": [
+          "layout",
+          "no-break"
+        ],
+        "say": "I don't know if we have a case capturing this already, but I want to make sure that we do capture this. I just had a transcript where I said Grok with a Q and I want the model to be able to replace that with G R O Q. I don't know if this is like the best specific example, but I generally want the model to look for situations like that where I'm basically trying to spell things out to it and have it attempt to incorporate that and simplify. I do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, but yeah, I want to try to play with that and make sure that we capture a couple examples that cover this kind of thing.",
+        "expect": "I don't know if we have a case capturing this already, but i want to make sure that we do capture this: I just had a transcript where i said Grok with a Q and i want the model to be able to replace that with G R O Q. I don't know if this is like the best specific example, but I generally want the model to look for situations like that where I'm basically trying to spell things out to it and have it attempt to incorporate that and simplify. I do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, but yeah, I want to try to play with that and make sure that we capture a couple examples that cover this kind of thing.",
+        "source": "C37D66EB-7050-420E-BD16-6A344F2BF9AD",
+        "recordedAt": "2026-08-20T13:44:34.953430-04:00",
+        "targetApp": "Ghostty",
+        "engine": "FluidInference/parakeet-tdt-0.6b-v2-coreml@ee09c569f73759e6d44c9bd16766f477b2b36d39",
+        "engineRaw": "I don't know if we have a case capturing this already, but I want to make sure that we do capture this. I just had a transcript where I said Grok with a Q and I want the model to be able to replace that with G R O Q. I don't know if this is like the best specific example, but I generally want the model to look for situations like that where I'm basically trying to spell things out to it and have it attempt to incorporate that and simplify. I do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, but yeah, I want to try to play with that and make sure that we capture a couple examples that cover this kind of thing.",
+        "shippedCleanup": "i don't know if we have a case capturing this already, but i want to make sure that we do capture this  \ni just had a transcript where i said Grok with a Q and i want the model to be able to replace that with G R O Q  \ni don't know if this is like the best specific example, but i generally want the model to look for situations like that where i'm basically trying to spell things out to it and have it attempt to incorporate that and simplify  \ni do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, but yeah, i want to try to play with that and make sure that we capture a couple examples that cover this kind of thing",
+        "cleanupModel": "gpt-oss-120b",
+        "raw": "I don't know if we have a case capturing this already, but I want to make sure that we do capture this. I just had a transcript where I said Grok with a Q and I want the model to be able to replace that with G R O Q. I don't know if this is like the best specific example, but I generally want the model to look for situations like that where I'm basically trying to spell things out to it and have it attempt to incorporate that and simplify. I do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, but yeah, I want to try to play with that and make sure that we capture a couple examples that cover this kind of thing.",
+        "cleaned": "I don't know if we have a case capturing this already, but I want to make sure that we do capture this. I just had a transcript where I said Grok with a Q, and I want the model to be able to replace that with GROQ. I don't know if this is the best specific example, but I generally want the model to look for situations like that where I'm basically trying to spell things out to it and have it attempt to incorporate that and simplify. I do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this. But yeah, I want to try to play with that and make sure that we capture a couple examples that cover this kind of thing.",
+        "match": false
+      },
+      {
+        "id": "field-03",
+        "tags": [
+          "quoted-filler",
+          "negative"
+        ],
+        "say": "I also notice one of the transcription things there is MM sidecar model. I'm not sure where that's coming from, so I definitely want to capture that as well. This is actually good field data for our prompt tuning stuff.",
+        "expect": "I also notice one of the transcription things there is MM sidecar model. I'm not sure where that's coming from, so I definitely want to capture that as well. This is actually good field data for our prompt tuning stuff.",
+        "source": "97B78667-397F-4588-8010-1531B06DAEF5",
+        "recordedAt": "2026-08-21T12:17:45.767403-04:00",
+        "targetApp": "Ghostty",
+        "engine": "FluidInference/parakeet-tdt-0.6b-v2-coreml@ee09c569f73759e6d44c9bd16766f477b2b36d39",
+        "engineRaw": "I also notice one of the transcription things there is MM sidecar model. I'm not sure where that's coming from, so I definitely want to capture that as well. This is actually good f field data for our prompt tuning stuff.",
+        "shippedCleanup": "i also notice one of the transcription things there is MM sidecar model. i'm not sure where that's coming from, so i definitely want to capture that as well. this is actually good field data for our prompt tuning stuff",
+        "cleanupModel": "gpt-oss-120b",
+        "raw": "I also notice one of the transcription things there is MM sidecar model. I'm not sure where that's coming from, so I definitely want to capture that as well. This is actually good f field data for our prompt tuning stuff.",
+        "cleaned": "I also notice one of the transcription things there is MM sidecar model. I'm not sure where that's coming from, so I definitely want to capture that as well. This is actually good field data for our prompt tuning stuff.",
+        "match": true
+      }
+    ],
+    [
+      {
+        "id": "field-01",
+        "tags": [
+          "layout",
+          "no-break",
+          "hesitation"
+        ],
+        "say": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech mm sidecar model, but still pass the dictionary values through to the LLM. Like it's either both or none, and obviously I'd probably prefer it to be just to the LLM. I suspect this is going to happen naturally as part of the rewrite here, so if so, don't worry about it. I just wanted to call out that I noticed that behavior in the current build.",
+        "expect": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech sidecar model, but still pass the dictionary values through to the LLM. Like it's either both or none, and obviously I'd probably prefer it to be just to the LLM. I suspect this is going to happen naturally as part of the rewrite here, so, if so, don't worry about it I just wanted to call out that I noticed that behavior in the current build.",
+        "source": "3947C08F-ABA0-4BBB-8220-A233A578238D",
+        "recordedAt": "2026-08-21T12:14:57.931535-04:00",
+        "targetApp": "Ghostty",
+        "engine": "FluidInference/parakeet-tdt-0.6b-v2-coreml@ee09c569f73759e6d44c9bd16766f477b2b36d39",
+        "engineRaw": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech mm sidecar model, but still pass the dictionary values through to the LLM. Like it's either both or none, and obviously I'd probably prefer it to be just to the LLM. I suspect this is going to happen naturally as part of the rewrite here, so if so, don't worry about it. I just wanted to call out that I noticed that behavior in the current build.",
+        "shippedCleanup": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech mm sidecar model, but still pass the dictionary values through to the LLM  \nLike it's either both or none, and obviously I'd probably prefer it to be just to the LLM  \nI suspect this is going to happen naturally as part of the rewrite here, so if so, don't worry about it  \nI just wanted to call out that I noticed that behavior in the current build",
+        "cleanupModel": "gpt-oss-120b",
+        "raw": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech mm sidecar model, but still pass the dictionary values through to the LLM. Like it's either both or none, and obviously I'd probably prefer it to be just to the LLM. I suspect this is going to happen naturally as part of the rewrite here, so if so, don't worry about it. I just wanted to call out that I noticed that behavior in the current build.",
+        "cleaned": "I think one thing I notice is that I'm unable to disable the dictionary improved speech sidecar model, but still pass the dictionary values through to the LLM. It's either both or none, and obviously I'd probably prefer it to be just to the LLM. I suspect this is going to happen naturally as part of the rewrite here, so if so, don't worry about it. I just wanted to call out that I noticed that behavior in the current build.",
+        "match": false
+      },
+      {
+        "id": "field-02",
+        "tags": [
+          "layout",
+          "no-break"
+        ],
+        "say": "I don't know if we have a case capturing this already, but I want to make sure that we do capture this. I just had a transcript where I said Grok with a Q and I want the model to be able to replace that with G R O Q. I don't know if this is like the best specific example, but I generally want the model to look for situations like that where I'm basically trying to spell things out to it and have it attempt to incorporate that and simplify. I do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, but yeah, I want to try to play with that and make sure that we capture a couple examples that cover this kind of thing.",
+        "expect": "I don't know if we have a case capturing this already, but i want to make sure that we do capture this: I just had a transcript where i said Grok with a Q and i want the model to be able to replace that with G R O Q. I don't know if this is like the best specific example, but I generally want the model to look for situations like that where I'm basically trying to spell things out to it and have it attempt to incorporate that and simplify. I do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, but yeah, I want to try to play with that and make sure that we capture a couple examples that cover this kind of thing.",
+        "source": "C37D66EB-7050-420E-BD16-6A344F2BF9AD",
+        "recordedAt": "2026-08-20T13:44:34.953430-04:00",
+        "targetApp": "Ghostty",
+        "engine": "FluidInference/parakeet-tdt-0.6b-v2-coreml@ee09c569f73759e6d44c9bd16766f477b2b36d39",
+        "engineRaw": "I don't know if we have a case capturing this already, but I want to make sure that we do capture this. I just had a transcript where I said Grok with a Q and I want the model to be able to replace that with G R O Q. I don't know if this is like the best specific example, but I generally want the model to look for situations like that where I'm basically trying to spell things out to it and have it attempt to incorporate that and simplify. I do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, but yeah, I want to try to play with that and make sure that we capture a couple examples that cover this kind of thing.",
+        "shippedCleanup": "i don't know if we have a case capturing this already, but i want to make sure that we do capture this  \ni just had a transcript where i said Grok with a Q and i want the model to be able to replace that with G R O Q  \ni don't know if this is like the best specific example, but i generally want the model to look for situations like that where i'm basically trying to spell things out to it and have it attempt to incorporate that and simplify  \ni do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, but yeah, i want to try to play with that and make sure that we capture a couple examples that cover this kind of thing",
+        "cleanupModel": "gpt-oss-120b",
+        "raw": "I don't know if we have a case capturing this already, but I want to make sure that we do capture this. I just had a transcript where I said Grok with a Q and I want the model to be able to replace that with G R O Q. I don't know if this is like the best specific example, but I generally want the model to look for situations like that where I'm basically trying to spell things out to it and have it attempt to incorporate that and simplify. I do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, but yeah, I want to try to play with that and make sure that we capture a couple examples that cover this kind of thing.",
+        "cleaned": "I don't know if we have a case capturing this already, but I want to make sure that we do capture this.\n\nI just had a transcript where I said Grok with a Q and I want the model to replace that with GROQ.\n\nI don't know if this is the best specific example, but I generally want the model to look for situations like that where I'm basically trying to spell things out to it and have it attempt to incorporate that and simplify.\n\nI do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, and I want to try to play with that and make sure that we capture a couple examples that cover this kind of thing.",
+        "match": false
+      },
+      {
+        "id": "field-03",
+        "tags": [
+          "quoted-filler",
+          "negative"
+        ],
+        "say": "I also notice one of the transcription things there is MM sidecar model. I'm not sure where that's coming from, so I definitely want to capture that as well. This is actually good field data for our prompt tuning stuff.",
+        "expect": "I also notice one of the transcription things there is MM sidecar model. I'm not sure where that's coming from, so I definitely want to capture that as well. This is actually good field data for our prompt tuning stuff.",
+        "source": "97B78667-397F-4588-8010-1531B06DAEF5",
+        "recordedAt": "2026-08-21T12:17:45.767403-04:00",
+        "targetApp": "Ghostty",
+        "engine": "FluidInference/parakeet-tdt-0.6b-v2-coreml@ee09c569f73759e6d44c9bd16766f477b2b36d39",
+        "engineRaw": "I also notice one of the transcription things there is MM sidecar model. I'm not sure where that's coming from, so I definitely want to capture that as well. This is actually good f field data for our prompt tuning stuff.",
+        "shippedCleanup": "i also notice one of the transcription things there is MM sidecar model. i'm not sure where that's coming from, so i definitely want to capture that as well. this is actually good field data for our prompt tuning stuff",
+        "cleanupModel": "gpt-oss-120b",
+        "raw": "I also notice one of the transcription things there is MM sidecar model. I'm not sure where that's coming from, so I definitely want to capture that as well. This is actually good f field data for our prompt tuning stuff.",
+        "cleaned": "I also notice one of the transcription things there is MM sidecar model. I'm not sure where that's coming from, so I definitely want to capture that as well. This is actually good field data for our prompt tuning stuff.",
+        "match": true
+      }
+    ],
+    [
+      {
+        "id": "field-01",
+        "tags": [
+          "layout",
+          "no-break",
+          "hesitation"
+        ],
+        "say": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech mm sidecar model, but still pass the dictionary values through to the LLM. Like it's either both or none, and obviously I'd probably prefer it to be just to the LLM. I suspect this is going to happen naturally as part of the rewrite here, so if so, don't worry about it. I just wanted to call out that I noticed that behavior in the current build.",
+        "expect": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech sidecar model, but still pass the dictionary values through to the LLM. Like it's either both or none, and obviously I'd probably prefer it to be just to the LLM. I suspect this is going to happen naturally as part of the rewrite here, so, if so, don't worry about it I just wanted to call out that I noticed that behavior in the current build.",
+        "source": "3947C08F-ABA0-4BBB-8220-A233A578238D",
+        "recordedAt": "2026-08-21T12:14:57.931535-04:00",
+        "targetApp": "Ghostty",
+        "engine": "FluidInference/parakeet-tdt-0.6b-v2-coreml@ee09c569f73759e6d44c9bd16766f477b2b36d39",
+        "engineRaw": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech mm sidecar model, but still pass the dictionary values through to the LLM. Like it's either both or none, and obviously I'd probably prefer it to be just to the LLM. I suspect this is going to happen naturally as part of the rewrite here, so if so, don't worry about it. I just wanted to call out that I noticed that behavior in the current build.",
+        "shippedCleanup": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech mm sidecar model, but still pass the dictionary values through to the LLM  \nLike it's either both or none, and obviously I'd probably prefer it to be just to the LLM  \nI suspect this is going to happen naturally as part of the rewrite here, so if so, don't worry about it  \nI just wanted to call out that I noticed that behavior in the current build",
+        "cleanupModel": "gpt-oss-120b",
+        "raw": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech mm sidecar model, but still pass the dictionary values through to the LLM. Like it's either both or none, and obviously I'd probably prefer it to be just to the LLM. I suspect this is going to happen naturally as part of the rewrite here, so if so, don't worry about it. I just wanted to call out that I noticed that behavior in the current build.",
+        "cleaned": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech sidecar model, but still pass the dictionary values through to the LLM. It's either both or none, and obviously I'd probably prefer it to be just to the LLM. I suspect this is going to happen naturally as part of the rewrite here, so if so, don't worry about it. I just wanted to call out that I noticed that behavior in the current build.",
+        "match": false
+      },
+      {
+        "id": "field-02",
+        "tags": [
+          "layout",
+          "no-break"
+        ],
+        "say": "I don't know if we have a case capturing this already, but I want to make sure that we do capture this. I just had a transcript where I said Grok with a Q and I want the model to be able to replace that with G R O Q. I don't know if this is like the best specific example, but I generally want the model to look for situations like that where I'm basically trying to spell things out to it and have it attempt to incorporate that and simplify. I do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, but yeah, I want to try to play with that and make sure that we capture a couple examples that cover this kind of thing.",
+        "expect": "I don't know if we have a case capturing this already, but i want to make sure that we do capture this: I just had a transcript where i said Grok with a Q and i want the model to be able to replace that with G R O Q. I don't know if this is like the best specific example, but I generally want the model to look for situations like that where I'm basically trying to spell things out to it and have it attempt to incorporate that and simplify. I do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, but yeah, I want to try to play with that and make sure that we capture a couple examples that cover this kind of thing.",
+        "source": "C37D66EB-7050-420E-BD16-6A344F2BF9AD",
+        "recordedAt": "2026-08-20T13:44:34.953430-04:00",
+        "targetApp": "Ghostty",
+        "engine": "FluidInference/parakeet-tdt-0.6b-v2-coreml@ee09c569f73759e6d44c9bd16766f477b2b36d39",
+        "engineRaw": "I don't know if we have a case capturing this already, but I want to make sure that we do capture this. I just had a transcript where I said Grok with a Q and I want the model to be able to replace that with G R O Q. I don't know if this is like the best specific example, but I generally want the model to look for situations like that where I'm basically trying to spell things out to it and have it attempt to incorporate that and simplify. I do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, but yeah, I want to try to play with that and make sure that we capture a couple examples that cover this kind of thing.",
+        "shippedCleanup": "i don't know if we have a case capturing this already, but i want to make sure that we do capture this  \ni just had a transcript where i said Grok with a Q and i want the model to be able to replace that with G R O Q  \ni don't know if this is like the best specific example, but i generally want the model to look for situations like that where i'm basically trying to spell things out to it and have it attempt to incorporate that and simplify  \ni do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, but yeah, i want to try to play with that and make sure that we capture a couple examples that cover this kind of thing",
+        "cleanupModel": "gpt-oss-120b",
+        "raw": "I don't know if we have a case capturing this already, but I want to make sure that we do capture this. I just had a transcript where I said Grok with a Q and I want the model to be able to replace that with G R O Q. I don't know if this is like the best specific example, but I generally want the model to look for situations like that where I'm basically trying to spell things out to it and have it attempt to incorporate that and simplify. I do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, but yeah, I want to try to play with that and make sure that we capture a couple examples that cover this kind of thing.",
+        "cleaned": "I don't know if we have a case capturing this already, but I want to make sure that we do capture this. I just had a transcript where I said Grok with a Q and I want the model to be able to replace that with GROQ. I don't know if this is the best specific example, but I generally want the model to look for situations where I'm basically trying to spell things out to it and have it attempt to incorporate that and simplify. I do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, but I want to try to play with that and make sure that we capture a couple examples that cover this kind of thing.",
+        "match": false
+      },
+      {
+        "id": "field-03",
+        "tags": [
+          "quoted-filler",
+          "negative"
+        ],
+        "say": "I also notice one of the transcription things there is MM sidecar model. I'm not sure where that's coming from, so I definitely want to capture that as well. This is actually good field data for our prompt tuning stuff.",
+        "expect": "I also notice one of the transcription things there is MM sidecar model. I'm not sure where that's coming from, so I definitely want to capture that as well. This is actually good field data for our prompt tuning stuff.",
+        "source": "97B78667-397F-4588-8010-1531B06DAEF5",
+        "recordedAt": "2026-08-21T12:17:45.767403-04:00",
+        "targetApp": "Ghostty",
+        "engine": "FluidInference/parakeet-tdt-0.6b-v2-coreml@ee09c569f73759e6d44c9bd16766f477b2b36d39",
+        "engineRaw": "I also notice one of the transcription things there is MM sidecar model. I'm not sure where that's coming from, so I definitely want to capture that as well. This is actually good f field data for our prompt tuning stuff.",
+        "shippedCleanup": "i also notice one of the transcription things there is MM sidecar model. i'm not sure where that's coming from, so i definitely want to capture that as well. this is actually good field data for our prompt tuning stuff",
+        "cleanupModel": "gpt-oss-120b",
+        "raw": "I also notice one of the transcription things there is MM sidecar model. I'm not sure where that's coming from, so I definitely want to capture that as well. This is actually good f field data for our prompt tuning stuff.",
+        "cleaned": "I also notice one of the transcription things there is MM sidecar model. I'm not sure where that's coming from, so I definitely want to capture that as well. This is actually good field data for our prompt tuning stuff.",
+        "match": true
+      }
+    ],
+    [
+      {
+        "id": "field-01",
+        "tags": [
+          "layout",
+          "no-break",
+          "hesitation"
+        ],
+        "say": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech mm sidecar model, but still pass the dictionary values through to the LLM. Like it's either both or none, and obviously I'd probably prefer it to be just to the LLM. I suspect this is going to happen naturally as part of the rewrite here, so if so, don't worry about it. I just wanted to call out that I noticed that behavior in the current build.",
+        "expect": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech sidecar model, but still pass the dictionary values through to the LLM. Like it's either both or none, and obviously I'd probably prefer it to be just to the LLM. I suspect this is going to happen naturally as part of the rewrite here, so, if so, don't worry about it I just wanted to call out that I noticed that behavior in the current build.",
+        "source": "3947C08F-ABA0-4BBB-8220-A233A578238D",
+        "recordedAt": "2026-08-21T12:14:57.931535-04:00",
+        "targetApp": "Ghostty",
+        "engine": "FluidInference/parakeet-tdt-0.6b-v2-coreml@ee09c569f73759e6d44c9bd16766f477b2b36d39",
+        "engineRaw": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech mm sidecar model, but still pass the dictionary values through to the LLM. Like it's either both or none, and obviously I'd probably prefer it to be just to the LLM. I suspect this is going to happen naturally as part of the rewrite here, so if so, don't worry about it. I just wanted to call out that I noticed that behavior in the current build.",
+        "shippedCleanup": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech mm sidecar model, but still pass the dictionary values through to the LLM  \nLike it's either both or none, and obviously I'd probably prefer it to be just to the LLM  \nI suspect this is going to happen naturally as part of the rewrite here, so if so, don't worry about it  \nI just wanted to call out that I noticed that behavior in the current build",
+        "cleanupModel": "gpt-oss-120b",
+        "raw": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech mm sidecar model, but still pass the dictionary values through to the LLM. Like it's either both or none, and obviously I'd probably prefer it to be just to the LLM. I suspect this is going to happen naturally as part of the rewrite here, so if so, don't worry about it. I just wanted to call out that I noticed that behavior in the current build.",
+        "cleaned": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech sidecar model, but still pass the dictionary values through to the LLM. It's either both or none, and obviously I'd probably prefer it to be just to the LLM. I suspect this is going to happen naturally as part of the rewrite here, so if so, don't worry about it. I just wanted to call out that I noticed that behavior in the current build.",
+        "match": false
+      },
+      {
+        "id": "field-02",
+        "tags": [
+          "layout",
+          "no-break"
+        ],
+        "say": "I don't know if we have a case capturing this already, but I want to make sure that we do capture this. I just had a transcript where I said Grok with a Q and I want the model to be able to replace that with G R O Q. I don't know if this is like the best specific example, but I generally want the model to look for situations like that where I'm basically trying to spell things out to it and have it attempt to incorporate that and simplify. I do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, but yeah, I want to try to play with that and make sure that we capture a couple examples that cover this kind of thing.",
+        "expect": "I don't know if we have a case capturing this already, but i want to make sure that we do capture this: I just had a transcript where i said Grok with a Q and i want the model to be able to replace that with G R O Q. I don't know if this is like the best specific example, but I generally want the model to look for situations like that where I'm basically trying to spell things out to it and have it attempt to incorporate that and simplify. I do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, but yeah, I want to try to play with that and make sure that we capture a couple examples that cover this kind of thing.",
+        "source": "C37D66EB-7050-420E-BD16-6A344F2BF9AD",
+        "recordedAt": "2026-08-20T13:44:34.953430-04:00",
+        "targetApp": "Ghostty",
+        "engine": "FluidInference/parakeet-tdt-0.6b-v2-coreml@ee09c569f73759e6d44c9bd16766f477b2b36d39",
+        "engineRaw": "I don't know if we have a case capturing this already, but I want to make sure that we do capture this. I just had a transcript where I said Grok with a Q and I want the model to be able to replace that with G R O Q. I don't know if this is like the best specific example, but I generally want the model to look for situations like that where I'm basically trying to spell things out to it and have it attempt to incorporate that and simplify. I do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, but yeah, I want to try to play with that and make sure that we capture a couple examples that cover this kind of thing.",
+        "shippedCleanup": "i don't know if we have a case capturing this already, but i want to make sure that we do capture this  \ni just had a transcript where i said Grok with a Q and i want the model to be able to replace that with G R O Q  \ni don't know if this is like the best specific example, but i generally want the model to look for situations like that where i'm basically trying to spell things out to it and have it attempt to incorporate that and simplify  \ni do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, but yeah, i want to try to play with that and make sure that we capture a couple examples that cover this kind of thing",
+        "cleanupModel": "gpt-oss-120b",
+        "raw": "I don't know if we have a case capturing this already, but I want to make sure that we do capture this. I just had a transcript where I said Grok with a Q and I want the model to be able to replace that with G R O Q. I don't know if this is like the best specific example, but I generally want the model to look for situations like that where I'm basically trying to spell things out to it and have it attempt to incorporate that and simplify. I do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, but yeah, I want to try to play with that and make sure that we capture a couple examples that cover this kind of thing.",
+        "cleaned": "I don't know if we have a case capturing this already, but I want to make sure we do capture it.\n\nI just had a transcript where I said Grok with a Q and I want the model to replace that with GROQ.\n\nI don't know if this is the best specific example, but I generally want the model to look for situations where I'm basically trying to spell things out to it and have it incorporate that and simplify.\n\nI also want to make sure we lean on any prior art or other prompts that do anything like this, and I want to try to play with that and make sure we capture a couple examples that cover this kind of thing.",
+        "match": false
+      },
+      {
+        "id": "field-03",
+        "tags": [
+          "quoted-filler",
+          "negative"
+        ],
+        "say": "I also notice one of the transcription things there is MM sidecar model. I'm not sure where that's coming from, so I definitely want to capture that as well. This is actually good field data for our prompt tuning stuff.",
+        "expect": "I also notice one of the transcription things there is MM sidecar model. I'm not sure where that's coming from, so I definitely want to capture that as well. This is actually good field data for our prompt tuning stuff.",
+        "source": "97B78667-397F-4588-8010-1531B06DAEF5",
+        "recordedAt": "2026-08-21T12:17:45.767403-04:00",
+        "targetApp": "Ghostty",
+        "engine": "FluidInference/parakeet-tdt-0.6b-v2-coreml@ee09c569f73759e6d44c9bd16766f477b2b36d39",
+        "engineRaw": "I also notice one of the transcription things there is MM sidecar model. I'm not sure where that's coming from, so I definitely want to capture that as well. This is actually good f field data for our prompt tuning stuff.",
+        "shippedCleanup": "i also notice one of the transcription things there is MM sidecar model. i'm not sure where that's coming from, so i definitely want to capture that as well. this is actually good field data for our prompt tuning stuff",
+        "cleanupModel": "gpt-oss-120b",
+        "raw": "I also notice one of the transcription things there is MM sidecar model. I'm not sure where that's coming from, so I definitely want to capture that as well. This is actually good f field data for our prompt tuning stuff.",
+        "cleaned": "I also notice one of the transcription things there is MM sidecar model. I'm not sure where that's coming from, so I definitely want to capture that as well. This is actually good field data for our prompt tuning stuff.",
+        "match": true
+      }
+    ],
+    [
+      {
+        "id": "field-01",
+        "tags": [
+          "layout",
+          "no-break",
+          "hesitation"
+        ],
+        "say": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech mm sidecar model, but still pass the dictionary values through to the LLM. Like it's either both or none, and obviously I'd probably prefer it to be just to the LLM. I suspect this is going to happen naturally as part of the rewrite here, so if so, don't worry about it. I just wanted to call out that I noticed that behavior in the current build.",
+        "expect": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech sidecar model, but still pass the dictionary values through to the LLM. Like it's either both or none, and obviously I'd probably prefer it to be just to the LLM. I suspect this is going to happen naturally as part of the rewrite here, so, if so, don't worry about it I just wanted to call out that I noticed that behavior in the current build.",
+        "source": "3947C08F-ABA0-4BBB-8220-A233A578238D",
+        "recordedAt": "2026-08-21T12:14:57.931535-04:00",
+        "targetApp": "Ghostty",
+        "engine": "FluidInference/parakeet-tdt-0.6b-v2-coreml@ee09c569f73759e6d44c9bd16766f477b2b36d39",
+        "engineRaw": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech mm sidecar model, but still pass the dictionary values through to the LLM. Like it's either both or none, and obviously I'd probably prefer it to be just to the LLM. I suspect this is going to happen naturally as part of the rewrite here, so if so, don't worry about it. I just wanted to call out that I noticed that behavior in the current build.",
+        "shippedCleanup": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech mm sidecar model, but still pass the dictionary values through to the LLM  \nLike it's either both or none, and obviously I'd probably prefer it to be just to the LLM  \nI suspect this is going to happen naturally as part of the rewrite here, so if so, don't worry about it  \nI just wanted to call out that I noticed that behavior in the current build",
+        "cleanupModel": "gpt-oss-120b",
+        "raw": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech mm sidecar model, but still pass the dictionary values through to the LLM. Like it's either both or none, and obviously I'd probably prefer it to be just to the LLM. I suspect this is going to happen naturally as part of the rewrite here, so if so, don't worry about it. I just wanted to call out that I noticed that behavior in the current build.",
+        "cleaned": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech sidecar model, but still pass the dictionary values through to the LLM. It's either both or none, and obviously I'd probably prefer it to be just to the LLM. I suspect this is going to happen naturally as part of the rewrite here, so don't worry about it. I just wanted to call out that I noticed that behavior in the current build.",
+        "match": false
+      },
+      {
+        "id": "field-02",
+        "tags": [
+          "layout",
+          "no-break"
+        ],
+        "say": "I don't know if we have a case capturing this already, but I want to make sure that we do capture this. I just had a transcript where I said Grok with a Q and I want the model to be able to replace that with G R O Q. I don't know if this is like the best specific example, but I generally want the model to look for situations like that where I'm basically trying to spell things out to it and have it attempt to incorporate that and simplify. I do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, but yeah, I want to try to play with that and make sure that we capture a couple examples that cover this kind of thing.",
+        "expect": "I don't know if we have a case capturing this already, but i want to make sure that we do capture this: I just had a transcript where i said Grok with a Q and i want the model to be able to replace that with G R O Q. I don't know if this is like the best specific example, but I generally want the model to look for situations like that where I'm basically trying to spell things out to it and have it attempt to incorporate that and simplify. I do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, but yeah, I want to try to play with that and make sure that we capture a couple examples that cover this kind of thing.",
+        "source": "C37D66EB-7050-420E-BD16-6A344F2BF9AD",
+        "recordedAt": "2026-08-20T13:44:34.953430-04:00",
+        "targetApp": "Ghostty",
+        "engine": "FluidInference/parakeet-tdt-0.6b-v2-coreml@ee09c569f73759e6d44c9bd16766f477b2b36d39",
+        "engineRaw": "I don't know if we have a case capturing this already, but I want to make sure that we do capture this. I just had a transcript where I said Grok with a Q and I want the model to be able to replace that with G R O Q. I don't know if this is like the best specific example, but I generally want the model to look for situations like that where I'm basically trying to spell things out to it and have it attempt to incorporate that and simplify. I do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, but yeah, I want to try to play with that and make sure that we capture a couple examples that cover this kind of thing.",
+        "shippedCleanup": "i don't know if we have a case capturing this already, but i want to make sure that we do capture this  \ni just had a transcript where i said Grok with a Q and i want the model to be able to replace that with G R O Q  \ni don't know if this is like the best specific example, but i generally want the model to look for situations like that where i'm basically trying to spell things out to it and have it attempt to incorporate that and simplify  \ni do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, but yeah, i want to try to play with that and make sure that we capture a couple examples that cover this kind of thing",
+        "cleanupModel": "gpt-oss-120b",
+        "raw": "I don't know if we have a case capturing this already, but I want to make sure that we do capture this. I just had a transcript where I said Grok with a Q and I want the model to be able to replace that with G R O Q. I don't know if this is like the best specific example, but I generally want the model to look for situations like that where I'm basically trying to spell things out to it and have it attempt to incorporate that and simplify. I do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, but yeah, I want to try to play with that and make sure that we capture a couple examples that cover this kind of thing.",
+        "cleaned": "I don't know if we have a case capturing this already, but I want to make sure that we do capture this. I just had a transcript where I said Grok with a Q and I want the model to be able to replace that with GROQ. I don't know if this is the best specific example, but I generally want the model to look for situations like that where I'm basically trying to spell things out to it and have it attempt to incorporate that and simplify. I do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, but yeah, I want to try to play with that and make sure that we capture a couple examples that cover this kind of thing.",
+        "match": false
+      },
+      {
+        "id": "field-03",
+        "tags": [
+          "quoted-filler",
+          "negative"
+        ],
+        "say": "I also notice one of the transcription things there is MM sidecar model. I'm not sure where that's coming from, so I definitely want to capture that as well. This is actually good field data for our prompt tuning stuff.",
+        "expect": "I also notice one of the transcription things there is MM sidecar model. I'm not sure where that's coming from, so I definitely want to capture that as well. This is actually good field data for our prompt tuning stuff.",
+        "source": "97B78667-397F-4588-8010-1531B06DAEF5",
+        "recordedAt": "2026-08-21T12:17:45.767403-04:00",
+        "targetApp": "Ghostty",
+        "engine": "FluidInference/parakeet-tdt-0.6b-v2-coreml@ee09c569f73759e6d44c9bd16766f477b2b36d39",
+        "engineRaw": "I also notice one of the transcription things there is MM sidecar model. I'm not sure where that's coming from, so I definitely want to capture that as well. This is actually good f field data for our prompt tuning stuff.",
+        "shippedCleanup": "i also notice one of the transcription things there is MM sidecar model. i'm not sure where that's coming from, so i definitely want to capture that as well. this is actually good field data for our prompt tuning stuff",
+        "cleanupModel": "gpt-oss-120b",
+        "raw": "I also notice one of the transcription things there is MM sidecar model. I'm not sure where that's coming from, so I definitely want to capture that as well. This is actually good f field data for our prompt tuning stuff.",
+        "cleaned": "I also notice one of the transcription things there is MM sidecar model. I'm not sure where that's coming from, so I definitely want to capture that as well. This is actually good field data for our prompt tuning stuff.",
+        "match": true
+      }
+    ],
+    [
+      {
+        "id": "field-01",
+        "tags": [
+          "layout",
+          "no-break",
+          "hesitation"
+        ],
+        "say": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech mm sidecar model, but still pass the dictionary values through to the LLM. Like it's either both or none, and obviously I'd probably prefer it to be just to the LLM. I suspect this is going to happen naturally as part of the rewrite here, so if so, don't worry about it. I just wanted to call out that I noticed that behavior in the current build.",
+        "expect": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech sidecar model, but still pass the dictionary values through to the LLM. Like it's either both or none, and obviously I'd probably prefer it to be just to the LLM. I suspect this is going to happen naturally as part of the rewrite here, so, if so, don't worry about it I just wanted to call out that I noticed that behavior in the current build.",
+        "source": "3947C08F-ABA0-4BBB-8220-A233A578238D",
+        "recordedAt": "2026-08-21T12:14:57.931535-04:00",
+        "targetApp": "Ghostty",
+        "engine": "FluidInference/parakeet-tdt-0.6b-v2-coreml@ee09c569f73759e6d44c9bd16766f477b2b36d39",
+        "engineRaw": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech mm sidecar model, but still pass the dictionary values through to the LLM. Like it's either both or none, and obviously I'd probably prefer it to be just to the LLM. I suspect this is going to happen naturally as part of the rewrite here, so if so, don't worry about it. I just wanted to call out that I noticed that behavior in the current build.",
+        "shippedCleanup": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech mm sidecar model, but still pass the dictionary values through to the LLM  \nLike it's either both or none, and obviously I'd probably prefer it to be just to the LLM  \nI suspect this is going to happen naturally as part of the rewrite here, so if so, don't worry about it  \nI just wanted to call out that I noticed that behavior in the current build",
+        "cleanupModel": "gpt-oss-120b",
+        "raw": "I think one thing I notice is that I'm actually unable to disable the dictionary improved speech mm sidecar model, but still pass the dictionary values through to the LLM. Like it's either both or none, and obviously I'd probably prefer it to be just to the LLM. I suspect this is going to happen naturally as part of the rewrite here, so if so, don't worry about it. I just wanted to call out that I noticed that behavior in the current build.",
+        "cleaned": "I think one thing I notice is that I’m actually unable to disable the dictionary improved speech sidecar model, but still pass the dictionary values through to the LLM. Like it’s either both or none, and obviously I’d probably prefer it to be just to the LLM. I suspect this is going to happen naturally as part of the rewrite here, so if so, don’t worry about it. I just wanted to call out that I noticed that behavior in the current build.",
+        "match": false
+      },
+      {
+        "id": "field-02",
+        "tags": [
+          "layout",
+          "no-break"
+        ],
+        "say": "I don't know if we have a case capturing this already, but I want to make sure that we do capture this. I just had a transcript where I said Grok with a Q and I want the model to be able to replace that with G R O Q. I don't know if this is like the best specific example, but I generally want the model to look for situations like that where I'm basically trying to spell things out to it and have it attempt to incorporate that and simplify. I do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, but yeah, I want to try to play with that and make sure that we capture a couple examples that cover this kind of thing.",
+        "expect": "I don't know if we have a case capturing this already, but i want to make sure that we do capture this: I just had a transcript where i said Grok with a Q and i want the model to be able to replace that with G R O Q. I don't know if this is like the best specific example, but I generally want the model to look for situations like that where I'm basically trying to spell things out to it and have it attempt to incorporate that and simplify. I do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, but yeah, I want to try to play with that and make sure that we capture a couple examples that cover this kind of thing.",
+        "source": "C37D66EB-7050-420E-BD16-6A344F2BF9AD",
+        "recordedAt": "2026-08-20T13:44:34.953430-04:00",
+        "targetApp": "Ghostty",
+        "engine": "FluidInference/parakeet-tdt-0.6b-v2-coreml@ee09c569f73759e6d44c9bd16766f477b2b36d39",
+        "engineRaw": "I don't know if we have a case capturing this already, but I want to make sure that we do capture this. I just had a transcript where I said Grok with a Q and I want the model to be able to replace that with G R O Q. I don't know if this is like the best specific example, but I generally want the model to look for situations like that where I'm basically trying to spell things out to it and have it attempt to incorporate that and simplify. I do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, but yeah, I want to try to play with that and make sure that we capture a couple examples that cover this kind of thing.",
+        "shippedCleanup": "i don't know if we have a case capturing this already, but i want to make sure that we do capture this  \ni just had a transcript where i said Grok with a Q and i want the model to be able to replace that with G R O Q  \ni don't know if this is like the best specific example, but i generally want the model to look for situations like that where i'm basically trying to spell things out to it and have it attempt to incorporate that and simplify  \ni do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, but yeah, i want to try to play with that and make sure that we capture a couple examples that cover this kind of thing",
+        "cleanupModel": "gpt-oss-120b",
+        "raw": "I don't know if we have a case capturing this already, but I want to make sure that we do capture this. I just had a transcript where I said Grok with a Q and I want the model to be able to replace that with G R O Q. I don't know if this is like the best specific example, but I generally want the model to look for situations like that where I'm basically trying to spell things out to it and have it attempt to incorporate that and simplify. I do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, but yeah, I want to try to play with that and make sure that we capture a couple examples that cover this kind of thing.",
+        "cleaned": "I don't know if we have a case capturing this already, but I want to make sure that we do capture this. I just had a transcript where I said Grok with a Q and I want the model to be able to replace that with G R O Q. I don't know if this is the best specific example, but I generally want the model to look for situations like that where I'm basically trying to spell things out to it and have it attempt to incorporate that and simplify. I do want to make sure that we lean on any prior art, any of the other prompts, whether they do anything like this, but yeah, I want to try to play with that and make sure that we capture a couple examples that cover this kind of thing.",
+        "match": false
+      },
+      {
+        "id": "field-03",
+        "tags": [
+          "quoted-filler",
+          "negative"
+        ],
+        "say": "I also notice one of the transcription things there is MM sidecar model. I'm not sure where that's coming from, so I definitely want to capture that as well. This is actually good field data for our prompt tuning stuff.",
+        "expect": "I also notice one of the transcription things there is MM sidecar model. I'm not sure where that's coming from, so I definitely want to capture that as well. This is actually good field data for our prompt tuning stuff.",
+        "source": "97B78667-397F-4588-8010-1531B06DAEF5",
+        "recordedAt": "2026-08-21T12:17:45.767403-04:00",
+        "targetApp": "Ghostty",
+        "engine": "FluidInference/parakeet-tdt-0.6b-v2-coreml@ee09c569f73759e6d44c9bd16766f477b2b36d39",
+        "engineRaw": "I also notice one of the transcription things there is MM sidecar model. I'm not sure where that's coming from, so I definitely want to capture that as well. This is actually good f field data for our prompt tuning stuff.",
+        "shippedCleanup": "i also notice one of the transcription things there is MM sidecar model. i'm not sure where that's coming from, so i definitely want to capture that as well. this is actually good field data for our prompt tuning stuff",
+        "cleanupModel": "gpt-oss-120b",
+        "raw": "I also notice one of the transcription things there is MM sidecar model. I'm not sure where that's coming from, so I definitely want to capture that as well. This is actually good f field data for our prompt tuning stuff.",
+        "cleaned": "I also notice one of the transcription things there is MM sidecar model. I'm not sure where that's coming from, so I definitely want to capture that as well. This is actually good field data for our prompt tuning stuff.",
+        "match": true
+      }
+    ]
+  ]
+}

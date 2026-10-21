@@ -1,0 +1,1 @@
+Write everything in lowercase, except proper nouns and names that carry their own capitals. Keep every period inside the text. If the very last character would be a period, delete it and leave nothing in its place; a final question mark or exclamation point stays.

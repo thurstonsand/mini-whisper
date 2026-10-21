@@ -12,16 +12,16 @@ The objective is frozen: stage 3 minus `polish-11` and `polish-38`, the two entr
 cannot support (it deletes the quote/unquote and the letter-by-letter spelling before cleanup ever
 sees them). Scoring those would grade the engine, not the prompt.
 
-`--provider sdk-haiku` reaches the same Haiku through the Claude subscription instead of a metered
-key, at no marginal cost — but not at the same score. Claude Code puts about 140 tokens of its own
-framing in front of every request, and Haiku answers differently under it: the shipped prompt is
-19.00/25 on the endpoint and 16.25/25 through the SDK at the same n, losing `polish-07`, `-13`,
-`-15`, and `-33`. So the metered endpoint stays the default and the scorer of record, and
-`sdk-haiku` is for the arms where the framing is not the thing under test — a proposer writing
-prose, or a screening pass whose survivors are re-scored here.
+`sdk-haiku` is the scorer of record as of round 4: the same `claude-haiku-4-5`, reached over the
+Claude subscription instead of a metered key. `api.anthropic.com` is gone from `PROVIDERS`
+entirely, because rounds 1 to 3 quietly spent real money on scoring loops that had a free path to
+the identical model. The transport is not free of consequences — Claude Code injects about 119
+tokens of environment context ahead of every request, measured in
+[`agent-sdk-cleanup/`](../../agent-sdk-cleanup/README.md) — but it is a constant, and a constant
+that every arm pays is a comparison that still works.
 
   ./tune.py stage3 --prompt candidates/baseline.txt --label baseline
-  ./tune.py stage3 --prompt candidates/final.txt --provider sdk-haiku --repeat 5
+  ./tune.py stage3 --prompt candidates/final.txt --repeat 5
   ./tune.py stage2 --prompt candidates/baseline.txt --output runs/stage2-baseline.jsonl
 """
 
@@ -55,12 +55,12 @@ STAGE3_RAW = CORPUS / "results/built-in-r2/stage3-raw.jsonl"
 STAGE2 = CORPUS / "stage2-dictionary.jsonl"
 STAGE2_RAW = CORPUS / "results/built-in/stage2-bare.jsonl"
 
+# `anthropic` is deliberately absent. It was the default scorer for rounds 1 to 3 and it was the
+# whole bill: a search is thousands of scoring calls, and the Claude subscription reaches the same
+# `claude-haiku-4-5` for nothing. It is removed rather than gated so a future round cannot rediscover
+# it by leaving a flag off. Numbers measured against it keep their provenance in their own READMEs;
+# nothing new is comparable to them.
 PROVIDERS = {
-    "anthropic": {
-        "endpoint": "https://api.anthropic.com/v1",
-        "model": "claude-haiku-4-5",
-        "env": "ANTHROPIC_APIKEY",
-    },
     "gemini": {
         "endpoint": "https://generativelanguage.googleapis.com/v1beta/openai/",
         "model": "gemini-3.6-flash",
@@ -101,13 +101,51 @@ def resolve_model(name: str, override: str | None) -> str:
     return override or PROVIDERS[name]["model"]
 
 
+def transport_arguments(parser: argparse.ArgumentParser) -> None:
+    """The transport switches, in one place, so a new tool cannot invent a different default.
+
+    `sdk-haiku` is the default because it is free and `anthropic` is not. Three rounds of this
+    harness defaulted the other way and the bill arrived accordingly."""
+    parser.add_argument("--provider", choices=sorted(PROVIDERS), default="sdk-haiku")
+    parser.add_argument("--model")
+    parser.add_argument("--workers", type=int, default=9)
+    parser.add_argument(
+        "--metered",
+        action="store_true",
+        help="Authorize a provider that bills per call. Required by every non-SDK provider.",
+    )
+
+
+def authorize(name: str, model: str, calls: int, metered: bool) -> None:
+    """What this run will spend, said out loud before the first request goes out.
+
+    Cerebras and Gemini still bill. Neither has an ambient credential to fall back to, so they are
+    announced rather than refused — gating them would gate the measurement itself. What they do not
+    get is silence: a sweep that cannot say how many calls it is about to make does not start."""
+    if PROVIDERS[name].get("sdk"):
+        return
+    plan = f"{calls} calls to {model} via {name}"
+    if not metered:
+        sys.exit(
+            f"Refusing {plan}: {name} bills per call. Pass --metered to spend deliberately."
+        )
+    print(f"METERED: {plan}")
+
+
 @contextmanager
-def transport(name: str, override: str | None, workers: int) -> Iterator[Completion]:
+def transport(
+    name: str, override: str | None, workers: int, *, calls: int, metered: bool
+) -> Iterator[Completion]:
     """How a candidate reaches the model. An HTTP provider is a closure over its endpoint and key;
     a subscription provider is a pool of Claude Code pipes that has to be torn down, which is the
-    only reason this is a context manager rather than a function returning a callable."""
+    only reason this is a context manager rather than a function returning a callable.
+
+    `calls` and `metered` are keyword-only and have no defaults on purpose. This function is the
+    single door to inference in the harness, so a caller that has not worked out what its sweep
+    will cost cannot get through it."""
     provider = PROVIDERS[name]
     model = resolve_model(name, override)
+    authorize(name, model, calls, metered)
     if not provider.get("sdk"):
         endpoint, key = provider["endpoint"], api_key(provider)
 
@@ -143,6 +181,19 @@ def transport(name: str, override: str | None, workers: int) -> Iterator[Complet
         pool.close()
 
 
+def prompt_text(args: argparse.Namespace) -> str:
+    """The candidate, plus the user's own instructions when an arm stages them.
+
+    The app has always sent `CleanupPrompt.systemMessage(additionalInstructions:)` and this harness
+    has always scored `builtIn`, so every arm before round 4 measured a prompt no configured user
+    receives. The frame sentence comes out of the Swift, not out of a copy of it."""
+    return corpus_cleanup.system_message(
+        args.prompt.read_text(encoding="utf-8").strip(),
+        corpus_cleanup.instruction_text(args.additional_instructions),
+        corpus_cleanup.CLEANUP_PROMPT_SWIFT,
+    )
+
+
 def entries(stage: Path, raw: Path, keep_excluded: bool) -> list[dict[str, Any]]:
     scripts = {e["id"]: e for e in corpus_cleanup.load_jsonl(stage)}
     transcripts = {e["id"]: e for e in corpus_cleanup.load_jsonl(raw)}
@@ -159,10 +210,14 @@ def fan_out(
     complete: Completion,
     vocabulary: list[str],
     workers: int,
+    bundle_id: str | None = None,
 ) -> list[dict[str, Any]]:
     def one(entry: dict[str, Any]) -> dict[str, Any]:
         user = corpus_cleanup.user_message(
-            entry["raw"], (entry.get("context") or {}).get("before"), vocabulary
+            entry["raw"],
+            (entry.get("context") or {}).get("before"),
+            vocabulary,
+            bundle_id,
         )
         content, _, _ = complete(prompt, user)
         return entry | {"cleaned": corpus_cleanup.shape(content)}
@@ -173,19 +228,27 @@ def fan_out(
 
 def run_stage3(args: argparse.Namespace) -> int:
     model = resolve_model(args.provider, args.model)
-    prompt = args.prompt.read_text(encoding="utf-8").strip()
+    prompt = prompt_text(args)
     work = entries(args.script, args.raw, args.include_excluded)
     if args.entry:
         work = [entry for entry in work if entry["id"] in set(args.entry)]
     label = args.label or args.prompt.stem
+    if args.additional_instructions:
+        label = f"{label}+ai"
 
     # Repeats, because the models are non-deterministic and a one-run delta of ±1 is noise. The
     # per-entry pass count over the repeats is what a candidate is actually judged on.
     repeats = []
     misses: dict[str, list[dict[str, Any]]] = {}
-    with transport(args.provider, args.model, args.workers) as complete:
+    with transport(
+        args.provider,
+        args.model,
+        args.workers,
+        calls=len(work) * args.repeat,
+        metered=args.metered,
+    ) as complete:
         for _ in range(args.repeat):
-            rows = fan_out(work, prompt, complete, [], args.workers)
+            rows = fan_out(work, prompt, complete, [], args.workers, args.bundle_id)
             for row in rows:
                 row["match"] = row["cleaned"] == row["expect"].strip()
                 if not row["match"]:
@@ -227,6 +290,8 @@ def run_stage3(args: argparse.Namespace) -> int:
                     "model": model,
                     "prompt": str(args.prompt),
                     "raw": str(args.raw),
+                    "bundleID": args.bundle_id,
+                    "additionalInstructions": args.additional_instructions,
                     "scores": scores,
                     "entries": total,
                     "failCounts": {
@@ -246,14 +311,16 @@ def run_stage3(args: argparse.Namespace) -> int:
 
 def run_stage2(args: argparse.Namespace) -> int:
     """The dictionary gate, in `asr-replay`'s shape so `score_corpus.py sweep` scores it."""
-    prompt = args.prompt.read_text(encoding="utf-8").strip()
+    prompt = prompt_text(args)
     work = entries(STAGE2, STAGE2_RAW, keep_excluded=True)
     vocabulary: list[str] = []
     for entry in work:
         for term in entry.get("wants", []):
             if term not in vocabulary:
                 vocabulary.append(term)
-    with transport(args.provider, args.model, args.workers) as complete:
+    with transport(
+        args.provider, args.model, args.workers, calls=len(work), metered=args.metered
+    ) as complete:
         rows = fan_out(work, prompt, complete, vocabulary, args.workers)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(
@@ -277,11 +344,19 @@ def arguments() -> argparse.Namespace:
     for name in ("stage3", "stage2"):
         stage = stages.add_parser(name)
         stage.add_argument("--prompt", type=Path, required=True)
-        stage.add_argument("--provider", choices=sorted(PROVIDERS), default="anthropic")
-        stage.add_argument("--model")
-        stage.add_argument("--workers", type=int, default=9)
+        transport_arguments(stage)
         stage.add_argument("--output", type=Path)
         stage.add_argument("--label")
+        stage.add_argument(
+            "--additional-instructions",
+            help="Stage the user's own instructions, as the app appends them. `@path` reads a "
+            "file. Absent, the arm measures the built-in rules alone.",
+        )
+    stages.choices["stage3"].add_argument(
+        "--bundle-id",
+        help="Stage TARGET_BUNDLE_ID, as the app does. A field case needs the app it was "
+        "dictated into; the scripted stages are written to need none.",
+    )
     stages.choices["stage3"].add_argument("--repeat", type=int, default=1)
     stages.choices["stage3"].add_argument("--entry", action="append")
     stages.choices["stage3"].add_argument("--raw", type=Path, default=STAGE3_RAW)

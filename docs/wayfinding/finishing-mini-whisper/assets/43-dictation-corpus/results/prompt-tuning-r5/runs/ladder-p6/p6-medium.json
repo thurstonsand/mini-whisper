@@ -1,0 +1,3627 @@
+{
+  "prompt": "../prompt-tuning-r5/candidates/p6-medium.txt",
+  "additionalInstructions": null,
+  "provider": "sdk-haiku",
+  "model": "claude-haiku-4-5",
+  "repeat": 6,
+  "summary": {
+    "dictionary-exactness": {
+      "runs": 144,
+      "variants": 24,
+      "exactRate": 0.8819444444444444,
+      "ruleRate": 0.9166666666666666,
+      "everObeyed": 22,
+      "neverObeyed": 2
+    },
+    "identifier-from-context": {
+      "runs": 216,
+      "variants": 36,
+      "exactRate": 0.5,
+      "ruleRate": 0.875,
+      "everObeyed": 32,
+      "neverObeyed": 4
+    }
+  },
+  "rows": [
+    {
+      "id": "dict-00",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "Hoist the load to your left shoulder. I opened ghost tea again.",
+      "expect": "Hoist the load to your left shoulder. I opened Ghostty again.",
+      "cleaned": "Hoist the load to your left shoulder. I opened Ghostty again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-01",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "A parakeet landed on the fence. Take the winding path to reach the lake.",
+      "expect": "A parakeet landed on the fence. Take the winding path to reach the lake.",
+      "cleaned": "A parakeet landed on the fence. Take the winding path to reach the lake.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-02",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "Note closely the size of the gas tank. I opened sara bras again.",
+      "expect": "Note closely the size of the gas tank. I opened Cerebras again.",
+      "cleaned": "Note closely the size of the gas tank. I opened Cerebras again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-03",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "The silence held for a moment. Wipe the grease off his dirty face.",
+      "expect": "The silence held for a moment. Wipe the grease off his dirty face.",
+      "cleaned": "The silence held for a moment. Wipe the grease off his dirty face.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-04",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "Mend the coat before you go out. I opened para keet again.",
+      "expect": "Mend the coat before you go out. I opened Parakeet again.",
+      "cleaned": "Mend the coat before you go out. I opened Parakeet again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-05",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "He lost his key chain at the park. The wrist was badly strained and hung limp.",
+      "expect": "He lost his key chain at the park. The wrist was badly strained and hung limp.",
+      "cleaned": "He lost his Keychain at the park. The wrist was badly strained and hung limp.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "dict-06",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "The stray cat gave birth to kittens. I opened fluid audio again.",
+      "expect": "The stray cat gave birth to kittens. I opened FluidAudio again.",
+      "cleaned": "The stray cat gave birth to kittens. I opened FluidAudio again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-07",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "They served home brew at the picnic. The young girl gave no clear response.",
+      "expect": "They served home brew at the picnic. The young girl gave no clear response.",
+      "cleaned": "They served Homebrew at the picnic. The young girl gave no clear response.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "dict-08",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "The meal was cooked before the bell rang. I opened twee story again.",
+      "expect": "The meal was cooked before the bell rang. I opened tuistory again.",
+      "cleaned": "The meal was cooked before the bell rang. I opened tuistory again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-09",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "The old house looked ghostly at dusk. What joy there is in living.",
+      "expect": "The old house looked ghostly at dusk. What joy there is in living.",
+      "cleaned": "The old house looked ghostly at dusk. What joy there is in living.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-10",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "A king ruled the state in the early days. I opened x c u i test again.",
+      "expect": "A king ruled the state in the early days. I opened XCUITest again.",
+      "cleaned": "A king ruled the state in the early days. I opened XCUITest again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-11",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "The lecture covered cerebral blood flow. The ship was torn apart on the sharp reef.",
+      "expect": "The lecture covered cerebral blood flow. The ship was torn apart on the sharp reef.",
+      "cleaned": "The lecture covered cerebral blood flow. The ship was torn apart on the sharp reef.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-12",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "Sickness kept him home the third week. I opened zig bee again.",
+      "expect": "Sickness kept him home the third week. I opened Zigbee again.",
+      "cleaned": "Sickness kept him home the third week. I opened Zigbee again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-13",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "A bee zigzagged across the yard. The wide road shimmered in the hot sun.",
+      "expect": "A bee zigzagged across the yard. The wide road shimmered in the hot sun.",
+      "cleaned": "A bee zigzagged across the yard. The wide road shimmered in the hot sun.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-14",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "The lazy cow lay in the cool grass. I opened llama c p p again.",
+      "expect": "The lazy cow lay in the cool grass. I opened llama.cpp again.",
+      "cleaned": "The lazy cow lay in the cool grass. I opened llama.cpp again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-15",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "When the bell rang we left. Lift the square stone over the fence.",
+      "expect": "When the bell rang we left. Lift the square stone over the fence.",
+      "cleaned": "When the bell rang we left. Lift the square stone over the fence.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-16",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "The rope will bind the seven books at once. I opened sill arrow again.",
+      "expect": "The rope will bind the seven books at once. I opened Silero again.",
+      "cleaned": "The rope will bind the seven books at once. I opened Silero again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-17",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "The current was swift under the bridge. Hop over the fence and plunge in.",
+      "expect": "The current was swift under the bridge. Hop over the fence and plunge in.",
+      "cleaned": "The current was swift under the bridge. Hop over the fence and plunge in.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-18",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "The friendly gang left the drug store. I opened mini whisper again.",
+      "expect": "The friendly gang left the drug store. I opened MiniWhisper again.",
+      "cleaned": "The friendly gang left the drug store. I opened MiniWhisper again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-19",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "The tea was cold by then. Mesh wire keeps chicks inside.",
+      "expect": "The tea was cold by then. Mesh wire keeps chicks inside.",
+      "cleaned": "The tea was cold by then. Mesh wire keeps chicks inside.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-20",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "The frosty air passed through the coat. I opened key chain again.",
+      "expect": "The frosty air passed through the coat. I opened Keychain again.",
+      "cleaned": "The frosty air passed through the coat. I opened Keychain again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-21",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "The colonel gave the order. The crooked maze failed to fool the mouse.",
+      "expect": "The colonel gave the order. The crooked maze failed to fool the mouse.",
+      "cleaned": "The colonel gave the order. The crooked maze failed to fool the mouse.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-22",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "Adding fast leads to wrong sums. I opened home brew again.",
+      "expect": "Adding fast leads to wrong sums. I opened Homebrew again.",
+      "cleaned": "Adding fast leads to wrong sums. I opened Homebrew again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-23",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "She paid the whole thing in cash. The show was a flop from the very start.",
+      "expect": "She paid the whole thing in cash. The show was a flop from the very start.",
+      "cleaned": "She paid the whole thing in cash. The show was a flop from the very start.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m00",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Push it onto retryQ before the retry period. A saw is a tool used for making boards.",
+      "expect": "Push it onto RetryQueue before the retry. A saw is a tool used for making boards.",
+      "cleaned": "Push it onto retryQ before the retry period.\n\nA saw is a tool used for making boards.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m01",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Push it onto fetchUsr before the retry period. The wagon moved on well oiled wheels.",
+      "expect": "Push it onto fetchUsers before the retry. The wagon moved on well oiled wheels.",
+      "cleaned": "Push it onto fetchUsers before the retry period. The wagon moved on well oiled wheels.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m02",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Push it onto maxRetry before the retry period. March the soldiers past the next hill.",
+      "expect": "Push it onto maxRetryCount before the retry. March the soldiers past the next hill.",
+      "cleaned": "Push it onto maxRetryCount before the retry period. March the soldiers past the next hill.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m03",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Push it onto parseHdr before the retry period. A cup of sugar makes sweet fudge.",
+      "expect": "Push it onto parseHeader before the retry. A cup of sugar makes sweet fudge.",
+      "cleaned": "Push it onto parseHeader before the retry period. A cup of sugar makes sweet fudge.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m04",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Push it onto sendPld before the retry period. Place a rosebush near the porch steps.",
+      "expect": "Push it onto sendPayload before the retry. Place a rosebush near the porch steps.",
+      "cleaned": "Push it onto sendPayload before the retry period. Place a rosebush near the porch steps.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m05",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Push it onto cacheRt before the retry period. Both lost their lives in the raging storm.",
+      "expect": "Push it onto cacheRoot before the retry. Both lost their lives in the raging storm.",
+      "cleaned": "Push it onto cacheRoot before the retry period. Both lost their lives in the raging storm.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m06",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Push it onto beginSess before the retry period. We talked of the side show in the circus.",
+      "expect": "Push it onto beginSession before the retry. We talked of the side show in the circus.",
+      "cleaned": "Push it onto beginSession before the retry period. We talked of the side show in the circus.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m07",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Push it onto flushBuf before the retry period. Use a pencil to write the first draft.",
+      "expect": "Push it onto flushBuffer before the retry. Use a pencil to write the first draft.",
+      "cleaned": "Push it onto flushBuf before the retry period. Use a pencil to write the first draft.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m08",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Push it onto resolveDev before the retry period. He ran half way to the hardware store.",
+      "expect": "Push it onto resolveDevice before the retry. He ran half way to the hardware store.",
+      "cleaned": "Push it onto resolveDev before the retry period. He ran halfway to the hardware store.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m09",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Push it onto decodeFrm before the retry period. A small creek cut across the field.",
+      "expect": "Push it onto decodeFrame before the retry. A small creek cut across the field.",
+      "cleaned": "Push it onto decodeFrame before the retry period. A small creek cut across the field.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m10",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Push it onto warmUp before the retry period. Cars and busses stalled in snow drifts.",
+      "expect": "Push it onto warmUpModel before the retry. Cars and busses stalled in snow drifts.",
+      "cleaned": "Push it onto warmUp before the retry period.\n\nCars and busses stalled in snow drifts.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m11",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Push it onto apiCtrl before the retry period. The set of china hit the floor with a crash.",
+      "expect": "Push it onto APIController before the retry. The set of china hit the floor with a crash.",
+      "cleaned": "Push it onto apiCtrl before the retry period. The set of china hit the floor with a crash.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-00",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Call fetch users on the client, period. This is a grand season for hikes on the road.",
+      "expect": "Call fetchUsers on the client. This is a grand season for hikes on the road.",
+      "cleaned": "Call fetchUsers on the client. This is a grand season for hikes on the road.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-01",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Then fetch users runs twice period. The dune rose from the edge of the water.",
+      "expect": "Then fetchUsers runs twice. The dune rose from the edge of the water.",
+      "cleaned": "Then fetchUsers() runs twice. The dune rose from the edge of the water.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-02",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Call max retry count on the client, period. Those words were the cue for the actor to leave.",
+      "expect": "Call maxRetryCount on the client. Those words were the cue for the actor to leave.",
+      "cleaned": "Call maxRetryCount on the client. Those words were the cue for the actor to leave.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-03",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Then max retry count runs twice period. The two met while playing on the sand.",
+      "expect": "Then maxRetryCount runs twice. The two met while playing on the sand.",
+      "cleaned": "Then maxRetryCount runs twice. The two met while playing on the sand.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-04",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Call parse header on the client, period. The ink stain dried on the finished page.",
+      "expect": "Call parseHeader on the client. The ink stain dried on the finished page.",
+      "cleaned": "Call parseHeader on the client. The ink stain dried on the finished page.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-05",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Then parse header runs twice period. The walled town was seized without a fight.",
+      "expect": "Then parseHeader runs twice. The walled town was seized without a fight.",
+      "cleaned": "Then parseHeader() runs twice. The walled town was seized without a fight.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-06",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Call send payload on the client, period. The lease ran out in sixteen weeks.",
+      "expect": "Call sendPayload on the client. The lease ran out in sixteen weeks.",
+      "cleaned": "Call sendPayload on the client. The lease ran out in sixteen weeks.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-07",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Then send payload runs twice period. A tame squirrel makes a nice pet.",
+      "expect": "Then sendPayload runs twice. A tame squirrel makes a nice pet.",
+      "cleaned": "Then sendPayload() runs twice. A tame squirrel makes a nice pet.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-08",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Call cache root on the client, period. The horn of the car woke the sleeping cop.",
+      "expect": "Call cacheRoot on the client. The horn of the car woke the sleeping cop.",
+      "cleaned": "Call cacheRoot() on the client. The horn of the car woke the sleeping cop.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-09",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Then cache root runs twice period. The heart beat strongly and with firm strokes.",
+      "expect": "Then cacheRoot runs twice. The heart beat strongly and with firm strokes.",
+      "cleaned": "Then cacheRoot runs twice. The heart beat strongly and with firm strokes.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-10",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Call begin session on the client, period. The pearl was worn in a thin silver ring.",
+      "expect": "Call beginSession on the client. The pearl was worn in a thin silver ring.",
+      "cleaned": "Call beginSession on the client. The pearl was worn in a thin silver ring.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-11",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Then begin session runs twice period. The fruit peel was cut in thick slices.",
+      "expect": "Then beginSession runs twice. The fruit peel was cut in thick slices.",
+      "cleaned": "Then beginSession runs twice. The fruit peel was cut in thick slices.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-12",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Call flush buffer on the client, period. The Navy attacked the big task force.",
+      "expect": "Call flushBuffer on the client. The Navy attacked the big task force.",
+      "cleaned": "Call flushBuffer on the client. The Navy attacked the big task force.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-13",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Then flush buffer runs twice period. See the cat glaring at the scared mouse.",
+      "expect": "Then flushBuffer runs twice. See the cat glaring at the scared mouse.",
+      "cleaned": "Then flushBuffer() runs twice. See the cat glaring at the scared mouse.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-14",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Call resolve device on the client, period. There are more than two factors here.",
+      "expect": "Call resolveDevice on the client. There are more than two factors here.",
+      "cleaned": "Call resolveDevice on the client. There are more than two factors here.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-15",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Then resolve device runs twice period. The hat brim was wide and too droopy.",
+      "expect": "Then resolveDevice runs twice. The hat brim was wide and too droopy.",
+      "cleaned": "Then resolveDevice() runs twice. The hat brim was wide and too droopy.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-16",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Call API controller on the client, period. The lawyer tried to lose his case.",
+      "expect": "Call APIController on the client. The lawyer tried to lose his case.",
+      "cleaned": "Call APIController on the client. The lawyer tried to lose his case.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-17",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Then API controller runs twice period. The grass curled around the fence post.",
+      "expect": "Then APIController runs twice. The grass curled around the fence post.",
+      "cleaned": "Then APIController runs twice. The grass curled around the fence post.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-18",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Call retry budget on the client, period. Cut the pie into large parts.",
+      "expect": "Call retryBudget on the client. Cut the pie into large parts.",
+      "cleaned": "Call retryBudget on the client. Cut the pie into large parts.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-19",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Then retry budget runs twice period. Men strive but seldom get rich.",
+      "expect": "Then retryBudget runs twice. Men strive but seldom get rich.",
+      "cleaned": "Then retryBudget runs twice. Men strive but seldom get rich.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-20",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Call decode frame on the client, period. Always close the barn door tight.",
+      "expect": "Call decodeFrame on the client. Always close the barn door tight.",
+      "cleaned": "Call decodeFrame on the client. Always close the barn door tight.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-21",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Then decode frame runs twice period. He lay prone and hardly moved a limb.",
+      "expect": "Then decodeFrame runs twice. He lay prone and hardly moved a limb.",
+      "cleaned": "Then decodeFrame runs twice. He lay prone and hardly moved a limb.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-22",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Call warm up model on the client, period. The slush lay deep along the street.",
+      "expect": "Call warmUpModel on the client. The slush lay deep along the street.",
+      "cleaned": "Call warmUpModel on the client. The slush lay deep along the street.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-23",
+      "rule": "identifier-from-context",
+      "attempt": 0,
+      "raw": "Then warm up model runs twice period. A wisp of cloud hung in the blue air.",
+      "expect": "Then warmUpModel runs twice. A wisp of cloud hung in the blue air.",
+      "cleaned": "Then warmUpModel runs twice. A wisp of cloud hung in the blue air.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-00",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "Hoist the load to your left shoulder. I opened ghost tea again.",
+      "expect": "Hoist the load to your left shoulder. I opened Ghostty again.",
+      "cleaned": "Hoist the load to your left shoulder. I opened Ghostty again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-01",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "A parakeet landed on the fence. Take the winding path to reach the lake.",
+      "expect": "A parakeet landed on the fence. Take the winding path to reach the lake.",
+      "cleaned": "A parakeet landed on the fence. Take the winding path to reach the lake.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-02",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "Note closely the size of the gas tank. I opened sara bras again.",
+      "expect": "Note closely the size of the gas tank. I opened Cerebras again.",
+      "cleaned": "Note closely the size of the gas tank. I opened Cerebras again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-03",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "The silence held for a moment. Wipe the grease off his dirty face.",
+      "expect": "The silence held for a moment. Wipe the grease off his dirty face.",
+      "cleaned": "The silence held for a moment. Wipe the grease off his dirty face.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-04",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "Mend the coat before you go out. I opened para keet again.",
+      "expect": "Mend the coat before you go out. I opened Parakeet again.",
+      "cleaned": "Mend the coat before you go out. I opened Parakeet again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-05",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "He lost his key chain at the park. The wrist was badly strained and hung limp.",
+      "expect": "He lost his key chain at the park. The wrist was badly strained and hung limp.",
+      "cleaned": "He lost his Keychain at the park. The wrist was badly strained and hung limp.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "dict-06",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "The stray cat gave birth to kittens. I opened fluid audio again.",
+      "expect": "The stray cat gave birth to kittens. I opened FluidAudio again.",
+      "cleaned": "The stray cat gave birth to kittens. I opened FluidAudio again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-07",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "They served home brew at the picnic. The young girl gave no clear response.",
+      "expect": "They served home brew at the picnic. The young girl gave no clear response.",
+      "cleaned": "They served Homebrew at the picnic. The young girl gave no clear response.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "dict-08",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "The meal was cooked before the bell rang. I opened twee story again.",
+      "expect": "The meal was cooked before the bell rang. I opened tuistory again.",
+      "cleaned": "The meal was cooked before the bell rang. I opened tuistory again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-09",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "The old house looked ghostly at dusk. What joy there is in living.",
+      "expect": "The old house looked ghostly at dusk. What joy there is in living.",
+      "cleaned": "The old house looked ghostly at dusk. What joy there is in living.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-10",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "A king ruled the state in the early days. I opened x c u i test again.",
+      "expect": "A king ruled the state in the early days. I opened XCUITest again.",
+      "cleaned": "A king ruled the state in the early days. I opened XCUITest again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-11",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "The lecture covered cerebral blood flow. The ship was torn apart on the sharp reef.",
+      "expect": "The lecture covered cerebral blood flow. The ship was torn apart on the sharp reef.",
+      "cleaned": "The lecture covered cerebral blood flow. The ship was torn apart on the sharp reef.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-12",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "Sickness kept him home the third week. I opened zig bee again.",
+      "expect": "Sickness kept him home the third week. I opened Zigbee again.",
+      "cleaned": "Sickness kept him home the third week. I opened Zigbee again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-13",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "A bee zigzagged across the yard. The wide road shimmered in the hot sun.",
+      "expect": "A bee zigzagged across the yard. The wide road shimmered in the hot sun.",
+      "cleaned": "A bee zigzagged across the yard. The wide road shimmered in the hot sun.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-14",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "The lazy cow lay in the cool grass. I opened llama c p p again.",
+      "expect": "The lazy cow lay in the cool grass. I opened llama.cpp again.",
+      "cleaned": "The lazy cow lay in the cool grass. I opened llama.cpp again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-15",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "When the bell rang we left. Lift the square stone over the fence.",
+      "expect": "When the bell rang we left. Lift the square stone over the fence.",
+      "cleaned": "When the bell rang, we left. Lift the square stone over the fence.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "dict-16",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "The rope will bind the seven books at once. I opened sill arrow again.",
+      "expect": "The rope will bind the seven books at once. I opened Silero again.",
+      "cleaned": "The rope will bind the seven books at once. I opened Silero again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-17",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "The current was swift under the bridge. Hop over the fence and plunge in.",
+      "expect": "The current was swift under the bridge. Hop over the fence and plunge in.",
+      "cleaned": "The current was swift under the bridge. Hop over the fence and plunge in.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-18",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "The friendly gang left the drug store. I opened mini whisper again.",
+      "expect": "The friendly gang left the drug store. I opened MiniWhisper again.",
+      "cleaned": "The friendly gang left the drug store. I opened MiniWhisper again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-19",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "The tea was cold by then. Mesh wire keeps chicks inside.",
+      "expect": "The tea was cold by then. Mesh wire keeps chicks inside.",
+      "cleaned": "The tea was cold by then. Mesh wire keeps chicks inside.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-20",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "The frosty air passed through the coat. I opened key chain again.",
+      "expect": "The frosty air passed through the coat. I opened Keychain again.",
+      "cleaned": "The frosty air passed through the coat. I opened Keychain again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-21",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "The colonel gave the order. The crooked maze failed to fool the mouse.",
+      "expect": "The colonel gave the order. The crooked maze failed to fool the mouse.",
+      "cleaned": "The colonel gave the order. The crooked maze failed to fool the mouse.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-22",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "Adding fast leads to wrong sums. I opened home brew again.",
+      "expect": "Adding fast leads to wrong sums. I opened Homebrew again.",
+      "cleaned": "Adding fast leads to wrong sums. I opened Homebrew again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-23",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "She paid the whole thing in cash. The show was a flop from the very start.",
+      "expect": "She paid the whole thing in cash. The show was a flop from the very start.",
+      "cleaned": "She paid the whole thing in cash. The show was a flop from the very start.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m00",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Push it onto retryQ before the retry period. A saw is a tool used for making boards.",
+      "expect": "Push it onto RetryQueue before the retry. A saw is a tool used for making boards.",
+      "cleaned": "Push it onto retryQ before the retry period.\n\nA saw is a tool used for making boards.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m01",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Push it onto fetchUsr before the retry period. The wagon moved on well oiled wheels.",
+      "expect": "Push it onto fetchUsers before the retry. The wagon moved on well oiled wheels.",
+      "cleaned": "Push it onto fetchUsers before the retry period. The wagon moved on well oiled wheels.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m02",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Push it onto maxRetry before the retry period. March the soldiers past the next hill.",
+      "expect": "Push it onto maxRetryCount before the retry. March the soldiers past the next hill.",
+      "cleaned": "Push it onto maxRetryCount before the retry period. March the soldiers past the next hill.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m03",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Push it onto parseHdr before the retry period. A cup of sugar makes sweet fudge.",
+      "expect": "Push it onto parseHeader before the retry. A cup of sugar makes sweet fudge.",
+      "cleaned": "Push it onto parseHeader before the retry period. A cup of sugar makes sweet fudge.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m04",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Push it onto sendPld before the retry period. Place a rosebush near the porch steps.",
+      "expect": "Push it onto sendPayload before the retry. Place a rosebush near the porch steps.",
+      "cleaned": "Push it onto sendPayload before the retry period. Place a rosebush near the porch steps.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m05",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Push it onto cacheRt before the retry period. Both lost their lives in the raging storm.",
+      "expect": "Push it onto cacheRoot before the retry. Both lost their lives in the raging storm.",
+      "cleaned": "Push it onto cacheRoot before the retry period. Both lost their lives in the raging storm.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m06",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Push it onto beginSess before the retry period. We talked of the side show in the circus.",
+      "expect": "Push it onto beginSession before the retry. We talked of the side show in the circus.",
+      "cleaned": "Push it onto beginSession before the retry period. We talked of the side show in the circus.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m07",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Push it onto flushBuf before the retry period. Use a pencil to write the first draft.",
+      "expect": "Push it onto flushBuffer before the retry. Use a pencil to write the first draft.",
+      "cleaned": "Push it onto flushBuf before the retry period. Use a pencil to write the first draft.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m08",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Push it onto resolveDev before the retry period. He ran half way to the hardware store.",
+      "expect": "Push it onto resolveDevice before the retry. He ran half way to the hardware store.",
+      "cleaned": "Push it onto resolveDevice before the retry period. He ran halfway to the hardware store.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m09",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Push it onto decodeFrm before the retry period. A small creek cut across the field.",
+      "expect": "Push it onto decodeFrame before the retry. A small creek cut across the field.",
+      "cleaned": "Push it onto decodeFrame before the retry period. A small creek cut across the field.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m10",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Push it onto warmUp before the retry period. Cars and busses stalled in snow drifts.",
+      "expect": "Push it onto warmUpModel before the retry. Cars and busses stalled in snow drifts.",
+      "cleaned": "Push it onto warmUp before the retry period.\n\nCars and buses stalled in snow drifts.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m11",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Push it onto apiCtrl before the retry period. The set of china hit the floor with a crash.",
+      "expect": "Push it onto APIController before the retry. The set of china hit the floor with a crash.",
+      "cleaned": "Push it onto apiCtrl before the retry period. The set of china hit the floor with a crash.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-00",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Call fetch users on the client, period. This is a grand season for hikes on the road.",
+      "expect": "Call fetchUsers on the client. This is a grand season for hikes on the road.",
+      "cleaned": "Call fetchUsers on the client. This is a grand season for hikes on the road.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-01",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Then fetch users runs twice period. The dune rose from the edge of the water.",
+      "expect": "Then fetchUsers runs twice. The dune rose from the edge of the water.",
+      "cleaned": "Then fetchUsers() runs twice. The dune rose from the edge of the water.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-02",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Call max retry count on the client, period. Those words were the cue for the actor to leave.",
+      "expect": "Call maxRetryCount on the client. Those words were the cue for the actor to leave.",
+      "cleaned": "Call maxRetryCount on the client. Those words were the cue for the actor to leave.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-03",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Then max retry count runs twice period. The two met while playing on the sand.",
+      "expect": "Then maxRetryCount runs twice. The two met while playing on the sand.",
+      "cleaned": "Then maxRetryCount runs twice. The two met while playing on the sand.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-04",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Call parse header on the client, period. The ink stain dried on the finished page.",
+      "expect": "Call parseHeader on the client. The ink stain dried on the finished page.",
+      "cleaned": "Call parseHeader() on the client. The ink stain dried on the finished page.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-05",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Then parse header runs twice period. The walled town was seized without a fight.",
+      "expect": "Then parseHeader runs twice. The walled town was seized without a fight.",
+      "cleaned": "Then parseHeader runs twice. The walled town was seized without a fight.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-06",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Call send payload on the client, period. The lease ran out in sixteen weeks.",
+      "expect": "Call sendPayload on the client. The lease ran out in sixteen weeks.",
+      "cleaned": "Call sendPayload on the client. The lease ran out in sixteen weeks.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-07",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Then send payload runs twice period. A tame squirrel makes a nice pet.",
+      "expect": "Then sendPayload runs twice. A tame squirrel makes a nice pet.",
+      "cleaned": "Then sendPayload() runs twice. A tame squirrel makes a nice pet.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-08",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Call cache root on the client, period. The horn of the car woke the sleeping cop.",
+      "expect": "Call cacheRoot on the client. The horn of the car woke the sleeping cop.",
+      "cleaned": "Call cacheRoot on the client. The horn of the car woke the sleeping cop.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-09",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Then cache root runs twice period. The heart beat strongly and with firm strokes.",
+      "expect": "Then cacheRoot runs twice. The heart beat strongly and with firm strokes.",
+      "cleaned": "Then cacheRoot runs twice. The heart beat strongly and with firm strokes.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-10",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Call begin session on the client, period. The pearl was worn in a thin silver ring.",
+      "expect": "Call beginSession on the client. The pearl was worn in a thin silver ring.",
+      "cleaned": "Call beginSession on the client. The pearl was worn in a thin silver ring.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-11",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Then begin session runs twice period. The fruit peel was cut in thick slices.",
+      "expect": "Then beginSession runs twice. The fruit peel was cut in thick slices.",
+      "cleaned": "Then begin session runs twice. The fruit peel was cut in thick slices.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-12",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Call flush buffer on the client, period. The Navy attacked the big task force.",
+      "expect": "Call flushBuffer on the client. The Navy attacked the big task force.",
+      "cleaned": "Call flushBuffer on the client. The Navy attacked the big task force.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-13",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Then flush buffer runs twice period. See the cat glaring at the scared mouse.",
+      "expect": "Then flushBuffer runs twice. See the cat glaring at the scared mouse.",
+      "cleaned": "Then flushBuffer() runs twice. See the cat glaring at the scared mouse.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-14",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Call resolve device on the client, period. There are more than two factors here.",
+      "expect": "Call resolveDevice on the client. There are more than two factors here.",
+      "cleaned": "Call resolveDevice() on the client. There are more than two factors here.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-15",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Then resolve device runs twice period. The hat brim was wide and too droopy.",
+      "expect": "Then resolveDevice runs twice. The hat brim was wide and too droopy.",
+      "cleaned": "Then resolveDevice() runs twice. The hat brim was wide and too droopy.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-16",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Call API controller on the client, period. The lawyer tried to lose his case.",
+      "expect": "Call APIController on the client. The lawyer tried to lose his case.",
+      "cleaned": "Call APIController on the client. The lawyer tried to lose his case.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-17",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Then API controller runs twice period. The grass curled around the fence post.",
+      "expect": "Then APIController runs twice. The grass curled around the fence post.",
+      "cleaned": "Then APIController runs twice. The grass curled around the fence post.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-18",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Call retry budget on the client, period. Cut the pie into large parts.",
+      "expect": "Call retryBudget on the client. Cut the pie into large parts.",
+      "cleaned": "Call retryBudget on the client. Cut the pie into large parts.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-19",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Then retry budget runs twice period. Men strive but seldom get rich.",
+      "expect": "Then retryBudget runs twice. Men strive but seldom get rich.",
+      "cleaned": "Then retryBudget runs twice. Men strive but seldom get rich.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-20",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Call decode frame on the client, period. Always close the barn door tight.",
+      "expect": "Call decodeFrame on the client. Always close the barn door tight.",
+      "cleaned": "Call decodeFrame on the client. Always close the barn door tight.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-21",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Then decode frame runs twice period. He lay prone and hardly moved a limb.",
+      "expect": "Then decodeFrame runs twice. He lay prone and hardly moved a limb.",
+      "cleaned": "Then decodeFrame() runs twice. He lay prone and hardly moved a limb.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-22",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Call warm up model on the client, period. The slush lay deep along the street.",
+      "expect": "Call warmUpModel on the client. The slush lay deep along the street.",
+      "cleaned": "Call warmUpModel on the client. The slush lay deep along the street.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-23",
+      "rule": "identifier-from-context",
+      "attempt": 1,
+      "raw": "Then warm up model runs twice period. A wisp of cloud hung in the blue air.",
+      "expect": "Then warmUpModel runs twice. A wisp of cloud hung in the blue air.",
+      "cleaned": "Then warmUpModel runs twice. A wisp of cloud hung in the blue air.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-00",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "Hoist the load to your left shoulder. I opened ghost tea again.",
+      "expect": "Hoist the load to your left shoulder. I opened Ghostty again.",
+      "cleaned": "Hoist the load to your left shoulder. I opened Ghostty again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-01",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "A parakeet landed on the fence. Take the winding path to reach the lake.",
+      "expect": "A parakeet landed on the fence. Take the winding path to reach the lake.",
+      "cleaned": "A parakeet landed on the fence. Take the winding path to reach the lake.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-02",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "Note closely the size of the gas tank. I opened sara bras again.",
+      "expect": "Note closely the size of the gas tank. I opened Cerebras again.",
+      "cleaned": "Note closely the size of the gas tank. I opened Cerebras again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-03",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "The silence held for a moment. Wipe the grease off his dirty face.",
+      "expect": "The silence held for a moment. Wipe the grease off his dirty face.",
+      "cleaned": "The silence held for a moment. Wipe the grease off his dirty face.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-04",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "Mend the coat before you go out. I opened para keet again.",
+      "expect": "Mend the coat before you go out. I opened Parakeet again.",
+      "cleaned": "Mend the coat before you go out. I opened Parakeet again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-05",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "He lost his key chain at the park. The wrist was badly strained and hung limp.",
+      "expect": "He lost his key chain at the park. The wrist was badly strained and hung limp.",
+      "cleaned": "He lost his Keychain at the park. The wrist was badly strained and hung limp.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "dict-06",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "The stray cat gave birth to kittens. I opened fluid audio again.",
+      "expect": "The stray cat gave birth to kittens. I opened FluidAudio again.",
+      "cleaned": "The stray cat gave birth to kittens. I opened FluidAudio again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-07",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "They served home brew at the picnic. The young girl gave no clear response.",
+      "expect": "They served home brew at the picnic. The young girl gave no clear response.",
+      "cleaned": "They served Homebrew at the picnic. The young girl gave no clear response.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "dict-08",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "The meal was cooked before the bell rang. I opened twee story again.",
+      "expect": "The meal was cooked before the bell rang. I opened tuistory again.",
+      "cleaned": "The meal was cooked before the bell rang. I opened tuistory again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-09",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "The old house looked ghostly at dusk. What joy there is in living.",
+      "expect": "The old house looked ghostly at dusk. What joy there is in living.",
+      "cleaned": "The old house looked ghostly at dusk. What joy there is in living.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-10",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "A king ruled the state in the early days. I opened x c u i test again.",
+      "expect": "A king ruled the state in the early days. I opened XCUITest again.",
+      "cleaned": "A king ruled the state in the early days. I opened XCUITest again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-11",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "The lecture covered cerebral blood flow. The ship was torn apart on the sharp reef.",
+      "expect": "The lecture covered cerebral blood flow. The ship was torn apart on the sharp reef.",
+      "cleaned": "The lecture covered cerebral blood flow. The ship was torn apart on the sharp reef.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-12",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "Sickness kept him home the third week. I opened zig bee again.",
+      "expect": "Sickness kept him home the third week. I opened Zigbee again.",
+      "cleaned": "Sickness kept him home the third week. I opened Zigbee again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-13",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "A bee zigzagged across the yard. The wide road shimmered in the hot sun.",
+      "expect": "A bee zigzagged across the yard. The wide road shimmered in the hot sun.",
+      "cleaned": "A bee zigzagged across the yard. The wide road shimmered in the hot sun.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-14",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "The lazy cow lay in the cool grass. I opened llama c p p again.",
+      "expect": "The lazy cow lay in the cool grass. I opened llama.cpp again.",
+      "cleaned": "The lazy cow lay in the cool grass. I opened llama.cpp again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-15",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "When the bell rang we left. Lift the square stone over the fence.",
+      "expect": "When the bell rang we left. Lift the square stone over the fence.",
+      "cleaned": "When the bell rang, we left. Lift the square stone over the fence.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "dict-16",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "The rope will bind the seven books at once. I opened sill arrow again.",
+      "expect": "The rope will bind the seven books at once. I opened Silero again.",
+      "cleaned": "The rope will bind the seven books at once. I opened Silero again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-17",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "The current was swift under the bridge. Hop over the fence and plunge in.",
+      "expect": "The current was swift under the bridge. Hop over the fence and plunge in.",
+      "cleaned": "The current was swift under the bridge. Hop over the fence and plunge in.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-18",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "The friendly gang left the drug store. I opened mini whisper again.",
+      "expect": "The friendly gang left the drug store. I opened MiniWhisper again.",
+      "cleaned": "The friendly gang left the drug store. I opened MiniWhisper again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-19",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "The tea was cold by then. Mesh wire keeps chicks inside.",
+      "expect": "The tea was cold by then. Mesh wire keeps chicks inside.",
+      "cleaned": "The tea was cold by then. Mesh wire keeps chicks inside.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-20",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "The frosty air passed through the coat. I opened key chain again.",
+      "expect": "The frosty air passed through the coat. I opened Keychain again.",
+      "cleaned": "The frosty air passed through the coat. I opened Keychain again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-21",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "The colonel gave the order. The crooked maze failed to fool the mouse.",
+      "expect": "The colonel gave the order. The crooked maze failed to fool the mouse.",
+      "cleaned": "The colonel gave the order. The crooked maze failed to fool the mouse.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-22",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "Adding fast leads to wrong sums. I opened home brew again.",
+      "expect": "Adding fast leads to wrong sums. I opened Homebrew again.",
+      "cleaned": "Adding fast leads to wrong sums. I opened Homebrew again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-23",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "She paid the whole thing in cash. The show was a flop from the very start.",
+      "expect": "She paid the whole thing in cash. The show was a flop from the very start.",
+      "cleaned": "She paid the whole thing in cash. The show was a flop from the very start.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m00",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Push it onto retryQ before the retry period. A saw is a tool used for making boards.",
+      "expect": "Push it onto RetryQueue before the retry. A saw is a tool used for making boards.",
+      "cleaned": "Push it onto retryQ before the retry period.\n\nA saw is a tool used for making boards.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m01",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Push it onto fetchUsr before the retry period. The wagon moved on well oiled wheels.",
+      "expect": "Push it onto fetchUsers before the retry. The wagon moved on well oiled wheels.",
+      "cleaned": "Push it onto fetchUsers before the retry period. The wagon moved on well oiled wheels.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m02",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Push it onto maxRetry before the retry period. March the soldiers past the next hill.",
+      "expect": "Push it onto maxRetryCount before the retry. March the soldiers past the next hill.",
+      "cleaned": "Push it onto maxRetryCount before the retry period. March the soldiers past the next hill.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m03",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Push it onto parseHdr before the retry period. A cup of sugar makes sweet fudge.",
+      "expect": "Push it onto parseHeader before the retry. A cup of sugar makes sweet fudge.",
+      "cleaned": "Push it onto parseHeader before the retry period. A cup of sugar makes sweet fudge.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m04",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Push it onto sendPld before the retry period. Place a rosebush near the porch steps.",
+      "expect": "Push it onto sendPayload before the retry. Place a rosebush near the porch steps.",
+      "cleaned": "Push it onto sendPayload before the retry period. Place a rosebush near the porch steps.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m05",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Push it onto cacheRt before the retry period. Both lost their lives in the raging storm.",
+      "expect": "Push it onto cacheRoot before the retry. Both lost their lives in the raging storm.",
+      "cleaned": "Push it onto cacheRoot before the retry period. Both lost their lives in the raging storm.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m06",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Push it onto beginSess before the retry period. We talked of the side show in the circus.",
+      "expect": "Push it onto beginSession before the retry. We talked of the side show in the circus.",
+      "cleaned": "Push it onto beginSession before the retry period. We talked of the side show in the circus.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m07",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Push it onto flushBuf before the retry period. Use a pencil to write the first draft.",
+      "expect": "Push it onto flushBuffer before the retry. Use a pencil to write the first draft.",
+      "cleaned": "Push it onto flushBuf before the retry period. Use a pencil to write the first draft.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m08",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Push it onto resolveDev before the retry period. He ran half way to the hardware store.",
+      "expect": "Push it onto resolveDevice before the retry. He ran half way to the hardware store.",
+      "cleaned": "Push it onto resolveDevice before the retry period. He ran halfway to the hardware store.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m09",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Push it onto decodeFrm before the retry period. A small creek cut across the field.",
+      "expect": "Push it onto decodeFrame before the retry. A small creek cut across the field.",
+      "cleaned": "Push it onto decodeFrame before the retry period. A small creek cut across the field.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m10",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Push it onto warmUp before the retry period. Cars and busses stalled in snow drifts.",
+      "expect": "Push it onto warmUpModel before the retry. Cars and busses stalled in snow drifts.",
+      "cleaned": "Push it onto warmUp before the retry period.\n\nCars and busses stalled in snow drifts.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m11",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Push it onto apiCtrl before the retry period. The set of china hit the floor with a crash.",
+      "expect": "Push it onto APIController before the retry. The set of china hit the floor with a crash.",
+      "cleaned": "Push it onto apiCtrl before the retry period. The set of china hit the floor with a crash.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-00",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Call fetch users on the client, period. This is a grand season for hikes on the road.",
+      "expect": "Call fetchUsers on the client. This is a grand season for hikes on the road.",
+      "cleaned": "Call fetchUsers on the client. This is a grand season for hikes on the road.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-01",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Then fetch users runs twice period. The dune rose from the edge of the water.",
+      "expect": "Then fetchUsers runs twice. The dune rose from the edge of the water.",
+      "cleaned": "Then fetchUsers() runs twice. The dune rose from the edge of the water.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-02",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Call max retry count on the client, period. Those words were the cue for the actor to leave.",
+      "expect": "Call maxRetryCount on the client. Those words were the cue for the actor to leave.",
+      "cleaned": "Call maxRetryCount on the client. Those words were the cue for the actor to leave.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-03",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Then max retry count runs twice period. The two met while playing on the sand.",
+      "expect": "Then maxRetryCount runs twice. The two met while playing on the sand.",
+      "cleaned": "Then maxRetryCount runs twice. The two met while playing on the sand.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-04",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Call parse header on the client, period. The ink stain dried on the finished page.",
+      "expect": "Call parseHeader on the client. The ink stain dried on the finished page.",
+      "cleaned": "Call parseHeader() on the client. The ink stain dried on the finished page.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-05",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Then parse header runs twice period. The walled town was seized without a fight.",
+      "expect": "Then parseHeader runs twice. The walled town was seized without a fight.",
+      "cleaned": "Then parseHeader runs twice. The walled town was seized without a fight.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-06",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Call send payload on the client, period. The lease ran out in sixteen weeks.",
+      "expect": "Call sendPayload on the client. The lease ran out in sixteen weeks.",
+      "cleaned": "Call sendPayload on the client. The lease ran out in sixteen weeks.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-07",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Then send payload runs twice period. A tame squirrel makes a nice pet.",
+      "expect": "Then sendPayload runs twice. A tame squirrel makes a nice pet.",
+      "cleaned": "Then sendPayload runs twice. A tame squirrel makes a nice pet.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-08",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Call cache root on the client, period. The horn of the car woke the sleeping cop.",
+      "expect": "Call cacheRoot on the client. The horn of the car woke the sleeping cop.",
+      "cleaned": "Call cacheRoot on the client. The horn of the car woke the sleeping cop.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-09",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Then cache root runs twice period. The heart beat strongly and with firm strokes.",
+      "expect": "Then cacheRoot runs twice. The heart beat strongly and with firm strokes.",
+      "cleaned": "Then cacheRoot runs twice. The heart beat strongly and with firm strokes.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-10",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Call begin session on the client, period. The pearl was worn in a thin silver ring.",
+      "expect": "Call beginSession on the client. The pearl was worn in a thin silver ring.",
+      "cleaned": "Call beginSession on the client, period. The pearl was worn in a thin silver ring.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-11",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Then begin session runs twice period. The fruit peel was cut in thick slices.",
+      "expect": "Then beginSession runs twice. The fruit peel was cut in thick slices.",
+      "cleaned": "Then beginSession() runs twice. The fruit peel was cut in thick slices.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-12",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Call flush buffer on the client, period. The Navy attacked the big task force.",
+      "expect": "Call flushBuffer on the client. The Navy attacked the big task force.",
+      "cleaned": "Call flushBuffer on the client. The Navy attacked the big task force.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-13",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Then flush buffer runs twice period. See the cat glaring at the scared mouse.",
+      "expect": "Then flushBuffer runs twice. See the cat glaring at the scared mouse.",
+      "cleaned": "Then flushBuffer runs twice. See the cat glaring at the scared mouse.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-14",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Call resolve device on the client, period. There are more than two factors here.",
+      "expect": "Call resolveDevice on the client. There are more than two factors here.",
+      "cleaned": "Call resolveDevice on the client. There are more than two factors here.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-15",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Then resolve device runs twice period. The hat brim was wide and too droopy.",
+      "expect": "Then resolveDevice runs twice. The hat brim was wide and too droopy.",
+      "cleaned": "Then resolveDevice() runs twice. The hat brim was wide and too droopy.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-16",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Call API controller on the client, period. The lawyer tried to lose his case.",
+      "expect": "Call APIController on the client. The lawyer tried to lose his case.",
+      "cleaned": "Call APIController on the client. The lawyer tried to lose his case.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-17",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Then API controller runs twice period. The grass curled around the fence post.",
+      "expect": "Then APIController runs twice. The grass curled around the fence post.",
+      "cleaned": "Then APIController runs twice. The grass curled around the fence post.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-18",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Call retry budget on the client, period. Cut the pie into large parts.",
+      "expect": "Call retryBudget on the client. Cut the pie into large parts.",
+      "cleaned": "Call retryBudget on the client. Cut the pie into large parts.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-19",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Then retry budget runs twice period. Men strive but seldom get rich.",
+      "expect": "Then retryBudget runs twice. Men strive but seldom get rich.",
+      "cleaned": "Then retryBudget runs twice. Men strive but seldom get rich.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-20",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Call decode frame on the client, period. Always close the barn door tight.",
+      "expect": "Call decodeFrame on the client. Always close the barn door tight.",
+      "cleaned": "Call decodeFrame on the client. Always close the barn door tight.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-21",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Then decode frame runs twice period. He lay prone and hardly moved a limb.",
+      "expect": "Then decodeFrame runs twice. He lay prone and hardly moved a limb.",
+      "cleaned": "Then decodeFrame runs twice. He lay prone and hardly moved a limb.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-22",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Call warm up model on the client, period. The slush lay deep along the street.",
+      "expect": "Call warmUpModel on the client. The slush lay deep along the street.",
+      "cleaned": "Call warmUpModel on the client. The slush lay deep along the street.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-23",
+      "rule": "identifier-from-context",
+      "attempt": 2,
+      "raw": "Then warm up model runs twice period. A wisp of cloud hung in the blue air.",
+      "expect": "Then warmUpModel runs twice. A wisp of cloud hung in the blue air.",
+      "cleaned": "Then warmUpModel runs twice. A wisp of cloud hung in the blue air.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-00",
+      "rule": "dictionary-exactness",
+      "attempt": 3,
+      "raw": "Hoist the load to your left shoulder. I opened ghost tea again.",
+      "expect": "Hoist the load to your left shoulder. I opened Ghostty again.",
+      "cleaned": "Hoist the load to your left shoulder. I opened Ghostty again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-01",
+      "rule": "dictionary-exactness",
+      "attempt": 3,
+      "raw": "A parakeet landed on the fence. Take the winding path to reach the lake.",
+      "expect": "A parakeet landed on the fence. Take the winding path to reach the lake.",
+      "cleaned": "A parakeet landed on the fence. Take the winding path to reach the lake.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-02",
+      "rule": "dictionary-exactness",
+      "attempt": 3,
+      "raw": "Note closely the size of the gas tank. I opened sara bras again.",
+      "expect": "Note closely the size of the gas tank. I opened Cerebras again.",
+      "cleaned": "Note closely the size of the gas tank. I opened Cerebras again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-03",
+      "rule": "dictionary-exactness",
+      "attempt": 3,
+      "raw": "The silence held for a moment. Wipe the grease off his dirty face.",
+      "expect": "The silence held for a moment. Wipe the grease off his dirty face.",
+      "cleaned": "The silence held for a moment. Wipe the grease off his dirty face.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-04",
+      "rule": "dictionary-exactness",
+      "attempt": 3,
+      "raw": "Mend the coat before you go out. I opened para keet again.",
+      "expect": "Mend the coat before you go out. I opened Parakeet again.",
+      "cleaned": "Mend the coat before you go out. I opened Parakeet again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-05",
+      "rule": "dictionary-exactness",
+      "attempt": 3,
+      "raw": "He lost his key chain at the park. The wrist was badly strained and hung limp.",
+      "expect": "He lost his key chain at the park. The wrist was badly strained and hung limp.",
+      "cleaned": "He lost his Keychain at the park. The wrist was badly strained and hung limp.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "dict-06",
+      "rule": "dictionary-exactness",
+      "attempt": 3,
+      "raw": "The stray cat gave birth to kittens. I opened fluid audio again.",
+      "expect": "The stray cat gave birth to kittens. I opened FluidAudio again.",
+      "cleaned": "The stray cat gave birth to kittens. I opened FluidAudio again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-07",
+      "rule": "dictionary-exactness",
+      "attempt": 3,
+      "raw": "They served home brew at the picnic. The young girl gave no clear response.",
+      "expect": "They served home brew at the picnic. The young girl gave no clear response.",
+      "cleaned": "They served Homebrew at the picnic. The young girl gave no clear response.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "dict-08",
+      "rule": "dictionary-exactness",
+      "attempt": 3,
+      "raw": "The meal was cooked before the bell rang. I opened twee story again.",
+      "expect": "The meal was cooked before the bell rang. I opened tuistory again.",
+      "cleaned": "The meal was cooked before the bell rang. I opened tuistory again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-09",
+      "rule": "dictionary-exactness",
+      "attempt": 3,
+      "raw": "The old house looked ghostly at dusk. What joy there is in living.",
+      "expect": "The old house looked ghostly at dusk. What joy there is in living.",
+      "cleaned": "The old house looked ghostly at dusk. What joy there is in living.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-10",
+      "rule": "dictionary-exactness",
+      "attempt": 3,
+      "raw": "A king ruled the state in the early days. I opened x c u i test again.",
+      "expect": "A king ruled the state in the early days. I opened XCUITest again.",
+      "cleaned": "A king ruled the state in the early days. I opened XCUITest again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-11",
+      "rule": "dictionary-exactness",
+      "attempt": 3,
+      "raw": "The lecture covered cerebral blood flow. The ship was torn apart on the sharp reef.",
+      "expect": "The lecture covered cerebral blood flow. The ship was torn apart on the sharp reef.",
+      "cleaned": "The lecture covered cerebral blood flow. The ship was torn apart on the sharp reef.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-12",
+      "rule": "dictionary-exactness",
+      "attempt": 3,
+      "raw": "Sickness kept him home the third week. I opened zig bee again.",
+      "expect": "Sickness kept him home the third week. I opened Zigbee again.",
+      "cleaned": "Sickness kept him home the third week. I opened Zigbee again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-13",
+      "rule": "dictionary-exactness",
+      "attempt": 3,
+      "raw": "A bee zigzagged across the yard. The wide road shimmered in the hot sun.",
+      "expect": "A bee zigzagged across the yard. The wide road shimmered in the hot sun.",
+      "cleaned": "A bee zigzagged across the yard. The wide road shimmered in the hot sun.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-14",
+      "rule": "dictionary-exactness",
+      "attempt": 3,
+      "raw": "The lazy cow lay in the cool grass. I opened llama c p p again.",
+      "expect": "The lazy cow lay in the cool grass. I opened llama.cpp again.",
+      "cleaned": "The lazy cow lay in the cool grass. I opened llama.cpp again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-15",
+      "rule": "dictionary-exactness",
+      "attempt": 3,
+      "raw": "When the bell rang we left. Lift the square stone over the fence.",
+      "expect": "When the bell rang we left. Lift the square stone over the fence.",
+      "cleaned": "When the bell rang, we left. Lift the square stone over the fence.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "dict-16",
+      "rule": "dictionary-exactness",
+      "attempt": 3,
+      "raw": "The rope will bind the seven books at once. I opened sill arrow again.",
+      "expect": "The rope will bind the seven books at once. I opened Silero again.",
+      "cleaned": "The rope will bind the seven books at once. I opened Silero again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-17",
+      "rule": "dictionary-exactness",
+      "attempt": 3,
+      "raw": "The current was swift under the bridge. Hop over the fence and plunge in.",
+      "expect": "The current was swift under the bridge. Hop over the fence and plunge in.",
+      "cleaned": "The current was swift under the bridge. Hop over the fence and plunge in.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-18",
+      "rule": "dictionary-exactness",
+      "attempt": 3,
+      "raw": "The friendly gang left the drug store. I opened mini whisper again.",
+      "expect": "The friendly gang left the drug store. I opened MiniWhisper again.",
+      "cleaned": "The friendly gang left the drug store. I opened MiniWhisper again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-19",
+      "rule": "dictionary-exactness",
+      "attempt": 3,
+      "raw": "The tea was cold by then. Mesh wire keeps chicks inside.",
+      "expect": "The tea was cold by then. Mesh wire keeps chicks inside.",
+      "cleaned": "The tea was cold by then. Mesh wire keeps chicks inside.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-20",
+      "rule": "dictionary-exactness",
+      "attempt": 3,
+      "raw": "The frosty air passed through the coat. I opened key chain again.",
+      "expect": "The frosty air passed through the coat. I opened Keychain again.",
+      "cleaned": "The frosty air passed through the coat. I opened Keychain again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-21",
+      "rule": "dictionary-exactness",
+      "attempt": 3,
+      "raw": "The colonel gave the order. The crooked maze failed to fool the mouse.",
+      "expect": "The colonel gave the order. The crooked maze failed to fool the mouse.",
+      "cleaned": "The colonel gave the order. The crooked maze failed to fool the mouse.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-22",
+      "rule": "dictionary-exactness",
+      "attempt": 3,
+      "raw": "Adding fast leads to wrong sums. I opened home brew again.",
+      "expect": "Adding fast leads to wrong sums. I opened Homebrew again.",
+      "cleaned": "Adding fast leads to wrong sums. I opened Homebrew again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-23",
+      "rule": "dictionary-exactness",
+      "attempt": 3,
+      "raw": "She paid the whole thing in cash. The show was a flop from the very start.",
+      "expect": "She paid the whole thing in cash. The show was a flop from the very start.",
+      "cleaned": "She paid the whole thing in cash. The show was a flop from the very start.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m00",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Push it onto retryQ before the retry period. A saw is a tool used for making boards.",
+      "expect": "Push it onto RetryQueue before the retry. A saw is a tool used for making boards.",
+      "cleaned": "Push it onto retryQ before the retry period.\n\nA saw is a tool used for making boards.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m01",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Push it onto fetchUsr before the retry period. The wagon moved on well oiled wheels.",
+      "expect": "Push it onto fetchUsers before the retry. The wagon moved on well oiled wheels.",
+      "cleaned": "Push it onto fetchUsers before the retry period. The wagon moved on well oiled wheels.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m02",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Push it onto maxRetry before the retry period. March the soldiers past the next hill.",
+      "expect": "Push it onto maxRetryCount before the retry. March the soldiers past the next hill.",
+      "cleaned": "Push it onto maxRetryCount before the retry period. March the soldiers past the next hill.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m03",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Push it onto parseHdr before the retry period. A cup of sugar makes sweet fudge.",
+      "expect": "Push it onto parseHeader before the retry. A cup of sugar makes sweet fudge.",
+      "cleaned": "Push it onto parseHeader before the retry period. A cup of sugar makes sweet fudge.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m04",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Push it onto sendPld before the retry period. Place a rosebush near the porch steps.",
+      "expect": "Push it onto sendPayload before the retry. Place a rosebush near the porch steps.",
+      "cleaned": "Push it onto sendPayload before the retry period. Place a rosebush near the porch steps.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m05",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Push it onto cacheRt before the retry period. Both lost their lives in the raging storm.",
+      "expect": "Push it onto cacheRoot before the retry. Both lost their lives in the raging storm.",
+      "cleaned": "Push it onto cacheRoot before the retry period. Both lost their lives in the raging storm.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m06",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Push it onto beginSess before the retry period. We talked of the side show in the circus.",
+      "expect": "Push it onto beginSession before the retry. We talked of the side show in the circus.",
+      "cleaned": "Push it onto beginSession before the retry period. We talked of the side show in the circus.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m07",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Push it onto flushBuf before the retry period. Use a pencil to write the first draft.",
+      "expect": "Push it onto flushBuffer before the retry. Use a pencil to write the first draft.",
+      "cleaned": "Push it onto flushBuf before the retry period. Use a pencil to write the first draft.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m08",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Push it onto resolveDev before the retry period. He ran half way to the hardware store.",
+      "expect": "Push it onto resolveDevice before the retry. He ran half way to the hardware store.",
+      "cleaned": "Push it onto resolveDev before the retry period. He ran halfway to the hardware store.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m09",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Push it onto decodeFrm before the retry period. A small creek cut across the field.",
+      "expect": "Push it onto decodeFrame before the retry. A small creek cut across the field.",
+      "cleaned": "Push it onto decodeFrame before the retry period. A small creek cut across the field.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m10",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Push it onto warmUp before the retry period. Cars and busses stalled in snow drifts.",
+      "expect": "Push it onto warmUpModel before the retry. Cars and busses stalled in snow drifts.",
+      "cleaned": "Push it onto warmUp before the retry period.\n\nCars and busses stalled in snow drifts.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m11",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Push it onto apiCtrl before the retry period. The set of china hit the floor with a crash.",
+      "expect": "Push it onto APIController before the retry. The set of china hit the floor with a crash.",
+      "cleaned": "Push it onto apiCtrl before the retry period. The set of china hit the floor with a crash.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-00",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Call fetch users on the client, period. This is a grand season for hikes on the road.",
+      "expect": "Call fetchUsers on the client. This is a grand season for hikes on the road.",
+      "cleaned": "Call fetchUsers on the client. This is a grand season for hikes on the road.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-01",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Then fetch users runs twice period. The dune rose from the edge of the water.",
+      "expect": "Then fetchUsers runs twice. The dune rose from the edge of the water.",
+      "cleaned": "Then fetchUsers() runs twice. The dune rose from the edge of the water.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-02",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Call max retry count on the client, period. Those words were the cue for the actor to leave.",
+      "expect": "Call maxRetryCount on the client. Those words were the cue for the actor to leave.",
+      "cleaned": "Call maxRetryCount on the client. Those words were the cue for the actor to leave.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-03",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Then max retry count runs twice period. The two met while playing on the sand.",
+      "expect": "Then maxRetryCount runs twice. The two met while playing on the sand.",
+      "cleaned": "Then maxRetryCount runs twice. The two met while playing on the sand.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-04",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Call parse header on the client, period. The ink stain dried on the finished page.",
+      "expect": "Call parseHeader on the client. The ink stain dried on the finished page.",
+      "cleaned": "Call parseHeader() on the client. The ink stain dried on the finished page.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-05",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Then parse header runs twice period. The walled town was seized without a fight.",
+      "expect": "Then parseHeader runs twice. The walled town was seized without a fight.",
+      "cleaned": "Then parseHeader runs twice. The walled town was seized without a fight.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-06",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Call send payload on the client, period. The lease ran out in sixteen weeks.",
+      "expect": "Call sendPayload on the client. The lease ran out in sixteen weeks.",
+      "cleaned": "Call sendPayload on the client. The lease ran out in sixteen weeks.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-07",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Then send payload runs twice period. A tame squirrel makes a nice pet.",
+      "expect": "Then sendPayload runs twice. A tame squirrel makes a nice pet.",
+      "cleaned": "Then sendPayload() runs twice. A tame squirrel makes a nice pet.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-08",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Call cache root on the client, period. The horn of the car woke the sleeping cop.",
+      "expect": "Call cacheRoot on the client. The horn of the car woke the sleeping cop.",
+      "cleaned": "Call cacheRoot on the client. The horn of the car woke the sleeping cop.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-09",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Then cache root runs twice period. The heart beat strongly and with firm strokes.",
+      "expect": "Then cacheRoot runs twice. The heart beat strongly and with firm strokes.",
+      "cleaned": "Then cacheRoot() runs twice. The heart beat strongly and with firm strokes.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-10",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Call begin session on the client, period. The pearl was worn in a thin silver ring.",
+      "expect": "Call beginSession on the client. The pearl was worn in a thin silver ring.",
+      "cleaned": "Call beginSession on the client. The pearl was worn in a thin silver ring.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-11",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Then begin session runs twice period. The fruit peel was cut in thick slices.",
+      "expect": "Then beginSession runs twice. The fruit peel was cut in thick slices.",
+      "cleaned": "Then beginSession() runs twice. The fruit peel was cut in thick slices.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-12",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Call flush buffer on the client, period. The Navy attacked the big task force.",
+      "expect": "Call flushBuffer on the client. The Navy attacked the big task force.",
+      "cleaned": "Call flushBuffer on the client. The Navy attacked the big task force.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-13",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Then flush buffer runs twice period. See the cat glaring at the scared mouse.",
+      "expect": "Then flushBuffer runs twice. See the cat glaring at the scared mouse.",
+      "cleaned": "Then flushBuffer runs twice. See the cat glaring at the scared mouse.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-14",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Call resolve device on the client, period. There are more than two factors here.",
+      "expect": "Call resolveDevice on the client. There are more than two factors here.",
+      "cleaned": "Call resolveDevice on the client. There are more than two factors here.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-15",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Then resolve device runs twice period. The hat brim was wide and too droopy.",
+      "expect": "Then resolveDevice runs twice. The hat brim was wide and too droopy.",
+      "cleaned": "Then resolveDevice() runs twice. The hat brim was wide and too droopy.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-16",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Call API controller on the client, period. The lawyer tried to lose his case.",
+      "expect": "Call APIController on the client. The lawyer tried to lose his case.",
+      "cleaned": "Call APIController on the client. The lawyer tried to lose his case.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-17",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Then API controller runs twice period. The grass curled around the fence post.",
+      "expect": "Then APIController runs twice. The grass curled around the fence post.",
+      "cleaned": "Then APIController runs twice. The grass curled around the fence post.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-18",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Call retry budget on the client, period. Cut the pie into large parts.",
+      "expect": "Call retryBudget on the client. Cut the pie into large parts.",
+      "cleaned": "Call retryBudget on the client.\n\nCut the pie into large parts.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-19",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Then retry budget runs twice period. Men strive but seldom get rich.",
+      "expect": "Then retryBudget runs twice. Men strive but seldom get rich.",
+      "cleaned": "Then retryBudget runs twice. Men strive but seldom get rich.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-20",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Call decode frame on the client, period. Always close the barn door tight.",
+      "expect": "Call decodeFrame on the client. Always close the barn door tight.",
+      "cleaned": "Call decodeFrame on the client. Always close the barn door tight.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-21",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Then decode frame runs twice period. He lay prone and hardly moved a limb.",
+      "expect": "Then decodeFrame runs twice. He lay prone and hardly moved a limb.",
+      "cleaned": "Then decodeFrame runs twice. He lay prone and hardly moved a limb.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-22",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Call warm up model on the client, period. The slush lay deep along the street.",
+      "expect": "Call warmUpModel on the client. The slush lay deep along the street.",
+      "cleaned": "Call warmUpModel on the client. The slush lay deep along the street.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-23",
+      "rule": "identifier-from-context",
+      "attempt": 3,
+      "raw": "Then warm up model runs twice period. A wisp of cloud hung in the blue air.",
+      "expect": "Then warmUpModel runs twice. A wisp of cloud hung in the blue air.",
+      "cleaned": "Then warmUpModel runs twice. A wisp of cloud hung in the blue air.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-00",
+      "rule": "dictionary-exactness",
+      "attempt": 4,
+      "raw": "Hoist the load to your left shoulder. I opened ghost tea again.",
+      "expect": "Hoist the load to your left shoulder. I opened Ghostty again.",
+      "cleaned": "Hoist the load to your left shoulder. I opened Ghostty again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-01",
+      "rule": "dictionary-exactness",
+      "attempt": 4,
+      "raw": "A parakeet landed on the fence. Take the winding path to reach the lake.",
+      "expect": "A parakeet landed on the fence. Take the winding path to reach the lake.",
+      "cleaned": "A parakeet landed on the fence. Take the winding path to reach the lake.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-02",
+      "rule": "dictionary-exactness",
+      "attempt": 4,
+      "raw": "Note closely the size of the gas tank. I opened sara bras again.",
+      "expect": "Note closely the size of the gas tank. I opened Cerebras again.",
+      "cleaned": "Note closely the size of the gas tank. I opened Cerebras again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-03",
+      "rule": "dictionary-exactness",
+      "attempt": 4,
+      "raw": "The silence held for a moment. Wipe the grease off his dirty face.",
+      "expect": "The silence held for a moment. Wipe the grease off his dirty face.",
+      "cleaned": "The silence held for a moment. Wipe the grease off his dirty face.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-04",
+      "rule": "dictionary-exactness",
+      "attempt": 4,
+      "raw": "Mend the coat before you go out. I opened para keet again.",
+      "expect": "Mend the coat before you go out. I opened Parakeet again.",
+      "cleaned": "Mend the coat before you go out. I opened Parakeet again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-05",
+      "rule": "dictionary-exactness",
+      "attempt": 4,
+      "raw": "He lost his key chain at the park. The wrist was badly strained and hung limp.",
+      "expect": "He lost his key chain at the park. The wrist was badly strained and hung limp.",
+      "cleaned": "He lost his Keychain at the park. The wrist was badly strained and hung limp.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "dict-06",
+      "rule": "dictionary-exactness",
+      "attempt": 4,
+      "raw": "The stray cat gave birth to kittens. I opened fluid audio again.",
+      "expect": "The stray cat gave birth to kittens. I opened FluidAudio again.",
+      "cleaned": "The stray cat gave birth to kittens. I opened FluidAudio again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-07",
+      "rule": "dictionary-exactness",
+      "attempt": 4,
+      "raw": "They served home brew at the picnic. The young girl gave no clear response.",
+      "expect": "They served home brew at the picnic. The young girl gave no clear response.",
+      "cleaned": "They served Homebrew at the picnic. The young girl gave no clear response.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "dict-08",
+      "rule": "dictionary-exactness",
+      "attempt": 4,
+      "raw": "The meal was cooked before the bell rang. I opened twee story again.",
+      "expect": "The meal was cooked before the bell rang. I opened tuistory again.",
+      "cleaned": "The meal was cooked before the bell rang. I opened tuistory again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-09",
+      "rule": "dictionary-exactness",
+      "attempt": 4,
+      "raw": "The old house looked ghostly at dusk. What joy there is in living.",
+      "expect": "The old house looked ghostly at dusk. What joy there is in living.",
+      "cleaned": "The old house looked ghostly at dusk. What joy there is in living.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-10",
+      "rule": "dictionary-exactness",
+      "attempt": 4,
+      "raw": "A king ruled the state in the early days. I opened x c u i test again.",
+      "expect": "A king ruled the state in the early days. I opened XCUITest again.",
+      "cleaned": "A king ruled the state in the early days. I opened XCUITest again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-11",
+      "rule": "dictionary-exactness",
+      "attempt": 4,
+      "raw": "The lecture covered cerebral blood flow. The ship was torn apart on the sharp reef.",
+      "expect": "The lecture covered cerebral blood flow. The ship was torn apart on the sharp reef.",
+      "cleaned": "The lecture covered cerebral blood flow. The ship was torn apart on the sharp reef.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-12",
+      "rule": "dictionary-exactness",
+      "attempt": 4,
+      "raw": "Sickness kept him home the third week. I opened zig bee again.",
+      "expect": "Sickness kept him home the third week. I opened Zigbee again.",
+      "cleaned": "Sickness kept him home the third week. I opened Zigbee again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-13",
+      "rule": "dictionary-exactness",
+      "attempt": 4,
+      "raw": "A bee zigzagged across the yard. The wide road shimmered in the hot sun.",
+      "expect": "A bee zigzagged across the yard. The wide road shimmered in the hot sun.",
+      "cleaned": "A bee zigzagged across the yard. The wide road shimmered in the hot sun.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-14",
+      "rule": "dictionary-exactness",
+      "attempt": 4,
+      "raw": "The lazy cow lay in the cool grass. I opened llama c p p again.",
+      "expect": "The lazy cow lay in the cool grass. I opened llama.cpp again.",
+      "cleaned": "The lazy cow lay in the cool grass. I opened llama.cpp again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-15",
+      "rule": "dictionary-exactness",
+      "attempt": 4,
+      "raw": "When the bell rang we left. Lift the square stone over the fence.",
+      "expect": "When the bell rang we left. Lift the square stone over the fence.",
+      "cleaned": "When the bell rang, we left. Lift the square stone over the fence.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "dict-16",
+      "rule": "dictionary-exactness",
+      "attempt": 4,
+      "raw": "The rope will bind the seven books at once. I opened sill arrow again.",
+      "expect": "The rope will bind the seven books at once. I opened Silero again.",
+      "cleaned": "The rope will bind the seven books at once. I opened Silero again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-17",
+      "rule": "dictionary-exactness",
+      "attempt": 4,
+      "raw": "The current was swift under the bridge. Hop over the fence and plunge in.",
+      "expect": "The current was swift under the bridge. Hop over the fence and plunge in.",
+      "cleaned": "The current was swift under the bridge. Hop over the fence and plunge in.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-18",
+      "rule": "dictionary-exactness",
+      "attempt": 4,
+      "raw": "The friendly gang left the drug store. I opened mini whisper again.",
+      "expect": "The friendly gang left the drug store. I opened MiniWhisper again.",
+      "cleaned": "The friendly gang left the drug store. I opened MiniWhisper again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-19",
+      "rule": "dictionary-exactness",
+      "attempt": 4,
+      "raw": "The tea was cold by then. Mesh wire keeps chicks inside.",
+      "expect": "The tea was cold by then. Mesh wire keeps chicks inside.",
+      "cleaned": "The tea was cold by then. Mesh wire keeps chicks inside.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-20",
+      "rule": "dictionary-exactness",
+      "attempt": 4,
+      "raw": "The frosty air passed through the coat. I opened key chain again.",
+      "expect": "The frosty air passed through the coat. I opened Keychain again.",
+      "cleaned": "The frosty air passed through the coat. I opened Keychain again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-21",
+      "rule": "dictionary-exactness",
+      "attempt": 4,
+      "raw": "The colonel gave the order. The crooked maze failed to fool the mouse.",
+      "expect": "The colonel gave the order. The crooked maze failed to fool the mouse.",
+      "cleaned": "The colonel gave the order. The crooked maze failed to fool the mouse.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-22",
+      "rule": "dictionary-exactness",
+      "attempt": 4,
+      "raw": "Adding fast leads to wrong sums. I opened home brew again.",
+      "expect": "Adding fast leads to wrong sums. I opened Homebrew again.",
+      "cleaned": "Adding fast leads to wrong sums. I opened Homebrew again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-23",
+      "rule": "dictionary-exactness",
+      "attempt": 4,
+      "raw": "She paid the whole thing in cash. The show was a flop from the very start.",
+      "expect": "She paid the whole thing in cash. The show was a flop from the very start.",
+      "cleaned": "She paid the whole thing in cash. The show was a flop from the very start.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m00",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Push it onto retryQ before the retry period. A saw is a tool used for making boards.",
+      "expect": "Push it onto RetryQueue before the retry. A saw is a tool used for making boards.",
+      "cleaned": "Push it onto retryQ before the retry period.\n\nA saw is a tool used for making boards.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m01",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Push it onto fetchUsr before the retry period. The wagon moved on well oiled wheels.",
+      "expect": "Push it onto fetchUsers before the retry. The wagon moved on well oiled wheels.",
+      "cleaned": "Push it onto fetchUsers before the retry period. The wagon moved on well oiled wheels.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m02",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Push it onto maxRetry before the retry period. March the soldiers past the next hill.",
+      "expect": "Push it onto maxRetryCount before the retry. March the soldiers past the next hill.",
+      "cleaned": "Push it onto maxRetryCount before the retry period. March the soldiers past the next hill.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m03",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Push it onto parseHdr before the retry period. A cup of sugar makes sweet fudge.",
+      "expect": "Push it onto parseHeader before the retry. A cup of sugar makes sweet fudge.",
+      "cleaned": "Push it onto parseHeader before the retry period. A cup of sugar makes sweet fudge.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m04",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Push it onto sendPld before the retry period. Place a rosebush near the porch steps.",
+      "expect": "Push it onto sendPayload before the retry. Place a rosebush near the porch steps.",
+      "cleaned": "Push it onto sendPayload before the retry period. Place a rosebush near the porch steps.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m05",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Push it onto cacheRt before the retry period. Both lost their lives in the raging storm.",
+      "expect": "Push it onto cacheRoot before the retry. Both lost their lives in the raging storm.",
+      "cleaned": "Push it onto cacheRoot before the retry period. Both lost their lives in the raging storm.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m06",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Push it onto beginSess before the retry period. We talked of the side show in the circus.",
+      "expect": "Push it onto beginSession before the retry. We talked of the side show in the circus.",
+      "cleaned": "Push it onto beginSession before the retry period. We talked of the side show in the circus.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m07",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Push it onto flushBuf before the retry period. Use a pencil to write the first draft.",
+      "expect": "Push it onto flushBuffer before the retry. Use a pencil to write the first draft.",
+      "cleaned": "Push it onto flushBuf before the retry period. Use a pencil to write the first draft.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m08",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Push it onto resolveDev before the retry period. He ran half way to the hardware store.",
+      "expect": "Push it onto resolveDevice before the retry. He ran half way to the hardware store.",
+      "cleaned": "Push it onto resolveDevice before the retry period. He ran half way to the hardware store.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m09",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Push it onto decodeFrm before the retry period. A small creek cut across the field.",
+      "expect": "Push it onto decodeFrame before the retry. A small creek cut across the field.",
+      "cleaned": "Push it onto decodeFrame before the retry period. A small creek cut across the field.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m10",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Push it onto warmUp before the retry period. Cars and busses stalled in snow drifts.",
+      "expect": "Push it onto warmUpModel before the retry. Cars and busses stalled in snow drifts.",
+      "cleaned": "Push it onto warmUp before the retry period.\n\nCars and busses stalled in snow drifts.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m11",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Push it onto apiCtrl before the retry period. The set of china hit the floor with a crash.",
+      "expect": "Push it onto APIController before the retry. The set of china hit the floor with a crash.",
+      "cleaned": "Push it onto apiCtrl before the retry period. The set of china hit the floor with a crash.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-00",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Call fetch users on the client, period. This is a grand season for hikes on the road.",
+      "expect": "Call fetchUsers on the client. This is a grand season for hikes on the road.",
+      "cleaned": "Call fetchUsers on the client. This is a grand season for hikes on the road.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-01",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Then fetch users runs twice period. The dune rose from the edge of the water.",
+      "expect": "Then fetchUsers runs twice. The dune rose from the edge of the water.",
+      "cleaned": "Then fetchUsers() runs twice. The dune rose from the edge of the water.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-02",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Call max retry count on the client, period. Those words were the cue for the actor to leave.",
+      "expect": "Call maxRetryCount on the client. Those words were the cue for the actor to leave.",
+      "cleaned": "Call maxRetryCount on the client. Those words were the cue for the actor to leave.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-03",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Then max retry count runs twice period. The two met while playing on the sand.",
+      "expect": "Then maxRetryCount runs twice. The two met while playing on the sand.",
+      "cleaned": "Then maxRetryCount runs twice. The two met while playing on the sand.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-04",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Call parse header on the client, period. The ink stain dried on the finished page.",
+      "expect": "Call parseHeader on the client. The ink stain dried on the finished page.",
+      "cleaned": "Call parseHeader on the client. The ink stain dried on the finished page.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-05",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Then parse header runs twice period. The walled town was seized without a fight.",
+      "expect": "Then parseHeader runs twice. The walled town was seized without a fight.",
+      "cleaned": "Then parseHeader runs twice. The walled town was seized without a fight.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-06",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Call send payload on the client, period. The lease ran out in sixteen weeks.",
+      "expect": "Call sendPayload on the client. The lease ran out in sixteen weeks.",
+      "cleaned": "Call sendPayload on the client. The lease ran out in sixteen weeks.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-07",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Then send payload runs twice period. A tame squirrel makes a nice pet.",
+      "expect": "Then sendPayload runs twice. A tame squirrel makes a nice pet.",
+      "cleaned": "Then sendPayload() runs twice. A tame squirrel makes a nice pet.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-08",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Call cache root on the client, period. The horn of the car woke the sleeping cop.",
+      "expect": "Call cacheRoot on the client. The horn of the car woke the sleeping cop.",
+      "cleaned": "Call cacheRoot on the client. The horn of the car woke the sleeping cop.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-09",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Then cache root runs twice period. The heart beat strongly and with firm strokes.",
+      "expect": "Then cacheRoot runs twice. The heart beat strongly and with firm strokes.",
+      "cleaned": "Then cacheRoot runs twice. The heart beat strongly and with firm strokes.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-10",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Call begin session on the client, period. The pearl was worn in a thin silver ring.",
+      "expect": "Call beginSession on the client. The pearl was worn in a thin silver ring.",
+      "cleaned": "Call beginSession on the client. The pearl was worn in a thin silver ring.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-11",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Then begin session runs twice period. The fruit peel was cut in thick slices.",
+      "expect": "Then beginSession runs twice. The fruit peel was cut in thick slices.",
+      "cleaned": "Then beginSession() runs twice. The fruit peel was cut in thick slices.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-12",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Call flush buffer on the client, period. The Navy attacked the big task force.",
+      "expect": "Call flushBuffer on the client. The Navy attacked the big task force.",
+      "cleaned": "Call flushBuffer on the client. The Navy attacked the big task force.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-13",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Then flush buffer runs twice period. See the cat glaring at the scared mouse.",
+      "expect": "Then flushBuffer runs twice. See the cat glaring at the scared mouse.",
+      "cleaned": "Then flushBuffer runs twice. See the cat glaring at the scared mouse.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-14",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Call resolve device on the client, period. There are more than two factors here.",
+      "expect": "Call resolveDevice on the client. There are more than two factors here.",
+      "cleaned": "Call resolveDevice on the client. There are more than two factors here.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-15",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Then resolve device runs twice period. The hat brim was wide and too droopy.",
+      "expect": "Then resolveDevice runs twice. The hat brim was wide and too droopy.",
+      "cleaned": "Then resolveDevice() runs twice. The hat brim was wide and too droopy.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-16",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Call API controller on the client, period. The lawyer tried to lose his case.",
+      "expect": "Call APIController on the client. The lawyer tried to lose his case.",
+      "cleaned": "Call APIController on the client. The lawyer tried to lose his case.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-17",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Then API controller runs twice period. The grass curled around the fence post.",
+      "expect": "Then APIController runs twice. The grass curled around the fence post.",
+      "cleaned": "Then APIController runs twice. The grass curled around the fence post.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-18",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Call retry budget on the client, period. Cut the pie into large parts.",
+      "expect": "Call retryBudget on the client. Cut the pie into large parts.",
+      "cleaned": "Call retryBudget on the client. Cut the pie into large parts.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-19",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Then retry budget runs twice period. Men strive but seldom get rich.",
+      "expect": "Then retryBudget runs twice. Men strive but seldom get rich.",
+      "cleaned": "Then retryBudget runs twice. Men strive but seldom get rich.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-20",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Call decode frame on the client, period. Always close the barn door tight.",
+      "expect": "Call decodeFrame on the client. Always close the barn door tight.",
+      "cleaned": "Call decodeFrame on the client. Always close the barn door tight.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-21",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Then decode frame runs twice period. He lay prone and hardly moved a limb.",
+      "expect": "Then decodeFrame runs twice. He lay prone and hardly moved a limb.",
+      "cleaned": "Then decodeFrame runs twice. He lay prone and hardly moved a limb.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-22",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Call warm up model on the client, period. The slush lay deep along the street.",
+      "expect": "Call warmUpModel on the client. The slush lay deep along the street.",
+      "cleaned": "Call warmUpModel on the client. The slush lay deep along the street.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-23",
+      "rule": "identifier-from-context",
+      "attempt": 4,
+      "raw": "Then warm up model runs twice period. A wisp of cloud hung in the blue air.",
+      "expect": "Then warmUpModel runs twice. A wisp of cloud hung in the blue air.",
+      "cleaned": "Then warmUpModel runs twice. A wisp of cloud hung in the blue air.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-00",
+      "rule": "dictionary-exactness",
+      "attempt": 5,
+      "raw": "Hoist the load to your left shoulder. I opened ghost tea again.",
+      "expect": "Hoist the load to your left shoulder. I opened Ghostty again.",
+      "cleaned": "Hoist the load to your left shoulder. I opened Ghostty again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-01",
+      "rule": "dictionary-exactness",
+      "attempt": 5,
+      "raw": "A parakeet landed on the fence. Take the winding path to reach the lake.",
+      "expect": "A parakeet landed on the fence. Take the winding path to reach the lake.",
+      "cleaned": "A parakeet landed on the fence. Take the winding path to reach the lake.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-02",
+      "rule": "dictionary-exactness",
+      "attempt": 5,
+      "raw": "Note closely the size of the gas tank. I opened sara bras again.",
+      "expect": "Note closely the size of the gas tank. I opened Cerebras again.",
+      "cleaned": "Note closely the size of the gas tank. I opened Cerebras again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-03",
+      "rule": "dictionary-exactness",
+      "attempt": 5,
+      "raw": "The silence held for a moment. Wipe the grease off his dirty face.",
+      "expect": "The silence held for a moment. Wipe the grease off his dirty face.",
+      "cleaned": "The silence held for a moment. Wipe the grease off his dirty face.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-04",
+      "rule": "dictionary-exactness",
+      "attempt": 5,
+      "raw": "Mend the coat before you go out. I opened para keet again.",
+      "expect": "Mend the coat before you go out. I opened Parakeet again.",
+      "cleaned": "Mend the coat before you go out. I opened Parakeet again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-05",
+      "rule": "dictionary-exactness",
+      "attempt": 5,
+      "raw": "He lost his key chain at the park. The wrist was badly strained and hung limp.",
+      "expect": "He lost his key chain at the park. The wrist was badly strained and hung limp.",
+      "cleaned": "He lost his Keychain at the park. The wrist was badly strained and hung limp.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "dict-06",
+      "rule": "dictionary-exactness",
+      "attempt": 5,
+      "raw": "The stray cat gave birth to kittens. I opened fluid audio again.",
+      "expect": "The stray cat gave birth to kittens. I opened FluidAudio again.",
+      "cleaned": "The stray cat gave birth to kittens. I opened FluidAudio again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-07",
+      "rule": "dictionary-exactness",
+      "attempt": 5,
+      "raw": "They served home brew at the picnic. The young girl gave no clear response.",
+      "expect": "They served home brew at the picnic. The young girl gave no clear response.",
+      "cleaned": "They served Homebrew at the picnic. The young girl gave no clear response.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "dict-08",
+      "rule": "dictionary-exactness",
+      "attempt": 5,
+      "raw": "The meal was cooked before the bell rang. I opened twee story again.",
+      "expect": "The meal was cooked before the bell rang. I opened tuistory again.",
+      "cleaned": "The meal was cooked before the bell rang. I opened tuistory again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-09",
+      "rule": "dictionary-exactness",
+      "attempt": 5,
+      "raw": "The old house looked ghostly at dusk. What joy there is in living.",
+      "expect": "The old house looked ghostly at dusk. What joy there is in living.",
+      "cleaned": "The old house looked ghostly at dusk. What joy there is in living.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-10",
+      "rule": "dictionary-exactness",
+      "attempt": 5,
+      "raw": "A king ruled the state in the early days. I opened x c u i test again.",
+      "expect": "A king ruled the state in the early days. I opened XCUITest again.",
+      "cleaned": "A king ruled the state in the early days. I opened XCUITest again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-11",
+      "rule": "dictionary-exactness",
+      "attempt": 5,
+      "raw": "The lecture covered cerebral blood flow. The ship was torn apart on the sharp reef.",
+      "expect": "The lecture covered cerebral blood flow. The ship was torn apart on the sharp reef.",
+      "cleaned": "The lecture covered cerebral blood flow. The ship was torn apart on the sharp reef.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-12",
+      "rule": "dictionary-exactness",
+      "attempt": 5,
+      "raw": "Sickness kept him home the third week. I opened zig bee again.",
+      "expect": "Sickness kept him home the third week. I opened Zigbee again.",
+      "cleaned": "Sickness kept him home the third week. I opened Zigbee again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-13",
+      "rule": "dictionary-exactness",
+      "attempt": 5,
+      "raw": "A bee zigzagged across the yard. The wide road shimmered in the hot sun.",
+      "expect": "A bee zigzagged across the yard. The wide road shimmered in the hot sun.",
+      "cleaned": "A bee zigzagged across the yard. The wide road shimmered in the hot sun.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-14",
+      "rule": "dictionary-exactness",
+      "attempt": 5,
+      "raw": "The lazy cow lay in the cool grass. I opened llama c p p again.",
+      "expect": "The lazy cow lay in the cool grass. I opened llama.cpp again.",
+      "cleaned": "The lazy cow lay in the cool grass. I opened llama.cpp again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-15",
+      "rule": "dictionary-exactness",
+      "attempt": 5,
+      "raw": "When the bell rang we left. Lift the square stone over the fence.",
+      "expect": "When the bell rang we left. Lift the square stone over the fence.",
+      "cleaned": "When the bell rang, we left. Lift the square stone over the fence.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "dict-16",
+      "rule": "dictionary-exactness",
+      "attempt": 5,
+      "raw": "The rope will bind the seven books at once. I opened sill arrow again.",
+      "expect": "The rope will bind the seven books at once. I opened Silero again.",
+      "cleaned": "The rope will bind the seven books at once. I opened Silero again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-17",
+      "rule": "dictionary-exactness",
+      "attempt": 5,
+      "raw": "The current was swift under the bridge. Hop over the fence and plunge in.",
+      "expect": "The current was swift under the bridge. Hop over the fence and plunge in.",
+      "cleaned": "The current was swift under the bridge. Hop over the fence and plunge in.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-18",
+      "rule": "dictionary-exactness",
+      "attempt": 5,
+      "raw": "The friendly gang left the drug store. I opened mini whisper again.",
+      "expect": "The friendly gang left the drug store. I opened MiniWhisper again.",
+      "cleaned": "The friendly gang left the drug store. I opened MiniWhisper again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-19",
+      "rule": "dictionary-exactness",
+      "attempt": 5,
+      "raw": "The tea was cold by then. Mesh wire keeps chicks inside.",
+      "expect": "The tea was cold by then. Mesh wire keeps chicks inside.",
+      "cleaned": "The tea was cold by then. Mesh wire keeps chicks inside.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-20",
+      "rule": "dictionary-exactness",
+      "attempt": 5,
+      "raw": "The frosty air passed through the coat. I opened key chain again.",
+      "expect": "The frosty air passed through the coat. I opened Keychain again.",
+      "cleaned": "The frosty air passed through the coat. I opened Keychain again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-21",
+      "rule": "dictionary-exactness",
+      "attempt": 5,
+      "raw": "The colonel gave the order. The crooked maze failed to fool the mouse.",
+      "expect": "The colonel gave the order. The crooked maze failed to fool the mouse.",
+      "cleaned": "The colonel gave the order. The crooked maze failed to fool the mouse.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-22",
+      "rule": "dictionary-exactness",
+      "attempt": 5,
+      "raw": "Adding fast leads to wrong sums. I opened home brew again.",
+      "expect": "Adding fast leads to wrong sums. I opened Homebrew again.",
+      "cleaned": "Adding fast leads to wrong sums. I opened Homebrew again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-23",
+      "rule": "dictionary-exactness",
+      "attempt": 5,
+      "raw": "She paid the whole thing in cash. The show was a flop from the very start.",
+      "expect": "She paid the whole thing in cash. The show was a flop from the very start.",
+      "cleaned": "She paid the whole thing in cash. The show was a flop from the very start.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m00",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Push it onto retryQ before the retry period. A saw is a tool used for making boards.",
+      "expect": "Push it onto RetryQueue before the retry. A saw is a tool used for making boards.",
+      "cleaned": "Push it onto retryQ before the retry period.\n\nA saw is a tool used for making boards.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m01",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Push it onto fetchUsr before the retry period. The wagon moved on well oiled wheels.",
+      "expect": "Push it onto fetchUsers before the retry. The wagon moved on well oiled wheels.",
+      "cleaned": "Push it onto fetchUsers before the retry period. The wagon moved on well oiled wheels.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m02",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Push it onto maxRetry before the retry period. March the soldiers past the next hill.",
+      "expect": "Push it onto maxRetryCount before the retry. March the soldiers past the next hill.",
+      "cleaned": "Push it onto maxRetryCount before the retry period. March the soldiers past the next hill.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m03",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Push it onto parseHdr before the retry period. A cup of sugar makes sweet fudge.",
+      "expect": "Push it onto parseHeader before the retry. A cup of sugar makes sweet fudge.",
+      "cleaned": "Push it onto parseHeader before the retry period. A cup of sugar makes sweet fudge.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m04",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Push it onto sendPld before the retry period. Place a rosebush near the porch steps.",
+      "expect": "Push it onto sendPayload before the retry. Place a rosebush near the porch steps.",
+      "cleaned": "Push it onto sendPayload before the retry period. Place a rosebush near the porch steps.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m05",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Push it onto cacheRt before the retry period. Both lost their lives in the raging storm.",
+      "expect": "Push it onto cacheRoot before the retry. Both lost their lives in the raging storm.",
+      "cleaned": "Push it onto cacheRoot before the retry period. Both lost their lives in the raging storm.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m06",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Push it onto beginSess before the retry period. We talked of the side show in the circus.",
+      "expect": "Push it onto beginSession before the retry. We talked of the side show in the circus.",
+      "cleaned": "Push it onto beginSession before the retry period. We talked of the side show in the circus.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m07",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Push it onto flushBuf before the retry period. Use a pencil to write the first draft.",
+      "expect": "Push it onto flushBuffer before the retry. Use a pencil to write the first draft.",
+      "cleaned": "Push it onto flushBuf before the retry period. Use a pencil to write the first draft.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m08",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Push it onto resolveDev before the retry period. He ran half way to the hardware store.",
+      "expect": "Push it onto resolveDevice before the retry. He ran half way to the hardware store.",
+      "cleaned": "Push it onto resolveDevice before the retry period. He ran halfway to the hardware store.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m09",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Push it onto decodeFrm before the retry period. A small creek cut across the field.",
+      "expect": "Push it onto decodeFrame before the retry. A small creek cut across the field.",
+      "cleaned": "Push it onto decodeFrame before the retry period. A small creek cut across the field.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-m10",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Push it onto warmUp before the retry period. Cars and busses stalled in snow drifts.",
+      "expect": "Push it onto warmUpModel before the retry. Cars and busses stalled in snow drifts.",
+      "cleaned": "Push it onto warmUp before the retry period.\n\nCars and busses stalled in snow drifts.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-m11",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Push it onto apiCtrl before the retry period. The set of china hit the floor with a crash.",
+      "expect": "Push it onto APIController before the retry. The set of china hit the floor with a crash.",
+      "cleaned": "Push it onto apiCtrl before the retry period. The set of china hit the floor with a crash.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "ident-00",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Call fetch users on the client, period. This is a grand season for hikes on the road.",
+      "expect": "Call fetchUsers on the client. This is a grand season for hikes on the road.",
+      "cleaned": "Call fetchUsers on the client. This is a grand season for hikes on the road.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-01",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Then fetch users runs twice period. The dune rose from the edge of the water.",
+      "expect": "Then fetchUsers runs twice. The dune rose from the edge of the water.",
+      "cleaned": "Then fetchUsers() runs twice. The dune rose from the edge of the water.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-02",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Call max retry count on the client, period. Those words were the cue for the actor to leave.",
+      "expect": "Call maxRetryCount on the client. Those words were the cue for the actor to leave.",
+      "cleaned": "Call maxRetryCount on the client. Those words were the cue for the actor to leave.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-03",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Then max retry count runs twice period. The two met while playing on the sand.",
+      "expect": "Then maxRetryCount runs twice. The two met while playing on the sand.",
+      "cleaned": "Then maxRetryCount runs twice. The two met while playing on the sand.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-04",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Call parse header on the client, period. The ink stain dried on the finished page.",
+      "expect": "Call parseHeader on the client. The ink stain dried on the finished page.",
+      "cleaned": "Call parseHeader on the client. The ink stain dried on the finished page.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-05",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Then parse header runs twice period. The walled town was seized without a fight.",
+      "expect": "Then parseHeader runs twice. The walled town was seized without a fight.",
+      "cleaned": "Then parseHeader runs twice. The walled town was seized without a fight.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-06",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Call send payload on the client, period. The lease ran out in sixteen weeks.",
+      "expect": "Call sendPayload on the client. The lease ran out in sixteen weeks.",
+      "cleaned": "Call sendPayload on the client. The lease ran out in sixteen weeks.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-07",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Then send payload runs twice period. A tame squirrel makes a nice pet.",
+      "expect": "Then sendPayload runs twice. A tame squirrel makes a nice pet.",
+      "cleaned": "Then sendPayload() runs twice. A tame squirrel makes a nice pet.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-08",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Call cache root on the client, period. The horn of the car woke the sleeping cop.",
+      "expect": "Call cacheRoot on the client. The horn of the car woke the sleeping cop.",
+      "cleaned": "Call cacheRoot on the client. The horn of the car woke the sleeping cop.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-09",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Then cache root runs twice period. The heart beat strongly and with firm strokes.",
+      "expect": "Then cacheRoot runs twice. The heart beat strongly and with firm strokes.",
+      "cleaned": "Then cacheRoot runs twice. The heart beat strongly and with firm strokes.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-10",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Call begin session on the client, period. The pearl was worn in a thin silver ring.",
+      "expect": "Call beginSession on the client. The pearl was worn in a thin silver ring.",
+      "cleaned": "Call beginSession on the client, period. The pearl was worn in a thin silver ring.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-11",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Then begin session runs twice period. The fruit peel was cut in thick slices.",
+      "expect": "Then beginSession runs twice. The fruit peel was cut in thick slices.",
+      "cleaned": "Then beginSession() runs twice. The fruit peel was cut in thick slices.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-12",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Call flush buffer on the client, period. The Navy attacked the big task force.",
+      "expect": "Call flushBuffer on the client. The Navy attacked the big task force.",
+      "cleaned": "Call flushBuffer on the client. The Navy attacked the big task force.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-13",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Then flush buffer runs twice period. See the cat glaring at the scared mouse.",
+      "expect": "Then flushBuffer runs twice. See the cat glaring at the scared mouse.",
+      "cleaned": "Then flushBuffer() runs twice. See the cat glaring at the scared mouse.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-14",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Call resolve device on the client, period. There are more than two factors here.",
+      "expect": "Call resolveDevice on the client. There are more than two factors here.",
+      "cleaned": "Call resolveDevice on the client. There are more than two factors here.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-15",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Then resolve device runs twice period. The hat brim was wide and too droopy.",
+      "expect": "Then resolveDevice runs twice. The hat brim was wide and too droopy.",
+      "cleaned": "Then resolveDevice runs twice. The hat brim was wide and too droopy.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-16",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Call API controller on the client, period. The lawyer tried to lose his case.",
+      "expect": "Call APIController on the client. The lawyer tried to lose his case.",
+      "cleaned": "Call APIController on the client. The lawyer tried to lose his case.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-17",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Then API controller runs twice period. The grass curled around the fence post.",
+      "expect": "Then APIController runs twice. The grass curled around the fence post.",
+      "cleaned": "Then APIController runs twice. The grass curled around the fence post.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-18",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Call retry budget on the client, period. Cut the pie into large parts.",
+      "expect": "Call retryBudget on the client. Cut the pie into large parts.",
+      "cleaned": "Call retryBudget on the client.\n\nCut the pie into large parts.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "ident-19",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Then retry budget runs twice period. Men strive but seldom get rich.",
+      "expect": "Then retryBudget runs twice. Men strive but seldom get rich.",
+      "cleaned": "Then retryBudget runs twice. Men strive but seldom get rich.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-20",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Call decode frame on the client, period. Always close the barn door tight.",
+      "expect": "Call decodeFrame on the client. Always close the barn door tight.",
+      "cleaned": "Call decodeFrame on the client. Always close the barn door tight.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-21",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Then decode frame runs twice period. He lay prone and hardly moved a limb.",
+      "expect": "Then decodeFrame runs twice. He lay prone and hardly moved a limb.",
+      "cleaned": "Then decodeFrame runs twice. He lay prone and hardly moved a limb.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-22",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Call warm up model on the client, period. The slush lay deep along the street.",
+      "expect": "Call warmUpModel on the client. The slush lay deep along the street.",
+      "cleaned": "Call warmUpModel on the client. The slush lay deep along the street.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "ident-23",
+      "rule": "identifier-from-context",
+      "attempt": 5,
+      "raw": "Then warm up model runs twice period. A wisp of cloud hung in the blue air.",
+      "expect": "Then warmUpModel runs twice. A wisp of cloud hung in the blue air.",
+      "cleaned": "Then warmUpModel runs twice. A wisp of cloud hung in the blue air.",
+      "match": true,
+      "obeyed": true
+    }
+  ]
+}

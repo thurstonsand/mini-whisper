@@ -1,0 +1,1269 @@
+{
+  "label": "c4-both-no-list-layout-cerebras",
+  "model": "gpt-oss-120b",
+  "prompt": "../prompt-tuning-r3/candidates/c4-both-no-list.txt",
+  "raw": "../prompt-tuning-r3/stage3-layout-raw.jsonl",
+  "bundleID": null,
+  "scores": [
+    7,
+    6,
+    6,
+    4,
+    3,
+    5
+  ],
+  "entries": 16,
+  "failCounts": {
+    "layout-01": 5,
+    "layout-02": 5,
+    "layout-03": 1,
+    "layout-04": 6,
+    "layout-05": 3,
+    "layout-06": 6,
+    "layout-07": 6,
+    "layout-08": 6,
+    "layout-09": 6,
+    "layout-10": 6,
+    "layout-13": 3,
+    "layout-15": 6,
+    "layout-16": 6
+  },
+  "repeats": [
+    [
+      {
+        "id": "layout-01",
+        "tags": [
+          "layout",
+          "no-break"
+        ],
+        "say": "I think the retry logic is wrong. It backs off on the wrong error class. We should only retry on timeouts, not on a four hundred.",
+        "expect": "I think the retry logic is wrong. It backs off on the wrong error class. We should only retry on timeouts, not on a 400.",
+        "raw": "I think the retry logic is wrong, it backs off on the wrong error class. We should only retry on timeouts, not on a 400.",
+        "cleaned": "I think the retry logic is wrong. It backs off on the wrong error class. We should only retry on timeouts, not on a 400.",
+        "match": true
+      },
+      {
+        "id": "layout-02",
+        "tags": [
+          "layout",
+          "no-break",
+          "disfluency"
+        ],
+        "say": "Okay so um the picker is fine but the details underneath it are doing too much. Let's pull the storage section out into its own thing. I don't want to scroll past four sections to find it.",
+        "expect": "Okay, so the picker is fine, but the details underneath it are doing too much. Let's pull the storage section out into its own thing. I don't want to scroll past four sections to find it.",
+        "raw": "Okay, so um the picker is fine, but the details underneath it are doing too much. Let's pull the storage section out into its own thing. I don't want to scroll past four sections to find it.",
+        "cleaned": "The picker is fine, but the details underneath it are doing too much. Let's pull the storage section out into its own thing. I don't want to scroll past four sections to find it.",
+        "match": false
+      },
+      {
+        "id": "layout-03",
+        "tags": [
+          "layout",
+          "no-break"
+        ],
+        "say": "Can you check whether the download resumes after a relaunch. I killed the app halfway through and I'm not sure the partial file survives. If it doesn't that's a bug worth fixing before anything else.",
+        "expect": "Can you check whether the download resumes after a relaunch? I killed the app halfway through and I'm not sure the partial file survives. If it doesn't, that's a bug worth fixing before anything else.",
+        "raw": "Can you check whether the download resumes after a relaunch? I killed the app halfway through and I'm not sure the partial file survives. If it doesn't, that's a bug worth fixing before anything else",
+        "cleaned": "Can you check whether the download resumes after a relaunch? I killed the app halfway through and I'm not sure the partial file survives. If it doesn't, that's a bug worth fixing before anything else.",
+        "match": true
+      },
+      {
+        "id": "layout-04",
+        "tags": [
+          "layout",
+          "no-break",
+          "identifier"
+        ],
+        "say": "The transcript pipeline is the only caller of clean up conditioning, so moving it is cheap. Do that first. Then the history feature can stop building one of its own.",
+        "expect": "The TranscriptPipeline is the only caller of CleanupConditioning, so moving it is cheap. Do that first. Then HistoryFeature can stop building one of its own.",
+        "raw": "The transcript pipeline is the only caller of cleanup conditioning, so moving it is cheap. Do that first. Then the history feature can stop building one of its own",
+        "cleaned": "The transcript pipeline is the only caller of cleanup conditioning, so moving it is cheap. Do that first. Then the history feature can stop building one of its own.",
+        "match": false
+      },
+      {
+        "id": "layout-05",
+        "tags": [
+          "layout",
+          "no-break",
+          "self-correction"
+        ],
+        "say": "Let's ship the pop up variant, mm no, the row variant, because the taglines actually get compared there. It costs more vertical space but that's the trade. We can revisit if the lineup gets past five.",
+        "expect": "Let's ship the row variant, because the taglines actually get compared there. It costs more vertical space, but that's the trade. We can revisit if the lineup gets past five.",
+        "raw": "Let's ship the pop-up variant. No, the row variant, because the taglines actually get compared there. It costs more vertical space, but that's the trade. We can revisit if the lineup gets past five.",
+        "cleaned": "Let's ship the row variant, because the taglines actually get compared there. It costs more vertical space, but that's the trade. We can revisit if the lineup gets past five.",
+        "match": true
+      },
+      {
+        "id": "layout-06",
+        "tags": [
+          "layout",
+          "requested-break",
+          "spoken-punctuation"
+        ],
+        "say": "Here's the plan new line first we fix the expectations new line then we run the sweep new line then we decide.",
+        "expect": "Here's the plan\nFirst we fix the expectations\nThen we run the sweep\nThen we decide.",
+        "raw": "Here's the plan, new line. First, we fix the expectations, new line. Then we run the sweep, new line. Then we decide.",
+        "cleaned": "Here's the plan,\nFirst, we fix the expectations,\nThen we run the sweep,\nThen we decide.",
+        "match": false
+      },
+      {
+        "id": "layout-07",
+        "tags": [
+          "layout",
+          "requested-break",
+          "spoken-punctuation"
+        ],
+        "say": "I looked at the numbers again and the offline profile is fine as it stands new paragraph what worries me is the accuracy profile, because it sends audio off the machine and nothing in the UI says so.",
+        "expect": "I looked at the numbers again and the offline profile is fine as it stands.\n\nWhat worries me is the accuracy profile, because it sends audio off the machine and nothing in the UI says so.",
+        "raw": "I looked at the numbers again and the offline profile is fine as it stands. New paragraph. What worries me is the accuracy profile because it sends audio off the machine and nothing in the UI says so.",
+        "cleaned": "I looked at the numbers again and the offline profile is fine as it stands.\n\nWhat worries me is the accuracy profile because it sends audio off the machine and nothing in the UI says so.",
+        "match": false
+      },
+      {
+        "id": "layout-08",
+        "tags": [
+          "layout",
+          "list"
+        ],
+        "say": "Three things I want in the pane. One, the picker. Two, the selected profile's details. Three, a place that says what's on disk and lets me delete it.",
+        "expect": "Three things I want in the pane:\n\n1. The picker\n2. The selected profile's details\n3. A place that says what's on disk and lets me delete it",
+        "raw": "Three things I want in the pane. One, the picker. Two, the selected profile's details. Three, a place that says what's on disk and lets me delete it.",
+        "cleaned": "Three things I want in the pane. One, the picker. Two, the selected profile's details. Three, a place that says what's on disk and lets me delete it.",
+        "match": false
+      },
+      {
+        "id": "layout-09",
+        "tags": [
+          "layout",
+          "no-break",
+          "numbers"
+        ],
+        "say": "The fast profile lands around four hundred twenty milliseconds and the accurate one is closer to two and a half seconds. That's a six x difference for two entries. I'd take the fast one for daily use.",
+        "expect": "The fast profile lands around 420 milliseconds and the accurate one is closer to 2.5 seconds. That's a 6x difference for two entries. I'd take the fast one for daily use.",
+        "raw": "The fast profile lands around 420 milliseconds, and the accurate one is closer to 2.5 seconds. That's a six times difference for two entries. I'd take the fast one for daily use.",
+        "cleaned": "The fast profile lands around 420 milliseconds, and the accurate one is closer to 2.5 seconds. That's a six times difference for two entries. I'd take the fast one for daily use.",
+        "match": false
+      },
+      {
+        "id": "layout-10",
+        "tags": [
+          "layout",
+          "no-break",
+          "long"
+        ],
+        "say": "So the thing I keep running into is that when I dictate at a coding agent the field context is empty, because the prompt box is empty, that's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.",
+        "expect": "So the thing I keep running into is that when I dictate at a coding agent the field context is empty, because the prompt box is empty — that's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.",
+        "raw": "So, the thing I keep running into is that when I dictate at a coding agent, the field context is empty because the prompt box is empty. That's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.",
+        "cleaned": "The thing I keep running into is that when I dictate at a coding agent, the field context is empty because the prompt box is empty. That's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen; I think we fix it by letting the agent tell us.",
+        "match": false
+      },
+      {
+        "id": "layout-11",
+        "tags": [
+          "layout",
+          "hesitation"
+        ],
+        "say": "I couldn't turn off the dictionary mm sidecar model without also losing the terms in the prompt.",
+        "expect": "I couldn't turn off the dictionary sidecar model without also losing the terms in the prompt.",
+        "raw": "I couldn't turn off the dictionary sidecar model without also losing the terms in the prompt.",
+        "cleaned": "I couldn't turn off the dictionary sidecar model without also losing the terms in the prompt.",
+        "match": true
+      },
+      {
+        "id": "layout-12",
+        "tags": [
+          "layout",
+          "hesitation"
+        ],
+        "say": "The gate is, mm, five hundred milliseconds of duration and then one classification at release.",
+        "expect": "The gate is 500 milliseconds of duration and then one classification at release.",
+        "raw": "The gate is uh 500 milliseconds of duration and then one classification at release.",
+        "cleaned": "The gate is 500 milliseconds of duration and then one classification at release.",
+        "match": true
+      },
+      {
+        "id": "layout-13",
+        "tags": [
+          "layout",
+          "hesitation",
+          "self-correction"
+        ],
+        "say": "Put it in the settings pane, mm, no, the profiles pane, since that's where the models live now.",
+        "expect": "Put it in the Profiles pane, since that's where the models live now.",
+        "raw": "Put it in the Settings pane, n no, the Profiles pane, since that's where the models live now",
+        "cleaned": "Put it in the Profiles pane, since that's where the models live now.",
+        "match": true
+      },
+      {
+        "id": "layout-14",
+        "tags": [
+          "layout",
+          "no-break",
+          "rule"
+        ],
+        "say": "Write three sentences about why this matters and put each one on its own line.",
+        "expect": "Write three sentences about why this matters and put each one on its own line.",
+        "raw": "Write three sentences about why this matters and put each one on its own line.",
+        "cleaned": "Write three sentences about why this matters and put each one on its own line.",
+        "match": true
+      },
+      {
+        "id": "layout-15",
+        "tags": [
+          "layout",
+          "no-break",
+          "long",
+          "disfluency"
+        ],
+        "say": "I want to talk through the routing problem because I don't think either shape escapes it. If the provider pushes, we have to associate that process with whatever is frontmost, and that's not easy. If we pull at the end of the dictation, we know the frontmost app but we still have to work out which process to ask. It's the same problem twice. That's why I think it needs a spike before it needs a design.",
+        "expect": "I want to talk through the routing problem, because I don't think either shape escapes it. If the provider pushes, we have to associate that process with whatever is frontmost, and that's not easy. If we pull at the end of the dictation, we know the frontmost app but we still have to work out which process to ask. It's the same problem twice. That's why I think it needs a spike before it needs a design.",
+        "raw": "I want to talk through the routing problem because I don't think either shape escapes it. If the provider pushes, we have to associate that process with whatever is frontmost, and that's not easy. If we pull at the end of the dictation, we know the frontmost app, but we still have to work out which process to ask. It's the same problem twice. That's why I think it needs a spike before it needs a design",
+        "cleaned": "I want to talk through the routing problem because I don't think either shape escapes it. If the provider pushes, we have to associate that process with whatever is frontmost, and that's not easy. If we pull at the end of the dictation, we know the frontmost app, but we still have to work out which process to ask. It's the same problem twice. That's why I think it needs a spike before it needs a design.",
+        "match": false
+      },
+      {
+        "id": "layout-16",
+        "tags": [
+          "layout",
+          "requested-break",
+          "list"
+        ],
+        "say": "Reply with something like, thanks for the writeup new line I have two questions new line one, does the key survive a channel reset, and two, what happens when the endpoint is down.",
+        "expect": "Reply with something like: thanks for the writeup\nI have two questions\n1. Does the key survive a channel reset?\n2. What happens when the endpoint is down?",
+        "raw": "Reply with something like Thanks for the write-up, newline. I have two questions, new line. One, does the key survive a channel reset? And two, what happens when the endpoint is down?",
+        "cleaned": "Reply with something like Thanks for the write-up,\nI have two questions,\nOne, does the key survive a channel reset? And two, what happens when the endpoint is down?",
+        "match": false
+      }
+    ],
+    [
+      {
+        "id": "layout-01",
+        "tags": [
+          "layout",
+          "no-break"
+        ],
+        "say": "I think the retry logic is wrong. It backs off on the wrong error class. We should only retry on timeouts, not on a four hundred.",
+        "expect": "I think the retry logic is wrong. It backs off on the wrong error class. We should only retry on timeouts, not on a 400.",
+        "raw": "I think the retry logic is wrong, it backs off on the wrong error class. We should only retry on timeouts, not on a 400.",
+        "cleaned": "I think the retry logic is wrong, it backs off on the wrong error class. We should only retry on timeouts, not on a 400.",
+        "match": false
+      },
+      {
+        "id": "layout-02",
+        "tags": [
+          "layout",
+          "no-break",
+          "disfluency"
+        ],
+        "say": "Okay so um the picker is fine but the details underneath it are doing too much. Let's pull the storage section out into its own thing. I don't want to scroll past four sections to find it.",
+        "expect": "Okay, so the picker is fine, but the details underneath it are doing too much. Let's pull the storage section out into its own thing. I don't want to scroll past four sections to find it.",
+        "raw": "Okay, so um the picker is fine, but the details underneath it are doing too much. Let's pull the storage section out into its own thing. I don't want to scroll past four sections to find it.",
+        "cleaned": "The picker is fine, but the details underneath it are doing too much. Let's pull the storage section out into its own thing. I don't want to scroll past four sections to find it.",
+        "match": false
+      },
+      {
+        "id": "layout-03",
+        "tags": [
+          "layout",
+          "no-break"
+        ],
+        "say": "Can you check whether the download resumes after a relaunch. I killed the app halfway through and I'm not sure the partial file survives. If it doesn't that's a bug worth fixing before anything else.",
+        "expect": "Can you check whether the download resumes after a relaunch? I killed the app halfway through and I'm not sure the partial file survives. If it doesn't, that's a bug worth fixing before anything else.",
+        "raw": "Can you check whether the download resumes after a relaunch? I killed the app halfway through and I'm not sure the partial file survives. If it doesn't, that's a bug worth fixing before anything else",
+        "cleaned": "Can you check whether the download resumes after a relaunch? I killed the app halfway through and I'm not sure the partial file survives. If it doesn't, that's a bug worth fixing before anything else.",
+        "match": true
+      },
+      {
+        "id": "layout-04",
+        "tags": [
+          "layout",
+          "no-break",
+          "identifier"
+        ],
+        "say": "The transcript pipeline is the only caller of clean up conditioning, so moving it is cheap. Do that first. Then the history feature can stop building one of its own.",
+        "expect": "The TranscriptPipeline is the only caller of CleanupConditioning, so moving it is cheap. Do that first. Then HistoryFeature can stop building one of its own.",
+        "raw": "The transcript pipeline is the only caller of cleanup conditioning, so moving it is cheap. Do that first. Then the history feature can stop building one of its own",
+        "cleaned": "The transcript pipeline is the only caller of cleanup conditioning, so moving it is cheap. Do that first. Then the history feature can stop building one of its own.",
+        "match": false
+      },
+      {
+        "id": "layout-05",
+        "tags": [
+          "layout",
+          "no-break",
+          "self-correction"
+        ],
+        "say": "Let's ship the pop up variant, mm no, the row variant, because the taglines actually get compared there. It costs more vertical space but that's the trade. We can revisit if the lineup gets past five.",
+        "expect": "Let's ship the row variant, because the taglines actually get compared there. It costs more vertical space, but that's the trade. We can revisit if the lineup gets past five.",
+        "raw": "Let's ship the pop-up variant. No, the row variant, because the taglines actually get compared there. It costs more vertical space, but that's the trade. We can revisit if the lineup gets past five.",
+        "cleaned": "Let's ship the row variant, because the taglines actually get compared there. It costs more vertical space, but that's the trade. We can revisit if the lineup gets past five.",
+        "match": true
+      },
+      {
+        "id": "layout-06",
+        "tags": [
+          "layout",
+          "requested-break",
+          "spoken-punctuation"
+        ],
+        "say": "Here's the plan new line first we fix the expectations new line then we run the sweep new line then we decide.",
+        "expect": "Here's the plan\nFirst we fix the expectations\nThen we run the sweep\nThen we decide.",
+        "raw": "Here's the plan, new line. First, we fix the expectations, new line. Then we run the sweep, new line. Then we decide.",
+        "cleaned": "Here's the plan\nFirst, we fix the expectations\nThen we run the sweep\nThen we decide.",
+        "match": false
+      },
+      {
+        "id": "layout-07",
+        "tags": [
+          "layout",
+          "requested-break",
+          "spoken-punctuation"
+        ],
+        "say": "I looked at the numbers again and the offline profile is fine as it stands new paragraph what worries me is the accuracy profile, because it sends audio off the machine and nothing in the UI says so.",
+        "expect": "I looked at the numbers again and the offline profile is fine as it stands.\n\nWhat worries me is the accuracy profile, because it sends audio off the machine and nothing in the UI says so.",
+        "raw": "I looked at the numbers again and the offline profile is fine as it stands. New paragraph. What worries me is the accuracy profile because it sends audio off the machine and nothing in the UI says so.",
+        "cleaned": "I looked at the numbers again and the offline profile is fine as it stands.\n\nWhat worries me is the accuracy profile because it sends audio off the machine and nothing in the UI says so.",
+        "match": false
+      },
+      {
+        "id": "layout-08",
+        "tags": [
+          "layout",
+          "list"
+        ],
+        "say": "Three things I want in the pane. One, the picker. Two, the selected profile's details. Three, a place that says what's on disk and lets me delete it.",
+        "expect": "Three things I want in the pane:\n\n1. The picker\n2. The selected profile's details\n3. A place that says what's on disk and lets me delete it",
+        "raw": "Three things I want in the pane. One, the picker. Two, the selected profile's details. Three, a place that says what's on disk and lets me delete it.",
+        "cleaned": "Three things I want in the pane. One, the picker. Two, the selected profile's details. Three, a place that says what's on disk and lets me delete it.",
+        "match": false
+      },
+      {
+        "id": "layout-09",
+        "tags": [
+          "layout",
+          "no-break",
+          "numbers"
+        ],
+        "say": "The fast profile lands around four hundred twenty milliseconds and the accurate one is closer to two and a half seconds. That's a six x difference for two entries. I'd take the fast one for daily use.",
+        "expect": "The fast profile lands around 420 milliseconds and the accurate one is closer to 2.5 seconds. That's a 6x difference for two entries. I'd take the fast one for daily use.",
+        "raw": "The fast profile lands around 420 milliseconds, and the accurate one is closer to 2.5 seconds. That's a six times difference for two entries. I'd take the fast one for daily use.",
+        "cleaned": "The fast profile lands around 420 milliseconds, and the accurate one is closer to 2.5 seconds. That's a six times difference for two entries. I'd take the fast one for daily use.",
+        "match": false
+      },
+      {
+        "id": "layout-10",
+        "tags": [
+          "layout",
+          "no-break",
+          "long"
+        ],
+        "say": "So the thing I keep running into is that when I dictate at a coding agent the field context is empty, because the prompt box is empty, that's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.",
+        "expect": "So the thing I keep running into is that when I dictate at a coding agent the field context is empty, because the prompt box is empty — that's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.",
+        "raw": "So, the thing I keep running into is that when I dictate at a coding agent, the field context is empty because the prompt box is empty. That's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.",
+        "cleaned": "So, the thing I keep running into is that when I dictate at a coding agent, the field context is empty because the prompt box is empty. That's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.",
+        "match": false
+      },
+      {
+        "id": "layout-11",
+        "tags": [
+          "layout",
+          "hesitation"
+        ],
+        "say": "I couldn't turn off the dictionary mm sidecar model without also losing the terms in the prompt.",
+        "expect": "I couldn't turn off the dictionary sidecar model without also losing the terms in the prompt.",
+        "raw": "I couldn't turn off the dictionary sidecar model without also losing the terms in the prompt.",
+        "cleaned": "I couldn't turn off the dictionary sidecar model without also losing the terms in the prompt.",
+        "match": true
+      },
+      {
+        "id": "layout-12",
+        "tags": [
+          "layout",
+          "hesitation"
+        ],
+        "say": "The gate is, mm, five hundred milliseconds of duration and then one classification at release.",
+        "expect": "The gate is 500 milliseconds of duration and then one classification at release.",
+        "raw": "The gate is uh 500 milliseconds of duration and then one classification at release.",
+        "cleaned": "The gate is 500 milliseconds of duration and then one classification at release.",
+        "match": true
+      },
+      {
+        "id": "layout-13",
+        "tags": [
+          "layout",
+          "hesitation",
+          "self-correction"
+        ],
+        "say": "Put it in the settings pane, mm, no, the profiles pane, since that's where the models live now.",
+        "expect": "Put it in the Profiles pane, since that's where the models live now.",
+        "raw": "Put it in the Settings pane, n no, the Profiles pane, since that's where the models live now",
+        "cleaned": "Put it in the Profiles pane, since that's where the models live now.",
+        "match": true
+      },
+      {
+        "id": "layout-14",
+        "tags": [
+          "layout",
+          "no-break",
+          "rule"
+        ],
+        "say": "Write three sentences about why this matters and put each one on its own line.",
+        "expect": "Write three sentences about why this matters and put each one on its own line.",
+        "raw": "Write three sentences about why this matters and put each one on its own line.",
+        "cleaned": "Write three sentences about why this matters and put each one on its own line.",
+        "match": true
+      },
+      {
+        "id": "layout-15",
+        "tags": [
+          "layout",
+          "no-break",
+          "long",
+          "disfluency"
+        ],
+        "say": "I want to talk through the routing problem because I don't think either shape escapes it. If the provider pushes, we have to associate that process with whatever is frontmost, and that's not easy. If we pull at the end of the dictation, we know the frontmost app but we still have to work out which process to ask. It's the same problem twice. That's why I think it needs a spike before it needs a design.",
+        "expect": "I want to talk through the routing problem, because I don't think either shape escapes it. If the provider pushes, we have to associate that process with whatever is frontmost, and that's not easy. If we pull at the end of the dictation, we know the frontmost app but we still have to work out which process to ask. It's the same problem twice. That's why I think it needs a spike before it needs a design.",
+        "raw": "I want to talk through the routing problem because I don't think either shape escapes it. If the provider pushes, we have to associate that process with whatever is frontmost, and that's not easy. If we pull at the end of the dictation, we know the frontmost app, but we still have to work out which process to ask. It's the same problem twice. That's why I think it needs a spike before it needs a design",
+        "cleaned": "I want to talk through the routing problem because I don't think either shape escapes it. If the provider pushes, we have to associate that process with whatever is frontmost, and that's not easy. If we pull at the end of the dictation, we know the frontmost app, but we still have to work out which process to ask. It's the same problem twice. That's why I think it needs a spike before it needs a design.",
+        "match": false
+      },
+      {
+        "id": "layout-16",
+        "tags": [
+          "layout",
+          "requested-break",
+          "list"
+        ],
+        "say": "Reply with something like, thanks for the writeup new line I have two questions new line one, does the key survive a channel reset, and two, what happens when the endpoint is down.",
+        "expect": "Reply with something like: thanks for the writeup\nI have two questions\n1. Does the key survive a channel reset?\n2. What happens when the endpoint is down?",
+        "raw": "Reply with something like Thanks for the write-up, newline. I have two questions, new line. One, does the key survive a channel reset? And two, what happens when the endpoint is down?",
+        "cleaned": "Thanks for the write-up\nI have two questions\nOne, does the key survive a channel reset? And two, what happens when the endpoint is down?",
+        "match": false
+      }
+    ],
+    [
+      {
+        "id": "layout-01",
+        "tags": [
+          "layout",
+          "no-break"
+        ],
+        "say": "I think the retry logic is wrong. It backs off on the wrong error class. We should only retry on timeouts, not on a four hundred.",
+        "expect": "I think the retry logic is wrong. It backs off on the wrong error class. We should only retry on timeouts, not on a 400.",
+        "raw": "I think the retry logic is wrong, it backs off on the wrong error class. We should only retry on timeouts, not on a 400.",
+        "cleaned": "I think the retry logic is wrong, it backs off on the wrong error class. We should only retry on timeouts, not on a 400.",
+        "match": false
+      },
+      {
+        "id": "layout-02",
+        "tags": [
+          "layout",
+          "no-break",
+          "disfluency"
+        ],
+        "say": "Okay so um the picker is fine but the details underneath it are doing too much. Let's pull the storage section out into its own thing. I don't want to scroll past four sections to find it.",
+        "expect": "Okay, so the picker is fine, but the details underneath it are doing too much. Let's pull the storage section out into its own thing. I don't want to scroll past four sections to find it.",
+        "raw": "Okay, so um the picker is fine, but the details underneath it are doing too much. Let's pull the storage section out into its own thing. I don't want to scroll past four sections to find it.",
+        "cleaned": "The picker is fine, but the details underneath it are doing too much. Let's pull the storage section out into its own thing. I don't want to scroll past four sections to find it.",
+        "match": false
+      },
+      {
+        "id": "layout-03",
+        "tags": [
+          "layout",
+          "no-break"
+        ],
+        "say": "Can you check whether the download resumes after a relaunch. I killed the app halfway through and I'm not sure the partial file survives. If it doesn't that's a bug worth fixing before anything else.",
+        "expect": "Can you check whether the download resumes after a relaunch? I killed the app halfway through and I'm not sure the partial file survives. If it doesn't, that's a bug worth fixing before anything else.",
+        "raw": "Can you check whether the download resumes after a relaunch? I killed the app halfway through and I'm not sure the partial file survives. If it doesn't, that's a bug worth fixing before anything else",
+        "cleaned": "Can you check whether the download resumes after a relaunch? I killed the app halfway through and I'm not sure the partial file survives. If it doesn't, that's a bug worth fixing before anything else.",
+        "match": true
+      },
+      {
+        "id": "layout-04",
+        "tags": [
+          "layout",
+          "no-break",
+          "identifier"
+        ],
+        "say": "The transcript pipeline is the only caller of clean up conditioning, so moving it is cheap. Do that first. Then the history feature can stop building one of its own.",
+        "expect": "The TranscriptPipeline is the only caller of CleanupConditioning, so moving it is cheap. Do that first. Then HistoryFeature can stop building one of its own.",
+        "raw": "The transcript pipeline is the only caller of cleanup conditioning, so moving it is cheap. Do that first. Then the history feature can stop building one of its own",
+        "cleaned": "The transcript pipeline is the only caller of cleanup conditioning, so moving it is cheap. Do that first. Then the history feature can stop building one of its own.",
+        "match": false
+      },
+      {
+        "id": "layout-05",
+        "tags": [
+          "layout",
+          "no-break",
+          "self-correction"
+        ],
+        "say": "Let's ship the pop up variant, mm no, the row variant, because the taglines actually get compared there. It costs more vertical space but that's the trade. We can revisit if the lineup gets past five.",
+        "expect": "Let's ship the row variant, because the taglines actually get compared there. It costs more vertical space, but that's the trade. We can revisit if the lineup gets past five.",
+        "raw": "Let's ship the pop-up variant. No, the row variant, because the taglines actually get compared there. It costs more vertical space, but that's the trade. We can revisit if the lineup gets past five.",
+        "cleaned": "Let's ship the row variant, because the taglines actually get compared there. It costs more vertical space, but that's the trade. We can revisit if the lineup gets past five.",
+        "match": true
+      },
+      {
+        "id": "layout-06",
+        "tags": [
+          "layout",
+          "requested-break",
+          "spoken-punctuation"
+        ],
+        "say": "Here's the plan new line first we fix the expectations new line then we run the sweep new line then we decide.",
+        "expect": "Here's the plan\nFirst we fix the expectations\nThen we run the sweep\nThen we decide.",
+        "raw": "Here's the plan, new line. First, we fix the expectations, new line. Then we run the sweep, new line. Then we decide.",
+        "cleaned": "Here's the plan,\nFirst, we fix the expectations,\nThen we run the sweep,\nThen we decide.",
+        "match": false
+      },
+      {
+        "id": "layout-07",
+        "tags": [
+          "layout",
+          "requested-break",
+          "spoken-punctuation"
+        ],
+        "say": "I looked at the numbers again and the offline profile is fine as it stands new paragraph what worries me is the accuracy profile, because it sends audio off the machine and nothing in the UI says so.",
+        "expect": "I looked at the numbers again and the offline profile is fine as it stands.\n\nWhat worries me is the accuracy profile, because it sends audio off the machine and nothing in the UI says so.",
+        "raw": "I looked at the numbers again and the offline profile is fine as it stands. New paragraph. What worries me is the accuracy profile because it sends audio off the machine and nothing in the UI says so.",
+        "cleaned": "I looked at the numbers again and the offline profile is fine as it stands.\n\nWhat worries me is the accuracy profile because it sends audio off the machine and nothing in the UI says so.",
+        "match": false
+      },
+      {
+        "id": "layout-08",
+        "tags": [
+          "layout",
+          "list"
+        ],
+        "say": "Three things I want in the pane. One, the picker. Two, the selected profile's details. Three, a place that says what's on disk and lets me delete it.",
+        "expect": "Three things I want in the pane:\n\n1. The picker\n2. The selected profile's details\n3. A place that says what's on disk and lets me delete it",
+        "raw": "Three things I want in the pane. One, the picker. Two, the selected profile's details. Three, a place that says what's on disk and lets me delete it.",
+        "cleaned": "Three things I want in the pane. One, the picker. Two, the selected profile's details. Three, a place that says what's on disk and lets me delete it.",
+        "match": false
+      },
+      {
+        "id": "layout-09",
+        "tags": [
+          "layout",
+          "no-break",
+          "numbers"
+        ],
+        "say": "The fast profile lands around four hundred twenty milliseconds and the accurate one is closer to two and a half seconds. That's a six x difference for two entries. I'd take the fast one for daily use.",
+        "expect": "The fast profile lands around 420 milliseconds and the accurate one is closer to 2.5 seconds. That's a 6x difference for two entries. I'd take the fast one for daily use.",
+        "raw": "The fast profile lands around 420 milliseconds, and the accurate one is closer to 2.5 seconds. That's a six times difference for two entries. I'd take the fast one for daily use.",
+        "cleaned": "The fast profile lands around 420 milliseconds, and the accurate one is closer to 2.5 seconds. That's a six times difference for two entries. I'd take the fast one for daily use.",
+        "match": false
+      },
+      {
+        "id": "layout-10",
+        "tags": [
+          "layout",
+          "no-break",
+          "long"
+        ],
+        "say": "So the thing I keep running into is that when I dictate at a coding agent the field context is empty, because the prompt box is empty, that's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.",
+        "expect": "So the thing I keep running into is that when I dictate at a coding agent the field context is empty, because the prompt box is empty — that's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.",
+        "raw": "So, the thing I keep running into is that when I dictate at a coding agent, the field context is empty because the prompt box is empty. That's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.",
+        "cleaned": "The thing I keep running into is that when I dictate at a coding agent, the field context is empty because the prompt box is empty. That's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.",
+        "match": false
+      },
+      {
+        "id": "layout-11",
+        "tags": [
+          "layout",
+          "hesitation"
+        ],
+        "say": "I couldn't turn off the dictionary mm sidecar model without also losing the terms in the prompt.",
+        "expect": "I couldn't turn off the dictionary sidecar model without also losing the terms in the prompt.",
+        "raw": "I couldn't turn off the dictionary sidecar model without also losing the terms in the prompt.",
+        "cleaned": "I couldn't turn off the dictionary sidecar model without also losing the terms in the prompt.",
+        "match": true
+      },
+      {
+        "id": "layout-12",
+        "tags": [
+          "layout",
+          "hesitation"
+        ],
+        "say": "The gate is, mm, five hundred milliseconds of duration and then one classification at release.",
+        "expect": "The gate is 500 milliseconds of duration and then one classification at release.",
+        "raw": "The gate is uh 500 milliseconds of duration and then one classification at release.",
+        "cleaned": "The gate is 500 milliseconds of duration and then one classification at release.",
+        "match": true
+      },
+      {
+        "id": "layout-13",
+        "tags": [
+          "layout",
+          "hesitation",
+          "self-correction"
+        ],
+        "say": "Put it in the settings pane, mm, no, the profiles pane, since that's where the models live now.",
+        "expect": "Put it in the Profiles pane, since that's where the models live now.",
+        "raw": "Put it in the Settings pane, n no, the Profiles pane, since that's where the models live now",
+        "cleaned": "Put it in the Profiles pane, since that's where the models live now.",
+        "match": true
+      },
+      {
+        "id": "layout-14",
+        "tags": [
+          "layout",
+          "no-break",
+          "rule"
+        ],
+        "say": "Write three sentences about why this matters and put each one on its own line.",
+        "expect": "Write three sentences about why this matters and put each one on its own line.",
+        "raw": "Write three sentences about why this matters and put each one on its own line.",
+        "cleaned": "Write three sentences about why this matters and put each one on its own line.",
+        "match": true
+      },
+      {
+        "id": "layout-15",
+        "tags": [
+          "layout",
+          "no-break",
+          "long",
+          "disfluency"
+        ],
+        "say": "I want to talk through the routing problem because I don't think either shape escapes it. If the provider pushes, we have to associate that process with whatever is frontmost, and that's not easy. If we pull at the end of the dictation, we know the frontmost app but we still have to work out which process to ask. It's the same problem twice. That's why I think it needs a spike before it needs a design.",
+        "expect": "I want to talk through the routing problem, because I don't think either shape escapes it. If the provider pushes, we have to associate that process with whatever is frontmost, and that's not easy. If we pull at the end of the dictation, we know the frontmost app but we still have to work out which process to ask. It's the same problem twice. That's why I think it needs a spike before it needs a design.",
+        "raw": "I want to talk through the routing problem because I don't think either shape escapes it. If the provider pushes, we have to associate that process with whatever is frontmost, and that's not easy. If we pull at the end of the dictation, we know the frontmost app, but we still have to work out which process to ask. It's the same problem twice. That's why I think it needs a spike before it needs a design",
+        "cleaned": "I want to talk through the routing problem because I don't think either shape escapes it. If the provider pushes, we have to associate that process with whatever is frontmost, and that's not easy. If we pull at the end of the dictation, we know the frontmost app, but we still have to work out which process to ask. It's the same problem twice. That's why I think it needs a spike before it needs a design.",
+        "match": false
+      },
+      {
+        "id": "layout-16",
+        "tags": [
+          "layout",
+          "requested-break",
+          "list"
+        ],
+        "say": "Reply with something like, thanks for the writeup new line I have two questions new line one, does the key survive a channel reset, and two, what happens when the endpoint is down.",
+        "expect": "Reply with something like: thanks for the writeup\nI have two questions\n1. Does the key survive a channel reset?\n2. What happens when the endpoint is down?",
+        "raw": "Reply with something like Thanks for the write-up, newline. I have two questions, new line. One, does the key survive a channel reset? And two, what happens when the endpoint is down?",
+        "cleaned": "Reply with something like Thanks for the write-up\nI have two questions.\nOne, does the key survive a channel reset? And two, what happens when the endpoint is down?",
+        "match": false
+      }
+    ],
+    [
+      {
+        "id": "layout-01",
+        "tags": [
+          "layout",
+          "no-break"
+        ],
+        "say": "I think the retry logic is wrong. It backs off on the wrong error class. We should only retry on timeouts, not on a four hundred.",
+        "expect": "I think the retry logic is wrong. It backs off on the wrong error class. We should only retry on timeouts, not on a 400.",
+        "raw": "I think the retry logic is wrong, it backs off on the wrong error class. We should only retry on timeouts, not on a 400.",
+        "cleaned": "I think the retry logic is wrong, it backs off on the wrong error class. We should only retry on timeouts, not on a 400.",
+        "match": false
+      },
+      {
+        "id": "layout-02",
+        "tags": [
+          "layout",
+          "no-break",
+          "disfluency"
+        ],
+        "say": "Okay so um the picker is fine but the details underneath it are doing too much. Let's pull the storage section out into its own thing. I don't want to scroll past four sections to find it.",
+        "expect": "Okay, so the picker is fine, but the details underneath it are doing too much. Let's pull the storage section out into its own thing. I don't want to scroll past four sections to find it.",
+        "raw": "Okay, so um the picker is fine, but the details underneath it are doing too much. Let's pull the storage section out into its own thing. I don't want to scroll past four sections to find it.",
+        "cleaned": "The picker is fine, but the details underneath it are doing too much. Let's pull the storage section out into its own thing. I don't want to scroll past four sections to find it.",
+        "match": false
+      },
+      {
+        "id": "layout-03",
+        "tags": [
+          "layout",
+          "no-break"
+        ],
+        "say": "Can you check whether the download resumes after a relaunch. I killed the app halfway through and I'm not sure the partial file survives. If it doesn't that's a bug worth fixing before anything else.",
+        "expect": "Can you check whether the download resumes after a relaunch? I killed the app halfway through and I'm not sure the partial file survives. If it doesn't, that's a bug worth fixing before anything else.",
+        "raw": "Can you check whether the download resumes after a relaunch? I killed the app halfway through and I'm not sure the partial file survives. If it doesn't, that's a bug worth fixing before anything else",
+        "cleaned": "Can you check whether the download resumes after a relaunch? I killed the app halfway through and I'm not sure the partial file survives. If it doesn't, that's a bug worth fixing before anything else.",
+        "match": true
+      },
+      {
+        "id": "layout-04",
+        "tags": [
+          "layout",
+          "no-break",
+          "identifier"
+        ],
+        "say": "The transcript pipeline is the only caller of clean up conditioning, so moving it is cheap. Do that first. Then the history feature can stop building one of its own.",
+        "expect": "The TranscriptPipeline is the only caller of CleanupConditioning, so moving it is cheap. Do that first. Then HistoryFeature can stop building one of its own.",
+        "raw": "The transcript pipeline is the only caller of cleanup conditioning, so moving it is cheap. Do that first. Then the history feature can stop building one of its own",
+        "cleaned": "The transcript pipeline is the only caller of cleanup conditioning, so moving it is cheap. Do that first. Then the history feature can stop building one of its own.",
+        "match": false
+      },
+      {
+        "id": "layout-05",
+        "tags": [
+          "layout",
+          "no-break",
+          "self-correction"
+        ],
+        "say": "Let's ship the pop up variant, mm no, the row variant, because the taglines actually get compared there. It costs more vertical space but that's the trade. We can revisit if the lineup gets past five.",
+        "expect": "Let's ship the row variant, because the taglines actually get compared there. It costs more vertical space, but that's the trade. We can revisit if the lineup gets past five.",
+        "raw": "Let's ship the pop-up variant. No, the row variant, because the taglines actually get compared there. It costs more vertical space, but that's the trade. We can revisit if the lineup gets past five.",
+        "cleaned": "The row variant, because the taglines actually get compared there. It costs more vertical space, but that's the trade. We can revisit if the lineup gets past five.",
+        "match": false
+      },
+      {
+        "id": "layout-06",
+        "tags": [
+          "layout",
+          "requested-break",
+          "spoken-punctuation"
+        ],
+        "say": "Here's the plan new line first we fix the expectations new line then we run the sweep new line then we decide.",
+        "expect": "Here's the plan\nFirst we fix the expectations\nThen we run the sweep\nThen we decide.",
+        "raw": "Here's the plan, new line. First, we fix the expectations, new line. Then we run the sweep, new line. Then we decide.",
+        "cleaned": "Here's the plan.\nFirst, we fix the expectations.\nThen we run the sweep.\nThen we decide.",
+        "match": false
+      },
+      {
+        "id": "layout-07",
+        "tags": [
+          "layout",
+          "requested-break",
+          "spoken-punctuation"
+        ],
+        "say": "I looked at the numbers again and the offline profile is fine as it stands new paragraph what worries me is the accuracy profile, because it sends audio off the machine and nothing in the UI says so.",
+        "expect": "I looked at the numbers again and the offline profile is fine as it stands.\n\nWhat worries me is the accuracy profile, because it sends audio off the machine and nothing in the UI says so.",
+        "raw": "I looked at the numbers again and the offline profile is fine as it stands. New paragraph. What worries me is the accuracy profile because it sends audio off the machine and nothing in the UI says so.",
+        "cleaned": "I looked at the numbers again and the offline profile is fine as it stands.\n\nWhat worries me is the accuracy profile because it sends audio off the machine and nothing in the UI says so.",
+        "match": false
+      },
+      {
+        "id": "layout-08",
+        "tags": [
+          "layout",
+          "list"
+        ],
+        "say": "Three things I want in the pane. One, the picker. Two, the selected profile's details. Three, a place that says what's on disk and lets me delete it.",
+        "expect": "Three things I want in the pane:\n\n1. The picker\n2. The selected profile's details\n3. A place that says what's on disk and lets me delete it",
+        "raw": "Three things I want in the pane. One, the picker. Two, the selected profile's details. Three, a place that says what's on disk and lets me delete it.",
+        "cleaned": "Three things I want in the pane. One, the picker. Two, the selected profile's details. Three, a place that says what's on disk and lets me delete it.",
+        "match": false
+      },
+      {
+        "id": "layout-09",
+        "tags": [
+          "layout",
+          "no-break",
+          "numbers"
+        ],
+        "say": "The fast profile lands around four hundred twenty milliseconds and the accurate one is closer to two and a half seconds. That's a six x difference for two entries. I'd take the fast one for daily use.",
+        "expect": "The fast profile lands around 420 milliseconds and the accurate one is closer to 2.5 seconds. That's a 6x difference for two entries. I'd take the fast one for daily use.",
+        "raw": "The fast profile lands around 420 milliseconds, and the accurate one is closer to 2.5 seconds. That's a six times difference for two entries. I'd take the fast one for daily use.",
+        "cleaned": "The fast profile lands around 420 milliseconds, and the accurate one is closer to 2.5 seconds. That's a six times difference for two entries. I'd take the fast one for daily use.",
+        "match": false
+      },
+      {
+        "id": "layout-10",
+        "tags": [
+          "layout",
+          "no-break",
+          "long"
+        ],
+        "say": "So the thing I keep running into is that when I dictate at a coding agent the field context is empty, because the prompt box is empty, that's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.",
+        "expect": "So the thing I keep running into is that when I dictate at a coding agent the field context is empty, because the prompt box is empty — that's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.",
+        "raw": "So, the thing I keep running into is that when I dictate at a coding agent, the field context is empty because the prompt box is empty. That's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.",
+        "cleaned": "The thing I keep running into is that when I dictate at a coding agent, the field context is empty because the prompt box is empty. That's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.",
+        "match": false
+      },
+      {
+        "id": "layout-11",
+        "tags": [
+          "layout",
+          "hesitation"
+        ],
+        "say": "I couldn't turn off the dictionary mm sidecar model without also losing the terms in the prompt.",
+        "expect": "I couldn't turn off the dictionary sidecar model without also losing the terms in the prompt.",
+        "raw": "I couldn't turn off the dictionary sidecar model without also losing the terms in the prompt.",
+        "cleaned": "I couldn't turn off the dictionary sidecar model without also losing the terms in the prompt.",
+        "match": true
+      },
+      {
+        "id": "layout-12",
+        "tags": [
+          "layout",
+          "hesitation"
+        ],
+        "say": "The gate is, mm, five hundred milliseconds of duration and then one classification at release.",
+        "expect": "The gate is 500 milliseconds of duration and then one classification at release.",
+        "raw": "The gate is uh 500 milliseconds of duration and then one classification at release.",
+        "cleaned": "The gate is 500 milliseconds of duration and then one classification at release.",
+        "match": true
+      },
+      {
+        "id": "layout-13",
+        "tags": [
+          "layout",
+          "hesitation",
+          "self-correction"
+        ],
+        "say": "Put it in the settings pane, mm, no, the profiles pane, since that's where the models live now.",
+        "expect": "Put it in the Profiles pane, since that's where the models live now.",
+        "raw": "Put it in the Settings pane, n no, the Profiles pane, since that's where the models live now",
+        "cleaned": "Put it in the Profiles pane, since that's where the models live now",
+        "match": false
+      },
+      {
+        "id": "layout-14",
+        "tags": [
+          "layout",
+          "no-break",
+          "rule"
+        ],
+        "say": "Write three sentences about why this matters and put each one on its own line.",
+        "expect": "Write three sentences about why this matters and put each one on its own line.",
+        "raw": "Write three sentences about why this matters and put each one on its own line.",
+        "cleaned": "Write three sentences about why this matters and put each one on its own line.",
+        "match": true
+      },
+      {
+        "id": "layout-15",
+        "tags": [
+          "layout",
+          "no-break",
+          "long",
+          "disfluency"
+        ],
+        "say": "I want to talk through the routing problem because I don't think either shape escapes it. If the provider pushes, we have to associate that process with whatever is frontmost, and that's not easy. If we pull at the end of the dictation, we know the frontmost app but we still have to work out which process to ask. It's the same problem twice. That's why I think it needs a spike before it needs a design.",
+        "expect": "I want to talk through the routing problem, because I don't think either shape escapes it. If the provider pushes, we have to associate that process with whatever is frontmost, and that's not easy. If we pull at the end of the dictation, we know the frontmost app but we still have to work out which process to ask. It's the same problem twice. That's why I think it needs a spike before it needs a design.",
+        "raw": "I want to talk through the routing problem because I don't think either shape escapes it. If the provider pushes, we have to associate that process with whatever is frontmost, and that's not easy. If we pull at the end of the dictation, we know the frontmost app, but we still have to work out which process to ask. It's the same problem twice. That's why I think it needs a spike before it needs a design",
+        "cleaned": "I want to talk through the routing problem because I don't think either shape escapes it. If the provider pushes, we have to associate that process with whatever is frontmost, and that's not easy. If we pull at the end of the dictation, we know the frontmost app, but we still have to work out which process to ask. It's the same problem twice. That's why I think it needs a spike before it needs a design.",
+        "match": false
+      },
+      {
+        "id": "layout-16",
+        "tags": [
+          "layout",
+          "requested-break",
+          "list"
+        ],
+        "say": "Reply with something like, thanks for the writeup new line I have two questions new line one, does the key survive a channel reset, and two, what happens when the endpoint is down.",
+        "expect": "Reply with something like: thanks for the writeup\nI have two questions\n1. Does the key survive a channel reset?\n2. What happens when the endpoint is down?",
+        "raw": "Reply with something like Thanks for the write-up, newline. I have two questions, new line. One, does the key survive a channel reset? And two, what happens when the endpoint is down?",
+        "cleaned": "Thanks for the write-up\nI have two questions\nOne, does the key survive a channel reset? And two, what happens when the endpoint is down?",
+        "match": false
+      }
+    ],
+    [
+      {
+        "id": "layout-01",
+        "tags": [
+          "layout",
+          "no-break"
+        ],
+        "say": "I think the retry logic is wrong. It backs off on the wrong error class. We should only retry on timeouts, not on a four hundred.",
+        "expect": "I think the retry logic is wrong. It backs off on the wrong error class. We should only retry on timeouts, not on a 400.",
+        "raw": "I think the retry logic is wrong, it backs off on the wrong error class. We should only retry on timeouts, not on a 400.",
+        "cleaned": "I think the retry logic is wrong, it backs off on the wrong error class. We should only retry on timeouts, not on a 400.",
+        "match": false
+      },
+      {
+        "id": "layout-02",
+        "tags": [
+          "layout",
+          "no-break",
+          "disfluency"
+        ],
+        "say": "Okay so um the picker is fine but the details underneath it are doing too much. Let's pull the storage section out into its own thing. I don't want to scroll past four sections to find it.",
+        "expect": "Okay, so the picker is fine, but the details underneath it are doing too much. Let's pull the storage section out into its own thing. I don't want to scroll past four sections to find it.",
+        "raw": "Okay, so um the picker is fine, but the details underneath it are doing too much. Let's pull the storage section out into its own thing. I don't want to scroll past four sections to find it.",
+        "cleaned": "The picker is fine, but the details underneath it are doing too much. Let's pull the storage section out into its own thing. I don't want to scroll past four sections to find it.",
+        "match": false
+      },
+      {
+        "id": "layout-03",
+        "tags": [
+          "layout",
+          "no-break"
+        ],
+        "say": "Can you check whether the download resumes after a relaunch. I killed the app halfway through and I'm not sure the partial file survives. If it doesn't that's a bug worth fixing before anything else.",
+        "expect": "Can you check whether the download resumes after a relaunch? I killed the app halfway through and I'm not sure the partial file survives. If it doesn't, that's a bug worth fixing before anything else.",
+        "raw": "Can you check whether the download resumes after a relaunch? I killed the app halfway through and I'm not sure the partial file survives. If it doesn't, that's a bug worth fixing before anything else",
+        "cleaned": "Can you check whether the download resumes after a relaunch? I killed the app halfway through and I'm not sure the partial file survives. If it doesn't, that's a bug worth fixing before anything else",
+        "match": false
+      },
+      {
+        "id": "layout-04",
+        "tags": [
+          "layout",
+          "no-break",
+          "identifier"
+        ],
+        "say": "The transcript pipeline is the only caller of clean up conditioning, so moving it is cheap. Do that first. Then the history feature can stop building one of its own.",
+        "expect": "The TranscriptPipeline is the only caller of CleanupConditioning, so moving it is cheap. Do that first. Then HistoryFeature can stop building one of its own.",
+        "raw": "The transcript pipeline is the only caller of cleanup conditioning, so moving it is cheap. Do that first. Then the history feature can stop building one of its own",
+        "cleaned": "The transcript pipeline is the only caller of cleanup conditioning, so moving it is cheap. Do that first. Then the history feature can stop building one of its own.",
+        "match": false
+      },
+      {
+        "id": "layout-05",
+        "tags": [
+          "layout",
+          "no-break",
+          "self-correction"
+        ],
+        "say": "Let's ship the pop up variant, mm no, the row variant, because the taglines actually get compared there. It costs more vertical space but that's the trade. We can revisit if the lineup gets past five.",
+        "expect": "Let's ship the row variant, because the taglines actually get compared there. It costs more vertical space, but that's the trade. We can revisit if the lineup gets past five.",
+        "raw": "Let's ship the pop-up variant. No, the row variant, because the taglines actually get compared there. It costs more vertical space, but that's the trade. We can revisit if the lineup gets past five.",
+        "cleaned": "The row variant, because the taglines actually get compared there. It costs more vertical space, but that's the trade. We can revisit if the lineup gets past five.",
+        "match": false
+      },
+      {
+        "id": "layout-06",
+        "tags": [
+          "layout",
+          "requested-break",
+          "spoken-punctuation"
+        ],
+        "say": "Here's the plan new line first we fix the expectations new line then we run the sweep new line then we decide.",
+        "expect": "Here's the plan\nFirst we fix the expectations\nThen we run the sweep\nThen we decide.",
+        "raw": "Here's the plan, new line. First, we fix the expectations, new line. Then we run the sweep, new line. Then we decide.",
+        "cleaned": "Here's the plan,\nFirst, we fix the expectations,\nThen we run the sweep,\nThen we decide.",
+        "match": false
+      },
+      {
+        "id": "layout-07",
+        "tags": [
+          "layout",
+          "requested-break",
+          "spoken-punctuation"
+        ],
+        "say": "I looked at the numbers again and the offline profile is fine as it stands new paragraph what worries me is the accuracy profile, because it sends audio off the machine and nothing in the UI says so.",
+        "expect": "I looked at the numbers again and the offline profile is fine as it stands.\n\nWhat worries me is the accuracy profile, because it sends audio off the machine and nothing in the UI says so.",
+        "raw": "I looked at the numbers again and the offline profile is fine as it stands. New paragraph. What worries me is the accuracy profile because it sends audio off the machine and nothing in the UI says so.",
+        "cleaned": "I looked at the numbers again and the offline profile is fine as it stands.\n\nWhat worries me is the accuracy profile because it sends audio off the machine and nothing in the UI says so.",
+        "match": false
+      },
+      {
+        "id": "layout-08",
+        "tags": [
+          "layout",
+          "list"
+        ],
+        "say": "Three things I want in the pane. One, the picker. Two, the selected profile's details. Three, a place that says what's on disk and lets me delete it.",
+        "expect": "Three things I want in the pane:\n\n1. The picker\n2. The selected profile's details\n3. A place that says what's on disk and lets me delete it",
+        "raw": "Three things I want in the pane. One, the picker. Two, the selected profile's details. Three, a place that says what's on disk and lets me delete it.",
+        "cleaned": "Three things I want in the pane. One, the picker. Two, the selected profile's details. Three, a place that says what's on disk and lets me delete it.",
+        "match": false
+      },
+      {
+        "id": "layout-09",
+        "tags": [
+          "layout",
+          "no-break",
+          "numbers"
+        ],
+        "say": "The fast profile lands around four hundred twenty milliseconds and the accurate one is closer to two and a half seconds. That's a six x difference for two entries. I'd take the fast one for daily use.",
+        "expect": "The fast profile lands around 420 milliseconds and the accurate one is closer to 2.5 seconds. That's a 6x difference for two entries. I'd take the fast one for daily use.",
+        "raw": "The fast profile lands around 420 milliseconds, and the accurate one is closer to 2.5 seconds. That's a six times difference for two entries. I'd take the fast one for daily use.",
+        "cleaned": "The fast profile lands around 420 milliseconds, and the accurate one is closer to 2.5 seconds. That's a six times difference for two entries. I'd take the fast one for daily use.",
+        "match": false
+      },
+      {
+        "id": "layout-10",
+        "tags": [
+          "layout",
+          "no-break",
+          "long"
+        ],
+        "say": "So the thing I keep running into is that when I dictate at a coding agent the field context is empty, because the prompt box is empty, that's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.",
+        "expect": "So the thing I keep running into is that when I dictate at a coding agent the field context is empty, because the prompt box is empty — that's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.",
+        "raw": "So, the thing I keep running into is that when I dictate at a coding agent, the field context is empty because the prompt box is empty. That's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.",
+        "cleaned": "So, the thing I keep running into is that when I dictate at a coding agent, the field context is empty because the prompt box is empty. That's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen; I think we fix it by letting the agent tell us.",
+        "match": false
+      },
+      {
+        "id": "layout-11",
+        "tags": [
+          "layout",
+          "hesitation"
+        ],
+        "say": "I couldn't turn off the dictionary mm sidecar model without also losing the terms in the prompt.",
+        "expect": "I couldn't turn off the dictionary sidecar model without also losing the terms in the prompt.",
+        "raw": "I couldn't turn off the dictionary sidecar model without also losing the terms in the prompt.",
+        "cleaned": "I couldn't turn off the dictionary sidecar model without also losing the terms in the prompt.",
+        "match": true
+      },
+      {
+        "id": "layout-12",
+        "tags": [
+          "layout",
+          "hesitation"
+        ],
+        "say": "The gate is, mm, five hundred milliseconds of duration and then one classification at release.",
+        "expect": "The gate is 500 milliseconds of duration and then one classification at release.",
+        "raw": "The gate is uh 500 milliseconds of duration and then one classification at release.",
+        "cleaned": "The gate is 500 milliseconds of duration and then one classification at release.",
+        "match": true
+      },
+      {
+        "id": "layout-13",
+        "tags": [
+          "layout",
+          "hesitation",
+          "self-correction"
+        ],
+        "say": "Put it in the settings pane, mm, no, the profiles pane, since that's where the models live now.",
+        "expect": "Put it in the Profiles pane, since that's where the models live now.",
+        "raw": "Put it in the Settings pane, n no, the Profiles pane, since that's where the models live now",
+        "cleaned": "Put it in the Profiles pane, since that's where the models live now",
+        "match": false
+      },
+      {
+        "id": "layout-14",
+        "tags": [
+          "layout",
+          "no-break",
+          "rule"
+        ],
+        "say": "Write three sentences about why this matters and put each one on its own line.",
+        "expect": "Write three sentences about why this matters and put each one on its own line.",
+        "raw": "Write three sentences about why this matters and put each one on its own line.",
+        "cleaned": "Write three sentences about why this matters and put each one on its own line.",
+        "match": true
+      },
+      {
+        "id": "layout-15",
+        "tags": [
+          "layout",
+          "no-break",
+          "long",
+          "disfluency"
+        ],
+        "say": "I want to talk through the routing problem because I don't think either shape escapes it. If the provider pushes, we have to associate that process with whatever is frontmost, and that's not easy. If we pull at the end of the dictation, we know the frontmost app but we still have to work out which process to ask. It's the same problem twice. That's why I think it needs a spike before it needs a design.",
+        "expect": "I want to talk through the routing problem, because I don't think either shape escapes it. If the provider pushes, we have to associate that process with whatever is frontmost, and that's not easy. If we pull at the end of the dictation, we know the frontmost app but we still have to work out which process to ask. It's the same problem twice. That's why I think it needs a spike before it needs a design.",
+        "raw": "I want to talk through the routing problem because I don't think either shape escapes it. If the provider pushes, we have to associate that process with whatever is frontmost, and that's not easy. If we pull at the end of the dictation, we know the frontmost app, but we still have to work out which process to ask. It's the same problem twice. That's why I think it needs a spike before it needs a design",
+        "cleaned": "I want to talk through the routing problem because I don't think either shape escapes it. If the provider pushes, we have to associate that process with whatever is frontmost, and that's not easy. If we pull at the end of the dictation, we know the frontmost app, but we still have to work out which process to ask. It's the same problem twice. That's why I think it needs a spike before it needs a design.",
+        "match": false
+      },
+      {
+        "id": "layout-16",
+        "tags": [
+          "layout",
+          "requested-break",
+          "list"
+        ],
+        "say": "Reply with something like, thanks for the writeup new line I have two questions new line one, does the key survive a channel reset, and two, what happens when the endpoint is down.",
+        "expect": "Reply with something like: thanks for the writeup\nI have two questions\n1. Does the key survive a channel reset?\n2. What happens when the endpoint is down?",
+        "raw": "Reply with something like Thanks for the write-up, newline. I have two questions, new line. One, does the key survive a channel reset? And two, what happens when the endpoint is down?",
+        "cleaned": "Reply with something like Thanks for the write-up,\nI have two questions,\nOne, does the key survive a channel reset? And two, what happens when the endpoint is down?",
+        "match": false
+      }
+    ],
+    [
+      {
+        "id": "layout-01",
+        "tags": [
+          "layout",
+          "no-break"
+        ],
+        "say": "I think the retry logic is wrong. It backs off on the wrong error class. We should only retry on timeouts, not on a four hundred.",
+        "expect": "I think the retry logic is wrong. It backs off on the wrong error class. We should only retry on timeouts, not on a 400.",
+        "raw": "I think the retry logic is wrong, it backs off on the wrong error class. We should only retry on timeouts, not on a 400.",
+        "cleaned": "I think the retry logic is wrong, it backs off on the wrong error class. We should only retry on timeouts, not on a 400.",
+        "match": false
+      },
+      {
+        "id": "layout-02",
+        "tags": [
+          "layout",
+          "no-break",
+          "disfluency"
+        ],
+        "say": "Okay so um the picker is fine but the details underneath it are doing too much. Let's pull the storage section out into its own thing. I don't want to scroll past four sections to find it.",
+        "expect": "Okay, so the picker is fine, but the details underneath it are doing too much. Let's pull the storage section out into its own thing. I don't want to scroll past four sections to find it.",
+        "raw": "Okay, so um the picker is fine, but the details underneath it are doing too much. Let's pull the storage section out into its own thing. I don't want to scroll past four sections to find it.",
+        "cleaned": "Okay, so the picker is fine, but the details underneath it are doing too much. Let's pull the storage section out into its own thing. I don't want to scroll past four sections to find it.",
+        "match": true
+      },
+      {
+        "id": "layout-03",
+        "tags": [
+          "layout",
+          "no-break"
+        ],
+        "say": "Can you check whether the download resumes after a relaunch. I killed the app halfway through and I'm not sure the partial file survives. If it doesn't that's a bug worth fixing before anything else.",
+        "expect": "Can you check whether the download resumes after a relaunch? I killed the app halfway through and I'm not sure the partial file survives. If it doesn't, that's a bug worth fixing before anything else.",
+        "raw": "Can you check whether the download resumes after a relaunch? I killed the app halfway through and I'm not sure the partial file survives. If it doesn't, that's a bug worth fixing before anything else",
+        "cleaned": "Can you check whether the download resumes after a relaunch? I killed the app halfway through and I'm not sure the partial file survives. If it doesn't, that's a bug worth fixing before anything else.",
+        "match": true
+      },
+      {
+        "id": "layout-04",
+        "tags": [
+          "layout",
+          "no-break",
+          "identifier"
+        ],
+        "say": "The transcript pipeline is the only caller of clean up conditioning, so moving it is cheap. Do that first. Then the history feature can stop building one of its own.",
+        "expect": "The TranscriptPipeline is the only caller of CleanupConditioning, so moving it is cheap. Do that first. Then HistoryFeature can stop building one of its own.",
+        "raw": "The transcript pipeline is the only caller of cleanup conditioning, so moving it is cheap. Do that first. Then the history feature can stop building one of its own",
+        "cleaned": "The transcript pipeline is the only caller of cleanup conditioning, so moving it is cheap. Do that first. Then the history feature can stop building one of its own",
+        "match": false
+      },
+      {
+        "id": "layout-05",
+        "tags": [
+          "layout",
+          "no-break",
+          "self-correction"
+        ],
+        "say": "Let's ship the pop up variant, mm no, the row variant, because the taglines actually get compared there. It costs more vertical space but that's the trade. We can revisit if the lineup gets past five.",
+        "expect": "Let's ship the row variant, because the taglines actually get compared there. It costs more vertical space, but that's the trade. We can revisit if the lineup gets past five.",
+        "raw": "Let's ship the pop-up variant. No, the row variant, because the taglines actually get compared there. It costs more vertical space, but that's the trade. We can revisit if the lineup gets past five.",
+        "cleaned": "The row variant, because the taglines actually get compared there. It costs more vertical space, but that's the trade. We can revisit if the lineup gets past five.",
+        "match": false
+      },
+      {
+        "id": "layout-06",
+        "tags": [
+          "layout",
+          "requested-break",
+          "spoken-punctuation"
+        ],
+        "say": "Here's the plan new line first we fix the expectations new line then we run the sweep new line then we decide.",
+        "expect": "Here's the plan\nFirst we fix the expectations\nThen we run the sweep\nThen we decide.",
+        "raw": "Here's the plan, new line. First, we fix the expectations, new line. Then we run the sweep, new line. Then we decide.",
+        "cleaned": "Here's the plan,\nFirst, we fix the expectations,\nThen we run the sweep,\nThen we decide.",
+        "match": false
+      },
+      {
+        "id": "layout-07",
+        "tags": [
+          "layout",
+          "requested-break",
+          "spoken-punctuation"
+        ],
+        "say": "I looked at the numbers again and the offline profile is fine as it stands new paragraph what worries me is the accuracy profile, because it sends audio off the machine and nothing in the UI says so.",
+        "expect": "I looked at the numbers again and the offline profile is fine as it stands.\n\nWhat worries me is the accuracy profile, because it sends audio off the machine and nothing in the UI says so.",
+        "raw": "I looked at the numbers again and the offline profile is fine as it stands. New paragraph. What worries me is the accuracy profile because it sends audio off the machine and nothing in the UI says so.",
+        "cleaned": "I looked at the numbers again and the offline profile is fine as it stands.\n\nWhat worries me is the accuracy profile because it sends audio off the machine and nothing in the UI says so.",
+        "match": false
+      },
+      {
+        "id": "layout-08",
+        "tags": [
+          "layout",
+          "list"
+        ],
+        "say": "Three things I want in the pane. One, the picker. Two, the selected profile's details. Three, a place that says what's on disk and lets me delete it.",
+        "expect": "Three things I want in the pane:\n\n1. The picker\n2. The selected profile's details\n3. A place that says what's on disk and lets me delete it",
+        "raw": "Three things I want in the pane. One, the picker. Two, the selected profile's details. Three, a place that says what's on disk and lets me delete it.",
+        "cleaned": "Three things I want in the pane. One, the picker. Two, the selected profile's details. Three, a place that says what's on disk and lets me delete it.",
+        "match": false
+      },
+      {
+        "id": "layout-09",
+        "tags": [
+          "layout",
+          "no-break",
+          "numbers"
+        ],
+        "say": "The fast profile lands around four hundred twenty milliseconds and the accurate one is closer to two and a half seconds. That's a six x difference for two entries. I'd take the fast one for daily use.",
+        "expect": "The fast profile lands around 420 milliseconds and the accurate one is closer to 2.5 seconds. That's a 6x difference for two entries. I'd take the fast one for daily use.",
+        "raw": "The fast profile lands around 420 milliseconds, and the accurate one is closer to 2.5 seconds. That's a six times difference for two entries. I'd take the fast one for daily use.",
+        "cleaned": "The fast profile lands around 420 milliseconds, and the accurate one is closer to 2.5 seconds. That's a six times difference for two entries. I'd take the fast one for daily use.",
+        "match": false
+      },
+      {
+        "id": "layout-10",
+        "tags": [
+          "layout",
+          "no-break",
+          "long"
+        ],
+        "say": "So the thing I keep running into is that when I dictate at a coding agent the field context is empty, because the prompt box is empty, that's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.",
+        "expect": "So the thing I keep running into is that when I dictate at a coding agent the field context is empty, because the prompt box is empty — that's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.",
+        "raw": "So, the thing I keep running into is that when I dictate at a coding agent, the field context is empty because the prompt box is empty. That's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.",
+        "cleaned": "The thing I keep running into is that when I dictate at a coding agent, the field context is empty because the prompt box is empty. That's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen; I think we fix it by letting the agent tell us.",
+        "match": false
+      },
+      {
+        "id": "layout-11",
+        "tags": [
+          "layout",
+          "hesitation"
+        ],
+        "say": "I couldn't turn off the dictionary mm sidecar model without also losing the terms in the prompt.",
+        "expect": "I couldn't turn off the dictionary sidecar model without also losing the terms in the prompt.",
+        "raw": "I couldn't turn off the dictionary sidecar model without also losing the terms in the prompt.",
+        "cleaned": "I couldn't turn off the dictionary sidecar model without also losing the terms in the prompt.",
+        "match": true
+      },
+      {
+        "id": "layout-12",
+        "tags": [
+          "layout",
+          "hesitation"
+        ],
+        "say": "The gate is, mm, five hundred milliseconds of duration and then one classification at release.",
+        "expect": "The gate is 500 milliseconds of duration and then one classification at release.",
+        "raw": "The gate is uh 500 milliseconds of duration and then one classification at release.",
+        "cleaned": "The gate is 500 milliseconds of duration and then one classification at release.",
+        "match": true
+      },
+      {
+        "id": "layout-13",
+        "tags": [
+          "layout",
+          "hesitation",
+          "self-correction"
+        ],
+        "say": "Put it in the settings pane, mm, no, the profiles pane, since that's where the models live now.",
+        "expect": "Put it in the Profiles pane, since that's where the models live now.",
+        "raw": "Put it in the Settings pane, n no, the Profiles pane, since that's where the models live now",
+        "cleaned": "Put it in the Profiles pane, since that's where the models live now",
+        "match": false
+      },
+      {
+        "id": "layout-14",
+        "tags": [
+          "layout",
+          "no-break",
+          "rule"
+        ],
+        "say": "Write three sentences about why this matters and put each one on its own line.",
+        "expect": "Write three sentences about why this matters and put each one on its own line.",
+        "raw": "Write three sentences about why this matters and put each one on its own line.",
+        "cleaned": "Write three sentences about why this matters and put each one on its own line.",
+        "match": true
+      },
+      {
+        "id": "layout-15",
+        "tags": [
+          "layout",
+          "no-break",
+          "long",
+          "disfluency"
+        ],
+        "say": "I want to talk through the routing problem because I don't think either shape escapes it. If the provider pushes, we have to associate that process with whatever is frontmost, and that's not easy. If we pull at the end of the dictation, we know the frontmost app but we still have to work out which process to ask. It's the same problem twice. That's why I think it needs a spike before it needs a design.",
+        "expect": "I want to talk through the routing problem, because I don't think either shape escapes it. If the provider pushes, we have to associate that process with whatever is frontmost, and that's not easy. If we pull at the end of the dictation, we know the frontmost app but we still have to work out which process to ask. It's the same problem twice. That's why I think it needs a spike before it needs a design.",
+        "raw": "I want to talk through the routing problem because I don't think either shape escapes it. If the provider pushes, we have to associate that process with whatever is frontmost, and that's not easy. If we pull at the end of the dictation, we know the frontmost app, but we still have to work out which process to ask. It's the same problem twice. That's why I think it needs a spike before it needs a design",
+        "cleaned": "I want to talk through the routing problem because I don't think either shape escapes it. If the provider pushes, we have to associate that process with whatever is frontmost, and that's not easy. If we pull at the end of the dictation, we know the frontmost app, but we still have to work out which process to ask. It's the same problem twice. That's why I think it needs a spike before it needs a design.",
+        "match": false
+      },
+      {
+        "id": "layout-16",
+        "tags": [
+          "layout",
+          "requested-break",
+          "list"
+        ],
+        "say": "Reply with something like, thanks for the writeup new line I have two questions new line one, does the key survive a channel reset, and two, what happens when the endpoint is down.",
+        "expect": "Reply with something like: thanks for the writeup\nI have two questions\n1. Does the key survive a channel reset?\n2. What happens when the endpoint is down?",
+        "raw": "Reply with something like Thanks for the write-up, newline. I have two questions, new line. One, does the key survive a channel reset? And two, what happens when the endpoint is down?",
+        "cleaned": "Thanks for the write-up\nI have two questions\nOne, does the key survive a channel reset? And two, what happens when the endpoint is down?",
+        "match": false
+      }
+    ]
+  ]
+}

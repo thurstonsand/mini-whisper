@@ -1,0 +1,15 @@
+MiniWhisper
+Ghostty
+Cerebras
+Silero
+Parakeet
+FluidAudio
+tuistory
+SwiftUI
+XCUITest
+Zigbee
+Qwen
+llama.cpp
+Keychain
+Homebrew
+TCA

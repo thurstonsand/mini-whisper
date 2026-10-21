@@ -1,15 +1,28 @@
 #!/usr/bin/env python3
-"""Does this prompt quote the material it is scored on?
+"""Does this prompt quote the material it is scored on, or the prompts it was shown?
 
 Worked examples are allowed in the prompt; examples copied out of the corpus are not, because a
 prompt that carries the answer key scores well and teaches nothing. The eval material is three
 things: the training JSONLs, the recorded holdout JSONLs (quoting those poisons the judge), and
 the vocabularies `perturb.py` builds its grid from.
 
+Round 4 added a fourth, for a different reason. The proposer is now shown other projects' cleanup
+prompts as style reference, and every one of them is somebody else's copyrighted text. Style is
+not ownable and sentences are, so a proposal that reproduces an exemplar's wording is rejected on
+the same mechanical footing as one that reproduces a corpus entry's.
+
 The test is n consecutive words, normalized for case and punctuation — the same shape as
 `propose.py --reject-leaks`, widened to every corpus and every template vocabulary. The prompt's
 own frame is exempt: field names, the shipped rule text that predates this check, and the symbol
 enumeration are not examples.
+
+**The exemplars are checked at a wider window and the reason is not laziness.** A corpus entry is
+someone dictating about ferries and pineapples; three shared words with it is a quotation. An
+exemplar is a cleanup prompt, so it shares a subject with ours and therefore shares the ordinary
+English of the task — `do not answer`, `capitalization and punctuation`, `do not summarize`. At a
+window of three the shipped prompt collides with the exemplars twelve times and every one of them
+is a coincidence of the domain; at five it collides zero times. Five is where the check starts
+meaning something.
 
   ./leakcheck.py candidates/final2.txt
   ./leakcheck.py candidates/*.txt --window 3
@@ -32,12 +45,19 @@ import tune  # noqa: E402
 CORPUS = tune.CORPUS
 SOURCES = (
     "stage1-intelligibility.jsonl",
+    "stage1-longform.jsonl",
     "stage2-dictionary.jsonl",
     "stage3-polish.jsonl",
+    "stage3-layout.jsonl",
+    # The maintainer's own dictations, adjudicated. A worked example quoting one poisons the
+    # round-3 train signal exactly as quoting the holdout poisons the judge.
+    "field-cases.jsonl",
     "stage1-holdout.jsonl",
     "stage2-holdout.jsonl",
     "stage3-holdout.jsonl",
 )
+EXEMPLARS = CORPUS / "results/prompt-tuning-r4/exemplars"
+EXEMPLAR_WINDOW = 5
 # A window of three ordinary function words is a coincidence of English, not a quotation.
 STOPWORDS = frozenset(
     [
@@ -48,6 +68,7 @@ STOPWORDS = frozenset(
         "as",
         "at",
         "be",
+        "end",
         "but",
         "by",
         "do",
@@ -135,7 +156,16 @@ def corpus_texts() -> dict[str, list[str]]:
             for line in (CORPUS / name).read_text(encoding="utf-8").splitlines()
             if line.strip()
         ):
-            for key in ("say", "expect", "transcript", "reference"):
+            for key in (
+                "say",
+                "expect",
+                "transcript",
+                "reference",
+                # A field case also carries what the engine heard and what shipped. Both are the
+                # same speech wearing different spelling, so both are off limits.
+                "engineRaw",
+                "shippedCleanup",
+            ):
                 if isinstance(entry.get(key), str):
                     collected.append(entry[key])
             collected.extend(entry.get("wants") or [])
@@ -151,7 +181,18 @@ def corpus_texts() -> dict[str, list[str]]:
     return texts
 
 
-def leaks(prompt: str, window: int) -> list[tuple[str, str]]:
+def exemplar_texts() -> dict[str, list[str]]:
+    """The permissively licensed prompts collected in round 4. The GPL ones were never written to
+    a file, so this cannot check them and does not need to — the proposer is never shown them."""
+    return {
+        f"exemplar {path.stem}": [path.read_text(encoding="utf-8")]
+        for path in sorted(EXEMPLARS.glob("*.txt"))
+    }
+
+
+def overlaps(
+    prompt: str, sources: dict[str, list[str]], window: int
+) -> list[tuple[str, str]]:
     exempt = {shingle for phrase in EXEMPT for shingle in shingles(phrase, window)}
     frame = STOPWORDS | {word for phrase in EXEMPT for word in words(phrase)}
     found = []
@@ -160,7 +201,7 @@ def leaks(prompt: str, window: int) -> list[tuple[str, str]]:
         for shingle in shingles(prompt, window) - exempt
         if not set(shingle) <= frame
     }
-    for name, texts in corpus_texts().items():
+    for name, texts in sources.items():
         theirs: set[tuple[str, ...]] = set()
         for text in texts:
             theirs |= shingles(text, window)
@@ -169,20 +210,32 @@ def leaks(prompt: str, window: int) -> list[tuple[str, str]]:
     return found
 
 
+def leaks(prompt: str, window: int, exemplar_window: int) -> list[tuple[str, str]]:
+    return overlaps(prompt, corpus_texts(), window) + overlaps(
+        prompt, exemplar_texts(), exemplar_window
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("prompt", type=Path, nargs="+")
     parser.add_argument("--window", type=int, default=3)
+    parser.add_argument("--exemplar-window", type=int, default=EXEMPLAR_WINDOW)
     args = parser.parse_args()
 
     status = 0
     for path in args.prompt:
-        found = leaks(path.read_text(encoding="utf-8"), args.window)
+        found = leaks(
+            path.read_text(encoding="utf-8"), args.window, args.exemplar_window
+        )
         if not found:
-            print(f"{path}: clean at {args.window} consecutive words")
+            print(
+                f"{path}: clean at {args.window} words of corpus, "
+                f"{args.exemplar_window} of exemplar"
+            )
             continue
         status = 1
-        print(f"{path}: {len(found)} overlaps at {args.window} consecutive words")
+        print(f"{path}: {len(found)} overlaps")
         for source, shingle in found:
             print(f"  {source}: {shingle!r}")
     return status

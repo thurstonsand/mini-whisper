@@ -21,18 +21,18 @@ struct CleanupPromptTests {
     "\"underscore\" is `_`",
     "\"slash\" is `/`",
     "\"at sign\" is `@`",
-    "including repeated symbols",
-    "joins the word beside it with no space"
+    "including repetitions",
+    "Attach converted symbols to adjacent words"
   ]) func `the symbol enumeration is explicit`(fragment: String) {
     #expect(CleanupPrompt.builtIn.contains(fragment))
   }
 
   /// The corpus measured what each of these is worth, and the search that removed everything else
-  /// kept them: results/prompt-tuning-haiku/ in the dictation-corpus asset.
+  /// kept them: results/prompt-tuning-r5/ in the dictation-corpus asset.
   @Test(arguments: [
-    "\"new paragraph\" is a blank line",
+    "\"new paragraph\", a blank line",
     "the letters say how to write the word",
-    "conventional way rather than as a homophone",
+    "Spell familiar paths, flags, and commands conventionally",
     "is written the context's way",
     "cancels the whole thought",
     "whether the context declares the name or calls it"
@@ -40,9 +40,9 @@ struct CleanupPromptTests {
     #expect(CleanupPrompt.builtIn.contains(fragment))
   }
 
-  /// Three rules only work with an example, and the perturbation grid measured each one's worth.
+  /// Four rules need an example, and the perturbation grid measured each one's worth.
   @Test(arguments: [
-    "is typed --offline",
+    "\"dash dash offline\" becomes --offline",
     "The label is called Vybe.",
     "\"compute totals\" is written computeTotals",
     "is edited down to \"Drive around the bay.\""
