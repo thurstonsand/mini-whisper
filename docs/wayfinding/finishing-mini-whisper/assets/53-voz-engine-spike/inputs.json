@@ -1,0 +1,512 @@
+[
+  {
+    "path": "stage1-intelligibility.jsonl",
+    "bytes": 1919,
+    "sha256": "3c42463c1eefc241936f90512b56708962cecf5a4d8f1f7bdda5c8aabce6eac5"
+  },
+  {
+    "path": "recordings/stage1-intelligibility-built-in/harvard-01-01.wav",
+    "bytes": 86814,
+    "sha256": "7f9ed66f7766cb3c87fc835e3d20748cf3c79b813faebb362a39159bb469d32c"
+  },
+  {
+    "path": "recordings/stage1-intelligibility-built-in/harvard-01-02.wav",
+    "bytes": 109662,
+    "sha256": "5e005f61a98184d97e23125409b9f1309f0c2874af49dc4358561f4aa19a2600"
+  },
+  {
+    "path": "recordings/stage1-intelligibility-built-in/harvard-01-03.wav",
+    "bytes": 84084,
+    "sha256": "7e044af4a2d49168acc9b730a75f40d1f08a92d1e0d95f5e3e55c7f69d665816"
+  },
+  {
+    "path": "recordings/stage1-intelligibility-built-in/harvard-01-04.wav",
+    "bytes": 90078,
+    "sha256": "5be1bd9fdac6b8ad759020a57106028503a5103e0252082b55e04f21e366e78d"
+  },
+  {
+    "path": "recordings/stage1-intelligibility-built-in/harvard-01-05.wav",
+    "bytes": 109662,
+    "sha256": "f48061eb4cf5038928dbc71f35e552cbf6547f0c808070786a200592469bee37"
+  },
+  {
+    "path": "recordings/stage1-intelligibility-built-in/harvard-01-06.wav",
+    "bytes": 118920,
+    "sha256": "21ea88d908db21b9030b122b3b6ee2713043604a8d2daaac7b016fa862742ccf"
+  },
+  {
+    "path": "recordings/stage1-intelligibility-built-in/harvard-01-07.wav",
+    "bytes": 99870,
+    "sha256": "f6a3df84466c6c86dddaa9a8626d0a67652c344bcd2ecec61ecccc4416ff2f75"
+  },
+  {
+    "path": "recordings/stage1-intelligibility-built-in/harvard-01-08.wav",
+    "bytes": 137970,
+    "sha256": "3e9374bf9f81afe21d79dae830845de412e7b31c0b8226991c189e7bcdcb1c64"
+  },
+  {
+    "path": "recordings/stage1-intelligibility-built-in/harvard-01-09.wav",
+    "bytes": 141234,
+    "sha256": "3cc70ba85830665ee8c2264e23f5903931db37afcd529b4eef73ba3ae0605461"
+  },
+  {
+    "path": "recordings/stage1-intelligibility-built-in/harvard-01-10.wav",
+    "bytes": 118920,
+    "sha256": "3e9bd3f35430b8d116fbca5c655dbfa80c56c405da3d740ba942b3df2e5a7334"
+  },
+  {
+    "path": "recordings/stage1-intelligibility-built-in/confusable-01.wav",
+    "bytes": 106398,
+    "sha256": "6bcaa3b9ce31f5de3eeda90ac146bedae0b7d7276cbd22a267cc6a2bb20fb3df"
+  },
+  {
+    "path": "recordings/stage1-intelligibility-built-in/confusable-02.wav",
+    "bytes": 154290,
+    "sha256": "ce32b846fea215b17ccc1eae3158abc0c51086bccfa977ef5b85d58aefde7109"
+  },
+  {
+    "path": "recordings/stage1-intelligibility-built-in/confusable-03.wav",
+    "bytes": 122184,
+    "sha256": "2d831fb1b8c49067313ff4f53893842e34793b60845d4f2f166e4823e3ef807b"
+  },
+  {
+    "path": "recordings/stage1-intelligibility-built-in/confusable-05.wav",
+    "bytes": 128712,
+    "sha256": "e4674246ec19ab8ffe37abf63d282cbce854ba5801e66ceb13e6b66a79c85cfe"
+  },
+  {
+    "path": "recordings/stage1-intelligibility-built-in/confusable-08.wav",
+    "bytes": 135240,
+    "sha256": "6fa4be751eb8ef28192775d2fe727603d0948c6c004c97bf95adc9c5720167c3"
+  },
+  {
+    "path": "recordings/stage1-intelligibility-built-in/confusable-15.wav",
+    "bytes": 109662,
+    "sha256": "2d6d86d676a30411b11b41a54540a22fe274fc3e1dec6ee557aaa2277f4a860a"
+  },
+  {
+    "path": "recordings/stage1-intelligibility-built-in/confusable-16.wav",
+    "bytes": 93342,
+    "sha256": "ac8121c0d96737bb239c91b574842b2dd4bf2f3e41961496350690573dc1186b"
+  },
+  {
+    "path": "recordings/stage1-intelligibility-built-in/confusable-17.wav",
+    "bytes": 86814,
+    "sha256": "4e6698b4f2ba1afb82ceafaade1cf479061ccfc0c285fb0ed71acb117115a550"
+  },
+  {
+    "path": "recordings/stage1-intelligibility-built-in/confusable-18.wav",
+    "bytes": 106398,
+    "sha256": "d07120af240687a013c8811bfddcb533929aa3822fd019014adc44072b6342f4"
+  },
+  {
+    "path": "recordings/stage1-intelligibility-built-in/confusable-19.wav",
+    "bytes": 115656,
+    "sha256": "6202efa491e2ba6dc4570b13b144231ed448db043af426d621005bb4f046905b"
+  },
+  {
+    "path": "recordings/stage1-intelligibility-built-in/confusable-20.wav",
+    "bytes": 112392,
+    "sha256": "705278ab66518bc399517a0488cdc675b3c90237a6a49840a246f91144b5136c"
+  },
+  {
+    "path": "recordings/stage1-intelligibility-built-in/confusable-21.wav",
+    "bytes": 93342,
+    "sha256": "dd81adde95a761f783f733f94a462f1b64c854e281648baefee8984d60a3823f"
+  },
+  {
+    "path": "recordings/stage1-intelligibility-built-in/confusable-22.wav",
+    "bytes": 131976,
+    "sha256": "5a02995fa2fa439bd22ef7a508c7af963bae780dea63a95d7fe7fdfe8c8840a2"
+  },
+  {
+    "path": "recordings/stage1-intelligibility-built-in/confusable-23.wav",
+    "bytes": 103134,
+    "sha256": "e026c008c1bc9b932476d43db8dd6dcf8598a37a36797b17a0b02bb238482d2b"
+  },
+  {
+    "path": "recordings/stage1-intelligibility-built-in/confusable-24.wav",
+    "bytes": 93342,
+    "sha256": "edf6502e4df5ca761477a00078a45b333c4589baf8caf0f84e4f4c3eabc847b9"
+  },
+  {
+    "path": "stage1-longform.jsonl",
+    "bytes": 4109,
+    "sha256": "7488d25f4325743575c002b4db36ab853a5ce7ed004ddb2db1d88ccb45787368"
+  },
+  {
+    "path": "recordings/stage1-longform/longform-01.wav",
+    "bytes": 797538,
+    "sha256": "a058bc12bfb3c96a181e5b14f50a6eed2615540f27c19296d5c934317bc924bc"
+  },
+  {
+    "path": "recordings/stage1-longform/longform-02.wav",
+    "bytes": 1149636,
+    "sha256": "5afa093258a8cc8d7f097ca7948dff4a0fd1add3ef0f57adba3d42ebb07f2b66"
+  },
+  {
+    "path": "recordings/stage1-longform/longform-03.wav",
+    "bytes": 493332,
+    "sha256": "f0043d06a9fc2eb569c629eba271ce7a8cd4ff8609687e8ae6a4b6a0219adcbb"
+  },
+  {
+    "path": "recordings/stage1-longform/longform-04.wav",
+    "bytes": 1696566,
+    "sha256": "f13b3a18b1bcfeb04b30269864a445e89fc5d2a5992b8e59c01aad71905badcd"
+  },
+  {
+    "path": "recordings/stage1-longform/longform-05.wav",
+    "bytes": 1085424,
+    "sha256": "b1cccdbf5ea56179e68911287e4541ae6507f046256263a78b60487eea68846d"
+  },
+  {
+    "path": "recordings/stage1-longform/longform-06.wav",
+    "bytes": 1735200,
+    "sha256": "d95ee3245ef8c86b9a9cd3ff53a2d9d3a8e0b740f72de42e9a1e432338aeb3fe"
+  },
+  {
+    "path": "stage2-dictionary.jsonl",
+    "bytes": 2275,
+    "sha256": "608defe428b4afa2b0c231d7fd5acfb3b5bdb663394587b501a7752115846e58"
+  },
+  {
+    "path": "recordings/stage2-dictionary-built-in/dict-01.wav",
+    "bytes": 135240,
+    "sha256": "e1013c06b93aa00247c93b820853c47dcb8a0292c34c3ad1ca6814839751628a"
+  },
+  {
+    "path": "recordings/stage2-dictionary-built-in/dict-02.wav",
+    "bytes": 93342,
+    "sha256": "5886a5be610e3ddf71c0ea7df477bde7b4d148d0efa1dcba72044bad2659c010"
+  },
+  {
+    "path": "recordings/stage2-dictionary-built-in/dict-03.wav",
+    "bytes": 106398,
+    "sha256": "a730d45c40ff39e975432e2d616a9f11a5d88fee5443ec2a5f41aee79b6b20dc"
+  },
+  {
+    "path": "recordings/stage2-dictionary-built-in/dict-04.wav",
+    "bytes": 166812,
+    "sha256": "b781cce67291f32fd1705fab9065ea72076a9babda2362f714148bbc602515e9"
+  },
+  {
+    "path": "recordings/stage2-dictionary-built-in/dict-05.wav",
+    "bytes": 122184,
+    "sha256": "56a6cbcacf2e1c4f0f4cfc5360dfb0aaa56b3089821985a40af135206cd728cb"
+  },
+  {
+    "path": "recordings/stage2-dictionary-built-in/dict-06.wav",
+    "bytes": 118920,
+    "sha256": "e7cdeb58ed9d51a9f9c9023bcbef665b4e5600daf144fc717f7c3161411c11f5"
+  },
+  {
+    "path": "recordings/stage2-dictionary-built-in/dict-07.wav",
+    "bytes": 144498,
+    "sha256": "53b9a224d610b3159cc82afcb0d3e27a004a330ae126cecdfafdcb4699a09429"
+  },
+  {
+    "path": "recordings/stage2-dictionary-built-in/dict-08.wav",
+    "bytes": 99870,
+    "sha256": "4e8290588a99d56ffb7673af52fbb9641154ba384367d8a454acf91102a86c27"
+  },
+  {
+    "path": "recordings/stage2-dictionary-built-in/dict-09.wav",
+    "bytes": 118920,
+    "sha256": "3c08c7a1e8aa770342c78dc8364cd3999917b2e76b1c8e19f45ead52c6c4c2e0"
+  },
+  {
+    "path": "recordings/stage2-dictionary-built-in/dict-10.wav",
+    "bytes": 90078,
+    "sha256": "fa953571d9df3251e3e3747db45ed00633af3debaf4952271391a25c52e55097"
+  },
+  {
+    "path": "recordings/stage2-dictionary-built-in/dict-11.wav",
+    "bytes": 90078,
+    "sha256": "592bd2ac5d98ab84792908d5b6b44fd0e0832a90d7815447de91a12c0afe5f47"
+  },
+  {
+    "path": "recordings/stage2-dictionary-built-in/dict-12.wav",
+    "bytes": 106398,
+    "sha256": "e52cb89ba74261afd434fc6b2c556e084a6ab0c91c94a7d7c9155426c40f0885"
+  },
+  {
+    "path": "recordings/stage2-dictionary-built-in/dict-13.wav",
+    "bytes": 109662,
+    "sha256": "215c11e974a3b7a8590f60e0b7633925a4cfab1c8fd19402a51043d1ab1989e6"
+  },
+  {
+    "path": "recordings/stage2-dictionary-built-in/dict-14.wav",
+    "bytes": 84084,
+    "sha256": "a968c942544d6b51a4b4444064c2fd60c0c424e5547fac994bd71d46765e0fa3"
+  },
+  {
+    "path": "recordings/stage2-dictionary-built-in/dict-15.wav",
+    "bytes": 99870,
+    "sha256": "49b4f575a4ac4aa3f650ece4aa281d842b38afec3e449f2d51156cf8a606b532"
+  },
+  {
+    "path": "recordings/stage2-dictionary-built-in/dict-16.wav",
+    "bytes": 157554,
+    "sha256": "6159a66eeb89f2967b87228c7496a64b74191c1c5c6ecf69173221560bafcb18"
+  },
+  {
+    "path": "recordings/stage2-dictionary-built-in/trap-01.wav",
+    "bytes": 118920,
+    "sha256": "06add7c10e09a24271b9aaf950cd3ede89c3dfdf4ac0572e5c4e2485b8745b1c"
+  },
+  {
+    "path": "recordings/stage2-dictionary-built-in/trap-02.wav",
+    "bytes": 125448,
+    "sha256": "7ef5b7d95d812913d8d6db9e2a70887dd0dce22860d77cc632e80ad14dc23ad8"
+  },
+  {
+    "path": "recordings/stage2-dictionary-built-in/trap-03.wav",
+    "bytes": 122184,
+    "sha256": "c939b39e66f988b46353249e675836ade2ab39a88fee32cfdfd5450b40d7f830"
+  },
+  {
+    "path": "recordings/stage2-dictionary-built-in/trap-04.wav",
+    "bytes": 151026,
+    "sha256": "d5914d1994c12ff04b695fc40d3e78a6b76a4baf0565f0f8789b470d9dec4a72"
+  },
+  {
+    "path": "recordings/stage2-dictionary-built-in/trap-05.wav",
+    "bytes": 125448,
+    "sha256": "83589bb8bba16fe55ed414638796b90b5da4e89badc60f4058a4a0783f978a77"
+  },
+  {
+    "path": "recordings/stage2-dictionary-built-in/trap-06.wav",
+    "bytes": 99870,
+    "sha256": "70877664003c13a616652c01f33539b916c365abd5e4f7a45347b91bad9eab48"
+  },
+  {
+    "path": "recordings/stage2-dictionary-built-in/trap-07.wav",
+    "bytes": 93342,
+    "sha256": "3cba5b5cabc9b0aae8152ac9f0ab55247edf83503b3b18eadac058ba7adb33ec"
+  },
+  {
+    "path": "recordings/stage2-dictionary-built-in/trap-08.wav",
+    "bytes": 80820,
+    "sha256": "90118bb1bc7c62ec80c7616ccf401ee1b009e456cbc6859ba36e104c95eee637"
+  },
+  {
+    "path": "stage3-polish.jsonl",
+    "bytes": 4937,
+    "sha256": "ea03a792e79180093fdac0699d7353f4f02d0c245c94ad9c22e1484acb69262f"
+  },
+  {
+    "path": "recordings/stage3-polish-built-in/polish-01.wav",
+    "bytes": 170076,
+    "sha256": "e097422e57457c3c5eda5065c9149e1c7f23b8ecd86edda967959807fa0cdcb4"
+  },
+  {
+    "path": "recordings/stage3-polish-built-in/polish-02.wav",
+    "bytes": 154290,
+    "sha256": "4c6e8ff9f692a9a72867cd56cb09d5456425553abb118cf52704b1a030a5e7c3"
+  },
+  {
+    "path": "recordings/stage3-polish-built-in/polish-03.wav",
+    "bytes": 137970,
+    "sha256": "4a9bcfa32757cde616624b884e549b5a7cf37443121808b4f32f3332a4331175"
+  },
+  {
+    "path": "recordings/stage3-polish-built-in/polish-06.wav",
+    "bytes": 173340,
+    "sha256": "2de231f642027f751c36582d4b25a89b443a243ea38c88b7409342dbbed6f54a"
+  },
+  {
+    "path": "recordings/stage3-polish-built-in/polish-07.wav",
+    "bytes": 256602,
+    "sha256": "2320ac4bf9b6e7f3682298bec7a2b16867665cc081de785119233ef637637969"
+  },
+  {
+    "path": "recordings/stage3-polish-built-in/polish-08.wav",
+    "bytes": 103134,
+    "sha256": "53cc2429631eaaa4c5fa0b3f5fe38b2346f79c2b3198f90c2b4bbd0c34bf4cef"
+  },
+  {
+    "path": "recordings/stage3-polish-built-in/polish-10.wav",
+    "bytes": 198918,
+    "sha256": "6fa235bc917b3d78dbebff47e938cec4ab298c57fef7cc85a296369d254476de"
+  },
+  {
+    "path": "recordings/stage3-polish-built-in/polish-11.wav",
+    "bytes": 137970,
+    "sha256": "76ed560dac4648cd6755ed3d15d2048ad4d8a00668cfc04d5778b02bbd5886c1"
+  },
+  {
+    "path": "recordings/stage3-polish-built-in/polish-13.wav",
+    "bytes": 112392,
+    "sha256": "5a681a8e4c9b512e23c42296912039b1458c9b708a64530b17c7fc300c00a4e4"
+  },
+  {
+    "path": "recordings/stage3-polish-built-in/polish-14.wav",
+    "bytes": 147762,
+    "sha256": "3208ec1fb1fc9d9a81ce70b1be377ba58afed7c0311ea5cb07d8ed1f1725c197"
+  },
+  {
+    "path": "recordings/stage3-polish-built-in/polish-15.wav",
+    "bytes": 144498,
+    "sha256": "5a2ccfc3fd7b8927ee87c5637221561fee5ac19863a57e67974b481c46da0630"
+  },
+  {
+    "path": "recordings/stage3-polish-built-in/polish-16.wav",
+    "bytes": 147762,
+    "sha256": "90fa1b0789a6812b31da78d7b68a7f3e6646456c3fd6bd3b4e5e7de83ea2a6b0"
+  },
+  {
+    "path": "recordings/stage3-polish-built-in/polish-19.wav",
+    "bytes": 135240,
+    "sha256": "5644f79508a22bad0cd1859320d7eff6cda5c1a228dd2e656e76ffdafc409fac"
+  },
+  {
+    "path": "recordings/stage3-polish-built-in/polish-20.wav",
+    "bytes": 106398,
+    "sha256": "59c17c82c5210825aa78d54b196ad8f55064d60d51b546354c14b4bfbbfdbd0c"
+  },
+  {
+    "path": "recordings/stage3-polish-built-in/polish-22.wav",
+    "bytes": 135240,
+    "sha256": "d0e4432f5f45dbe67e7fc9fd7d744b15c6ca1d5d24e392e6a958887b402725e8"
+  },
+  {
+    "path": "recordings/stage3-polish-built-in/polish-23.wav",
+    "bytes": 137970,
+    "sha256": "f51ded68fce8bf0e6158c0c12a63353cfc804a2af33b18121a00fcd5aed1c7f6"
+  },
+  {
+    "path": "recordings/stage3-polish-built-in/polish-26.wav",
+    "bytes": 99870,
+    "sha256": "1278b9aef82b9e59a5ee14064f7a17964d7a3576c09678d76b114bf175a3c7be"
+  },
+  {
+    "path": "recordings/stage3-polish-built-in/polish-27.wav",
+    "bytes": 112392,
+    "sha256": "75ff48bc0e95be52fae902e3dad6111b617187df6eb5556215dacb5daea898c0"
+  },
+  {
+    "path": "recordings/stage3-polish-built-in/polish-28.wav",
+    "bytes": 144498,
+    "sha256": "f85bad93163e717d0c8d03efe1a7eb55022c092781157dfa8b1cf2e1d405be61"
+  },
+  {
+    "path": "recordings/stage3-polish-built-in/polish-29.wav",
+    "bytes": 115656,
+    "sha256": "5138e7e1886c25500d0b9fa8a31bcf147095d2ce0e96f82cf040c40aa1795a4d"
+  },
+  {
+    "path": "recordings/stage3-polish-built-in/polish-30.wav",
+    "bytes": 67764,
+    "sha256": "ad9adbd12a8e62d898efd9df687a861d100d953876ff777fe01a67e59a12e880"
+  },
+  {
+    "path": "recordings/stage3-polish-built-in/polish-32.wav",
+    "bytes": 112392,
+    "sha256": "419c24e52e21b3142055ad8923d7ce6d1ef95c3ae06d1f61fa030aed5fbf0f2e"
+  },
+  {
+    "path": "recordings/stage3-polish-built-in/polish-33.wav",
+    "bytes": 173340,
+    "sha256": "36ca77985340cc5baf5e157ab43065da247e693e0ac61005f2d15685480b0dde"
+  },
+  {
+    "path": "recordings/stage3-polish-built-in/polish-36.wav",
+    "bytes": 771960,
+    "sha256": "b0920f1d3f67e85ad5b891c808666625f30308e1da954acd43fa47bcc433ce94"
+  },
+  {
+    "path": "recordings/stage3-polish-built-in/polish-37.wav",
+    "bytes": 125448,
+    "sha256": "94a046d0ade008518d111729fc8accccc038626cc0604654d99e857680460eb0"
+  },
+  {
+    "path": "recordings/stage3-polish-built-in/polish-38.wav",
+    "bytes": 186396,
+    "sha256": "cc047d8a00ae9f4bc6be9568b00718ec89762852777a1f7dc10b29bae25e6b64"
+  },
+  {
+    "path": "recordings/stage3-polish-built-in/polish-39.wav",
+    "bytes": 154290,
+    "sha256": "069209175ef1ca50b9e0e1c273cc96f38e92e34a1a4b78e31fd7db6c9b2bddf4"
+  },
+  {
+    "path": "stage2-holdout.jsonl",
+    "bytes": 1491,
+    "sha256": "523d8d091b6abc89c02aee18db720f679f1a57f446b603d68c369bdef957e320"
+  },
+  {
+    "path": "recordings/stage2-holdout-built-in/hdict-01.wav",
+    "bytes": 122184,
+    "sha256": "5fc492c9cb5fab6cb3ad390ce6a83fc86da216aed59f574fc569102c981fbda8"
+  },
+  {
+    "path": "recordings/stage2-holdout-built-in/hdict-02.wav",
+    "bytes": 115656,
+    "sha256": "3e1669801a637540510a651d3f242698cc6e6abc1b462304a24c0ab987a11b50"
+  },
+  {
+    "path": "recordings/stage2-holdout-built-in/hdict-03.wav",
+    "bytes": 125448,
+    "sha256": "aedb5ac5739f4779073be03fc2929a556101c2b6014f371f1c0c8d32babe8e54"
+  },
+  {
+    "path": "recordings/stage2-holdout-built-in/htrap-01.wav",
+    "bytes": 103134,
+    "sha256": "91d2ea3ab2cbe03105c9dc4d5c5e142835a83dc780a249c4e713f2016563cf63"
+  },
+  {
+    "path": "recordings/stage2-holdout-built-in/htrap-02.wav",
+    "bytes": 106398,
+    "sha256": "683e46b10e33c37d322ae694e43c110bff55aea82194201c534b9782d3445bae"
+  },
+  {
+    "path": "recordings/stage2-holdout-built-in/hdict-04.wav",
+    "bytes": 115656,
+    "sha256": "3f84b8b71b908e1402524e4f0aca7649aaf81eaaa05214120155215e218b38e4"
+  },
+  {
+    "path": "recordings/stage2-holdout-built-in/hdict-05.wav",
+    "bytes": 125448,
+    "sha256": "5c41a710f70fa68f305c2300d370b0b7be6c5e0df397b73e1dfc0e46cabb0d27"
+  },
+  {
+    "path": "recordings/stage2-holdout-built-in/hdict-06.wav",
+    "bytes": 144498,
+    "sha256": "ebefee46cc3b4894fa9ace28f195a5f9301303dd59fa5f5b5384694af3f58398"
+  },
+  {
+    "path": "recordings/stage2-holdout-built-in/hdict-07.wav",
+    "bytes": 103134,
+    "sha256": "ba542fad14bd6e6efdc6703640d55682354ec474eb5d6bb822e95bdfdd1dc416"
+  },
+  {
+    "path": "recordings/stage2-holdout-built-in/hdict-08.wav",
+    "bytes": 176604,
+    "sha256": "745c4d8616a5e51a0d796f16948c60bd1d7766fde240f62ba0b269b479f19734"
+  },
+  {
+    "path": "recordings/stage2-holdout-built-in/hdict-09.wav",
+    "bytes": 128712,
+    "sha256": "354e1b66fc6c01b0f7ff53ba325236db530f9e2ae0b0f3732a924103c40272ed"
+  },
+  {
+    "path": "recordings/stage2-holdout-built-in/htrap-03.wav",
+    "bytes": 118920,
+    "sha256": "d6f0362fbdbddbff4c689e31d44f3814c83ea1d817b391ae20baf08cbbf31cf5"
+  },
+  {
+    "path": "recordings/stage2-holdout-built-in/htrap-04.wav",
+    "bytes": 112392,
+    "sha256": "b276f2878fe439bc478e1899b03adbcf01264133f6549c62476103f2bef09838"
+  },
+  {
+    "path": "recordings/stage2-holdout-built-in/htrap-05.wav",
+    "bytes": 115656,
+    "sha256": "4e206cdfe935e334745d7e8738946e6312ac1b26e4adb81adb96fe9d15d67b9b"
+  },
+  {
+    "path": "recordings/stage2-holdout-built-in/htrap-06.wav",
+    "bytes": 96606,
+    "sha256": "649e8f2887cd6074f200a7b3435ff55a922a98e85266871428ad1d27bccdfb1b"
+  }
+]

@@ -1,0 +1,22 @@
+{
+  "sw_vers": "ProductName:\t\tmacOS\nProductVersion:\t\t26.5.2\nBuildVersion:\t\t25F84",
+  "xcodebuild -version": "Xcode 26.6\nBuild version 17F113",
+  "swift --version": "Apple Swift version 6.3.3 (swiftlang-6.3.3.1.3 clang-2100.1.1.101)\nTarget: arm64-apple-macosx26.0",
+  "sysctl -n hw.model hw.memsize hw.physicalcpu machdep.cpu.brand_string": "Mac16,8\n51539607552\n14\nApple M4 Pro",
+  "date -u +%FT%TZ": "2026-09-09T17:09:53Z",
+  "runtimeTagEvidence": "Existing bakeoff FluidAudio/.git/packed-refs: 19600a485baa4998812e4654b70d2bab8f2c9949 refs/tags/v0.15.5",
+  "packageResolved": {
+    "originHash": "25dbcf6f638e85c9c44f4edfad092debec8d19bab24dffc4aa0b1b08e647001d",
+    "pins": [
+      {
+        "identity": "fluidaudio",
+        "kind": "remoteSourceControl",
+        "location": "https://github.com/FluidInference/FluidAudio.git",
+        "state": {
+          "revision": "19600a485baa4998812e4654b70d2bab8f2c9949"
+        }
+      }
+    ],
+    "version": 3
+  }
+}

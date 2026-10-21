@@ -1,0 +1,34 @@
+[
+  {
+    "stage": "stage1-intelligibility",
+    "entries": 25,
+    "emptyIds": [],
+    "schemaAndOrderedIds": "pass"
+  },
+  {
+    "stage": "stage1-longform",
+    "entries": 6,
+    "emptyIds": [],
+    "schemaAndOrderedIds": "pass"
+  },
+  {
+    "stage": "stage2-dictionary",
+    "entries": 24,
+    "emptyIds": [],
+    "schemaAndOrderedIds": "pass"
+  },
+  {
+    "stage": "stage2-holdout",
+    "entries": 15,
+    "emptyIds": [],
+    "schemaAndOrderedIds": "pass"
+  },
+  {
+    "stage": "stage3-polish",
+    "entries": 27,
+    "emptyIds": [
+      "polish-30"
+    ],
+    "schemaAndOrderedIds": "pass"
+  }
+]

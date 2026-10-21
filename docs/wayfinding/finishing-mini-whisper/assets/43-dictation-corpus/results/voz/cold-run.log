@@ -1,0 +1,3 @@
+Powered by Desert Ant Labs
+loadMs=17363.706125 sampleRate=16000.0 resamplingRequired=false
+Error Domain=com.apple.coreaudio.avfaudio Code=2003334207 "(null)" UserInfo={failed call=ExtAudioFileOpenURL((__bridge CFURLRef)fileURL, &_extAudioFile)}

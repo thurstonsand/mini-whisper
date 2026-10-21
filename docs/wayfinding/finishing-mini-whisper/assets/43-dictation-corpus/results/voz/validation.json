@@ -1,0 +1,19 @@
+{
+  "inputHashesVerified": true,
+  "runs": {
+    "voz": {
+      "entries": 97,
+      "exactFieldsAndOrderedIDs": true,
+      "transcriptOutcomes": 97,
+      "emptyIDs": [],
+      "audioFormatAndDurationVerified": true
+    },
+    "tail-padding-probe": {
+      "entries": 97,
+      "exactFieldsAndOrderedIDs": true,
+      "transcriptOutcomes": 97,
+      "emptyIDs": [],
+      "audioFormatAndDurationVerified": true
+    }
+  }
+}

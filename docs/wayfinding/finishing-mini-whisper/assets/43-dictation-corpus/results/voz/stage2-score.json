@@ -1,0 +1,407 @@
+{
+  "stage": "stage2-dictionary",
+  "runs": {
+    "voz": {
+      "wantsTotal": 18,
+      "wantsHit": 2,
+      "wantsHitIgnoringCase": 4,
+      "trapsTotal": 8,
+      "trapsBitten": 0,
+      "trapsBittenIgnoringCase": 2,
+      "latency": {
+        "n": 24,
+        "medianMs": 50.7,
+        "meanMs": 52.2,
+        "minMs": 43.3,
+        "maxMs": 75.1
+      },
+      "wants": [
+        {
+          "id": "dict-01",
+          "term": "MiniWhisper",
+          "hit": false,
+          "hitIgnoringCase": false,
+          "transcript": "Mini Whisper delivers the transcript into the frontmost app"
+        },
+        {
+          "id": "dict-02",
+          "term": "Ghostty",
+          "hit": false,
+          "hitIgnoringCase": false,
+          "transcript": "I keep three terminals open in Ghostie"
+        },
+        {
+          "id": "dict-03",
+          "term": "Cerebras",
+          "hit": false,
+          "hitIgnoringCase": false,
+          "transcript": "Cerebrus answered in under four hundred millisec"
+        },
+        {
+          "id": "dict-04",
+          "term": "Silero",
+          "hit": false,
+          "hitIgnoringCase": false,
+          "transcript": "The gate runs one Solero pass at release"
+        },
+        {
+          "id": "dict-05",
+          "term": "Parakeet",
+          "hit": true,
+          "hitIgnoringCase": true,
+          "transcript": "Parakeet handles the transcription on device"
+        },
+        {
+          "id": "dict-06",
+          "term": "FluidAudio",
+          "hit": false,
+          "hitIgnoringCase": false,
+          "transcript": "Fluid Audio pins the model version for us"
+        },
+        {
+          "id": "dict-07",
+          "term": "tuistory",
+          "hit": false,
+          "hitIgnoringCase": false,
+          "transcript": "Wrap the dev server with Tui Story so agents can read"
+        },
+        {
+          "id": "dict-08",
+          "term": "SwiftUI",
+          "hit": false,
+          "hitIgnoringCase": false,
+          "transcript": "The settings window is Plain Swift UI"
+        },
+        {
+          "id": "dict-09",
+          "term": "XCUITest",
+          "hit": false,
+          "hitIgnoringCase": false,
+          "transcript": "Every surface has an XcuI test slice"
+        },
+        {
+          "id": "dict-10",
+          "term": "Zigbee",
+          "hit": false,
+          "hitIgnoringCase": false,
+          "transcript": "The sensor bridges over zigbe to the hu"
+        },
+        {
+          "id": "dict-11",
+          "term": "Qwen",
+          "hit": false,
+          "hitIgnoringCase": false,
+          "transcript": "The base model is Quen III."
+        },
+        {
+          "id": "dict-12",
+          "term": "llama.cpp",
+          "hit": false,
+          "hitIgnoringCase": false,
+          "transcript": "Run it locally with lama.cpp."
+        },
+        {
+          "id": "dict-13",
+          "term": "Keychain",
+          "hit": false,
+          "hitIgnoringCase": true,
+          "transcript": "The API key lives in the keychain"
+        },
+        {
+          "id": "dict-14",
+          "term": "Homebrew",
+          "hit": false,
+          "hitIgnoringCase": true,
+          "transcript": "Install the cask through homebrew"
+        },
+        {
+          "id": "dict-15",
+          "term": "TCA",
+          "hit": true,
+          "hitIgnoringCase": true,
+          "transcript": "The reducers follow TCA conventions"
+        },
+        {
+          "id": "dict-16",
+          "term": "Ghostty",
+          "hit": false,
+          "hitIgnoringCase": false,
+          "transcript": "Ghosty and Tui Story both survived the Cerebrous outage write-up"
+        },
+        {
+          "id": "dict-16",
+          "term": "tuistory",
+          "hit": false,
+          "hitIgnoringCase": false,
+          "transcript": "Ghosty and Tui Story both survived the Cerebrous outage write-up"
+        },
+        {
+          "id": "dict-16",
+          "term": "Cerebras",
+          "hit": false,
+          "hitIgnoringCase": false,
+          "transcript": "Ghosty and Tui Story both survived the Cerebrous outage write-up"
+        }
+      ],
+      "traps": [
+        {
+          "id": "trap-01",
+          "term": "Parakeet",
+          "bitten": false,
+          "bittenIgnoringCase": true,
+          "transcript": "A parakeet chattered in the pet shop window"
+        },
+        {
+          "id": "trap-02",
+          "term": "Silero",
+          "bitten": false,
+          "bittenIgnoringCase": false,
+          "transcript": "The hall went quiet, and silence settled over the ro"
+        },
+        {
+          "id": "trap-03",
+          "term": "Ghostty",
+          "bitten": false,
+          "bittenIgnoringCase": false,
+          "transcript": "A ghostly draft moved through the stairwell"
+        },
+        {
+          "id": "trap-04",
+          "term": "Cerebras",
+          "bitten": false,
+          "bittenIgnoringCase": false,
+          "transcript": "His approach was cerebral, all theory and no instinct,"
+        },
+        {
+          "id": "trap-05",
+          "term": "MiniWhisper",
+          "bitten": false,
+          "bittenIgnoringCase": false,
+          "transcript": "She answered with a mini whisper of her own"
+        },
+        {
+          "id": "trap-06",
+          "term": "Keychain",
+          "bitten": false,
+          "bittenIgnoringCase": true,
+          "transcript": "The keychain rattled against the door"
+        },
+        {
+          "id": "trap-07",
+          "term": "Qwen",
+          "bitten": false,
+          "bittenIgnoringCase": false,
+          "transcript": "The queen moved across the board."
+        },
+        {
+          "id": "trap-08",
+          "term": "llama.cpp",
+          "bitten": false,
+          "bittenIgnoringCase": false,
+          "transcript": "A llama grazed by the f"
+        }
+      ]
+    },
+    "incumbent": {
+      "wantsTotal": 18,
+      "wantsHit": 5,
+      "wantsHitIgnoringCase": 6,
+      "trapsTotal": 8,
+      "trapsBitten": 0,
+      "trapsBittenIgnoringCase": 2,
+      "latency": {
+        "n": 24,
+        "medianMs": 55.5,
+        "meanMs": 55.9,
+        "minMs": 53.3,
+        "maxMs": 61.8
+      },
+      "wants": [
+        {
+          "id": "dict-01",
+          "term": "MiniWhisper",
+          "hit": true,
+          "hitIgnoringCase": true,
+          "transcript": "MiniWhisper delivers the transcript into the frontmost app."
+        },
+        {
+          "id": "dict-02",
+          "term": "Ghostty",
+          "hit": false,
+          "hitIgnoringCase": false,
+          "transcript": "I keep three terminals open in Ghosty."
+        },
+        {
+          "id": "dict-03",
+          "term": "Cerebras",
+          "hit": false,
+          "hitIgnoringCase": false,
+          "transcript": "Cerebrus answered in under 400 milliseconds."
+        },
+        {
+          "id": "dict-04",
+          "term": "Silero",
+          "hit": false,
+          "hitIgnoringCase": false,
+          "transcript": "The gate runs one Siliro pass at release"
+        },
+        {
+          "id": "dict-05",
+          "term": "Parakeet",
+          "hit": true,
+          "hitIgnoringCase": true,
+          "transcript": "Parakeet handles the transcription on device"
+        },
+        {
+          "id": "dict-06",
+          "term": "FluidAudio",
+          "hit": false,
+          "hitIgnoringCase": false,
+          "transcript": "Fluid Audio pins the model version for us"
+        },
+        {
+          "id": "dict-07",
+          "term": "tuistory",
+          "hit": false,
+          "hitIgnoringCase": false,
+          "transcript": "Wrap the dev server with TUI story so agents can read it."
+        },
+        {
+          "id": "dict-08",
+          "term": "SwiftUI",
+          "hit": false,
+          "hitIgnoringCase": false,
+          "transcript": "The settings window is Plain Swift UI."
+        },
+        {
+          "id": "dict-09",
+          "term": "XCUITest",
+          "hit": false,
+          "hitIgnoringCase": false,
+          "transcript": "Every surface has an Xcui test slice"
+        },
+        {
+          "id": "dict-10",
+          "term": "Zigbee",
+          "hit": false,
+          "hitIgnoringCase": false,
+          "transcript": "The sensor bridges over Zigby to the hub."
+        },
+        {
+          "id": "dict-11",
+          "term": "Qwen",
+          "hit": false,
+          "hitIgnoringCase": false,
+          "transcript": "The base model is Quen3."
+        },
+        {
+          "id": "dict-12",
+          "term": "llama.cpp",
+          "hit": true,
+          "hitIgnoringCase": true,
+          "transcript": "Run it locally with llama.cpp."
+        },
+        {
+          "id": "dict-13",
+          "term": "Keychain",
+          "hit": false,
+          "hitIgnoringCase": true,
+          "transcript": "The API key lives in the keychain."
+        },
+        {
+          "id": "dict-14",
+          "term": "Homebrew",
+          "hit": true,
+          "hitIgnoringCase": true,
+          "transcript": "Install the cask through Homebrew."
+        },
+        {
+          "id": "dict-15",
+          "term": "TCA",
+          "hit": true,
+          "hitIgnoringCase": true,
+          "transcript": "The reducers follow TCA conventions"
+        },
+        {
+          "id": "dict-16",
+          "term": "Ghostty",
+          "hit": false,
+          "hitIgnoringCase": false,
+          "transcript": "Ghosty and Tooie's Story both survived the cerebrus outage write up"
+        },
+        {
+          "id": "dict-16",
+          "term": "tuistory",
+          "hit": false,
+          "hitIgnoringCase": false,
+          "transcript": "Ghosty and Tooie's Story both survived the cerebrus outage write up"
+        },
+        {
+          "id": "dict-16",
+          "term": "Cerebras",
+          "hit": false,
+          "hitIgnoringCase": false,
+          "transcript": "Ghosty and Tooie's Story both survived the cerebrus outage write up"
+        }
+      ],
+      "traps": [
+        {
+          "id": "trap-01",
+          "term": "Parakeet",
+          "bitten": false,
+          "bittenIgnoringCase": true,
+          "transcript": "A parakeet chattered in the pet shop window"
+        },
+        {
+          "id": "trap-02",
+          "term": "Silero",
+          "bitten": false,
+          "bittenIgnoringCase": false,
+          "transcript": "The hall went quiet, and silence settled over the room"
+        },
+        {
+          "id": "trap-03",
+          "term": "Ghostty",
+          "bitten": false,
+          "bittenIgnoringCase": false,
+          "transcript": "A ghostly draught moved through the stairwell"
+        },
+        {
+          "id": "trap-04",
+          "term": "Cerebras",
+          "bitten": false,
+          "bittenIgnoringCase": false,
+          "transcript": "His approach was cerebral, all theory and no instinct."
+        },
+        {
+          "id": "trap-05",
+          "term": "MiniWhisper",
+          "bitten": false,
+          "bittenIgnoringCase": false,
+          "transcript": "She answered with a mini whisper of her own"
+        },
+        {
+          "id": "trap-06",
+          "term": "Keychain",
+          "bitten": false,
+          "bittenIgnoringCase": true,
+          "transcript": "The keychain rattled against the door"
+        },
+        {
+          "id": "trap-07",
+          "term": "Qwen",
+          "bitten": false,
+          "bittenIgnoringCase": false,
+          "transcript": "The Queen moved across the board."
+        },
+        {
+          "id": "trap-08",
+          "term": "llama.cpp",
+          "bitten": false,
+          "bittenIgnoringCase": false,
+          "transcript": "A llama grazed by the fence."
+        }
+      ]
+    }
+  }
+}

@@ -4,19 +4,21 @@ One microphone (built-in), one voice, every run on the same recordings. Each sub
 
 ## Engines (stage 1: WER + latency)
 
-| engine                               | WER       | median    | run                                                         |
-| ------------------------------------ | --------- | --------- | ----------------------------------------------------------- |
-| **ElevenLabs Scribe v2** (hosted)    | **0.98%** | 638 ms    | [elevenlabs-scribe-v2](elevenlabs-scribe-v2/)               |
-| **Parakeet TDT v2 (shipping)**       | 1.95%     | **55 ms** | [built-in](built-in/)                                       |
-| Cohere Transcribe (mlx-audio)        | 3.41%     | 97 ms     | [cohere-transcribe](cohere-transcribe/)                     |
-| Groq whisper-large-v3-turbo (hosted) | 3.41%     | 523 ms    | [groq-whisper-large-v3-turbo](groq-whisper-large-v3-turbo/) |
-| whisper large-v3-turbo               | 3.90%     | 487 ms    | [whisper-large-v3-turbo](whisper-large-v3-turbo/)           |
-| whisper medium.en                    | 3.90%     | 422 ms    | [whisper-medium-en](whisper-medium-en/)                     |
-| Gemini 3.6 Flash as engine (hosted)  | 4.39%     | 2339 ms   | [gemini-transcribe](gemini-transcribe/)                     |
+| engine                               | WER       | median      | run                                                         |
+| ------------------------------------ | --------- | ----------- | ----------------------------------------------------------- |
+| **ElevenLabs Scribe v2** (hosted)    | **0.98%** | 638 ms      | [elevenlabs-scribe-v2](elevenlabs-scribe-v2/)               |
+| **Parakeet TDT v2 (shipping)**       | 1.95%     | 55 ms       | [built-in](built-in/)                                       |
+| FluidAudio + Parakeet TDT v3         | 2.93%     | 55.4 ms     | [fluid-parakeet-v3](fluid-parakeet-v3/)                     |
+| Cohere Transcribe (mlx-audio)        | 3.41%     | 97 ms       | [cohere-transcribe](cohere-transcribe/)                     |
+| Groq whisper-large-v3-turbo (hosted) | 3.41%     | 523 ms      | [groq-whisper-large-v3-turbo](groq-whisper-large-v3-turbo/) |
+| whisper large-v3-turbo               | 3.90%     | 487 ms      | [whisper-large-v3-turbo](whisper-large-v3-turbo/)           |
+| whisper medium.en                    | 3.90%     | 422 ms      | [whisper-medium-en](whisper-medium-en/)                     |
+| Gemini 3.6 Flash as engine (hosted)  | 4.39%     | 2339 ms     | [gemini-transcribe](gemini-transcribe/)                     |
+| Voz + Parakeet TDT v3                | 5.85%     | **52.5 ms** | [voz](voz/)                                                 |
 
 Hosted latencies are network round trips measured from this machine, not provider inference time — network-dependent, and re-measure before betting on them.
 
-**Scribe v2 is the first engine to beat Parakeet on accuracy**, at half the error rate, and it wins every e2e cleanup column except s1-mini's. It costs 583 ms more per utterance, a network, and an account. Parakeet remains the only engine that is free, offline, and instant. Groq's whisper is the same weights as the local whisper at the same speed — hosting whisper buys nothing on an M4 Pro. Gemini-as-engine is last on both axes and paraphrases what it hears.
+**Scribe v2 is the first engine to beat Parakeet on accuracy**, at half the error rate, and it wins every e2e cleanup column except s1-mini's. It costs 583 ms more per utterance, a network, and an account. Parakeet remains the only engine that is free, offline, and instant. Groq's whisper is the same weights as the local whisper at the same speed — hosting whisper buys nothing on an M4 Pro. Gemini-as-engine is the slowest by an order of magnitude and paraphrases what it hears. Voz is the fastest and the least accurate: the same Parakeet v3 weights FluidAudio runs at 2.93%, compressed onto Desert Ant's runtime, clip final words and lose another three points for a 3 ms gain.
 
 Parakeet's one measured weakness is unchanged: it deletes meta-speech (quote/unquote, spelled letters) that every other engine hears. With Scribe's raw, the spelled-name entry converts.
 

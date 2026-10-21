@@ -1,0 +1,24 @@
+{"audioSeconds":4.098,"id":"dict-01","latencyMs":61.4,"outcome":"transcript","transcript":"MiniWisper delivers the transcript into the frontmost app."}
+{"audioSeconds":2.789,"id":"dict-02","latencyMs":53.6,"outcome":"transcript","transcript":"I keep three terminals open in Ghostie."}
+{"audioSeconds":3.197,"id":"dict-03","latencyMs":60.6,"outcome":"transcript","transcript":"Cerebrus answered in under 400 milliseconds."}
+{"audioSeconds":5.085,"id":"dict-04","latencyMs":55.3,"outcome":"transcript","transcript":"The gate runs one Celero pass at release."}
+{"audioSeconds":3.69,"id":"dict-05","latencyMs":51.7,"outcome":"transcript","transcript":"Parakeet handles the transcription on device."}
+{"audioSeconds":3.588,"id":"dict-06","latencyMs":53.5,"outcome":"transcript","transcript":"Fluid Audio pins the model version for us."}
+{"audioSeconds":4.388,"id":"dict-07","latencyMs":61.8,"outcome":"transcript","transcript":"Wrap the dev server with Tui Story so agents can read it"}
+{"audioSeconds":2.993,"id":"dict-08","latencyMs":54.9,"outcome":"transcript","transcript":"The settings window is Plain Swift UI"}
+{"audioSeconds":3.588,"id":"dict-09","latencyMs":51.6,"outcome":"transcript","transcript":"Every surface has an XcuI test slice"}
+{"audioSeconds":2.687,"id":"dict-10","latencyMs":55.6,"outcome":"transcript","transcript":"The sensor bridges over Zigbee to the hub."}
+{"audioSeconds":2.687,"id":"dict-11","latencyMs":44.7,"outcome":"transcript","transcript":"The base model is Quen III."}
+{"audioSeconds":3.197,"id":"dict-12","latencyMs":48.8,"outcome":"transcript","transcript":"Run it locally with lama.cpp"}
+{"audioSeconds":3.299,"id":"dict-13","latencyMs":54.9,"outcome":"transcript","transcript":"The API key lives in the keychain."}
+{"audioSeconds":2.5,"id":"dict-14","latencyMs":51.9,"outcome":"transcript","transcript":"Install the cask through homebrew."}
+{"audioSeconds":2.993,"id":"dict-15","latencyMs":50.3,"outcome":"transcript","transcript":"The reducers follow TCA conventions"}
+{"audioSeconds":4.796,"id":"dict-16","latencyMs":78.6,"outcome":"transcript","transcript":"Ghosty and Tui Story both survived the Cerebrous outage write-up"}
+{"audioSeconds":3.588,"id":"trap-01","latencyMs":55.1,"outcome":"transcript","transcript":"A parakeet chattered in the pet shop window"}
+{"audioSeconds":3.792,"id":"trap-02","latencyMs":58.7,"outcome":"transcript","transcript":"The hall went quiet, and silence settled over the room."}
+{"audioSeconds":3.69,"id":"trap-03","latencyMs":56.6,"outcome":"transcript","transcript":"A ghostly draft moved through the stairwell"}
+{"audioSeconds":4.592,"id":"trap-04","latencyMs":62,"outcome":"transcript","transcript":"His approach was cerebral, all theory and no instinct"}
+{"audioSeconds":3.792,"id":"trap-05","latencyMs":56.2,"outcome":"transcript","transcript":"She answered with a mini whisper of her own"}
+{"audioSeconds":2.993,"id":"trap-06","latencyMs":50.1,"outcome":"transcript","transcript":"The keychain rattled against the door"}
+{"audioSeconds":2.789,"id":"trap-07","latencyMs":49.8,"outcome":"transcript","transcript":"The Queen moved across the board."}
+{"audioSeconds":2.398,"id":"trap-08","latencyMs":46.3,"outcome":"transcript","transcript":"A llama grazed by the fence"}
