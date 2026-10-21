@@ -18,4 +18,9 @@ Output: runnable variants of both, screenshotted light and dark, with the tradeo
 
 ## Artifact
 
-[`spikes/profiles-mockup`](../../../../spikes/profiles-mockup/README.md) — a standalone AppKit/SwiftUI app, three pane pickers (`pane-a` rows, `pane-b` pop-up, `pane-c` cards), two onboarding steps (`onb-a` list, `onb-b` cards), plus the key page and the grown download page. A `full` flag renders every screen at five profiles, which is where the variants stop agreeing. Screenshots in [`evidence/`](../../../../spikes/profiles-mockup/evidence/).
+[`spikes/profiles-mockup`](../../../../spikes/profiles-mockup/README.md) — a standalone AppKit/SwiftUI app, three pane pickers (`pane-a` rows, `pane-b` pop-up, `pane-c` cards), three welcome pages carrying the profile choice (`welcome-a` list, `welcome-b` cards, `welcome-c` pop-up), plus the key page and the grown download page. A `full` flag renders every screen at five profiles, which is where the variants stop agreeing. Screenshots in [`evidence/`](../../../../spikes/profiles-mockup/evidence/).
+
+## Decided so far
+
+- **Profile choice moves to the welcome page** (user, 2026-10-21). The welcome button is the download consent and the profile decides the model set, so choosing there lets the durable background download start on the first click instead of one page later. The welcome button names its download (one model, several, or none for a hosted engine); the rail drops its Profile step, and a factory profile adds a Cleanup Key step at the head of it. The mock-up's onboarding variants were rebuilt on the welcome page as list, cards, and pop-up.
+- Open: which welcome variant, and which pane picker. Also for the design doc: what switching to a profile with a different model set does to a download that has already started.

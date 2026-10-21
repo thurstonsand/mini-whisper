@@ -18,7 +18,7 @@ shoot() {
     pkill -x profiles-mockup 2>/dev/null || true
     sleep 0.3
     .build/profiles-mockup "$@" "$appearance" >/tmp/profiles-mockup-wid 2>/dev/null &
-    sleep 2.2
+    sleep 3.5
     screencapture -o -l "$(cat /tmp/profiles-mockup-wid)" "$out/$name-$appearance.png"
     echo "$out/$name-$appearance.png"
   done
@@ -37,11 +37,13 @@ shoot pane-a-needssetup pane-a needs-setup
 shoot pane-a-custom pane-a custom-selected
 shoot pane-b-overridden pane-b overridden
 
-# Onboarding: the profile step, then the two pages it falls into.
-shoot onb-a onb-a
-shoot onb-b onb-b
-shoot onb-a-full onb-a full
-shoot onb-b-full onb-b full
+# Onboarding: profile choice on the welcome page, then the two pages it falls into.
+shoot welcome-a welcome-a
+shoot welcome-b welcome-b
+shoot welcome-c welcome-c
+shoot welcome-a-full welcome-a full
+shoot welcome-b-full welcome-b full
+shoot welcome-c-offline welcome-c offline
 shoot onb-key onb-key
 shoot onb-models onb-models
 shoot onb-models-offline onb-models offline

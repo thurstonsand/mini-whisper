@@ -1,11 +1,11 @@
-// Disposable mock-up of the Profiles pane and the onboarding profile step, for tickets 47 + 39.
+// Disposable mock-up of the Profiles pane and the onboarding welcome page, for tickets 47 + 39.
 // Not an Xcode target, imports no MiniWhisper code, must not ship. Every value below is invented.
 //
 //   swiftc -framework AppKit -framework SwiftUI \
 //     spikes/profiles-mockup/ProfilesMockup.swift -o .build/profiles-mockup
 //   .build/profiles-mockup pane-a           # pane variants: pane-a pane-b pane-c
-//   .build/profiles-mockup onb-a            # onboarding profile step: onb-a onb-b
-//   .build/profiles-mockup onb-key          # the key page the factory profile falls into
+//   .build/profiles-mockup welcome-a        # profile choice on welcome: welcome-a welcome-b welcome-c
+//   .build/profiles-mockup onb-key          # the key step a factory profile adds to the rail
 //   .build/profiles-mockup onb-models       # the per-profile model set
 //
 // Flags, in any order after the screen:
@@ -123,8 +123,9 @@ enum Screen: String {
   case paneA = "pane-a"
   case paneB = "pane-b"
   case paneC = "pane-c"
-  case onboardingA = "onb-a"
-  case onboardingB = "onb-b"
+  case welcomeA = "welcome-a"
+  case welcomeB = "welcome-b"
+  case welcomeC = "welcome-c"
   case onboardingKey = "onb-key"
   case onboardingModels = "onb-models"
 
@@ -171,7 +172,7 @@ enum Screen: String {
   var timeout = 10
   var instructions = ""
   var keyEntry = ""
-  var onboardingPage = OnboardingPage.profile
+  var onboardingPage = OnboardingPage.welcome
 
   var profiles: [Profile] {
     showsFullLineup ? [haikuProfile] + futureProfiles + [customProfile] : [haikuProfile, customProfile]
@@ -193,7 +194,7 @@ enum Screen: String {
 }
 
 enum OnboardingPage {
-  case profile
+  case welcome
   case key
   case models
 }
@@ -659,7 +660,11 @@ struct OnboardingShell<Card: View>: View {
         .foregroundStyle(.secondary)
         .padding(.top, 3)
       VStack(alignment: .leading, spacing: 17) {
-        railItem("Profile", symbol: "person.crop.rectangle.stack", step: .profile)
+        // The profile was chosen on the welcome page, so it is not a step. Its key is, and only
+        // for a profile that has one to ask for.
+        if mock.selectedProfile.needsKey {
+          railItem("Cleanup Key", symbol: "key.horizontal", step: .key)
+        }
         railItem("Permissions", symbol: "lock.shield", step: nil)
         railItem("Shortcut", symbol: "command", step: nil)
         railItem("Speech Model", symbol: "cpu", step: .models)
@@ -676,7 +681,6 @@ struct OnboardingShell<Card: View>: View {
 
   private func railItem(_ title: String, symbol: String, step: OnboardingPage?) -> some View {
     let isCurrent = step == mock.onboardingPage
-      || (step == .profile && mock.onboardingPage == .key)
     return HStack(spacing: 10) {
       Image(systemName: symbol)
         .frame(width: 18)
@@ -693,31 +697,94 @@ extension Mock {
   /// Choosing a profile decides what onboarding still has to ask for: a key, or nothing.
   func advance() {
     switch onboardingPage {
-    case .profile:
+    case .welcome:
       onboardingPage = selectedProfile.needsKey && !keyedProfiles.contains(selected)
         ? .key : .models
     case .key:
       keyedProfiles.insert(selected)
       onboardingPage = .models
     case .models:
-      onboardingPage = .profile
+      onboardingPage = .welcome
     }
+  }
+
+  /// The welcome button is the download consent, so it names what it downloads. A profile whose
+  /// engine is hosted has nothing to download, and the button stops pretending it does.
+  var welcomeAction: String {
+    switch selectedProfile.models.count {
+    case 0: "Get Started"
+    case 1: "Download \(selectedProfile.models[0].name)"
+    default: "Download \(selectedProfile.models.count) Models"
+    }
+  }
+
+  var welcomeFootnote: String {
+    let profile = selectedProfile
+    let download = switch profile.models.count {
+    case 0: "Nothing to download."
+    case 1: "\(profile.models[0].size) downloads while you finish setup."
+    default: "1.8 GB downloads while you finish setup."
+    }
+    return profile.needsKey ? "\(download) You'll add \(profile.keyRequirement) next." : download
   }
 }
 
-// MARK: - Onboarding: profile step, list
+// MARK: - Onboarding: welcome
 
-/// The pane's row grammar, one step earlier: every profile is a row with its tradeoff under its
-/// name, and the choice is the row.
-struct OnboardingProfileList: View {
+/// Today's welcome page, with the profile choice under the hero and the download consent still the
+/// one button. The download starts the moment it is pressed, which is the point of asking here
+/// rather than one page later. A variant whose choice needs the room takes it from the hero.
+struct WelcomeShell<Choice: View>: View {
+  @Bindable var mock: Mock
+  var compactHero = false
+  @ViewBuilder let choice: Choice
+
+  var body: some View {
+    VStack(spacing: 0) {
+      if !compactHero {
+        ZStack {
+          RoundedRectangle(cornerRadius: 18).fill(Color.accentColor.opacity(0.12))
+            .frame(width: 72, height: 72)
+          Image(systemName: "mic.fill")
+            .font(.system(size: 32, weight: .semibold))
+            .foregroundStyle(Color.accentColor)
+        }
+        .padding(.bottom, 18)
+      }
+      Text("MiniWhisper")
+        .font(.system(size: compactHero ? 26 : 30, weight: .semibold))
+      Text("Fast, accurate dictation that runs on your Mac.")
+        .font(.system(size: compactHero ? 14 : 16))
+        .foregroundStyle(.secondary)
+        .padding(.top, 6)
+      choice
+        .padding(.top, compactHero ? 18 : 24)
+      Button(mock.welcomeAction) { mock.advance() }
+        .buttonStyle(.borderedProminent)
+        .controlSize(.large)
+        .keyboardShortcut(.defaultAction)
+        .padding(.top, compactHero ? 18 : 24)
+      Text(mock.welcomeFootnote)
+        .font(.system(size: 12))
+        .foregroundStyle(.secondary)
+        .padding(.top, 10)
+    }
+    .padding(.horizontal, 42)
+    .padding(.vertical, 30)
+    .frame(width: 720, height: 500)
+    .background(.background)
+  }
+}
+
+// MARK: - Welcome A: list
+
+/// The pane's row grammar on the welcome page: every profile is a radio row with its tradeoff
+/// under its name. At five profiles the hero gives up its glyph and the rows still fit.
+struct WelcomeList: View {
   @Bindable var mock: Mock
 
   var body: some View {
-    OnboardingShell(
-      mock: mock, symbol: "person.crop.rectangle.stack", title: "Pick how you dictate",
-      summary: "Every profile is a full setup — how speech is recognized, and what cleans it up. You can change this later in Settings.",
-      action: "Continue",
-    ) {
+    WelcomeShell(mock: mock, compactHero: mock.profiles.count > 3) {
       VStack(spacing: 0) {
         ForEach(Array(mock.profiles.enumerated()), id: \.element.id) { index, profile in
           if index > 0 {
@@ -726,11 +793,17 @@ struct OnboardingProfileList: View {
           row(profile)
         }
       }
+      .background(
+        Color(nsColor: .controlBackgroundColor).opacity(0.5),
+        in: RoundedRectangle(cornerRadius: 9),
+      )
+      .frame(width: 500)
     }
   }
 
   private func row(_ profile: Profile) -> some View {
     let isSelected = profile.id == mock.selected
+    let isCrowded = mock.profiles.count > 3
     return HStack(spacing: 10) {
       Image(systemName: isSelected ? "largecircle.fill.circle" : "circle")
         .font(.system(size: 15))
@@ -741,63 +814,61 @@ struct OnboardingProfileList: View {
         Text(profile.tagline)
           .font(.system(size: 11))
           .foregroundStyle(.secondary)
+          .lineLimit(isCrowded ? 1 : 2)
           .fixedSize(horizontal: false, vertical: true)
       }
       Spacer(minLength: 8)
       if profile.needsKey {
-        Text(profile.keyRequirement.hasPrefix("a ") ? "Key required" : "Keys required")
+        Text(profile.keyRequirement.hasSuffix("keys") ? "Keys required" : "Key required")
           .font(.system(size: 11))
           .foregroundStyle(.secondary)
       }
     }
     .padding(.horizontal, 12)
-    .padding(.vertical, 11)
+    .padding(.vertical, isCrowded ? 7 : 10)
     .contentShape(.rect)
     .onTapGesture { mock.selected = profile.id }
   }
 }
 
-// MARK: - Onboarding: profile step, cards
+// MARK: - Welcome B: cards
 
-/// Two cards, the shape onboarding already uses when a page asks the user to commit to something.
-/// A card holds more than a row does — what runs where, and what it will cost you to set up.
-struct OnboardingProfileCards: View {
+/// The profiles side by side, so the tradeoffs are compared rather than read in turn. Each card
+/// ends with what it costs to set up. Five profiles is two rows of three and no hero glyph.
+struct WelcomeCards: View {
   @Bindable var mock: Mock
 
   var body: some View {
-    OnboardingShell(
-      mock: mock, symbol: "person.crop.rectangle.stack", title: "Pick how you dictate",
-      summary: "Every profile is a full setup — how speech is recognized, and what cleans it up. You can change this later in Settings.",
-      action: "Continue", cardPadding: 14, compactHeader: mock.profiles.count > 3,
-    ) {
+    let isCrowded = mock.profiles.count > 3
+    WelcomeShell(mock: mock, compactHero: isCrowded) {
       LazyVGrid(
         columns: Array(
-          repeating: GridItem(.flexible(), spacing: 12), count: mock.profiles.count > 2 ? 3 : 2,
+          repeating: GridItem(.flexible(), spacing: 12), count: isCrowded ? 3 : 2,
         ),
         spacing: 12,
       ) {
         ForEach(mock.profiles) { profile in
-          card(profile)
+          card(profile, isCrowded: isCrowded)
         }
       }
+      .frame(width: isCrowded ? 620 : 520)
     }
   }
 
-  private func card(_ profile: Profile) -> some View {
+  private func card(_ profile: Profile, isCrowded: Bool) -> some View {
     let isSelected = profile.id == mock.selected
-    let isCrowded = mock.profiles.count > 3
-    return VStack(alignment: .leading, spacing: isCrowded ? 5 : 8) {
-      if !isCrowded {
+    return VStack(alignment: .leading, spacing: isCrowded ? 4 : 6) {
+      HStack(spacing: 7) {
         Image(systemName: profile.symbol)
-          .font(.system(size: 20))
           .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
+        Text(profile.name)
+          .font(.system(size: 13, weight: .semibold))
+          .lineLimit(1)
       }
-      Text(profile.name)
-        .font(.system(size: 13, weight: .semibold))
-        .fixedSize(horizontal: false, vertical: true)
       Text(profile.tagline)
         .font(.system(size: 11))
         .foregroundStyle(.secondary)
+        .lineLimit(isCrowded ? 3 : 2)
         .fixedSize(horizontal: false, vertical: true)
         .frame(maxWidth: .infinity, alignment: .topLeading)
       Spacer(minLength: 0)
@@ -805,10 +876,10 @@ struct OnboardingProfileCards: View {
         .font(.system(size: 11))
         .foregroundStyle(profile.needsKey ? Color.secondary : Color.green)
     }
-    .padding(isCrowded ? 10 : 12)
-    .frame(maxWidth: .infinity, minHeight: isCrowded ? 96 : 150, alignment: .topLeading)
+    .padding(10)
+    .frame(maxWidth: .infinity, minHeight: isCrowded ? 92 : 104, alignment: .topLeading)
     .background(
-      Color(nsColor: .windowBackgroundColor).opacity(0.6),
+      Color(nsColor: .controlBackgroundColor).opacity(0.5),
       in: RoundedRectangle(cornerRadius: 9),
     )
     .overlay {
@@ -820,6 +891,34 @@ struct OnboardingProfileCards: View {
     }
     .contentShape(.rect)
     .onTapGesture { mock.selected = profile.id }
+  }
+}
+
+// MARK: - Welcome C: pop-up
+
+/// Today's welcome page with one control added: the profile is a pop-up, preselected to the
+/// default, its tradeoff underneath. The page looks the same at two profiles and at twenty, and a
+/// user who reads nothing gets the default — which is also the lineup nobody compares.
+struct WelcomePopUp: View {
+  @Bindable var mock: Mock
+
+  var body: some View {
+    WelcomeShell(mock: mock) {
+      VStack(spacing: 8) {
+        Picker("Profile", selection: $mock.selected) {
+          ForEach(mock.profiles) { profile in
+            Label(profile.name, systemImage: profile.symbol).tag(profile.id)
+          }
+        }
+        .pickerStyle(.menu)
+        .fixedSize()
+        Text(mock.selectedProfile.tagline)
+          .font(.system(size: 12))
+          .foregroundStyle(.secondary)
+          .multilineTextAlignment(.center)
+          .frame(width: 420, height: 32, alignment: .top)
+      }
+    }
   }
 }
 
@@ -852,9 +951,11 @@ struct OnboardingKeyPage: View {
             .foregroundStyle(.secondary)
         }
         Divider()
+        // The download already started on the welcome page. Custom runs the same Parakeet, so
+        // switching here costs nothing; a profile with a different model set would not be so kind.
         Button("Use the Custom profile instead — no key, no cleanup") {
           mock.selected = "custom"
-          mock.onboardingPage = .profile
+          mock.onboardingPage = .models
         }
         .buttonStyle(.link)
         .font(.system(size: 12))
@@ -935,8 +1036,9 @@ struct Root: View {
       OnboardingModelsPage(mock: mock)
     default:
       switch variant {
-      case .onboardingA: OnboardingProfileList(mock: mock)
-      case .onboardingB: OnboardingProfileCards(mock: mock)
+      case .welcomeA: WelcomeList(mock: mock)
+      case .welcomeB: WelcomeCards(mock: mock)
+      case .welcomeC: WelcomePopUp(mock: mock)
       case .onboardingKey: OnboardingKeyPage(mock: mock)
       case .onboardingModels: OnboardingModelsPage(mock: mock)
       default: SettingsShell(mock: mock, variant: variant)
@@ -961,7 +1063,7 @@ final class Delegate: NSObject, NSApplicationDelegate {
     switch mock.screen {
     case .onboardingKey: mock.onboardingPage = .key
     case .onboardingModels: mock.onboardingPage = .models
-    default: mock.onboardingPage = .profile
+    default: mock.onboardingPage = .welcome
     }
     if mock.screen.isOnboarding {
       window = NSWindow(
