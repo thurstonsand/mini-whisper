@@ -1,0 +1,24 @@
+{"audioSeconds":4.0979999999999999,"id":"dict-01","latencyMs":43.799999999999997,"outcome":"transcript","transcript":"Mini Whisper delivers the transcript into the frontmost app."}
+{"audioSeconds":2.7890000000000001,"id":"dict-02","latencyMs":35.899999999999999,"outcome":"transcript","transcript":"I keep three terminals open and ghosty."}
+{"audioSeconds":3.1970000000000001,"id":"dict-03","latencyMs":44.100000000000001,"outcome":"transcript","transcript":"Cerebrus answered in under 400 milliseconds."}
+{"audioSeconds":5.085,"id":"dict-04","latencyMs":36.600000000000001,"outcome":"transcript","transcript":"The gate runs one Solero pass at release."}
+{"audioSeconds":3.6899999999999999,"id":"dict-05","latencyMs":35.700000000000003,"outcome":"transcript","transcript":"Parakeet handles the transcription on device."}
+{"audioSeconds":3.5880000000000001,"id":"dict-06","latencyMs":36.200000000000003,"outcome":"transcript","transcript":"Fluid Audio pins the model version for us."}
+{"audioSeconds":4.3879999999999999,"id":"dict-07","latencyMs":38.600000000000001,"outcome":"transcript","transcript":"Wrap the dev server with Tui Story so agents can read it."}
+{"audioSeconds":2.9929999999999999,"id":"dict-08","latencyMs":36.5,"outcome":"transcript","transcript":"The settings window is Plain Swift UI."}
+{"audioSeconds":3.5880000000000001,"id":"dict-09","latencyMs":36.799999999999997,"outcome":"transcript","transcript":"Every surface has an XCUI test slice."}
+{"audioSeconds":2.6869999999999998,"id":"dict-10","latencyMs":36.200000000000003,"outcome":"transcript","transcript":"The sensor bridges over Zigbee to the hub."}
+{"audioSeconds":2.6869999999999998,"id":"dict-11","latencyMs":33.200000000000003,"outcome":"transcript","transcript":"The base model is Quen3."}
+{"audioSeconds":3.1970000000000001,"id":"dict-12","latencyMs":35.200000000000003,"outcome":"transcript","transcript":"Run it locally with lama.cpp."}
+{"audioSeconds":3.2989999999999999,"id":"dict-13","latencyMs":35.799999999999997,"outcome":"transcript","transcript":"The API key lives in the keychain."}
+{"audioSeconds":2.5,"id":"dict-14","latencyMs":36,"outcome":"transcript","transcript":"Install the cask through Homebrew."}
+{"audioSeconds":2.9929999999999999,"id":"dict-15","latencyMs":35.200000000000003,"outcome":"transcript","transcript":"The reducers follow TCA conventions."}
+{"audioSeconds":4.7960000000000003,"id":"dict-16","latencyMs":42.600000000000001,"outcome":"transcript","transcript":"Ghosty and Tui Story both survived the Cerebrous outage write-up."}
+{"audioSeconds":3.5880000000000001,"id":"trap-01","latencyMs":36.299999999999997,"outcome":"transcript","transcript":"A parakeet chattered in the pet shop window."}
+{"audioSeconds":3.7919999999999998,"id":"trap-02","latencyMs":38,"outcome":"transcript","transcript":"The hall went quiet, and silence settled over the room."}
+{"audioSeconds":3.6899999999999999,"id":"trap-03","latencyMs":38.5,"outcome":"transcript","transcript":"A ghostly draught moved through the stairwell."}
+{"audioSeconds":4.5919999999999996,"id":"trap-04","latencyMs":45.700000000000003,"outcome":"transcript","transcript":"His approach was <unk>cerebral<unk> all theory and no instinct."}
+{"audioSeconds":3.7919999999999998,"id":"trap-05","latencyMs":37.200000000000003,"outcome":"transcript","transcript":"She answered with a mini whisper of her own."}
+{"audioSeconds":2.9929999999999999,"id":"trap-06","latencyMs":34.899999999999999,"outcome":"transcript","transcript":"The keychain rattled against the door."}
+{"audioSeconds":2.7890000000000001,"id":"trap-07","latencyMs":35,"outcome":"transcript","transcript":"The Queen moved across the board."}
+{"audioSeconds":2.3980000000000001,"id":"trap-08","latencyMs":34.799999999999997,"outcome":"transcript","transcript":"A llama grazed by the fence."}

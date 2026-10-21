@@ -1,0 +1,268 @@
+{
+  "stage": "stage2-dictionary",
+  "runs": {
+    "bare": {
+      "wantsTotal": 10,
+      "wantsHit": 4,
+      "wantsHitIgnoringCase": 5,
+      "trapsTotal": 6,
+      "trapsBitten": 0,
+      "trapsBittenIgnoringCase": 1,
+      "latency": {
+        "n": 15,
+        "medianMs": 37.7,
+        "meanMs": 37.9,
+        "minMs": 35.8,
+        "maxMs": 40.8
+      },
+      "wants": [
+        {
+          "id": "hdict-01",
+          "term": "Homebrew",
+          "hit": false,
+          "hitIgnoringCase": true,
+          "transcript": "Point homebrew at the private tap before installing."
+        },
+        {
+          "id": "hdict-02",
+          "term": "Zigbee",
+          "hit": true,
+          "hitIgnoringCase": true,
+          "transcript": "Zigbee dropped off the mesh again overnight."
+        },
+        {
+          "id": "hdict-03",
+          "term": "FluidAudio",
+          "hit": false,
+          "hitIgnoringCase": false,
+          "transcript": "Fluid Audio and Parakeet ship as one bundle."
+        },
+        {
+          "id": "hdict-03",
+          "term": "Parakeet",
+          "hit": true,
+          "hitIgnoringCase": true,
+          "transcript": "Fluid Audio and Parakeet ship as one bundle."
+        },
+        {
+          "id": "hdict-04",
+          "term": "MiniWhisper",
+          "hit": false,
+          "hitIgnoringCase": false,
+          "transcript": "MiniWisper pre-warms the model during onboarding."
+        },
+        {
+          "id": "hdict-05",
+          "term": "SwiftUI",
+          "hit": false,
+          "hitIgnoringCase": false,
+          "transcript": "The pill is playing Swift UI over an app kit panel."
+        },
+        {
+          "id": "hdict-06",
+          "term": "XCUITest",
+          "hit": false,
+          "hitIgnoringCase": false,
+          "transcript": "Every XCUI test slice runs against a deterministic scene."
+        },
+        {
+          "id": "hdict-07",
+          "term": "Qwen",
+          "hit": false,
+          "hitIgnoringCase": false,
+          "transcript": "Quinn Three underpins the local cleanup model."
+        },
+        {
+          "id": "hdict-08",
+          "term": "llama.cpp",
+          "hit": true,
+          "hitIgnoringCase": true,
+          "transcript": "Serve it with llama.cpp on port eight three one seven."
+        },
+        {
+          "id": "hdict-09",
+          "term": "TCA",
+          "hit": true,
+          "hitIgnoringCase": true,
+          "transcript": "The reducers and clients follow TCA all the way down."
+        }
+      ],
+      "traps": [
+        {
+          "id": "htrap-01",
+          "term": "Silero",
+          "bitten": false,
+          "bittenIgnoringCase": false,
+          "transcript": "The silo stood empty after the harvest."
+        },
+        {
+          "id": "htrap-02",
+          "term": "Ghostty",
+          "bitten": false,
+          "bittenIgnoringCase": false,
+          "transcript": "A ghastly chill settled over the cabin."
+        },
+        {
+          "id": "htrap-03",
+          "term": "Cerebras",
+          "bitten": false,
+          "bittenIgnoringCase": false,
+          "transcript": "The cerebral scan came back completely clean."
+        },
+        {
+          "id": "htrap-04",
+          "term": "Parakeet",
+          "bitten": false,
+          "bittenIgnoringCase": false,
+          "transcript": "The parquet floor creaked under the movers."
+        },
+        {
+          "id": "htrap-05",
+          "term": "Keychain",
+          "bitten": false,
+          "bittenIgnoringCase": true,
+          "transcript": "His keychain jangled with a dozen old keys."
+        },
+        {
+          "id": "htrap-06",
+          "term": "tuistory",
+          "bitten": false,
+          "bittenIgnoringCase": false,
+          "transcript": "The kids loved storytime at the library."
+        }
+      ]
+    },
+    "boosted": {
+      "wantsTotal": 10,
+      "wantsHit": 9,
+      "wantsHitIgnoringCase": 9,
+      "trapsTotal": 6,
+      "trapsBitten": 0,
+      "trapsBittenIgnoringCase": 1,
+      "latency": {
+        "n": 15,
+        "medianMs": 148.1,
+        "meanMs": 148.6,
+        "minMs": 142.6,
+        "maxMs": 161.3
+      },
+      "wants": [
+        {
+          "id": "hdict-01",
+          "term": "Homebrew",
+          "hit": true,
+          "hitIgnoringCase": true,
+          "transcript": "Point Homebrew at the private tap before installing."
+        },
+        {
+          "id": "hdict-02",
+          "term": "Zigbee",
+          "hit": true,
+          "hitIgnoringCase": true,
+          "transcript": "Zigbee dropped off the mesh again overnight."
+        },
+        {
+          "id": "hdict-03",
+          "term": "FluidAudio",
+          "hit": true,
+          "hitIgnoringCase": true,
+          "transcript": "FluidAudio and Parakeet ship as one bundle."
+        },
+        {
+          "id": "hdict-03",
+          "term": "Parakeet",
+          "hit": true,
+          "hitIgnoringCase": true,
+          "transcript": "FluidAudio and Parakeet ship as one bundle."
+        },
+        {
+          "id": "hdict-04",
+          "term": "MiniWhisper",
+          "hit": true,
+          "hitIgnoringCase": true,
+          "transcript": "MiniWhisper pre-warms the model during onboarding."
+        },
+        {
+          "id": "hdict-05",
+          "term": "SwiftUI",
+          "hit": true,
+          "hitIgnoringCase": true,
+          "transcript": "The pill is playing SwiftUI over an app kit panel."
+        },
+        {
+          "id": "hdict-06",
+          "term": "XCUITest",
+          "hit": true,
+          "hitIgnoringCase": true,
+          "transcript": "Every XCUITest slice runs against a deterministic scene."
+        },
+        {
+          "id": "hdict-07",
+          "term": "Qwen",
+          "hit": false,
+          "hitIgnoringCase": false,
+          "transcript": "Quinn Three underpins the local cleanup model."
+        },
+        {
+          "id": "hdict-08",
+          "term": "llama.cpp",
+          "hit": true,
+          "hitIgnoringCase": true,
+          "transcript": "Serve it with llama.cpp on port eight three one seven."
+        },
+        {
+          "id": "hdict-09",
+          "term": "TCA",
+          "hit": true,
+          "hitIgnoringCase": true,
+          "transcript": "The reducers and clients follow TCA all the way down."
+        }
+      ],
+      "traps": [
+        {
+          "id": "htrap-01",
+          "term": "Silero",
+          "bitten": false,
+          "bittenIgnoringCase": false,
+          "transcript": "The silo stood empty after the harvest."
+        },
+        {
+          "id": "htrap-02",
+          "term": "Ghostty",
+          "bitten": false,
+          "bittenIgnoringCase": false,
+          "transcript": "A ghastly chill settled over the cabin."
+        },
+        {
+          "id": "htrap-03",
+          "term": "Cerebras",
+          "bitten": false,
+          "bittenIgnoringCase": false,
+          "transcript": "The cerebral scan came back completely clean."
+        },
+        {
+          "id": "htrap-04",
+          "term": "Parakeet",
+          "bitten": false,
+          "bittenIgnoringCase": false,
+          "transcript": "The parquet floor creaked under the movers."
+        },
+        {
+          "id": "htrap-05",
+          "term": "Keychain",
+          "bitten": false,
+          "bittenIgnoringCase": true,
+          "transcript": "His keychain jangled with a dozen old keys."
+        },
+        {
+          "id": "htrap-06",
+          "term": "tuistory",
+          "bitten": false,
+          "bittenIgnoringCase": false,
+          "transcript": "The kids loved storytime at the library."
+        }
+      ]
+    }
+  },
+  "latencyOverheadMs": 110.4
+}

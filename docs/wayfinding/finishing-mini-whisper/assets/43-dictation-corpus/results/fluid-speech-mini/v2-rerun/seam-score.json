@@ -1,0 +1,91 @@
+{
+  "stage": "stage1-intelligibility",
+  "entries": 6,
+  "words": 1005,
+  "substitutions": 34,
+  "deletions": 0,
+  "insertions": 0,
+  "wer": 0.0338,
+  "cleanEntries": 0,
+  "latency": {
+    "n": 6,
+    "medianMs": 157.4,
+    "meanMs": 158.6,
+    "minMs": 99.9,
+    "maxMs": 218.9
+  },
+  "entriesByWer": [
+    {
+      "id": "seam-gapped-60s",
+      "words": 141,
+      "substitutions": 7,
+      "deletions": 0,
+      "insertions": 0,
+      "wer": 0.04964539007092199,
+      "latencyMs": 156.5,
+      "diff": "their car is parked over there and they're already late whether the weather holds will decide the hike he had to [brake \u2192 break] hard to avoid the break in the road the [site \u2192 sight] cited on the sign was quite a sight the effect of the change will affect everyone clear the cache before you count the [cash \u2192 cache] use git to get the latest changes the [colonel \u2192 kernel] debugged the kernel a weak reference won't survive the [week \u2192 weak] the [daemon \u2192 demon] process haunted him like a demon the whole file was corrupted by a hole in the disk allowed values are read aloud the compiler threw an error through the entire build he won one round and lost two the [heir \u2192 air] to the estate had an air of calm the birch canoe slid on the smooth planks glue the sheet to the dark blue background",
+      "reference": "Their car is parked over there, and they're already late. Whether the weather holds will decide the hike. He had to brake hard to avoid the break in the road. The site cited on the sign was quite a sight. The effect of the change will affect everyone. Clear the cache before you count the cash. Use git to get the latest changes. The colonel debugged the kernel. A weak reference won't survive the week. The daemon process haunted him like a demon. The whole file was corrupted by a hole in the disk. Allowed values are read aloud. The compiler threw an error through the entire build. He won one round and lost two. The heir to the estate had an air of calm. The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background.",
+      "transcript": "Their car is parked over there, and they're already late. Whether the weather holds will decide the hike. He had to break hard to avoid the break in the road. The sight cited on the sign was quite a sight. The effect of the change will affect everyone. Clear the cache before you count the cache. Use git to get the latest changes. The kernel debugged the kernel. A weak reference won't survive the weak. The demon process haunted him like a demon. The whole file was corrupted by a hole in the disk. Allowed values are read aloud. The compiler threw an error through the entire build. He won one round and lost two. The air to the estate had an air of calm. The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background."
+    },
+    {
+      "id": "seam-tight-90s",
+      "words": 306,
+      "substitutions": 12,
+      "deletions": 0,
+      "insertions": 0,
+      "wer": 0.0392156862745098,
+      "latencyMs": 218.9,
+      "diff": "the effect of the change will affect everyone clear the cache before you count the [cash \u2192 cache] use git to get the latest changes the [colonel \u2192 kernel] debugged the kernel a weak reference won't survive the [week the daemon \u2192 weak the demon] process haunted him like a demon the whole file was corrupted by a hole in the [disk \u2192 disc] allowed values are read aloud the compiler threw an error through the entire build he won one round and lost two the heir to the estate had an air of calm the birch canoe slid on the smooth planks glue the sheet to the dark blue background it's easy to tell the depth of a well these days a chicken leg is a rare dish rice is often served in round bowls the juice of lemons makes fine punch the box was thrown beside the parked truck the hogs were fed chopped corn and garbage four hours of [steady \u2192 study] work faced us a large size in stockings is hard to sell their car is parked over there and they're already late whether the weather holds will decide the hike he had to [brake \u2192 break] hard to avoid the break in the road the [site \u2192 sight] cited on the sign was quite a sight the effect of the change will affect everyone clear the cache before you count the [cash \u2192 cache] use git to get the latest changes the [colonel \u2192 kernel] debugged the kernel a weak reference won't survive the [week the daemon \u2192 weak the demon] process haunted him like a demon the whole file was corrupted by a hole in the disk allowed values are read aloud the compiler threw an error through the entire build he won one round and lost two the heir to the estate had an air of calm the birch canoe slid on the smooth planks glue the sheet to the dark blue background",
+      "reference": "The effect of the change will affect everyone. Clear the cache before you count the cash. Use git to get the latest changes. The colonel debugged the kernel. A weak reference won't survive the week. The daemon process haunted him like a demon. The whole file was corrupted by a hole in the disk. Allowed values are read aloud. The compiler threw an error through the entire build. He won one round and lost two. The heir to the estate had an air of calm. The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch. The box was thrown beside the parked truck. The hogs were fed chopped corn and garbage. Four hours of steady work faced us. A large size in stockings is hard to sell. Their car is parked over there, and they're already late. Whether the weather holds will decide the hike. He had to brake hard to avoid the break in the road. The site cited on the sign was quite a sight. The effect of the change will affect everyone. Clear the cache before you count the cash. Use git to get the latest changes. The colonel debugged the kernel. A weak reference won't survive the week. The daemon process haunted him like a demon. The whole file was corrupted by a hole in the disk. Allowed values are read aloud. The compiler threw an error through the entire build. He won one round and lost two. The heir to the estate had an air of calm. The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background.",
+      "transcript": "The effect of the change will affect everyone. Clear the cache before you count the cache. Use git to get the latest changes. The kernel debugged the kernel. A weak reference won't survive the weak. The demon process haunted him like a demon. The whole file was corrupted by a hole in the disc. Allowed values are read aloud. The compiler threw an error through the entire build. He won one round and lost two. The heir to the estate had an air of calm. The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days, a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch. The box was thrown beside the parked truck. The hogs were fed chopped corn and garbage. Four hours of study work faced us. A large size in stockings is hard to sell. Their car is parked over there, and they're already late. Whether the weather holds will decide the hike. He had to break hard to avoid the break in the road. The sight cited on the sign was quite a sight. The effect of the change will affect everyone. Clear the cache before you count the cache. Use git to get the latest changes. The kernel debugged the kernel. A weak reference won't survive the weak. The demon process haunted him like a demon. The whole file was corrupted by a hole in the disk. Allowed values are read aloud. The compiler threw an error through the entire build. He won one round and lost two. The heir to the estate had an air of calm. The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background."
+    },
+    {
+      "id": "seam-tight-60s",
+      "words": 205,
+      "substitutions": 7,
+      "deletions": 0,
+      "insertions": 0,
+      "wer": 0.03414634146341464,
+      "latencyMs": 158.4,
+      "diff": "the hogs were fed chopped corn and garbage four hours of [steady \u2192 study] work faced us a large size in stockings is hard to sell their car is parked over there and they're already late whether the weather holds will decide the hike he had to [brake \u2192 break] hard to avoid the break in the road the [site \u2192 sight] cited on the sign was quite a sight the effect of the change will affect everyone clear the cache before you count the [cash \u2192 cache] use git to get the latest changes the [colonel \u2192 kernel] debugged the kernel a weak reference won't survive the [week the daemon \u2192 weak the demon] process haunted him like a demon the whole file was corrupted by a hole in the disk allowed values are read aloud the compiler threw an error through the entire build he won one round and lost two the heir to the estate had an air of calm the birch canoe slid on the smooth planks glue the sheet to the dark blue background it's easy to tell the depth of a well these days a chicken leg is a rare dish rice is often served in round bowls the juice of lemons makes fine punch the box was thrown beside the parked truck",
+      "reference": "The hogs were fed chopped corn and garbage. Four hours of steady work faced us. A large size in stockings is hard to sell. Their car is parked over there, and they're already late. Whether the weather holds will decide the hike. He had to brake hard to avoid the break in the road. The site cited on the sign was quite a sight. The effect of the change will affect everyone. Clear the cache before you count the cash. Use git to get the latest changes. The colonel debugged the kernel. A weak reference won't survive the week. The daemon process haunted him like a demon. The whole file was corrupted by a hole in the disk. Allowed values are read aloud. The compiler threw an error through the entire build. He won one round and lost two. The heir to the estate had an air of calm. The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch. The box was thrown beside the parked truck.",
+      "transcript": "The hogs were fed chopped corn and garbage. Four hours of study work faced us. A large size in stockings is hard to sell. Their car is parked over there, and they're already late. Whether the weather holds will decide the hike. He had to break hard to avoid the break in the road. The sight cited on the sign was quite a sight. The effect of the change will affect everyone. Clear the cache before you count the cache. Use git to get the latest changes. The kernel debugged the kernel. A weak reference won't survive the weak. The demon process haunted him like a demon. The whole file was corrupted by a hole in the disk. Allowed values are read aloud. The compiler threw an error through the entire build. He won one round and lost two. The heir to the estate had an air of calm. The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days, a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch. The box was thrown beside the parked truck."
+    },
+    {
+      "id": "seam-gapped-90s",
+      "words": 190,
+      "substitutions": 6,
+      "deletions": 0,
+      "insertions": 0,
+      "wer": 0.031578947368421054,
+      "latencyMs": 205.4,
+      "diff": "the [colonel \u2192 kernel] debugged the kernel a weak reference won't survive the [week \u2192 weak] the [daemon \u2192 demon] process haunted him like a demon the whole file was corrupted by a hole in the disk allowed values are read aloud the compiler threw an error through the entire build he won one round and lost two the heir to the estate had an air of calm the birch canoe slid on the smooth planks glue the sheet to the dark blue background it's easy to tell the depth of a well these days a chicken leg is a rare dish rice is often served in round bowls the juice of lemons makes fine punch the box was thrown beside the parked truck the hogs were fed chopped corn and garbage four hours of [steady \u2192 study] work faced us a large size in stockings is hard to sell their car is parked over there and they're already late whether the weather holds will decide the hike he had to [brake \u2192 break] hard to avoid the break in the road the [site \u2192 sight] cited on the sign was quite a sight the effect of the change will affect everyone",
+      "reference": "The colonel debugged the kernel. A weak reference won't survive the week. The daemon process haunted him like a demon. The whole file was corrupted by a hole in the disk. Allowed values are read aloud. The compiler threw an error through the entire build. He won one round and lost two. The heir to the estate had an air of calm. The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch. The box was thrown beside the parked truck. The hogs were fed chopped corn and garbage. Four hours of steady work faced us. A large size in stockings is hard to sell. Their car is parked over there, and they're already late. Whether the weather holds will decide the hike. He had to brake hard to avoid the break in the road. The site cited on the sign was quite a sight. The effect of the change will affect everyone.",
+      "transcript": "The kernel debugged the kernel. A weak reference won't survive the weak. The demon process haunted him like a demon. The whole file was corrupted by a hole in the disk. Allowed values are read aloud. The compiler threw an error through the entire build. He won one round and lost two. The heir to the estate had an air of calm. The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days, a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch. The box was thrown beside the parked truck. The hogs were fed chopped corn and garbage. Four hours of study work faced us. A large size in stockings is hard to sell. Their car is parked over there and they're already late. Whether the weather holds will decide the hike. He had to break hard to avoid the break in the road. The sight cited on the sign was quite a sight. The effect of the change will affect everyone."
+    },
+    {
+      "id": "seam-gapped-30s",
+      "words": 65,
+      "substitutions": 1,
+      "deletions": 0,
+      "insertions": 0,
+      "wer": 0.015384615384615385,
+      "latencyMs": 99.9,
+      "diff": "these days a chicken leg is a rare dish rice is often served in round bowls the juice of lemons makes fine punch the box was thrown beside the parked truck the hogs were fed chopped corn and garbage four hours of [steady \u2192 study] work faced us a large size in stockings is hard to sell their car is parked over there and they're already late",
+      "reference": "These days a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch. The box was thrown beside the parked truck. The hogs were fed chopped corn and garbage. Four hours of steady work faced us. A large size in stockings is hard to sell. Their car is parked over there, and they're already late.",
+      "transcript": "These days, a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch. The box was thrown beside the parked truck. The hogs were fed chopped corn and garbage. Four hours of study work faced us. A large size in stockings is hard to sell. Their car is parked over there and they're already late."
+    },
+    {
+      "id": "seam-tight-30s",
+      "words": 98,
+      "substitutions": 1,
+      "deletions": 0,
+      "insertions": 0,
+      "wer": 0.01020408163265306,
+      "latencyMs": 112.3,
+      "diff": "the birch canoe slid on the smooth planks glue the sheet to the dark blue background it's easy to tell the depth of a well these days a chicken leg is a rare dish rice is often served in round bowls the juice of lemons makes fine punch the box was thrown beside the parked truck the hogs were fed chopped corn and garbage four hours of [steady \u2192 study] work faced us a large size in stockings is hard to sell their car is parked over there and they're already late whether the weather holds will decide the hike",
+      "reference": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch. The box was thrown beside the parked truck. The hogs were fed chopped corn and garbage. Four hours of steady work faced us. A large size in stockings is hard to sell. Their car is parked over there, and they're already late. Whether the weather holds will decide the hike.",
+      "transcript": "the birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch. The box was thrown beside the parked truck. The hogs were fed chopped corn and garbage. Four hours of study work faced us. A large size in stockings is hard to sell. Their car is parked over there, and they're already late. Whether the weather holds will decide the hike."
+    }
+  ]
+}

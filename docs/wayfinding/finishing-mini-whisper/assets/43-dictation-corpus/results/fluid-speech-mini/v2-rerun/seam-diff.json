@@ -1,0 +1,221 @@
+[
+  {
+    "id": "seam-tight-30s",
+    "audioSeconds": 31.53,
+    "latencyMs": 112.3,
+    "isolatedWords": 98,
+    "changedWords": 1,
+    "changes": [
+      {
+        "kind": "replaced",
+        "expected": "steady",
+        "heard": "study",
+        "context": "garbage four hours of steady work faced us a",
+        "utterance": "harvard-01-09",
+        "utteranceSpan": [
+          20.68,
+          23.18
+        ]
+      }
+    ]
+  },
+  {
+    "id": "seam-tight-60s",
+    "audioSeconds": 62.32,
+    "latencyMs": 158.4,
+    "isolatedWords": 205,
+    "changedWords": 3,
+    "changes": [
+      {
+        "kind": "replaced",
+        "expected": "steady",
+        "heard": "study",
+        "context": "garbage four hours of steady work faced us a",
+        "utterance": "harvard-01-09",
+        "utteranceSpan": [
+          3.41,
+          5.91
+        ]
+      },
+      {
+        "kind": "replaced",
+        "expected": "brake",
+        "heard": "break",
+        "context": "hike he had to brake hard to avoid the",
+        "utterance": "confusable-03",
+        "utteranceSpan": [
+          14.31,
+          16.71
+        ]
+      },
+      {
+        "kind": "replaced",
+        "expected": "site",
+        "heard": "sight",
+        "context": "in the road the site cited on the sign",
+        "utterance": "confusable-05",
+        "utteranceSpan": [
+          16.76,
+          20.2
+        ]
+      }
+    ]
+  },
+  {
+    "id": "seam-tight-90s",
+    "audioSeconds": 91.67,
+    "latencyMs": 218.9,
+    "isolatedWords": 306,
+    "changedWords": 4,
+    "changes": [
+      {
+        "kind": "replaced",
+        "expected": "disk",
+        "heard": "disc",
+        "context": "a hole in the disk allowed values are read",
+        "utterance": "confusable-20",
+        "utteranceSpan": [
+          13.64,
+          15.8
+        ]
+      },
+      {
+        "kind": "replaced",
+        "expected": "steady",
+        "heard": "study",
+        "context": "garbage four hours of steady work faced us a",
+        "utterance": "harvard-01-09",
+        "utteranceSpan": [
+          45.53,
+          48.03
+        ]
+      },
+      {
+        "kind": "replaced",
+        "expected": "brake",
+        "heard": "break",
+        "context": "hike he had to brake hard to avoid the",
+        "utterance": "confusable-03",
+        "utteranceSpan": [
+          56.43,
+          58.83
+        ]
+      },
+      {
+        "kind": "replaced",
+        "expected": "site",
+        "heard": "sight",
+        "context": "in the road the site cited on the sign",
+        "utterance": "confusable-05",
+        "utteranceSpan": [
+          58.88,
+          62.32
+        ]
+      }
+    ]
+  },
+  {
+    "id": "seam-gapped-30s",
+    "audioSeconds": 32.24,
+    "latencyMs": 99.9,
+    "isolatedWords": 65,
+    "changedWords": 1,
+    "changes": [
+      {
+        "kind": "replaced",
+        "expected": "steady",
+        "heard": "study",
+        "context": "garbage four hours of steady work faced us a",
+        "utterance": "harvard-01-09",
+        "utteranceSpan": [
+          21.62,
+          24.12
+        ]
+      }
+    ]
+  },
+  {
+    "id": "seam-gapped-60s",
+    "audioSeconds": 64.02,
+    "latencyMs": 156.5,
+    "isolatedWords": 141,
+    "changedWords": 3,
+    "changes": [
+      {
+        "kind": "replaced",
+        "expected": "brake",
+        "heard": "break",
+        "context": "hike he had to brake hard to avoid the",
+        "utterance": "confusable-03",
+        "utteranceSpan": [
+          8.48,
+          10.88
+        ]
+      },
+      {
+        "kind": "replaced",
+        "expected": "site",
+        "heard": "sight",
+        "context": "in the road the site cited on the sign",
+        "utterance": "confusable-05",
+        "utteranceSpan": [
+          12.38,
+          15.82
+        ]
+      },
+      {
+        "kind": "replaced",
+        "expected": "heir",
+        "heard": "air",
+        "context": "and lost two the heir to the estate had",
+        "utterance": "confusable-24",
+        "utteranceSpan": [
+          54.34,
+          56.62
+        ]
+      }
+    ]
+  },
+  {
+    "id": "seam-gapped-90s",
+    "audioSeconds": 90.18,
+    "latencyMs": 205.4,
+    "isolatedWords": 190,
+    "changedWords": 3,
+    "changes": [
+      {
+        "kind": "replaced",
+        "expected": "steady",
+        "heard": "study",
+        "context": "garbage four hours of steady work faced us a",
+        "utterance": "harvard-01-09",
+        "utteranceSpan": [
+          62.34,
+          64.84
+        ]
+      },
+      {
+        "kind": "replaced",
+        "expected": "brake",
+        "heard": "break",
+        "context": "hike he had to brake hard to avoid the",
+        "utterance": "confusable-03",
+        "utteranceSpan": [
+          79.04,
+          81.44
+        ]
+      },
+      {
+        "kind": "replaced",
+        "expected": "site",
+        "heard": "sight",
+        "context": "in the road the site cited on the sign",
+        "utterance": "confusable-05",
+        "utteranceSpan": [
+          82.94,
+          86.38
+        ]
+      }
+    ]
+  }
+]
