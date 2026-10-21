@@ -110,7 +110,7 @@ private actor HistoryAudioPlayer {
 private final class PlaybackDelegate: NSObject, AVAudioPlayerDelegate, @unchecked Sendable {
   // MARK: Lifecycle
 
-  init(didFinish: @escaping @Sendable (Bool) -> Void) {
+  nonisolated init(didFinish: @escaping @Sendable (Bool) -> Void) {
     self.didFinish = didFinish
   }
 

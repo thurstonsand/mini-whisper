@@ -71,7 +71,7 @@ import SwiftUI
     store.send(.task)
 
     if ProcessInfo.processInfo.environment["MINIWHISPER_BENCHMARK_ACTIVATION"] == "1" {
-      Task {
+      _ = Task {
         try await Task.sleep(for: .seconds(2))
         for _ in 0 ..< 3 {
           performanceLogger.notice("benchmark activation-triggered")
