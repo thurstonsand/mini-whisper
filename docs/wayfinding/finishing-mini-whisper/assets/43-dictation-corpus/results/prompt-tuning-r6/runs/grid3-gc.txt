@@ -1,0 +1,24 @@
+
+gc-2  (claude-haiku-5-5)
+  bare-endings               rule 100.0%  exact  83.3%  0/24 variants never obeyed
+  dictionary-exactness       rule  84.7%  exact  69.4%  2/24 variants never obeyed
+  identifier-from-context    rule  65.7%  exact  37.0%  8/36 variants never obeyed
+  layout                     rule  97.2%  exact  70.8%  0/24 variants never obeyed
+  never-obey                 rule  95.8%  exact  77.8%  0/24 variants never obeyed
+  self-correction            rule  87.5%  exact  44.4%  3/48 variants never obeyed
+  spell-out                  rule  31.9%  exact  31.9%  10/24 variants never obeyed
+  spoken-punctuation         rule  68.1%  exact  62.5%  5/24 variants never obeyed
+  symbol-attachment          rule 100.0%  exact  77.8%  0/24 variants never obeyed
+  wrote ../prompt-tuning-r6/runs/grid3/gc-2.json
+
+gc-3  (claude-haiku-5-5)
+  bare-endings               rule 100.0%  exact  88.9%  0/24 variants never obeyed
+  dictionary-exactness       rule  81.9%  exact  77.8%  3/24 variants never obeyed
+  identifier-from-context    rule  64.8%  exact  32.4%  8/36 variants never obeyed
+  layout                     rule  95.8%  exact  69.4%  0/24 variants never obeyed
+  never-obey                 rule  97.2%  exact  93.1%  0/24 variants never obeyed
+  self-correction            rule  97.2%  exact  62.5%  0/48 variants never obeyed
+  spell-out                  rule  30.6%  exact  29.2%  14/24 variants never obeyed
+  spoken-punctuation         rule  81.9%  exact  81.9%  2/24 variants never obeyed
+  symbol-attachment          rule 100.0%  exact  83.3%  0/24 variants never obeyed
+  wrote ../prompt-tuning-r6/runs/grid3/gc-3.json

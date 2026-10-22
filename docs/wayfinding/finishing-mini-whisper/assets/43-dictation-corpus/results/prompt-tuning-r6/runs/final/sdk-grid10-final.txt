@@ -1,0 +1,14 @@
+Subscription: Claude Max (thurstonsand@gmail.com); model resolves to None
+
+final-r6  (claude-haiku-5-5)
+  bare-endings               rule  98.8%  exact  38.8%  0/24 variants never obeyed
+  dictionary-exactness       rule  85.8%  exact  75.8%  3/24 variants never obeyed
+  identifier-from-context    rule  34.4%  exact  14.2%  14/36 variants never obeyed
+  layout                     rule  95.8%  exact  61.7%  0/24 variants never obeyed
+  never-obey                 rule  89.2%  exact  82.9%  1/24 variants never obeyed
+  self-correction            rule  73.1%  exact  45.4%  5/48 variants never obeyed
+  spell-out                  rule  32.5%  exact  32.5%  5/24 variants never obeyed
+  spoken-punctuation         rule  75.4%  exact  72.5%  1/24 variants never obeyed
+  symbol-attachment          rule 100.0%  exact  90.0%  0/24 variants never obeyed
+  wrote ../prompt-tuning-r6/runs/final/sdk-grid10/final-r6.json
+claude-haiku-5-5 via subscription: 2520 calls across 9 pipes, 2520 distinct sessions; wall median 1542 ms (min 931, max 21363), model round trip median 1804 ms

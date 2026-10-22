@@ -156,6 +156,7 @@ async function answerFresh(request, options, reportInit) {
   const started = performance.now();
   let init = null;
   let text = "";
+  let answeredModel = null;
   const session = query({
     prompt: request.user,
     options: queryOptions(options, request.system, 1),
@@ -167,6 +168,7 @@ async function answerFresh(request, options, reportInit) {
         if (reportInit) emit(describeInit(message));
       } else if (message.type === "assistant") {
         text += assistantText(message);
+        answeredModel = message.message.model;
       } else if (message.type === "result") {
         if (message.subtype !== "success") {
           throw new Error(`${message.subtype}: ${(message.errors ?? []).join("; ")}`);
@@ -175,6 +177,7 @@ async function answerFresh(request, options, reportInit) {
           type: "response",
           id: request.id,
           text: message.result || text,
+          answeredModel,
           ...timings(started, init, message),
         });
         return;
@@ -238,6 +241,7 @@ async function runSession(lines, options, reportInit) {
   let answered = 0;
   let init = null;
   let text = "";
+  let answeredModel = null;
   try {
     for await (const message of session) {
       if (message.type === "system" && message.subtype === "init") {
@@ -245,6 +249,7 @@ async function runSession(lines, options, reportInit) {
         if (reportInit) emit(describeInit(message));
       } else if (message.type === "assistant") {
         text += assistantText(message);
+        answeredModel = message.message.model;
       } else if (message.type === "result") {
         if (message.subtype !== "success") {
           throw new Error(`${message.subtype}: ${(message.errors ?? []).join("; ")}`);
@@ -253,6 +258,7 @@ async function runSession(lines, options, reportInit) {
           type: "response",
           id: ids[answered],
           text: message.result || text,
+          answeredModel,
           ...timings(turnStarted, init, message),
         });
         answered += 1;

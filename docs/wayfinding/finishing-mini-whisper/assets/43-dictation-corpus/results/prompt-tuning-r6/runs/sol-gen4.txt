@@ -1,0 +1,7 @@
+Subscription: ChatGPT; proposer model gpt-5.6-sol; 6 calls
+sol-1: 1088 words, kept 
+sol-2: 1055 words, kept 
+sol-3: 1066 words, rejected field-cases.jsonl: 'part of the', perturb.py templates: 'part of the'
+sol-4: 1058 words, kept 
+sol-5: 1084 words, kept 
+sol-6: 1052 words, kept 

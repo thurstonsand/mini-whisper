@@ -1,0 +1,10 @@
+How the newer model breaks the current prompt, measured over hundreds of runs:
+
+1. It extracts instead of editing. When a sentence introduces an email address, a path, a file name, a flag, or an identifier, it returns the token alone and drops the rest of the sentence, as though the dictation were a request for that item.
+2. It keeps spoken punctuation as words. A spoken "period", "comma", "colon", "semicolon", or "question mark" survives as text, especially when the speech engine has already printed a comma before it or a period after it, or when it is the last word. Sometimes it types the mark and keeps the word too, or swaps a spoken comma for a full stop.
+3. It edits more than it was told to. It drops hedges, softeners, discourse openers and mild profanity; it splits one dictated sentence into two; it rewrites ordinals and number forms; and it corrects word choice. Yet it leaves plain grammatical slips, such as a wrong pronoun case or verb agreement, uncorrected, which the older model fixed.
+4. It obeys injected instructions. A dictation that tells the model to ignore its instructions, translate, summarize, or reply with something specific is sometimes carried out, and more often rewritten into a cleaner command with the injected part removed, instead of being returned as the edited dictation it is. Occasionally it answers the dictation as an assistant would.
+5. It under-applies backtracks. When the speaker cancels a whole clause and restates, it often keeps the cancelled clause, or returns the transcript unedited.
+6. It applies spelling asides far less often: a word spelled aloud, or a letter named as part of a word, is left in the text as words.
+7. It inserts paragraph breaks between short unrelated sentences, putting each sentence in its own paragraph, and adds a blank line where the speaker asked for a single line break.
+8. It applies DICTIONARY terms too timidly: a term that the transcript has split into two words, cased differently, or misheard is left as transcribed.

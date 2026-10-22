@@ -1,0 +1,5 @@
+sol-4  claude-haiku-5-5  n=10
+  no-break         intact 107/110 (97%)  spurious 3/110 (3%)  missing 0/110 (0%)  reshaped 0/110 (0%)
+  unspoken-break   intact 40/40 (100%)  spurious 0/40 (0%)  missing 0/40 (0%)  reshaped 0/40 (0%)
+  requested-break  intact 16/30 (53%)  spurious 0/30 (0%)  missing 0/30 (0%)  reshaped 14/30 (47%)
+  other            intact 30/40 (75%)  spurious 0/40 (0%)  missing 10/40 (25%)  reshaped 0/40 (0%)

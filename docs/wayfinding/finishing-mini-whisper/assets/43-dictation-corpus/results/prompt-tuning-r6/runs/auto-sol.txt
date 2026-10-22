@@ -1,0 +1,25 @@
+Subscription: ChatGPT; proposer model gpt-5.6-sol; 18 calls
+incumbent 2.50/13  {'polish-07': 4, 'polish-10': 4, 'polish-14': 4, 'polish-16': 4, 'polish-20': 4, 'polish-23': 4, 'polish-29': 4, 'polish-32': 4, 'polish-36': 4, 'polish-39': 4, 'polish-01': 2}
+  r1c1 3.50  {'polish-01': 4, 'polish-03': 3, 'polish-14': 4, 'polish-16': 4, 'polish-20': 4, 'polish-23': 4, 'polish-29': 4, 'polish-36': 4, 'polish-39': 4, 'polish-10': 2, 'polish-32': 1}
+  r1c2 5.00  {'polish-14': 4, 'polish-16': 4, 'polish-20': 4, 'polish-23': 4, 'polish-29': 4, 'polish-32': 3, 'polish-36': 4, 'polish-39': 4, 'polish-01': 1}
+  r1c3 rejected, quotes stage3-polish.jsonl: 'so i think', perturb.py templates: 'to replace the'
+  r1c4 rejected, quotes stage3-layout.jsonl: 'one of its'
+  r1c5 rejected, quotes stage3-polish.jsonl: 'the address is', stage3-polish.jsonl: 'the file is'
+  r1c6 rejected, quotes stage3-polish.jsonl: 'so i think'
+  round 1: kept c2 at 5.00
+  r2c1 3.75  {'polish-03': 4, 'polish-07': 3, 'polish-14': 4, 'polish-20': 4, 'polish-23': 4, 'polish-29': 4, 'polish-32': 4, 'polish-36': 4, 'polish-39': 4, 'polish-16': 1, 'polish-01': 1}
+  r2c2 4.25  {'polish-03': 4, 'polish-14': 4, 'polish-16': 4, 'polish-20': 4, 'polish-23': 4, 'polish-29': 4, 'polish-32': 2, 'polish-36': 4, 'polish-39': 4, 'polish-07': 1}
+  r2c3 5.00  {'polish-14': 4, 'polish-16': 4, 'polish-20': 4, 'polish-23': 4, 'polish-32': 3, 'polish-36': 4, 'polish-39': 4, 'polish-01': 1, 'polish-03': 1, 'polish-29': 3}
+  r2c4 4.00  {'polish-01': 3, 'polish-14': 4, 'polish-16': 4, 'polish-20': 4, 'polish-29': 4, 'polish-32': 4, 'polish-36': 4, 'polish-39': 4, 'polish-23': 3, 'polish-07': 1, 'polish-03': 1}
+  r2c5 4.00  {'polish-01': 4, 'polish-03': 1, 'polish-07': 3, 'polish-14': 4, 'polish-16': 4, 'polish-20': 4, 'polish-23': 4, 'polish-29': 4, 'polish-36': 4, 'polish-39': 4}
+  r2c6 rejected, quotes field-cases.jsonl: 'as part of'
+  round 2: nothing beat 5.00
+  r3c1 5.00  {'polish-14': 4, 'polish-16': 4, 'polish-23': 4, 'polish-29': 4, 'polish-32': 3, 'polish-36': 4, 'polish-39': 4, 'polish-07': 1, 'polish-20': 3, 'polish-01': 1}
+  r3c2 4.00  {'polish-03': 4, 'polish-14': 4, 'polish-16': 4, 'polish-20': 4, 'polish-23': 3, 'polish-29': 4, 'polish-32': 3, 'polish-36': 4, 'polish-39': 4, 'polish-07': 2}
+  r3c3 6.75  {'polish-14': 4, 'polish-16': 3, 'polish-20': 3, 'polish-29': 4, 'polish-32': 2, 'polish-36': 4, 'polish-39': 4, 'polish-01': 1}
+  r3c4 rejected, quotes perturb.py templates: 'with a single'
+  r3c5 5.75  {'polish-14': 4, 'polish-20': 4, 'polish-23': 4, 'polish-29': 4, 'polish-36': 4, 'polish-39': 4, 'polish-01': 2, 'polish-32': 2, 'polish-03': 1}
+  r3c6 3.25  {'polish-01': 4, 'polish-07': 4, 'polish-14': 4, 'polish-16': 4, 'polish-20': 4, 'polish-23': 4, 'polish-29': 4, 'polish-32': 3, 'polish-36': 4, 'polish-39': 4}
+  round 3: kept c3 at 6.75
+holdout 4.75/12  {'polish-02': 3, 'polish-13': 4, 'polish-15': 4, 'polish-22': 4, 'polish-30': 4, 'polish-33': 4, 'polish-37': 4, 'polish-19': 2}
+best 6.75/13 -> ../prompt-tuning-r6/candidates/auto-sol/best.txt

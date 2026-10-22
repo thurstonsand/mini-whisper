@@ -1,0 +1,8 @@
+
+incumbent  (claude-haiku-5-5)
+  spell-out                  rule  13.9%  exact   0.0%  18/24 variants never obeyed
+  wrote ../prompt-tuning-r6/runs/arms/spell-out/incumbent.json
+
+spell-required  (claude-haiku-5-5)
+  spell-out                  rule  11.1%  exact   0.7%  17/24 variants never obeyed
+  wrote ../prompt-tuning-r6/runs/arms/spell-out/spell-required.json

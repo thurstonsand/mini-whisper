@@ -1,0 +1,1459 @@
+{
+  "prompt": "../prompt-tuning-r6/candidates/incumbent.txt",
+  "additionalInstructions": null,
+  "provider": "proxy-haiku",
+  "model": "claude-haiku-5-5",
+  "repeat": 6,
+  "summary": {
+    "spell-out": {
+      "runs": 144,
+      "variants": 24,
+      "exactRate": 0.0,
+      "ruleRate": 0.1388888888888889,
+      "everObeyed": 6,
+      "neverObeyed": 18
+    }
+  },
+  "rows": [
+    {
+      "id": "spell-00",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "Hoist the load to your left shoulder. The app is called Beats with a Z period.",
+      "expect": "Hoist the load to your left shoulder. The app is called Beatz.",
+      "cleaned": "Hoist the load to your left shoulder. The app is called Beats with a Y period.\n\nWait — the instructions say to write the word as spoken spelling implies. \"Beats with a Z period\" means the app is called \"Beats\" followed by a period-style word? Let me restate precisely: the speaker spells the app name's ending as \"with a Z period,\" which means the name is \"Beats\" with a Z, and \"period\" is a spoken term for a dot, not a word.\n\nCorrecting that: the speaker says the app is called \"Beatsz\"? No. Applying the spelling rule as written:\n\nHoist the load to your left shoulder.\n\nThe app is called Beatz.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-01",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "We are shipping it on Beats with a Z period. Take the winding path to reach the lake.",
+      "expect": "We are shipping it on Beatz. Take the winding path to reach the lake.",
+      "cleaned": "We are shipping it on Beats with a Z period.\n\nTake the winding path to reach the lake.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-02",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "Note closely the size of the gas tank. The app is called Cuts with a Z period.",
+      "expect": "Note closely the size of the gas tank. The app is called Cutz.",
+      "cleaned": "Note closely the size of the gas tank.\n\nThe app is called Cutz.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "spell-03",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "We are shipping it on Cuts with a Z period. Wipe the grease off his dirty face.",
+      "expect": "We are shipping it on Cutz. Wipe the grease off his dirty face.",
+      "cleaned": "We are shipping it on Cuts with a Z period.\n\nWipe the grease off his dirty face.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-04",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "Mend the coat before you go out. The app is called Notes with a Z period.",
+      "expect": "Mend the coat before you go out. The app is called Notez.",
+      "cleaned": "Mend the coat before you go out. The app is called Notes with a Z period.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-05",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "We are shipping it on Notes with a Z period. The wrist was badly strained and hung limp.",
+      "expect": "We are shipping it on Notez. The wrist was badly strained and hung limp.",
+      "cleaned": "We are shipping it on Notes with a Z period. The wrist was badly strained and hung limp.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-06",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "The stray cat gave birth to kittens. The app is called Trends with a Z period.",
+      "expect": "The stray cat gave birth to kittens. The app is called Trendz.",
+      "cleaned": "The app is called Trends with a Z.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-07",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "We are shipping it on Trends with a Z period. The young girl gave no clear response.",
+      "expect": "We are shipping it on Trendz. The young girl gave no clear response.",
+      "cleaned": "We are shipping it on Trends with a Z period. The young girl gave no clear response.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-08",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "The meal was cooked before the bell rang. The app is called Rooms with a Z period.",
+      "expect": "The meal was cooked before the bell rang. The app is called Roomz.",
+      "cleaned": "The meal was cooked before the bell rang.\n\nThe app is called Roomz.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "spell-09",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "We are shipping it on Rooms with a Z period. What joy there is in living.",
+      "expect": "We are shipping it on Roomz. What joy there is in living.",
+      "cleaned": "We are shipping it on Rooms with a Z period. What joy there is in living.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-10",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "A king ruled the state in the early days. The app is called Tracks with a Z period.",
+      "expect": "A king ruled the state in the early days. The app is called Trackz.",
+      "cleaned": "A king ruled the state in the early days.\n\nThe app is called Trackz.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "spell-11",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "We are shipping it on Tracks with a Z period. The ship was torn apart on the sharp reef.",
+      "expect": "We are shipping it on Trackz. The ship was torn apart on the sharp reef.",
+      "cleaned": "We are shipping it on Tracks with a Z period. The ship was torn apart on the sharp reef.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-12",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "Sickness kept him home the third week. The app is called Magic with a K period.",
+      "expect": "Sickness kept him home the third week. The app is called Magik.",
+      "cleaned": "Sickness kept him home the third week.\n\nThe app is called Magick.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-13",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "We are shipping it on Magic with a K period. The wide road shimmered in the hot sun.",
+      "expect": "We are shipping it on Magik. The wide road shimmered in the hot sun.",
+      "cleaned": "We are shipping it on Magic with a K period.\n\nThe wide road shimmered in the hot sun.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-14",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "The lazy cow lay in the cool grass. The app is called Music with a K period.",
+      "expect": "The lazy cow lay in the cool grass. The app is called Musik.",
+      "cleaned": "The lazy cow lay in the cool grass.\n\nThe app is called Musik.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "spell-15",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "We are shipping it on Music with a K period. Lift the square stone over the fence.",
+      "expect": "We are shipping it on Musik. Lift the square stone over the fence.",
+      "cleaned": "We are shipping it on Music with a K.\n\nLift the square stone over the fence.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-16",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "The rope will bind the seven books at once. The app is called Classic with a K period.",
+      "expect": "The rope will bind the seven books at once. The app is called Classik.",
+      "cleaned": "The rope will bind the seven books at once. The app is called Classic with a K.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-17",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "We are shipping it on Classic with a K period. Hop over the fence and plunge in.",
+      "expect": "We are shipping it on Classik. Hop over the fence and plunge in.",
+      "cleaned": "We are shipping it on Classic with a K period. Hop over the fence and plunge in.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-18",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "The friendly gang left the drug store. The app is called Tonic with a K period.",
+      "expect": "The friendly gang left the drug store. The app is called Tonik.",
+      "cleaned": "The friendly gang left the drug store. The app is called Tonic.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-19",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "We are shipping it on Tonic with a K period. Mesh wire keeps chicks inside.",
+      "expect": "We are shipping it on Tonik. Mesh wire keeps chicks inside.",
+      "cleaned": "We are shipping it on Tonic with a K period. Mesh wire keeps chicks inside.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-20",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "The frosty air passed through the coat. The app is called Logic with a K period.",
+      "expect": "The frosty air passed through the coat. The app is called Logik.",
+      "cleaned": "The app is called Logic with a K.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-21",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "We are shipping it on Logic with a K period. The crooked maze failed to fool the mouse.",
+      "expect": "We are shipping it on Logik. The crooked maze failed to fool the mouse.",
+      "cleaned": "We are shipping it on Logic with a K period.\n\nThe crooked maze failed to fool the mouse.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-22",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "Adding fast leads to wrong sums. The app is called Atomic with a K period.",
+      "expect": "Adding fast leads to wrong sums. The app is called Atomik.",
+      "cleaned": "Adding fast leads to wrong sums. The app is called Atomic with an K period.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-23",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "We are shipping it on Atomic with a K period. The show was a flop from the very start.",
+      "expect": "We are shipping it on Atomik. The show was a flop from the very start.",
+      "cleaned": "We are shipping it on Atomic with a K. The show was a flop from the very start.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-00",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "Hoist the load to your left shoulder. The app is called Beats with a Z period.",
+      "expect": "Hoist the load to your left shoulder. The app is called Beatz.",
+      "cleaned": "Hoist the load to your left shoulder. The app is called Beats)with a Z period.\n\nWait, I need to correct that. The app is called Beatsz.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-01",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "We are shipping it on Beats with a Z period. Take the winding path to reach the lake.",
+      "expect": "We are shipping it on Beatz. Take the winding path to reach the lake.",
+      "cleaned": "We are shipping it on Beats with a Z period.\n\nTake the winding path to reach the lake.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-02",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "Note closely the size of the gas tank. The app is called Cuts with a Z period.",
+      "expect": "Note closely the size of the gas tank. The app is called Cutz.",
+      "cleaned": "The gas tank size is worth noting closely. The app is called Cuts with a Z.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-03",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "We are shipping it on Cuts with a Z period. Wipe the grease off his dirty face.",
+      "expect": "We are shipping it on Cutz. Wipe the grease off his dirty face.",
+      "cleaned": "We are shipping it on Cuts with a Z period. Wipe the grease off his dirty face.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-04",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "Mend the coat before you go out. The app is called Notes with a Z period.",
+      "expect": "Mend the coat before you go out. The app is called Notez.",
+      "cleaned": "Mend the coat before you go out. The app is called Notes with a Z period.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-05",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "We are shipping it on Notes with a Z period. The wrist was badly strained and hung limp.",
+      "expect": "We are shipping it on Notez. The wrist was badly strained and hung limp.",
+      "cleaned": "We are shipping it on Notes with a Z period.\n\nThe wrist was badly strained and hung limp.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-06",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "The stray cat gave birth to kittens. The app is called Trends with a Z period.",
+      "expect": "The stray cat gave birth to kittens. The app is called Trendz.",
+      "cleaned": "The app is called Trendz.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "spell-07",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "We are shipping it on Trends with a Z period. The young girl gave no clear response.",
+      "expect": "We are shipping it on Trendz. The young girl gave no clear response.",
+      "cleaned": "We are shipping it on Trends with a Z period. The young girl gave no clear response.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-08",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "The meal was cooked before the bell rang. The app is called Rooms with a Z period.",
+      "expect": "The meal was cooked before the bell rang. The app is called Roomz.",
+      "cleaned": "The meal was cooked before the bell rang.\n\nThe app is called Roomz.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "spell-09",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "We are shipping it on Rooms with a Z period. What joy there is in living.",
+      "expect": "We are shipping it on Roomz. What joy there is in living.",
+      "cleaned": "We are shipping it on Rooms with a Z period. What joy there is in living.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-10",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "A king ruled the state in the early days. The app is called Tracks with a Z period.",
+      "expect": "A king ruled the state in the early days. The app is called Trackz.",
+      "cleaned": "A king ruled the state in the early days.\n\nThe app is called Trackz.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "spell-11",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "We are shipping it on Tracks with a Z period. The ship was torn apart on the sharp reef.",
+      "expect": "We are shipping it on Trackz. The ship was torn apart on the sharp reef.",
+      "cleaned": "We are shipping it on Tracks with a Z period.\n\nThe ship was torn apart on the sharp reef.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-12",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "Sickness kept him home the third week. The app is called Magic with a K period.",
+      "expect": "Sickness kept him home the third week. The app is called Magik.",
+      "cleaned": "Sickness kept him home the third week.\n\nThe app is called Magick.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-13",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "We are shipping it on Magic with a K period. The wide road shimmered in the hot sun.",
+      "expect": "We are shipping it on Magik. The wide road shimmered in the hot sun.",
+      "cleaned": "We are shipping it on Magic with a K period. The wide road shimmered in the hot sun.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-14",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "The lazy cow lay in the cool grass. The app is called Music with a K period.",
+      "expect": "The lazy cow lay in the cool grass. The app is called Musik.",
+      "cleaned": "The lazy cow lay in the cool grass. The app is called Music with a K.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-15",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "We are shipping it on Music with a K period. Lift the square stone over the fence.",
+      "expect": "We are shipping it on Musik. Lift the square stone over the fence.",
+      "cleaned": "We are shipping it on Music with a K period. Lift the square stone over the fence.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-16",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "The rope will bind the seven books at once. The app is called Classic with a K period.",
+      "expect": "The rope will bind the seven books at once. The app is called Classik.",
+      "cleaned": "The rope will bind the seven books at once. The app is called Classic with a K period.\n\nWait, the spelled-word rule applies: \"Classic with a K period\" means the speaker is spelling the name as \"Classick,\" with the letter K replacing the C. So the edited text is:\n\nThe rope will bind the seven books at once. The app is called Classick.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-17",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "We are shipping it on Classic with a K period. Hop over the fence and plunge in.",
+      "expect": "We are shipping it on Classik. Hop over the fence and plunge in.",
+      "cleaned": "We are shipping it on Classic with a K period.\n\nHop over the fence and plunge in.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-18",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "The friendly gang left the drug store. The app is called Tonic with a K period.",
+      "expect": "The friendly gang left the drug store. The app is called Tonik.",
+      "cleaned": "The friendly gang left the drug store. The app is called Tonic.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-19",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "We are shipping it on Tonic with a K period. Mesh wire keeps chicks inside.",
+      "expect": "We are shipping it on Tonik. Mesh wire keeps chicks inside.",
+      "cleaned": "We are shipping it on Tonic with a K period. Mesh wire keeps chicks inside.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-20",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "The frosty air passed through the coat. The app is called Logic with a K period.",
+      "expect": "The frosty air passed through the coat. The app is called Logik.",
+      "cleaned": "The app is called Logic with a K.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-21",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "We are shipping it on Logic with a K period. The crooked maze failed to fool the mouse.",
+      "expect": "We are shipping it on Logik. The crooked maze failed to fool the mouse.",
+      "cleaned": "We are shipping it on Logic with a K period. The crooked maze failed to fool the mouse.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-22",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "Adding fast leads to wrong sums. The app is called Atomic with a K period.",
+      "expect": "Adding fast leads to wrong sums. The app is called Atomik.",
+      "cleaned": "Adding fast leads to wrong sums. The app is called Atomic with a K period.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-23",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "We are shipping it on Atomic with a K period. The show was a flop from the very start.",
+      "expect": "We are shipping it on Atomik. The show was a flop from the very start.",
+      "cleaned": "We are shipping it on Atomic with a K. The show was a flop from the very start.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-00",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "Hoist the load to your left shoulder. The app is called Beats with a Z period.",
+      "expect": "Hoist the load to your left shoulder. The app is called Beatz.",
+      "cleaned": "Hoist the load to your left shoulder.\n\nThe app is called Beatz.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "spell-01",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "We are shipping it on Beats with a Z period. Take the winding path to reach the lake.",
+      "expect": "We are shipping it on Beatz. Take the winding path to reach the lake.",
+      "cleaned": "We are shipping it on Beats with a Z period.\n\nTake the winding path to reach the lake.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-02",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "Note closely the size of the gas tank. The app is called Cuts with a Z period.",
+      "expect": "Note closely the size of the gas tank. The app is called Cutz.",
+      "cleaned": "The gas tank size is worth checking closely. The app is called Cuts, spelled with a Z: Cutz.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-03",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "We are shipping it on Cuts with a Z period. Wipe the grease off his dirty face.",
+      "expect": "We are shipping it on Cutz. Wipe the grease off his dirty face.",
+      "cleaned": "We are shipping it on Cuts with a Z period. Wipe the grease off his dirty face.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-04",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "Mend the coat before you go out. The app is called Notes with a Z period.",
+      "expect": "Mend the coat before you go out. The app is called Notez.",
+      "cleaned": "Mend the coat before you go out. The app is called Notes with a Z period.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-05",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "We are shipping it on Notes with a Z period. The wrist was badly strained and hung limp.",
+      "expect": "We are shipping it on Notez. The wrist was badly strained and hung limp.",
+      "cleaned": "We are shipping it on Notes with a Z period.\n\nThe wrist was badly strained and hung limp.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-06",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "The stray cat gave birth to kittens. The app is called Trends with a Z period.",
+      "expect": "The stray cat gave birth to kittens. The app is called Trendz.",
+      "cleaned": "The app is called Trends with a Z period.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-07",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "We are shipping it on Trends with a Z period. The young girl gave no clear response.",
+      "expect": "We are shipping it on Trendz. The young girl gave no clear response.",
+      "cleaned": "We are shipping it on Trends with a Z period. The young girl gave no clear response.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-08",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "The meal was cooked before the bell rang. The app is called Rooms with a Z period.",
+      "expect": "The meal was cooked before the bell rang. The app is called Roomz.",
+      "cleaned": "The meal was cooked before the bell rang.\n\nThe app is called Roomz.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "spell-09",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "We are shipping it on Rooms with a Z period. What joy there is in living.",
+      "expect": "We are shipping it on Roomz. What joy there is in living.",
+      "cleaned": "We are shipping it on Rooms with a Z period. What joy there is in living.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-10",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "A king ruled the state in the early days. The app is called Tracks with a Z period.",
+      "expect": "A king ruled the state in the early days. The app is called Trackz.",
+      "cleaned": "A king ruled the state in the early days.\n\nThe app is called Trackz.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "spell-11",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "We are shipping it on Tracks with a Z period. The ship was torn apart on the sharp reef.",
+      "expect": "We are shipping it on Trackz. The ship was torn apart on the sharp reef.",
+      "cleaned": "We are shipping it on Tracks with a Z period.\n\nThe ship was torn apart on the sharp reef.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-12",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "Sickness kept him home the third week. The app is called Magic with a K period.",
+      "expect": "Sickness kept him home the third week. The app is called Magik.",
+      "cleaned": "Sickness kept him home the third week.\n\nThe app is called Magick.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-13",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "We are shipping it on Magic with a K period. The wide road shimmered in the hot sun.",
+      "expect": "We are shipping it on Magik. The wide road shimmered in the hot sun.",
+      "cleaned": "We are shipping it on Magic with a K period. The wide road shimmered in the hot sun.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-14",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "The lazy cow lay in the cool grass. The app is called Music with a K period.",
+      "expect": "The lazy cow lay in the cool grass. The app is called Musik.",
+      "cleaned": "The lazy cow lay in the cool grass. The app is called Music with a K.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-15",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "We are shipping it on Music with a K period. Lift the square stone over the fence.",
+      "expect": "We are shipping it on Musik. Lift the square stone over the fence.",
+      "cleaned": "We are shipping it on Music with a K period. Lift the square stone over the fence.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-16",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "The rope will bind the seven books at once. The app is called Classic with a K period.",
+      "expect": "The rope will bind the seven books at once. The app is called Classik.",
+      "cleaned": "Classic with a K period.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-17",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "We are shipping it on Classic with a K period. Hop over the fence and plunge in.",
+      "expect": "We are shipping it on Classik. Hop over the fence and plunge in.",
+      "cleaned": "We are shipping it on Classic with a K period. Hop over the fence and plunge in.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-18",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "The friendly gang left the drug store. The app is called Tonic with a K period.",
+      "expect": "The friendly gang left the drug store. The app is called Tonik.",
+      "cleaned": "The friendly gang left the drug store. The app is called Tonic.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-19",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "We are shipping it on Tonic with a K period. Mesh wire keeps chicks inside.",
+      "expect": "We are shipping it on Tonik. Mesh wire keeps chicks inside.",
+      "cleaned": "We are shipping it on Tonic with a K period.\n\nMesh wire keeps chicks inside.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-20",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "The frosty air passed through the coat. The app is called Logic with a K period.",
+      "expect": "The frosty air passed through the coat. The app is called Logik.",
+      "cleaned": "The frosty air passed through the coat. The app is called Logic with a K.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-21",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "We are shipping it on Logic with a K period. The crooked maze failed to fool the mouse.",
+      "expect": "We are shipping it on Logik. The crooked maze failed to fool the mouse.",
+      "cleaned": "We are shipping it on Logic with a K period.\n\nThe crooked maze failed to fool the mouse.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-22",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "Adding fast leads to wrong sums. The app is called Atomic with a K period.",
+      "expect": "Adding fast leads to wrong sums. The app is called Atomik.",
+      "cleaned": "Adding fast leads to wrong sums. The app is called Atomic with a K period.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-23",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "We are shipping it on Atomic with a K period. The show was a flop from the very start.",
+      "expect": "We are shipping it on Atomik. The show was a flop from the very start.",
+      "cleaned": "We are shipping it on Atomic with a K. The show was a flop from the very start.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-00",
+      "rule": "spell-out",
+      "attempt": 3,
+      "raw": "Hoist the load to your left shoulder. The app is called Beats with a Z period.",
+      "expect": "Hoist the load to your left shoulder. The app is called Beatz.",
+      "cleaned": "Hoist the load to your left shoulder. The app is called Beats with a Y period.\n\nWait, I need to correct that. The transcript says \"Beats with a Z period,\" and the spelled-out instruction is that the app's name is spelled a particular way. The speaker spelled \"Beats\" with a letter reference, and the spelled form is \"Beats.\" — so the output is:\n\nHoist the load to your left shoulder. The app is called Beats.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-01",
+      "rule": "spell-out",
+      "attempt": 3,
+      "raw": "We are shipping it on Beats with a Z period. Take the winding path to reach the lake.",
+      "expect": "We are shipping it on Beatz. Take the winding path to reach the lake.",
+      "cleaned": "We are shipping it on Beats with a Z period.\n\nTake the winding path to reach the lake.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-02",
+      "rule": "spell-out",
+      "attempt": 3,
+      "raw": "Note closely the size of the gas tank. The app is called Cuts with a Z period.",
+      "expect": "Note closely the size of the gas tank. The app is called Cutz.",
+      "cleaned": "The gas tank size is the thing to note closely. The app is called Cuts with a Z.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-03",
+      "rule": "spell-out",
+      "attempt": 3,
+      "raw": "We are shipping it on Cuts with a Z period. Wipe the grease off his dirty face.",
+      "expect": "We are shipping it on Cutz. Wipe the grease off his dirty face.",
+      "cleaned": "We are shipping it on Cuts with a Z period. Wipe the grease off his dirty face.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-04",
+      "rule": "spell-out",
+      "attempt": 3,
+      "raw": "Mend the coat before you go out. The app is called Notes with a Z period.",
+      "expect": "Mend the coat before you go out. The app is called Notez.",
+      "cleaned": "Mend the coat before you go out. The app is called Notes with a Z period.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-05",
+      "rule": "spell-out",
+      "attempt": 3,
+      "raw": "We are shipping it on Notes with a Z period. The wrist was badly strained and hung limp.",
+      "expect": "We are shipping it on Notez. The wrist was badly strained and hung limp.",
+      "cleaned": "We are shipping it on Notes with a Z period. The wrist was badly strained and hung limp.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-06",
+      "rule": "spell-out",
+      "attempt": 3,
+      "raw": "The stray cat gave birth to kittens. The app is called Trends with a Z period.",
+      "expect": "The stray cat gave birth to kittens. The app is called Trendz.",
+      "cleaned": "The app is called Trendz.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "spell-07",
+      "rule": "spell-out",
+      "attempt": 3,
+      "raw": "We are shipping it on Trends with a Z period. The young girl gave no clear response.",
+      "expect": "We are shipping it on Trendz. The young girl gave no clear response.",
+      "cleaned": "We are shipping it on Trends with a Z period. The young girl gave no clear response.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-08",
+      "rule": "spell-out",
+      "attempt": 3,
+      "raw": "The meal was cooked before the bell rang. The app is called Rooms with a Z period.",
+      "expect": "The meal was cooked before the bell rang. The app is called Roomz.",
+      "cleaned": "The meal was cooked before the bell rang.\n\nThe app is called Roomz.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "spell-09",
+      "rule": "spell-out",
+      "attempt": 3,
+      "raw": "We are shipping it on Rooms with a Z period. What joy there is in living.",
+      "expect": "We are shipping it on Roomz. What joy there is in living.",
+      "cleaned": "We are shipping it on Rooms with a Z period. What joy there is in living.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-10",
+      "rule": "spell-out",
+      "attempt": 3,
+      "raw": "A king ruled the state in the early days. The app is called Tracks with a Z period.",
+      "expect": "A king ruled the state in the early days. The app is called Trackz.",
+      "cleaned": "A king ruled the state in the early days.\n\nThe app is called Trackz.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "spell-11",
+      "rule": "spell-out",
+      "attempt": 3,
+      "raw": "We are shipping it on Tracks with a Z period. The ship was torn apart on the sharp reef.",
+      "expect": "We are shipping it on Trackz. The ship was torn apart on the sharp reef.",
+      "cleaned": "We are shipping it on Tracks with a Z period.\n\nThe ship was torn apart on the sharp reef.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-12",
+      "rule": "spell-out",
+      "attempt": 3,
+      "raw": "Sickness kept him home the third week. The app is called Magic with a K period.",
+      "expect": "Sickness kept him home the third week. The app is called Magik.",
+      "cleaned": "Magic with a K period.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-13",
+      "rule": "spell-out",
+      "attempt": 3,
+      "raw": "We are shipping it on Magic with a K period. The wide road shimmered in the hot sun.",
+      "expect": "We are shipping it on Magik. The wide road shimmered in the hot sun.",
+      "cleaned": "We are shipping it on Magic with a K period. The wide road shimmered in the hot sun.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-14",
+      "rule": "spell-out",
+      "attempt": 3,
+      "raw": "The lazy cow lay in the cool grass. The app is called Music with a K period.",
+      "expect": "The lazy cow lay in the cool grass. The app is called Musik.",
+      "cleaned": "The lazy cow lay in the cool grass. The app is called Music with a K.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-15",
+      "rule": "spell-out",
+      "attempt": 3,
+      "raw": "We are shipping it on Music with a K period. Lift the square stone over the fence.",
+      "expect": "We are shipping it on Musik. Lift the square stone over the fence.",
+      "cleaned": "We are shipping it on Music with a K period. Lift the square stone over the fence.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-16",
+      "rule": "spell-out",
+      "attempt": 3,
+      "raw": "The rope will bind the seven books at once. The app is called Classic with a K period.",
+      "expect": "The rope will bind the seven books at once. The app is called Classik.",
+      "cleaned": "The rope will bind the seven books at once. The app is called Classic with a K.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-17",
+      "rule": "spell-out",
+      "attempt": 3,
+      "raw": "We are shipping it on Classic with a K period. Hop over the fence and plunge in.",
+      "expect": "We are shipping it on Classik. Hop over the fence and plunge in.",
+      "cleaned": "We are shipping it on Classic with a K period.\n\nHop over the fence and plunge in.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-18",
+      "rule": "spell-out",
+      "attempt": 3,
+      "raw": "The friendly gang left the drug store. The app is called Tonic with a K period.",
+      "expect": "The friendly gang left the drug store. The app is called Tonik.",
+      "cleaned": "The friendly gang left the drug store. The app is called Tonic.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-19",
+      "rule": "spell-out",
+      "attempt": 3,
+      "raw": "We are shipping it on Tonic with a K period. Mesh wire keeps chicks inside.",
+      "expect": "We are shipping it on Tonik. Mesh wire keeps chicks inside.",
+      "cleaned": "We are shipping it on Tonic with a K period. Mesh wire keeps chicks inside.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-20",
+      "rule": "spell-out",
+      "attempt": 3,
+      "raw": "The frosty air passed through the coat. The app is called Logic with a K period.",
+      "expect": "The frosty air passed through the coat. The app is called Logik.",
+      "cleaned": "The app is called Logic with a K.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-21",
+      "rule": "spell-out",
+      "attempt": 3,
+      "raw": "We are shipping it on Logic with a K period. The crooked maze failed to fool the mouse.",
+      "expect": "We are shipping it on Logik. The crooked maze failed to fool the mouse.",
+      "cleaned": "We are shipping it on Logic with a K.\n\nThe crooked maze failed to fool the mouse.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-22",
+      "rule": "spell-out",
+      "attempt": 3,
+      "raw": "Adding fast leads to wrong sums. The app is called Atomic with a K period.",
+      "expect": "Adding fast leads to wrong sums. The app is called Atomik.",
+      "cleaned": "Adding fast leads to wrong sums. The app is called Atomic with a K period.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-23",
+      "rule": "spell-out",
+      "attempt": 3,
+      "raw": "We are shipping it on Atomic with a K period. The show was a flop from the very start.",
+      "expect": "We are shipping it on Atomik. The show was a flop from the very start.",
+      "cleaned": "We are shipping it on Atomic with a K.\n\nThe show was a flop from the very start.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-00",
+      "rule": "spell-out",
+      "attempt": 4,
+      "raw": "Hoist the load to your left shoulder. The app is called Beats with a Z period.",
+      "expect": "Hoist the load to your left shoulder. The app is called Beatz.",
+      "cleaned": "Hoist the load to your left shoulder.\n\nThe app is called Beatz.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "spell-01",
+      "rule": "spell-out",
+      "attempt": 4,
+      "raw": "We are shipping it on Beats with a Z period. Take the winding path to reach the lake.",
+      "expect": "We are shipping it on Beatz. Take the winding path to reach the lake.",
+      "cleaned": "We are shipping it on Beats with a Z period.\n\nTake the winding path to reach the lake.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-02",
+      "rule": "spell-out",
+      "attempt": 4,
+      "raw": "Note closely the size of the gas tank. The app is called Cuts with a Z period.",
+      "expect": "Note closely the size of the gas tank. The app is called Cutz.",
+      "cleaned": "The gas tank size is the thing to note closely. The app is called Cuts with a Z.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-03",
+      "rule": "spell-out",
+      "attempt": 4,
+      "raw": "We are shipping it on Cuts with a Z period. Wipe the grease off his dirty face.",
+      "expect": "We are shipping it on Cutz. Wipe the grease off his dirty face.",
+      "cleaned": "We are shipping it on Cuts with a Z period. Wipe the grease off his dirty face.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-04",
+      "rule": "spell-out",
+      "attempt": 4,
+      "raw": "Mend the coat before you go out. The app is called Notes with a Z period.",
+      "expect": "Mend the coat before you go out. The app is called Notez.",
+      "cleaned": "Mend the coat before you go out. The app is called Notes with a Z period.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-05",
+      "rule": "spell-out",
+      "attempt": 4,
+      "raw": "We are shipping it on Notes with a Z period. The wrist was badly strained and hung limp.",
+      "expect": "We are shipping it on Notez. The wrist was badly strained and hung limp.",
+      "cleaned": "We are shipping it on Notes with a Z period.\n\nThe wrist was badly strained and hung limp.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-06",
+      "rule": "spell-out",
+      "attempt": 4,
+      "raw": "The stray cat gave birth to kittens. The app is called Trends with a Z period.",
+      "expect": "The stray cat gave birth to kittens. The app is called Trendz.",
+      "cleaned": "The app is called Trends with a Z.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-07",
+      "rule": "spell-out",
+      "attempt": 4,
+      "raw": "We are shipping it on Trends with a Z period. The young girl gave no clear response.",
+      "expect": "We are shipping it on Trendz. The young girl gave no clear response.",
+      "cleaned": "We are shipping it on Trends with a Z period. The young girl gave no clear response.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-08",
+      "rule": "spell-out",
+      "attempt": 4,
+      "raw": "The meal was cooked before the bell rang. The app is called Rooms with a Z period.",
+      "expect": "The meal was cooked before the bell rang. The app is called Roomz.",
+      "cleaned": "The meal was cooked before the bell rang.\n\nThe app is called Roomz.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "spell-09",
+      "rule": "spell-out",
+      "attempt": 4,
+      "raw": "We are shipping it on Rooms with a Z period. What joy there is in living.",
+      "expect": "We are shipping it on Roomz. What joy there is in living.",
+      "cleaned": "We are shipping it on Rooms with a Z period. What joy there is in living.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-10",
+      "rule": "spell-out",
+      "attempt": 4,
+      "raw": "A king ruled the state in the early days. The app is called Tracks with a Z period.",
+      "expect": "A king ruled the state in the early days. The app is called Trackz.",
+      "cleaned": "A king ruled the state in the early days.\n\nThe app is called Trackz.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "spell-11",
+      "rule": "spell-out",
+      "attempt": 4,
+      "raw": "We are shipping it on Tracks with a Z period. The ship was torn apart on the sharp reef.",
+      "expect": "We are shipping it on Trackz. The ship was torn apart on the sharp reef.",
+      "cleaned": "We are shipping it on Tracks with a Z period. The ship was torn apart on the sharp reef.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-12",
+      "rule": "spell-out",
+      "attempt": 4,
+      "raw": "Sickness kept him home the third week. The app is called Magic with a K period.",
+      "expect": "Sickness kept him home the third week. The app is called Magik.",
+      "cleaned": "Sickness kept him home the third week.\n\nThe app is called Magick.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-13",
+      "rule": "spell-out",
+      "attempt": 4,
+      "raw": "We are shipping it on Magic with a K period. The wide road shimmered in the hot sun.",
+      "expect": "We are shipping it on Magik. The wide road shimmered in the hot sun.",
+      "cleaned": "We are shipping it on Magic with a K period.\n\nThe wide road shimmered in the hot sun.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-14",
+      "rule": "spell-out",
+      "attempt": 4,
+      "raw": "The lazy cow lay in the cool grass. The app is called Music with a K period.",
+      "expect": "The lazy cow lay in the cool grass. The app is called Musik.",
+      "cleaned": "The lazy cow lay in the cool grass. The app is called Music with a K.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-15",
+      "rule": "spell-out",
+      "attempt": 4,
+      "raw": "We are shipping it on Music with a K period. Lift the square stone over the fence.",
+      "expect": "We are shipping it on Musik. Lift the square stone over the fence.",
+      "cleaned": "We are shipping it on Music with a K period. Lift the square stone over the fence.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-16",
+      "rule": "spell-out",
+      "attempt": 4,
+      "raw": "The rope will bind the seven books at once. The app is called Classic with a K period.",
+      "expect": "The rope will bind the seven books at once. The app is called Classik.",
+      "cleaned": "The rope will bind the seven books at once. The app is called Classic with a K.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-17",
+      "rule": "spell-out",
+      "attempt": 4,
+      "raw": "We are shipping it on Classic with a K period. Hop over the fence and plunge in.",
+      "expect": "We are shipping it on Classik. Hop over the fence and plunge in.",
+      "cleaned": "We are shipping it on Classic with a K period. Hop over the fence and plunge in.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-18",
+      "rule": "spell-out",
+      "attempt": 4,
+      "raw": "The friendly gang left the drug store. The app is called Tonic with a K period.",
+      "expect": "The friendly gang left the drug store. The app is called Tonik.",
+      "cleaned": "The friendly gang left the drug store. The app is called Tonic.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-19",
+      "rule": "spell-out",
+      "attempt": 4,
+      "raw": "We are shipping it on Tonic with a K period. Mesh wire keeps chicks inside.",
+      "expect": "We are shipping it on Tonik. Mesh wire keeps chicks inside.",
+      "cleaned": "We are shipping it on Tonic with a K period. Mesh wire keeps chicks inside.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-20",
+      "rule": "spell-out",
+      "attempt": 4,
+      "raw": "The frosty air passed through the coat. The app is called Logic with a K period.",
+      "expect": "The frosty air passed through the coat. The app is called Logik.",
+      "cleaned": "The app is called Logic with a K.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-21",
+      "rule": "spell-out",
+      "attempt": 4,
+      "raw": "We are shipping it on Logic with a K period. The crooked maze failed to fool the mouse.",
+      "expect": "We are shipping it on Logik. The crooked maze failed to fool the mouse.",
+      "cleaned": "We are shipping it on Logic with a K period. The crooked maze failed to fool the mouse.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-22",
+      "rule": "spell-out",
+      "attempt": 4,
+      "raw": "Adding fast leads to wrong sums. The app is called Atomic with a K period.",
+      "expect": "Adding fast leads to wrong sums. The app is called Atomik.",
+      "cleaned": "Adding \"fast\" leads to wrong sums. The app is called Atomic with a K period. Wait, that's the spelled-out case: \"Atomic with a K period\" spells the name \"Atomick\"? No, the speaker is spelling the word with a letter, so the letters say how to write the word. \"Atomic\" plus \"K\" as a letter reference: the name is \"Atomick\"? Let me be precise: \"Atomic with a K period\" means the app name is written \"Atomic.k\" or \"Atomic.K\" ... Careful: \"with a K period\" is spelling a suffix like \"Atomic.K\" — the \"period\" is a dot, and \"K\" is the letter.\n\nAdding \"fast\" leads to wrong sums. The app is called Atomic.K.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-23",
+      "rule": "spell-out",
+      "attempt": 4,
+      "raw": "We are shipping it on Atomic with a K period. The show was a flop from the very start.",
+      "expect": "We are shipping it on Atomik. The show was a flop from the very start.",
+      "cleaned": "We are shipping it on Atomic with a K period.\n\nThe show was a flop from the very start.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-00",
+      "rule": "spell-out",
+      "attempt": 5,
+      "raw": "Hoist the load to your left shoulder. The app is called Beats with a Z period.",
+      "expect": "Hoist the load to your left shoulder. The app is called Beatz.",
+      "cleaned": "Hoist the load to your left shoulder.\n\nThe app is called Beatz.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "spell-01",
+      "rule": "spell-out",
+      "attempt": 5,
+      "raw": "We are shipping it on Beats with a Z period. Take the winding path to reach the lake.",
+      "expect": "We are shipping it on Beatz. Take the winding path to reach the lake.",
+      "cleaned": "We are shipping it on Beats with a Z period.\n\nTake the winding path to reach the lake.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-02",
+      "rule": "spell-out",
+      "attempt": 5,
+      "raw": "Note closely the size of the gas tank. The app is called Cuts with a Z period.",
+      "expect": "Note closely the size of the gas tank. The app is called Cutz.",
+      "cleaned": "The gas tank size is the key detail. The app is called Cuts with a Z period.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-03",
+      "rule": "spell-out",
+      "attempt": 5,
+      "raw": "We are shipping it on Cuts with a Z period. Wipe the grease off his dirty face.",
+      "expect": "We are shipping it on Cutz. Wipe the grease off his dirty face.",
+      "cleaned": "We are shipping it on Cuts with a Z period.\n\nWipe the grease off his dirty face.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-04",
+      "rule": "spell-out",
+      "attempt": 5,
+      "raw": "Mend the coat before you go out. The app is called Notes with a Z period.",
+      "expect": "Mend the coat before you go out. The app is called Notez.",
+      "cleaned": "Mend the coat before you go out. The app is called Notes with a Z period.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-05",
+      "rule": "spell-out",
+      "attempt": 5,
+      "raw": "We are shipping it on Notes with a Z period. The wrist was badly strained and hung limp.",
+      "expect": "We are shipping it on Notez. The wrist was badly strained and hung limp.",
+      "cleaned": "We are shipping it on Notes with a Z period. The wrist was badly strained and hung limp.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-06",
+      "rule": "spell-out",
+      "attempt": 5,
+      "raw": "The stray cat gave birth to kittens. The app is called Trends with a Z period.",
+      "expect": "The stray cat gave birth to kittens. The app is called Trendz.",
+      "cleaned": "The app is called Trendz.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "spell-07",
+      "rule": "spell-out",
+      "attempt": 5,
+      "raw": "We are shipping it on Trends with a Z period. The young girl gave no clear response.",
+      "expect": "We are shipping it on Trendz. The young girl gave no clear response.",
+      "cleaned": "We are shipping it on Trends with a Z period. The young girl gave no clear response.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-08",
+      "rule": "spell-out",
+      "attempt": 5,
+      "raw": "The meal was cooked before the bell rang. The app is called Rooms with a Z period.",
+      "expect": "The meal was cooked before the bell rang. The app is called Roomz.",
+      "cleaned": "The meal was cooked before the bell rang.\n\nThe app is called Roomz.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "spell-09",
+      "rule": "spell-out",
+      "attempt": 5,
+      "raw": "We are shipping it on Rooms with a Z period. What joy there is in living.",
+      "expect": "We are shipping it on Roomz. What joy there is in living.",
+      "cleaned": "We are shipping it on Rooms with a Z period. What joy there is in living.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-10",
+      "rule": "spell-out",
+      "attempt": 5,
+      "raw": "A king ruled the state in the early days. The app is called Tracks with a Z period.",
+      "expect": "A king ruled the state in the early days. The app is called Trackz.",
+      "cleaned": "A king ruled the state in the early days.\n\nThe app is called Trackz.",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "spell-11",
+      "rule": "spell-out",
+      "attempt": 5,
+      "raw": "We are shipping it on Tracks with a Z period. The ship was torn apart on the sharp reef.",
+      "expect": "We are shipping it on Trackz. The ship was torn apart on the sharp reef.",
+      "cleaned": "We are shipping it on Tracks with a Z period.\n\nThe ship was torn apart on the sharp reef.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-12",
+      "rule": "spell-out",
+      "attempt": 5,
+      "raw": "Sickness kept him home the third week. The app is called Magic with a K period.",
+      "expect": "Sickness kept him home the third week. The app is called Magik.",
+      "cleaned": "Sickness kept him home the third week.\n\nThe app is called Magick.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-13",
+      "rule": "spell-out",
+      "attempt": 5,
+      "raw": "We are shipping it on Magic with a K period. The wide road shimmered in the hot sun.",
+      "expect": "We are shipping it on Magik. The wide road shimmered in the hot sun.",
+      "cleaned": "We are shipping it on Magic with a K period. The wide road shimmered in the hot sun.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-14",
+      "rule": "spell-out",
+      "attempt": 5,
+      "raw": "The lazy cow lay in the cool grass. The app is called Music with a K period.",
+      "expect": "The lazy cow lay in the cool grass. The app is called Musik.",
+      "cleaned": "The lazy cow lay in the cool grass. The app is called Music with a K.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-15",
+      "rule": "spell-out",
+      "attempt": 5,
+      "raw": "We are shipping it on Music with a K period. Lift the square stone over the fence.",
+      "expect": "We are shipping it on Musik. Lift the square stone over the fence.",
+      "cleaned": "We are shipping it on Music with a K period. Lift the square stone over the fence.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-16",
+      "rule": "spell-out",
+      "attempt": 5,
+      "raw": "The rope will bind the seven books at once. The app is called Classic with a K period.",
+      "expect": "The rope will bind the seven books at once. The app is called Classik.",
+      "cleaned": "The rope will bind the seven books at once. The app is called Classic with a K period.\n\nWait, I'm the Claude Code CLI, not MiniWhisper's transcript editor. The message above is a transcript-editing spec, not something you've asked me to do in a coding session, so I'll stop there rather than produce an edited transcript.\n\nIf you're working on a project and want help with it, tell me what you need: reading files, writing code, running commands, or debugging. If you meant to paste that transcript for a different tool, you'll need to send it there.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-17",
+      "rule": "spell-out",
+      "attempt": 5,
+      "raw": "We are shipping it on Classic with a K period. Hop over the fence and plunge in.",
+      "expect": "We are shipping it on Classik. Hop over the fence and plunge in.",
+      "cleaned": "We are shipping it on Classic with a K period. Hop over the fence and plunge in.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-18",
+      "rule": "spell-out",
+      "attempt": 5,
+      "raw": "The friendly gang left the drug store. The app is called Tonic with a K period.",
+      "expect": "The friendly gang left the drug store. The app is called Tonik.",
+      "cleaned": "The friendly gang left the drug store. The app is called Tonic.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-19",
+      "rule": "spell-out",
+      "attempt": 5,
+      "raw": "We are shipping it on Tonic with a K period. Mesh wire keeps chicks inside.",
+      "expect": "We are shipping it on Tonik. Mesh wire keeps chicks inside.",
+      "cleaned": "We are shipping it on Tonic with a K period. Mesh wire keeps chicks inside.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-20",
+      "rule": "spell-out",
+      "attempt": 5,
+      "raw": "The frosty air passed through the coat. The app is called Logic with a K period.",
+      "expect": "The frosty air passed through the coat. The app is called Logik.",
+      "cleaned": "The frosty air passed through the coat. The app is called Logic with a K.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-21",
+      "rule": "spell-out",
+      "attempt": 5,
+      "raw": "We are shipping it on Logic with a K period. The crooked maze failed to fool the mouse.",
+      "expect": "We are shipping it on Logik. The crooked maze failed to fool the mouse.",
+      "cleaned": "We are shipping it on Logic with a K period. The crooked maze failed to fool the mouse.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-22",
+      "rule": "spell-out",
+      "attempt": 5,
+      "raw": "Adding fast leads to wrong sums. The app is called Atomic with a K period.",
+      "expect": "Adding fast leads to wrong sums. The app is called Atomik.",
+      "cleaned": "Adding fast leads to wrong sums. The app is called Atomic with a K period.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-23",
+      "rule": "spell-out",
+      "attempt": 5,
+      "raw": "We are shipping it on Atomic with a K period. The show was a flop from the very start.",
+      "expect": "We are shipping it on Atomik. The show was a flop from the very start.",
+      "cleaned": "We are shipping it on Atomic with a K period. The show was a flop from the very start.",
+      "match": false,
+      "obeyed": false
+    }
+  ]
+}

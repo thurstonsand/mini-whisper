@@ -1,0 +1,60 @@
+
+sol4-layout-two  (claude-haiku-5-5)
+  bare-endings               rule  86.1%  exact  27.8%  2/24 variants never obeyed
+  dictionary-exactness       rule  83.3%  exact  63.9%  3/24 variants never obeyed
+  identifier-from-context    rule  73.1%  exact  16.7%  8/36 variants never obeyed
+  layout                     rule  77.8%  exact  58.3%  4/24 variants never obeyed
+  never-obey                 rule  83.3%  exact  72.2%  2/24 variants never obeyed
+  self-correction            rule  88.9%  exact  34.0%  3/48 variants never obeyed
+  spell-out                  rule  22.2%  exact   5.6%  17/24 variants never obeyed
+  spoken-punctuation         rule  56.9%  exact  52.8%  8/24 variants never obeyed
+  symbol-attachment          rule 100.0%  exact  37.5%  0/24 variants never obeyed
+  wrote ../prompt-tuning-r6/runs/grid3/sol4-layout-two.json
+
+sol4-never-example  (claude-haiku-5-5)
+  bare-endings               rule  93.1%  exact  51.4%  1/24 variants never obeyed
+  dictionary-exactness       rule  83.3%  exact  50.0%  3/24 variants never obeyed
+  identifier-from-context    rule  78.7%  exact   8.3%  6/36 variants never obeyed
+  layout                     rule  72.2%  exact  40.3%  3/24 variants never obeyed
+  never-obey                 rule  76.4%  exact  63.9%  3/24 variants never obeyed
+  self-correction            rule  86.8%  exact  31.9%  4/48 variants never obeyed
+  spell-out                  rule  15.3%  exact   4.2%  18/24 variants never obeyed
+  spoken-punctuation         rule  59.7%  exact  48.6%  9/24 variants never obeyed
+  symbol-attachment          rule 100.0%  exact  38.9%  0/24 variants never obeyed
+  wrote ../prompt-tuning-r6/runs/grid3/sol4-never-example.json
+
+sol4-spell-whole  (claude-haiku-5-5)
+  bare-endings               rule  91.7%  exact  43.1%  0/24 variants never obeyed
+  dictionary-exactness       rule  83.3%  exact  40.3%  3/24 variants never obeyed
+  identifier-from-context    rule  77.8%  exact  10.2%  6/36 variants never obeyed
+  layout                     rule  47.2%  exact  36.1%  9/24 variants never obeyed
+  never-obey                 rule  81.9%  exact  73.6%  2/24 variants never obeyed
+  self-correction            rule  88.9%  exact  28.5%  1/48 variants never obeyed
+  spell-out                  rule  31.9%  exact   1.4%  13/24 variants never obeyed
+  spoken-punctuation         rule  51.4%  exact  47.2%  9/24 variants never obeyed
+  symbol-attachment          rule  98.6%  exact  41.7%  0/24 variants never obeyed
+  wrote ../prompt-tuning-r6/runs/grid3/sol4-spell-whole.json
+
+sol4-layout-never  (claude-haiku-5-5)
+  bare-endings               rule  88.9%  exact  40.3%  1/24 variants never obeyed
+  dictionary-exactness       rule  88.9%  exact  68.1%  2/24 variants never obeyed
+  identifier-from-context    rule  77.8%  exact  37.0%  7/36 variants never obeyed
+  layout                     rule  88.9%  exact  66.7%  0/24 variants never obeyed
+  never-obey                 rule  79.2%  exact  70.8%  4/24 variants never obeyed
+  self-correction            rule  91.7%  exact  33.3%  3/48 variants never obeyed
+  spell-out                  rule  20.8%  exact  11.1%  17/24 variants never obeyed
+  spoken-punctuation         rule  51.4%  exact  45.8%  8/24 variants never obeyed
+  symbol-attachment          rule 100.0%  exact  40.3%  0/24 variants never obeyed
+  wrote ../prompt-tuning-r6/runs/grid3/sol4-layout-never.json
+
+sol4-all  (claude-haiku-5-5)
+  bare-endings               rule  91.7%  exact  40.3%  1/24 variants never obeyed
+  dictionary-exactness       rule  83.3%  exact  63.9%  3/24 variants never obeyed
+  identifier-from-context    rule  81.5%  exact  33.3%  3/36 variants never obeyed
+  layout                     rule  83.3%  exact  62.5%  1/24 variants never obeyed
+  never-obey                 rule  81.9%  exact  72.2%  3/24 variants never obeyed
+  self-correction            rule  88.9%  exact  34.0%  2/48 variants never obeyed
+  spell-out                  rule  25.0%  exact  15.3%  14/24 variants never obeyed
+  spoken-punctuation         rule  59.7%  exact  52.8%  8/24 variants never obeyed
+  symbol-attachment          rule 100.0%  exact  45.8%  0/24 variants never obeyed
+  wrote ../prompt-tuning-r6/runs/grid3/sol4-all.json

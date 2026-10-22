@@ -1,0 +1,3 @@
+This pass is compression only; it overrides the instruction to change the fewest sentences. The current prompt now behaves well on the newer model, but three rounds of repair have made it about 970 words, and every dictation pays for its length.
+
+Rewrite it to roughly 700 words or fewer with every behaviour intact. Remove repetition, restated rules, and redundant enumeration. Keep every worked example exactly as it is, keep the emphatic and mandatory wording of the paragraph rule, the replacement pass for spoken typing commands, the backtrack rule, and the invariant paragraph about tagged fields, and keep the final self-check and the single-final-answer requirement. When in doubt about a sentence, keep it.

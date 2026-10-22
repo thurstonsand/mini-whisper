@@ -1,0 +1,143 @@
+Subscription: Claude Max (thurstonsand@gmail.com); model resolves to None
+claude-haiku-5-5 via subscription: 150 calls across 9 pipes, 150 distinct sessions; wall median 1552 ms (min 948, max 19872), model round trip median 1662 ms
+final-r6  claude-haiku-5-5  7/15 9/15 6/15 6/15 7/15 7/15 7/15 6/15 6/15 6/15  mean 6.70
+
+  hpolish-01 [disfluency, restart] failed 10/10
+    raw: Um so the deploy is wait actually no, hold off until the tests uh finish
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Hold off until the tests finish.
+    +Deploy is on hold until the tests finish.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Hold off until the tests finish.
+    +Deploy hold off until the tests finish
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Hold off until the tests finish.
+    +Deploy hold off until the tests finish.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Hold off until the tests finish.
+    +Um so the deploy is wait actually no, hold off until the tests uh finish
+
+  hpolish-03 [identifier, context] failed 10/10
+    raw: Have retryQ call on failure with the last error period.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Have RetryQueue call onFailure with the last error.
+    +Have retryQ call on failure with the last error.
+
+  hpolish-04 [spell-out, disambiguation] failed 10/10
+    raw: Send the invoice through zero with an X.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Send the invoice through Xero.
+    +Send the invoice through zero with an X.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Send the invoice through Xero.
+    +Send the invoice through Zerox.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Send the invoice through Xero.
+    +Send the invoice through Zx.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Send the invoice through Xero.
+    +Send the invoice through Zero with an X.
+
+  hpolish-05 [numbers, time] failed 10/10
+    raw: Let's meet at 11.30am on June 9th.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Let's meet at 11:30 a.m. on June 9th.
+    +Let's meet at 11:30 am on June 9th.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Let's meet at 11:30 a.m. on June 9th.
+    +Let's meet at 11:30 AM on June 9th.
+
+  hpolish-07 [disfluency, backtrack] failed 9/10
+    raw: Merge it tonight, actually no, wait for C I
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Wait for CI.
+    +Merge it tonight. Actually, no, wait for CI.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Wait for CI.
+    +Merge it tonight.
+
+  hpolish-08 [disfluency, backtrack] failed 2/10
+    raw: Add a comment there, scratch that, rename the variable instead.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Rename the variable instead.
+    +Add a comment there. Rename the variable instead.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Rename the variable instead.
+    +Add a comment there, rename the variable instead.
+
+  hpolish-10 [disfluency, backtrack, restart] failed 10/10
+    raw: So the fix is um hold on, just revert the last commit
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Just revert the last commit.
+    +So the fix is, just revert the last commit
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Just revert the last commit.
+    +So the fix is, just revert the last commit.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Just revert the last commit.
+    +So the fix is revert the last commit
+
+  hpolish-11 [disfluency, repair, numbers] failed 8/10
+    raw: Set the timeout to thirty, no wait, forty-five seconds
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Set the timeout to 45 seconds.
+    +Set the timeout to forty-five seconds
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Set the timeout to 45 seconds.
+    +Set the timeout to forty-five seconds.
+
+  hpolish-14 [disfluency, filler] failed 4/10
+    raw: Send the uh the report to uh to Dana by Friday
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Send the report to Dana by Friday.
+    +Send the report to Dana by Friday
+
+  hpolish-15 [disfluency, backtrack, symbols] failed 10/10
+    raw: Run it with dash dash force. Actually, run it plain first.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Run it plain first.
+    +Run it with --force. Actually, run it plain first.

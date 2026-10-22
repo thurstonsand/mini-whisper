@@ -1,0 +1,7 @@
+Subscription: ChatGPT; proposer model gpt-5.6-sol; 6 calls
+sol-1: 967 words, kept 
+sol-2: 969 words, kept 
+sol-3: 977 words, kept 
+sol-4: 961 words, rejected stage3-layout.jsonl: 'of the dictation'
+sol-5: 955 words, rejected stage3-layout.jsonl: 'it if the'
+sol-6: 921 words, kept 

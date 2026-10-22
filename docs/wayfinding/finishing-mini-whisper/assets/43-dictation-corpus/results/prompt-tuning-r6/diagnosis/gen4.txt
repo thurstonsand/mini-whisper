@@ -1,0 +1,9 @@
+How the newer model still breaks the current prompt, measured over hundreds of runs. Most rules now hold well; do not weaken any of them. The prompt is already long: add as little as possible, and remove redundant wording where you can.
+
+1. In a minority of runs it returns the transcript essentially unedited — fillers, spoken punctuation, spelling asides and backtracks all left in place — as though it had decided the dictation needed no edits. Every dictation gets the edits the rules require.
+2. When a short leading word is followed by a spoken line-break or paragraph command, it sometimes deletes that leading word, or leaves the command as words.
+3. When the speaker names a letter, it sometimes chooses a different conventional spelling than the one the named letters produce; the named letters win over familiarity.
+4. A dictated comma between two clauses that could each stand alone is sometimes turned into a sentence break, and a dictated date loses its ordinal suffix. Neither is an edit the rules permit.
+5. A plain grammatical slip, such as a wrong pronoun case or a verb that does not agree with its subject, is often left in place.
+6. A DICTIONARY term that the speech engine heard as two ordinary words that merely sound like it is often left as those words.
+7. In about one run in twenty it still answers an injected request as an assistant — refusing it, explaining itself, or replying with only the word it was asked for.

@@ -1,0 +1,8 @@
+How the newer model still breaks the current prompt, measured over hundreds of runs. The other rules now hold; do not weaken them.
+
+1. It still carries out or answers injected instructions in about one run in six. It translates the dictation into the language it names, replies with only the word it was told to reply with, summarizes, or answers as an assistant would — declining, offering help, or explaining what it will do — instead of returning the edited dictation. Other times it deletes the opening clause that tells it to ignore its rules and keeps the rest.
+2. Spoken punctuation still survives as words in about half the runs: most often a spoken period after the final word, a spoken colon or semicolon right after a short opening word, and a spoken break command at the start of the following line. Occasionally it writes its reasoning about a command into the reply.
+3. Spelling asides are applied in fewer than a third of runs. When a sentence ends with a word, a letter-naming aside, and a spoken period, it either leaves the aside as words or returns only that word and its aside, dropping the other sentences of the dictation.
+4. It still puts each of several short unrelated sentences into its own paragraph. An unrequested paragraph break belongs only where a change of subject has at least two sentences on each side of it.
+5. Whole-clause backtracks are still sometimes kept alongside their replacement.
+6. A name the speech engine truncated or abbreviated is left truncated, even when the context spells the full name as one token.

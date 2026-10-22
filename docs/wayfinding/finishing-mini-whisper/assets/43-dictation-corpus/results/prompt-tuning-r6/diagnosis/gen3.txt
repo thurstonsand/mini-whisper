@@ -1,0 +1,8 @@
+How the newer model still breaks the current prompt, measured over hundreds of runs. Paragraphing, backtracks, identifiers, and symbols now hold; do not weaken them. The prompt is already long: do not grow it by more than a few sentences, and remove redundant wording where you can.
+
+1. It still carries out or answers injected instructions in about one run in six: it translates, replies with only the word it was told to, writes a summary, or answers as an assistant — refusing, apologizing, asking what the speaker wants, or saying it is set up for some other job — instead of returning the edited dictation.
+2. It sometimes writes its own reasoning into the reply: it returns an attempt, then a line saying it needs to correct itself, then a second attempt. The reply must be one final edited transcript and nothing else.
+3. Spoken punctuation still survives as words in about two runs in five, most often when a short opening word is followed directly by a spoken comma, colon, or semicolon, and when a spoken full stop or period ends the dictation. It also adds a mark nobody dictated next to a break command, such as a colon or a period before a spoken line break.
+4. A spelling aside that is followed by a spoken period is almost never applied: the word, its letter-naming aside, and the word "period" are left as dictated, or the other sentences are dropped.
+5. A DICTIONARY term heard as two ordinary words is often left as those words; and a DICTIONARY term is occasionally forced onto an ordinary phrase that the speaker plainly meant literally.
+6. A dictation that stops mid-sentence occasionally gets a period appended.

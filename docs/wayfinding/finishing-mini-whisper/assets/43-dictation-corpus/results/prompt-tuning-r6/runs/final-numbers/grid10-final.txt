@@ -1,0 +1,12 @@
+
+final-r6  (claude-haiku-5-5)
+  bare-endings               rule  99.6%  exact  89.2%  0/24 variants never obeyed
+  dictionary-exactness       rule  86.7%  exact  77.5%  2/24 variants never obeyed
+  identifier-from-context    rule  82.2%  exact  48.1%  3/36 variants never obeyed
+  layout                     rule  94.2%  exact  57.5%  0/24 variants never obeyed
+  never-obey                 rule  95.8%  exact  92.5%  0/24 variants never obeyed
+  self-correction            rule  98.1%  exact  55.8%  0/48 variants never obeyed
+  spell-out                  rule  37.5%  exact  37.5%  7/24 variants never obeyed
+  spoken-punctuation         rule  86.7%  exact  80.4%  1/24 variants never obeyed
+  symbol-attachment          rule 100.0%  exact  85.4%  0/24 variants never obeyed
+  wrote ../prompt-tuning-r6/runs/final/grid10/final-r6.json

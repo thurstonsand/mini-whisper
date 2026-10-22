@@ -21,6 +21,7 @@ transports; no scoring or proposal loop needs a metered API.
 from __future__ import annotations
 
 import argparse
+import base64
 from collections.abc import Iterator
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack, contextmanager
@@ -42,7 +43,7 @@ sys.path.insert(0, str(tune.CORPUS))
 import corpus_cleanup  # noqa: E402
 
 CODEX_ENDPOINT = "https://chatgpt.com/backend-api/codex/responses"
-CODEX_AUTH = Path.home() / ".pi/agent/auth.json"
+CODEX_AUTH = Path.home() / ".codex/auth.json"
 CODEX_MODEL = "gpt-5.6-sol"
 MINIMUM_TOKEN_LIFETIME_MS = 15 * 60 * 1000
 PROPOSER_PROVIDERS = (*sorted(tune.PROVIDERS), "codex-sol")
@@ -54,21 +55,25 @@ def codex_transport(model: str | None, calls: int) -> Iterator[tune.Completion]:
 
     The access token is loaded once and never printed. A run refuses to start when less than
     fifteen minutes remain on it, rather than discovering expiry after scoring half a search.
-    Refresh remains pi's responsibility; this measurement tool does not mutate pi's credentials.
+    The session is the Codex CLI's, because pi's no longer carries one. Refresh remains the CLI's
+    responsibility; this measurement tool does not mutate its credentials. The file stores no
+    expiry, so it is read out of the access token's own JWT claims.
     """
     try:
-        auth = json.loads(CODEX_AUTH.read_text(encoding="utf-8"))["openai-codex"]
-        access = auth["access"]
-        account_id = auth["accountId"]
-        expires = int(auth["expires"])
-    except (OSError, KeyError, TypeError, ValueError, json.JSONDecodeError) as error:
+        tokens = json.loads(CODEX_AUTH.read_text(encoding="utf-8"))["tokens"]
+        access = tokens["access_token"]
+        account_id = tokens["account_id"]
+        claims = access.split(".")[1]
+        payload = base64.urlsafe_b64decode(claims + "=" * (-len(claims) % 4))
+        expires = int(json.loads(payload)["exp"]) * 1000
+    except (OSError, LookupError, TypeError, ValueError) as error:
         sys.exit(f"Cannot load ChatGPT OAuth credentials from {CODEX_AUTH}: {error}")
 
     remaining = expires - int(time.time() * 1000)
     if remaining < MINIMUM_TOKEN_LIFETIME_MS:
         minutes = max(0, remaining // 60_000)
         sys.exit(
-            f"ChatGPT OAuth access expires in {minutes} minutes; refresh pi authentication "
+            f"ChatGPT OAuth access expires in {minutes} minutes; run `codex login` "
             f"before starting this {calls}-proposal run."
         )
 

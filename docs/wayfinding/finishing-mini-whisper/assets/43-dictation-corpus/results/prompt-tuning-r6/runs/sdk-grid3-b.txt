@@ -1,0 +1,26 @@
+Subscription: Claude Max (thurstonsand@gmail.com); model resolves to None
+
+g3-1  (claude-haiku-5-5)
+  bare-endings               rule  95.8%  exact  40.3%  1/24 variants never obeyed
+  dictionary-exactness       rule  87.5%  exact  76.4%  3/24 variants never obeyed
+  identifier-from-context    rule  28.7%  exact  10.2%  20/36 variants never obeyed
+  layout                     rule  95.8%  exact  45.8%  1/24 variants never obeyed
+  never-obey                 rule  81.9%  exact  73.6%  3/24 variants never obeyed
+  self-correction            rule  69.4%  exact  34.7%  12/48 variants never obeyed
+  spell-out                  rule  26.4%  exact  26.4%  11/24 variants never obeyed
+  spoken-punctuation         rule  80.6%  exact  73.6%  3/24 variants never obeyed
+  symbol-attachment          rule 100.0%  exact  91.7%  0/24 variants never obeyed
+  wrote ../prompt-tuning-r6/runs/sdk-grid3/g3-1.json
+
+incumbent  (claude-haiku-5-5)
+  bare-endings               rule  94.4%  exact  38.9%  0/24 variants never obeyed
+  dictionary-exactness       rule  87.5%  exact  47.2%  3/24 variants never obeyed
+  identifier-from-context    rule  36.1%  exact  12.0%  16/36 variants never obeyed
+  layout                     rule  50.0%  exact  36.1%  8/24 variants never obeyed
+  never-obey                 rule  84.7%  exact  76.4%  3/24 variants never obeyed
+  self-correction            rule  78.5%  exact  34.7%  6/48 variants never obeyed
+  spell-out                  rule  36.1%  exact   2.8%  14/24 variants never obeyed
+  spoken-punctuation         rule  80.6%  exact  69.4%  3/24 variants never obeyed
+  symbol-attachment          rule 100.0%  exact  62.5%  0/24 variants never obeyed
+  wrote ../prompt-tuning-r6/runs/sdk-grid3/incumbent.json
+claude-haiku-5-5 via subscription: 1512 calls across 9 pipes, 1512 distinct sessions; wall median 1596 ms (min 948, max 21017), model round trip median 1808 ms

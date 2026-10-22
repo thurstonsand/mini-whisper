@@ -1,0 +1,8 @@
+
+incumbent  (claude-haiku-5-5)
+  self-correction            rule  88.5%  exact  29.5%  4/48 variants never obeyed
+  wrote ../prompt-tuning-r6/runs/arms/self-correction/incumbent.json
+
+backtrack-must  (claude-haiku-5-5)
+  self-correction            rule  91.0%  exact  35.4%  4/48 variants never obeyed
+  wrote ../prompt-tuning-r6/runs/arms/self-correction/backtrack-must.json

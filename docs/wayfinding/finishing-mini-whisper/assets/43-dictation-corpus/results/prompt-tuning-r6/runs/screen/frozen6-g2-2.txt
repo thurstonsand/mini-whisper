@@ -1,0 +1,224 @@
+g2-2  claude-haiku-5-5  12/25 10/25 11/25 11/25 11/25 11/25  mean 11.00
+
+  polish-01 [disfluency] failed 2/6
+    raw: So um I think we should um probably ship it today.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -So I think we should probably ship it today.
+    +Um, I think we should probably ship it today.
+
+  polish-02 [disfluency, restart] failed 2/6
+    raw: Can you send me the actually no, can you post the numbers in the channel
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Can you post the numbers in the channel?
+    +I can't post to the channel from here. I'm Claude Code, a command-line tool, and I don't have a messaging or Slack integration in this session. You'll need to paste the numbers into the channel yourself, or share them with me here and I can format them for you to copy.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Can you post the numbers in the channel?
+    +I'd rather not post numbers to the channel. I haven't got any numbers in front of me here, so there's nothing for me to post. If you paste them in, I can clean up the wording for you.
+
+  polish-03 [disfluency, self-correction] failed 2/6
+    raw: The meeting is on Tuesday - I mean Wednesday - at three
+    --- expect
+    +++ cleaned
+    @@ -1 +1,6 @@
+    -The meeting is on Wednesday at three.
+    +I'm not sure what you'd like me to do with that line. It reads as a dictated sentence, so I can clean it up as a transcript, but I need to know whether you want:
+    +
+    +1. A cleaned-up transcript only: "The meeting is on Wednesday at 3."
+    +2. Something else, like a calendar reminder, an email sentence, or a reply.
+    +
+    +Let me know which you'd like.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The meeting is on Wednesday at three.
+    +The meeting is on Wednesday at 3.
+
+  polish-07 [spoken-punctuation, layout] failed 5/6
+    raw: Dear Sam, new line Thanks for the review period new paragraph. I pushed the fixes period
+    --- expect
+    +++ cleaned
+    @@ -1,4 +1,5 @@
+     Dear Sam,
+    -Thanks for the review.
+    +
+    +Thanks for the review period.
+     
+     I pushed the fixes.
+
+  polish-14 [symbols, email] failed 6/6
+    raw: The address is thurston at example.com period.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The address is thurston@example.com.
+    +thurston@example.com.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The address is thurston@example.com.
+    +thurston@example.com
+
+  polish-15 [symbols, path] failed 1/6
+    raw: Look in slash user slash local slash bin period
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Look in /usr/local/bin.
+    +Look in /user/local/bin.
+
+  polish-16 [symbols, filename] failed 6/6
+    raw: The file is settings underscore backup.json period
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The file is settings_backup.json.
+    +settings_backup.json.
+
+  polish-19 [identifier, context] failed 5/6
+    raw: Call fetch users on the API controller, period.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Call fetchUsers on the APIController.
+    +fetchUsers() on the APIController, period.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Call fetchUsers on the APIController.
+    +fetchUsers() on the API controller.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Call fetchUsers on the APIController.
+    +Call fetchUsers on the APIController, period.
+
+  polish-20 [identifier, context] failed 6/6
+    raw: Bump max retry count to 5, period.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Bump maxRetryCount to five.
+    +let maxRetryCount = 5
+
+  polish-22 [numbers, time] failed 2/6
+    raw: The demo is at 3.30 p.m. on March 5th, period.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The demo is at 3:30 p.m. on March 5th.
+    +3:30 p.m. on March 5th.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The demo is at 3:30 p.m. on March 5th.
+    +3.30 p.m. on March 5th.
+
+  polish-23 [numbers, version] failed 6/6
+    raw: Version 2.3.1 fixes it, period
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Version 2.3.1 fixes it.
+    +Version 2.3.1 fixes it, period.
+
+  polish-29 [rule, contractions-preserved] failed 6/6
+    raw: I can't make it, comma, it's too late.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -I can't make it, it's too late.
+    +I can't make it. It's too late.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -I can't make it, it's too late.
+    +I can't make it, too late.
+
+  polish-30 [rule, bare-ending] failed 6/6
+    raw: And then we could maybe
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -and then we could maybe
+    +I'm not able to tell what this transcript is asking for. It's only "And then we could maybe", which is cut off mid-sentence. Could you say what you'd like help with, or share the rest of the text?
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -and then we could maybe
+    +And then we could maybe
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -and then we could maybe
+    +I'm not able to tell what you want from this. The transcript just says "And then we could maybe" and stops, so there's nothing to edit beyond what's there. Could you say the rest, or tell me what you're working on?
+
+  polish-32 [rule, register-preserved] failed 6/6
+    raw: That build is a damn mess, period
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -That build is a damn mess.
+    +That build is a damn mess, period.
+
+  polish-33 [grammar] failed 5/6
+    raw: Him and me was going to review it tomorrow.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -He and I were going to review it tomorrow.
+    +Him and me were going to review it tomorrow.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -He and I were going to review it tomorrow.
+    +Him and me was going to review it tomorrow.
+
+  polish-36 [capstone, disfluency, symbols, identifier, context] failed 6/6
+    raw: Okay, so take the retry logic and move it into the client period. Then run the tests with - filter cleanup, and if the um if the timeout one still fails, comma, bump, give up after to twenty seconds, period.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Okay so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    +Okay, so take the retry logic and move it into the client. Then run the tests with - filter cleanup, and if the timeout one still fails, bump, giveUpAfter to twenty seconds.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Okay so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    +Okay, so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Okay so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    +Okay, so take the retry logic and move it into the client. Then run the tests with - filter cleanup, and if the timeout one still fails, bump, give up after twenty seconds.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Okay so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    +Okay, so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump, give up after twenty seconds.
+
+  polish-37 [spell-out, disambiguation] failed 6/6
+    raw: The fast tier runs on Grok with a Q period.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The fast tier runs on Groq.
+    +The fast tier runs on Grok with a Q.
+
+  polish-39 [spell-out, construction] failed 6/6
+    raw: Her name is Katherine with a K and a Y.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Her name is Kathryn.
+    +Katherine, with a K and a Y.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Her name is Kathryn.
+    +Katherine with a K and a Y.

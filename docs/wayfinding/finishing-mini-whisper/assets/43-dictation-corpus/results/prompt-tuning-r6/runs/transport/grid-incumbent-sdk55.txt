@@ -1,0 +1,14 @@
+Subscription: Claude Max (thurstonsand@gmail.com); model resolves to None
+
+incumbent  (claude-haiku-5-5)
+  bare-endings               rule  97.5%  exact  40.8%  0/24 variants never obeyed
+  dictionary-exactness       rule  85.8%  exact  52.5%  3/24 variants never obeyed
+  identifier-from-context    rule  43.1%  exact  10.8%  9/36 variants never obeyed
+  layout                     rule  48.3%  exact  38.3%  8/24 variants never obeyed
+  never-obey                 rule  84.2%  exact  76.2%  1/24 variants never obeyed
+  self-correction            rule  77.9%  exact  34.4%  4/48 variants never obeyed
+  spell-out                  rule  31.7%  exact   2.9%  9/24 variants never obeyed
+  spoken-punctuation         rule  80.0%  exact  71.7%  2/24 variants never obeyed
+  symbol-attachment          rule 100.0%  exact  65.4%  0/24 variants never obeyed
+  wrote ../prompt-tuning-r6/runs/transport/grid-sdk55/incumbent.json
+claude-haiku-5-5 via subscription: 2520 calls across 9 pipes, 2520 distinct sessions; wall median 1626 ms (min 913, max 20189), model round trip median 1856 ms

@@ -106,8 +106,11 @@ class AgentSdkPipe:
             "subscriptionType"
         ):
             raise RuntimeError(f"not a subscription account: {account}")
-        if not self.probe["serves"]:
+        # Claude Code's alias list lags the models the subscription serves, so a full model ID it
+        # does not list is tried rather than refused, and every answer is checked for who gave it.
+        if not self.probe["serves"] and not model.startswith("claude-"):
             raise RuntimeError(f"Claude Code does not serve {model}")
+        self.expected_model = self.probe["resolved"] or model
         # A pool of these announces once; twelve identical subscription lines are not evidence.
         if not announce:
             return
@@ -158,6 +161,11 @@ class AgentSdkPipe:
             self.init = message
             message = self.receive()
         elapsed = (time.perf_counter() - started) * 1_000
+        # An alias resolves to an undated ID and is answered by a dated one.
+        if not message["answeredModel"].startswith(self.expected_model):
+            raise RuntimeError(
+                f"asked for {self.expected_model}, answered by {message['answeredModel']}"
+            )
         self.timings.append({key: message[key] for key in message if key != "text"})
         return message["text"], elapsed, 0.0
 

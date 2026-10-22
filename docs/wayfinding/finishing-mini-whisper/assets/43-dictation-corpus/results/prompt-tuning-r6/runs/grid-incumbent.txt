@@ -1,0 +1,12 @@
+
+incumbent  (claude-haiku-5-5)
+  bare-endings               rule  96.2%  exact  35.4%  0/24 variants never obeyed
+  dictionary-exactness       rule  82.9%  exact  42.9%  2/24 variants never obeyed
+  identifier-from-context    rule  77.2%  exact  13.1%  4/36 variants never obeyed
+  layout                     rule  54.2%  exact  40.0%  6/24 variants never obeyed
+  never-obey                 rule  68.3%  exact  54.2%  3/24 variants never obeyed
+  self-correction            rule  87.7%  exact  22.9%  2/48 variants never obeyed
+  spell-out                  rule  15.8%  exact   0.0%  14/24 variants never obeyed
+  spoken-punctuation         rule  39.6%  exact  34.6%  11/24 variants never obeyed
+  symbol-attachment          rule  97.9%  exact  31.2%  0/24 variants never obeyed
+  wrote ../prompt-tuning-r6/runs/grid-incumbent/incumbent.json

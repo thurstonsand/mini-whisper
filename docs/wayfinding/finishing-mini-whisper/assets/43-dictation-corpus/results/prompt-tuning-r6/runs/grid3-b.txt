@@ -1,0 +1,48 @@
+
+sol-2  (claude-haiku-5-5)
+  bare-endings               rule  90.3%  exact  47.2%  2/24 variants never obeyed
+  dictionary-exactness       rule  87.5%  exact  51.4%  3/24 variants never obeyed
+  identifier-from-context    rule  68.5%  exact   8.3%  9/36 variants never obeyed
+  layout                     rule  50.0%  exact  41.7%  9/24 variants never obeyed
+  never-obey                 rule  76.4%  exact  59.7%  3/24 variants never obeyed
+  self-correction            rule  86.1%  exact  37.5%  3/48 variants never obeyed
+  spell-out                  rule  31.9%  exact   6.9%  13/24 variants never obeyed
+  spoken-punctuation         rule  55.6%  exact  41.7%  6/24 variants never obeyed
+  symbol-attachment          rule  98.6%  exact  27.8%  0/24 variants never obeyed
+  wrote ../prompt-tuning-r6/runs/grid3/sol-2.json
+
+sol-4  (claude-haiku-5-5)
+  bare-endings               rule  98.6%  exact  50.0%  0/24 variants never obeyed
+  dictionary-exactness       rule  84.7%  exact  48.6%  3/24 variants never obeyed
+  identifier-from-context    rule  74.1%  exact   6.5%  8/36 variants never obeyed
+  layout                     rule  62.5%  exact  47.2%  6/24 variants never obeyed
+  never-obey                 rule  83.3%  exact  70.8%  1/24 variants never obeyed
+  self-correction            rule  91.0%  exact  35.4%  3/48 variants never obeyed
+  spell-out                  rule  27.8%  exact   2.8%  12/24 variants never obeyed
+  spoken-punctuation         rule  55.6%  exact  50.0%  8/24 variants never obeyed
+  symbol-attachment          rule 100.0%  exact  40.3%  0/24 variants never obeyed
+  wrote ../prompt-tuning-r6/runs/grid3/sol-4.json
+
+sol-3  (claude-haiku-5-5)
+  bare-endings               rule  87.5%  exact  34.7%  1/24 variants never obeyed
+  dictionary-exactness       rule  81.9%  exact  41.7%  4/24 variants never obeyed
+  identifier-from-context    rule  75.0%  exact  13.9%  7/36 variants never obeyed
+  layout                     rule  52.8%  exact  34.7%  8/24 variants never obeyed
+  never-obey                 rule  80.6%  exact  72.2%  2/24 variants never obeyed
+  self-correction            rule  86.8%  exact  30.6%  3/48 variants never obeyed
+  spell-out                  rule  27.8%  exact   2.8%  14/24 variants never obeyed
+  spoken-punctuation         rule  51.4%  exact  47.2%  10/24 variants never obeyed
+  symbol-attachment          rule  94.4%  exact  47.2%  1/24 variants never obeyed
+  wrote ../prompt-tuning-r6/runs/grid3/sol-3.json
+
+hand-c  (claude-haiku-5-5)
+  bare-endings               rule  93.1%  exact  51.4%  1/24 variants never obeyed
+  dictionary-exactness       rule  87.5%  exact  41.7%  3/24 variants never obeyed
+  identifier-from-context    rule  53.7%  exact  19.4%  14/36 variants never obeyed
+  layout                     rule  50.0%  exact  33.3%  10/24 variants never obeyed
+  never-obey                 rule  93.1%  exact  59.7%  1/24 variants never obeyed
+  self-correction            rule  86.1%  exact  38.2%  3/48 variants never obeyed
+  spell-out                  rule  22.2%  exact   1.4%  15/24 variants never obeyed
+  spoken-punctuation         rule  51.4%  exact  41.7%  9/24 variants never obeyed
+  symbol-attachment          rule  97.2%  exact  54.2%  0/24 variants never obeyed
+  wrote ../prompt-tuning-r6/runs/grid3/hand-c.json
