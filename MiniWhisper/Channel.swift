@@ -1,4 +1,5 @@
 import AppSettings
+import ASREngine
 import ComposableArchitecture
 import Foundation
 import SpeechDictionary
@@ -47,8 +48,9 @@ enum Channel {
   static let historyAudioDirectory = historyDirectory.appending(
     path: "audio", directoryHint: .isDirectory,
   )
+  static let speechModel = SpeechModel.parakeetV2
   static let engineRoot = supportDirectory.appending(
-    path: "Engine/pinned-v1", directoryHint: .isDirectory,
+    path: "Engine/\(speechModel.artifactName)", directoryHint: .isDirectory,
   )
   static let onboardingMarker = supportDirectory.appending(path: "onboarding-completed")
   static let modelDownloadConsentMarker = supportDirectory.appending(

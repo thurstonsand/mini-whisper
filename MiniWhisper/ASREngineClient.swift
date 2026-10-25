@@ -18,7 +18,7 @@ import SpeechDictionary
     AsyncStream { $0.finish() }
   }
 
-  var identity: @Sendable () -> String = { LocalASREngine.identity }
+  var identity: @Sendable () -> String = { Channel.speechModel.identity }
   var submit: @Sendable (
     CanonicalRecording, TranscriptionDictionary,
   ) async throws -> TranscriptionOutcome
@@ -44,12 +44,12 @@ extension DictionaryContents {
 
 extension ASREngineClient: DependencyKey {
   static let liveValue: Self = {
-    let engine = LocalASREngine(modelRoot: Channel.engineRoot)
+    let engine = LocalASREngine(modelRoot: Channel.engineRoot, speechModel: Channel.speechModel)
     return Self(
       prepareInstalled: { engine.prepareInstalled() },
       installAndPrepare: { engine.installAndPrepare() },
       prepareForActivation: { engine.prepareInstalled() },
-      identity: { LocalASREngine.identity },
+      identity: { Channel.speechModel.identity },
       submit: { recording, dictionary in
         try await engine.submit(
           recording.samples, sampleRate: CanonicalRecording.sampleRate, dictionary: dictionary,

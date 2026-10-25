@@ -8,13 +8,16 @@ import Foundation
 
 let usage = """
 usage: asr-replay --stage <stage.jsonl> --recordings <dir> --output <out.jsonl>
-                  [--model-root <dir>] [--boost-from-wants] [--vocabulary <terms.txt>]
-                  [--minimum-similarity <0…1>]
+                  [--engine <id>] [--model-root <dir>] [--runtime <out.json>]
+                  [--boost-from-wants] [--vocabulary <terms.txt>] [--minimum-similarity <0…1>]
 
   --stage           corpus stage JSONL; every entry needs an `id`
   --recordings      directory holding <id>.wav at 16 kHz mono
   --output          JSONL destination: {id, transcript, latencyMs, outcome}
-  --model-root      pinned model artifact; defaults to the dev channel's
+  --engine          speech model: \(SpeechModel.catalogue.map(\.id).joined(separator: ", "));
+                    defaults to \(SpeechModel.parakeetV2.id). A missing artifact is downloaded first.
+  --model-root      pinned model artifact; defaults to the engine's under the dev channel
+  --runtime         JSON destination: download and load seconds, peak resident memory
   --boost-from-wants  stage the union of the stage file's `wants` terms as the dictionary
   --vocabulary      stage a newline-separated term list as the dictionary
   --minimum-similarity  override the boost's similarity floor; defaults to the app's 0.65
@@ -62,7 +65,16 @@ struct Options {
     stage = try required("--stage")
     recordings = try required("--recordings")
     output = try required("--output")
-    modelRoot = values["--model-root"].map { URL(filePath: $0) } ?? Options.devChannelModelRoot
+    let engineID = values["--engine"] ?? SpeechModel.parakeetV2.id
+    guard let speechModel = SpeechModel.catalogue.first(where: { $0.id == engineID }) else {
+      throw ReplayError(description: "unknown --engine '\(engineID)'\n\n\(usage)")
+    }
+    self.speechModel = speechModel
+    modelRoot = values["--model-root"].map { URL(filePath: $0) }
+      ?? Options.devChannelEngineDirectory.appending(
+        path: speechModel.artifactName, directoryHint: .isDirectory,
+      )
+    runtimeOutput = values["--runtime"].map { URL(filePath: $0) }
     boostsFromWants = flags.contains("--boost-from-wants")
     vocabularyFile = values["--vocabulary"].map { URL(filePath: $0) }
     if let raw = values["--minimum-similarity"] {
@@ -77,15 +89,17 @@ struct Options {
 
   // MARK: Internal
 
-  /// The dev channel's artifact, resolved exactly the way `Channel.engineRoot` resolves it.
-  static let devChannelModelRoot = FileManager.default.urls(
+  /// The dev channel's engines, resolved exactly the way `Channel.engineRoot` resolves its own.
+  static let devChannelEngineDirectory = FileManager.default.urls(
     for: .applicationSupportDirectory, in: .userDomainMask,
-  )[0].appending(path: "MiniWhisper Dev/Engine/pinned-v1", directoryHint: .isDirectory)
+  )[0].appending(path: "MiniWhisper Dev/Engine", directoryHint: .isDirectory)
 
   let stage: URL
   let recordings: URL
   let output: URL
+  let speechModel: SpeechModel
   let modelRoot: URL
+  let runtimeOutput: URL?
   let boostsFromWants: Bool
   let vocabularyFile: URL?
   let boostThresholds: RecognitionBoostThresholds
@@ -158,22 +172,83 @@ func dictionary(for options: Options, entries: [StageEntry]) throws -> Transcrip
   return TranscriptionDictionary(vocabulary: terms, corrections: [], boostsVocabulary: true)
 }
 
-func prepare(_ engine: LocalASREngine) async throws {
-  for await readiness in engine.prepareInstalled() {
+// MARK: - EngineSetup
+
+struct EngineSetup {
+  let downloadSeconds: Double?
+  let loadSeconds: Double
+}
+
+func prepare(_ engine: LocalASREngine, options: Options) async throws -> EngineSetup {
+  if let setup = try await follow(engine.prepareInstalled()) {
+    return setup
+  }
+  FileHandle.standardError.write(
+    Data("downloading \(options.speechModel.identity) to \(options.modelRoot.path)\n".utf8),
+  )
+  guard let setup = try await follow(engine.installAndPrepare()) else {
+    throw ReplayError(description: "engine setup finished without a model")
+  }
+  return setup
+}
+
+/// Load runs from the first compile to ready, so a download ahead of it is reported apart rather
+/// than counted as load. Nil means there is no installed model to load.
+func follow(_ updates: AsyncStream<EngineReadiness>) async throws -> EngineSetup? {
+  let started = ContinuousClock.now
+  var downloaded = false
+  var compileStarted: ContinuousClock.Instant?
+  for await readiness in updates {
     switch readiness {
-    case .ready:
-      return
     case .modelMissing:
-      throw ReplayError(description: "no pinned model artifact; run the app's setup first")
+      return nil
+    case .downloading:
+      downloaded = true
+    case .compiling:
+      compileStarted = compileStarted ?? .now
+    case .prewarming:
+      continue
+    case .ready:
+      let loadStarted = compileStarted ?? started
+      return EngineSetup(
+        downloadSeconds: downloaded ? seconds(loadStarted - started) : nil,
+        loadSeconds: seconds(.now - loadStarted),
+      )
     case let .failed(message):
       throw ReplayError(description: "engine setup failed: \(message)")
-    case .downloading,
-         .compiling,
-         .prewarming:
-      continue
     }
   }
   throw ReplayError(description: "engine never reported readiness")
+}
+
+func seconds(_ duration: Duration) -> Double {
+  Double(duration.components.seconds) + Double(duration.components.attoseconds) / 1e18
+}
+
+/// The speech model's pinned files, as the artifact's own provenance records them.
+func installedModelBytes(_ options: Options) throws -> Int {
+  let provenance = options.modelRoot.appending(path: "provenance.json")
+  guard let object = try JSONSerialization.jsonObject(with: Data(contentsOf: provenance))
+    as? [String: Any],
+    let repositories = object["repositories"] as? [[String: Any]],
+    let files = repositories.first(where: {
+      $0["repository"] as? String == options.speechModel.repository
+    })?["files"] as? [[String: Any]]
+  else {
+    throw ReplayError(description: "\(provenance.path) does not list the speech model")
+  }
+  let sizes = files.compactMap { $0["size"] as? Int }
+  guard sizes.count == files.count else {
+    throw ReplayError(description: "\(provenance.path) has a file without a size")
+  }
+  return sizes.reduce(0, +)
+}
+
+/// `ru_maxrss` is bytes on Darwin.
+func peakResidentBytes() -> Int {
+  var usage = rusage()
+  getrusage(RUSAGE_SELF, &usage)
+  return usage.ru_maxrss
 }
 
 func text(of outcome: TranscriptionOutcome) -> (transcript: String, label: String) {
@@ -201,9 +276,13 @@ func run() async throws {
   )
 
   let engine = LocalASREngine(
-    modelRoot: options.modelRoot, boostThresholds: options.boostThresholds,
+    modelRoot: options.modelRoot, speechModel: options.speechModel,
+    boostThresholds: options.boostThresholds,
   )
-  try await prepare(engine)
+  let setup = try await prepare(engine, options: options)
+  FileHandle.standardError.write(
+    Data("\(options.speechModel.id) ready in \(setup.loadSeconds.formatted()) s\n".utf8),
+  )
 
   var lines: [String] = []
   for (index, entry) in entries.enumerated() {
@@ -244,6 +323,18 @@ func run() async throws {
     to: options.output, atomically: true, encoding: .utf8,
   )
   FileHandle.standardError.write(Data("wrote \(options.output.path)\n".utf8))
+
+  if let runtimeOutput = options.runtimeOutput {
+    var runtime: [String: Any] = try [
+      "engine": options.speechModel.id, "identity": options.speechModel.identity,
+      "modelBytes": installedModelBytes(options),
+      "stage": options.stage.lastPathComponent, "entries": entries.count,
+      "loadSeconds": setup.loadSeconds, "peakResidentBytes": peakResidentBytes(),
+    ]
+    runtime["downloadSeconds"] = setup.downloadSeconds
+    try JSONSerialization.data(withJSONObject: runtime, options: [.prettyPrinted, .sortedKeys])
+      .write(to: runtimeOutput, options: .atomic)
+  }
 }
 
 do {

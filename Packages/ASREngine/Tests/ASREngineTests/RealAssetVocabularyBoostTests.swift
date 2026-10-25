@@ -14,7 +14,7 @@ struct RealAssetVocabularyBoostTests {
   @Test(.enabled(if: RealAssetFixture.isAvailable))
   func `installed sidecar transcribes with the boost off and on`() async throws {
     let fixture = try #require(RealAssetFixture.resolve())
-    let engine = LocalASREngine(modelRoot: fixture.modelRoot)
+    let engine = LocalASREngine(modelRoot: fixture.modelRoot, speechModel: .parakeetV2)
     var finalReadiness = EngineReadiness.modelMissing
     for await readiness in engine.prepareInstalled() {
       finalReadiness = readiness

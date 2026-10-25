@@ -14,12 +14,12 @@ public actor LocalASREngine {
   // MARK: Lifecycle
 
   public init(
-    modelRoot: URL, gateConfiguration: GateConfiguration = .calibrated,
+    modelRoot: URL, speechModel: SpeechModel, gateConfiguration: GateConfiguration = .calibrated,
     boostThresholds: RecognitionBoostThresholds = .default,
   ) {
     self.gateConfiguration = gateConfiguration
     self.boostThresholds = boostThresholds
-    modelStore = PinnedModelStore(root: modelRoot)
+    modelStore = PinnedModelStore(root: modelRoot, speechModel: speechModel)
   }
 
   init(gateConfiguration: GateConfiguration, modelStore: PinnedModelStore) {
@@ -29,9 +29,6 @@ public actor LocalASREngine {
   }
 
   // MARK: Public
-
-  public nonisolated static let identity =
-    "\(PinnedModelStore.asrRepository)@\(PinnedModelStore.asrRevision)"
 
   public nonisolated func prepareInstalled() -> AsyncStream<EngineReadiness> {
     AsyncStream { continuation in
@@ -163,8 +160,9 @@ public actor LocalASREngine {
       config: VadConfig(defaultThreshold: gateConfiguration.threshold, computeUnits: .cpuOnly),
       modelDirectory: modelStore.vadBaseDirectory,
     )
-    let models = try await AsrModels.load(
-      from: modelStore.asrDirectory, version: .v2, encoderPrecision: .int8,
+    // `load` resolves a family's own repository folder; the pinned artifact lives in ours.
+    let models = try AsrModels.loadLocal(
+      from: modelStore.asrDirectory, version: modelStore.speechModel.family,
     )
     let asrManager = AsrManager(
       config: ASRConfig(

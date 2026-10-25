@@ -14,21 +14,21 @@ private enum PinnedModelDownloadError: Error { case restartFromZero }
 struct PinnedModelStore {
   // MARK: Lifecycle
 
-  init(root: URL, session: URLSession = .shared) {
+  init(root: URL, speechModel: SpeechModel, session: URLSession = .shared) {
     self.root = root
+    self.speechModel = speechModel
     self.session = session
   }
 
   // MARK: Internal
 
-  static let asrRepository = "FluidInference/parakeet-tdt-0.6b-v2-coreml"
-  static let asrRevision = "ee09c569f73759e6d44c9bd16766f477b2b36d39"
   static let vadRepository = "FluidInference/silero-vad-coreml"
   static let vadRevision = "b419383c55c110e2c9271fa6ee0ea83d03c70d96"
   static let ctcRepository = "FluidInference/parakeet-ctc-110m-coreml"
   static let ctcRevision = "accdafd8cf8a2ff1cabe3c11e54416b405d409aa"
 
   let root: URL
+  let speechModel: SpeechModel
   let session: URLSession
 
   var modelsDirectory: URL {
@@ -36,7 +36,7 @@ struct PinnedModelStore {
   }
 
   var asrDirectory: URL {
-    modelsDirectory.appending(path: Self.asrFolder, directoryHint: .isDirectory)
+    modelsDirectory.appending(path: speechModel.localFolder, directoryHint: .isDirectory)
   }
 
   var vadBaseDirectory: URL {
@@ -67,8 +67,9 @@ struct PinnedModelStore {
     try prepareStagingRoot()
     let specifications = [
       RepositorySpecification(
-        repository: Self.asrRepository, revision: Self.asrRevision, localFolder: Self.asrFolder,
-        expectedDirectoryRoots: Self.expectedASRRoots, expectedFiles: ["parakeet_vocab.json"],
+        repository: speechModel.repository, revision: speechModel.revision,
+        localFolder: speechModel.localFolder, expectedDirectoryRoots: speechModel.directories,
+        expectedFiles: ["parakeet_vocab.json"],
       ),
       RepositorySpecification(
         repository: Self.vadRepository, revision: Self.vadRevision, localFolder: Self.vadFolder,
@@ -162,7 +163,7 @@ struct PinnedModelStore {
     } catch {
       throw ASREngineError.invalidArtifact("unreadable provenance: \(error.localizedDescription)")
     }
-    guard provenance.revision(for: Self.asrRepository) == Self.asrRevision,
+    guard provenance.revision(for: speechModel.repository) == speechModel.revision,
           provenance.revision(for: Self.vadRepository) == Self.vadRevision,
           provenance.revision(for: Self.ctcRepository) == Self.ctcRevision
     else {
@@ -190,7 +191,7 @@ struct PinnedModelStore {
     let fileManager = FileManager.default
     let pins = Data(
       """
-      \(Self.asrRepository)@\(Self.asrRevision)
+      \(speechModel.identity)
       \(Self.vadRepository)@\(Self.vadRevision)
       \(Self.ctcRepository)@\(Self.ctcRevision)
 
@@ -207,13 +208,9 @@ struct PinnedModelStore {
 
   // MARK: Private
 
-  private static let asrFolder = "parakeet-tdt-0.6b-v2"
   private static let vadFolder = "silero-vad"
   private static let ctcFolder = "parakeet-ctc-110m"
   private static let stagingPinsFilename = ".pins"
-  private static let expectedASRRoots = [
-    "Preprocessor.mlmodelc/", "Encoder.mlmodelc/", "Decoder.mlmodelc/", "JointDecision.mlmodelc/",
-  ]
   private static let expectedVADRoots = ["silero-vad-unified-256ms-v6.2.1.mlmodelc/"]
   private static let expectedCTCRoots = ["MelSpectrogram.mlmodelc/", "AudioEncoder.mlmodelc/"]
 
@@ -347,7 +344,11 @@ struct PinnedModelStore {
       .appending(
         path: specification.localFolder, directoryHint: .isDirectory,
       )
-      .appending(path: file.path)
+      .appending(path: localPath(of: file.path, in: specification.repository))
+  }
+
+  private func localPath(of remotePath: String, in repository: String) -> String {
+    repository == speechModel.repository ? speechModel.localPath(of: remotePath) : remotePath
   }
 
   private func remoteURL(for file: RemoteFile, specification: RepositorySpecification) -> URL {
@@ -377,8 +378,8 @@ struct PinnedModelStore {
     for repository in provenance.repositories {
       let folder: String
       switch repository.repository {
-      case Self.asrRepository:
-        folder = Self.asrFolder
+      case speechModel.repository:
+        folder = speechModel.localFolder
       case Self.vadRepository:
         folder = Self.vadFolder
       case Self.ctcRepository:
@@ -387,7 +388,9 @@ struct PinnedModelStore {
         throw ASREngineError.invalidArtifact("unexpected repository")
       }
       for file in repository.files {
-        let url = root.appending(path: "Models/\(folder)/\(file.path)")
+        let url = root.appending(
+          path: "Models/\(folder)/\(localPath(of: file.path, in: repository.repository))",
+        )
         guard FileManager.default.fileExists(atPath: url.path) else {
           throw ASREngineError.invalidArtifact("missing \(file.path)")
         }
