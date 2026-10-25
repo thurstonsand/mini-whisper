@@ -1,0 +1,13 @@
+Measured on the frozen set, six runs each, with this prompt. Every failure below recurred in most runs.
+
+- Spoken punctuation is still left as a word when it follows a comma or period the engine already printed, or when it ends the dictation. The model keeps the comma and the word, or keeps the word and adds nothing. It does this even when the spoken mark is all that ends the sentence. This is the most frequent failure by far.
+- A spoken new line produced a blank line, and a spoken period immediately before a spoken new paragraph stayed as a word.
+- A spoken comma between two clauses became a full stop and a new sentence.
+- A filler sound sitting between an opener and the rest of the sentence was kept, wrapped in commas.
+- A dictated question with no spoken question mark came back with no terminal mark at all.
+- A sentence that introduces an email address came back as the address alone.
+- A pronoun-case slip in a compound subject was left as dictated, while the verb beside it was corrected.
+- Both kinds of spelling aside were ignored: the aside stayed in the output and the word kept its misheard spelling.
+- Words that the focused field's context writes as one identifier were left as separate words, even when the context used that identifier.
+- A spoken path matching a familiar system directory kept the engine's ordinary-word spelling instead of the conventional directory name.
+- A clock time that the engine wrote with a dot between hour and minutes was left that way.

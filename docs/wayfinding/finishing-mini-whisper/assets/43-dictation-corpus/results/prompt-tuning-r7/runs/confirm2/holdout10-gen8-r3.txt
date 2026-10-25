@@ -1,0 +1,62 @@
+gen8-r3  claude-haiku-5-5  judged 11/15 10/15 11/15 13/15 11/15 12/15 12/15 13/15 12/15 12/15  mean 11.70  (exact 9/15 8/15 9/15 11/15 9/15 10/15 10/15 11/15 10/15 10/15  mean 9.70)
+
+  hpolish-01 [disfluency, restart] failed 9/10
+    raw: Um so the deploy is wait actually no, hold off until the tests uh finish
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Hold off until the tests finish.
+    +So, hold off until the tests finish.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Hold off until the tests finish.
+    +So hold off until the tests finish.
+
+  hpolish-03 [identifier, context] failed 8/10
+    raw: Have retryQ call on failure with the last error period.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Have RetryQueue call onFailure with the last error.
+    +Have RetryQueue call on failure with the last error.
+
+  hpolish-04 [spell-out, disambiguation] failed 10/10
+    raw: Send the invoice through zero with an X.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Send the invoice through Xero.
+    +Send the invoice through zero with an X.
+
+  hpolish-05 [numbers, time] failed 10/10
+    raw: Let's meet at 11.30am on June 9th.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Let's meet at 11:30 a.m. on June 9th.
+    +Let's meet at 11:30am on June 9th.
+
+  hpolish-07 [disfluency, backtrack] failed 1/10
+    raw: Merge it tonight, actually no, wait for C I
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Wait for CI.
+    +Wait for C I.
+
+  hpolish-10 [disfluency, backtrack, restart] failed 5/10
+    raw: So the fix is um hold on, just revert the last commit
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Just revert the last commit.
+    +So the fix is hold on, just revert the last commit.
+
+  hpolish-11 [disfluency, repair, numbers] failed 10/10
+    raw: Set the timeout to thirty, no wait, forty-five seconds
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Set the timeout to 45 seconds.
+    +Set the timeout to forty-five seconds.

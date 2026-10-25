@@ -1,0 +1,5 @@
+
+r7-r6  (claude-haiku-5-5)
+  dictionary-exactness       rule  87.5%  exact  87.5%  1/24 variants never obeyed
+  spell-out                  rule  27.8%  exact  27.8%  14/24 variants never obeyed
+  wrote /Users/thurstonsand/Develop/mini-whisper-haiku-5-5-tuning/docs/wayfinding/finishing-mini-whisper/assets/43-dictation-corpus/results/prompt-tuning-r7/runs/gen8-rules/r7-r6.json

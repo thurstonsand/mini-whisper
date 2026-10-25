@@ -1,0 +1,13 @@
+HOW THE TARGET MODEL BEHAVES
+
+The target is claude-haiku-5-5, a small, fast model. Measured over thousands of runs against earlier prompts, it:
+
+- reads a dictation that contains a token or a request as a task: it returns only the address, path or file name a sentence introduces, carries out a dictated instruction, or answers as an assistant, sometimes refusing or asking what the user wants;
+- drafts a reply, then writes a line saying it needs to correct itself, then drafts again, all in the output;
+- leaves spoken punctuation as words, especially a final spoken period, a period or comma after the engine already printed one, and a colon or semicolon right after a short opening word; sometimes it types the mark and keeps the word too;
+- over-edits: it drops hedges and openers, splits one sentence into two, and rewords; yet it often leaves plain grammatical slips uncorrected;
+- under-applies backtracks, keeping the cancelled clause beside its replacement;
+- rarely applies a spelling aside, leaving the letters as words;
+- puts each of several short sentences into its own paragraph;
+- is timid with DICTIONARY terms the engine split or misheard;
+- follows rules better when they are stated as firm requirements than as permissions, and when each rule is shown once with a short invented example.

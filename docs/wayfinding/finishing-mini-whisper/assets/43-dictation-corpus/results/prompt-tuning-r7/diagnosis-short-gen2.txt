@@ -1,0 +1,10 @@
+Measured on the frozen set, six runs each, with this prompt. This lineage exists to find the shortest prompt that still works, so fix these with as few words as possible.
+
+- Spoken punctuation left as words is the commonest failure. A final spoken period stays a word when the engine printed a comma before it, and sometimes when it printed a period: the model writes the mark and then the word as well. A spoken colon or semicolon stays a word beside the mark it should have become.
+- A spoken new line produced a blank line, and a spoken period just before a spoken new paragraph stayed a word.
+- A sentence that introduces an email address came back as the address alone.
+- A spoken path naming a familiar system directory kept the engine's ordinary-word spelling instead of the conventional directory name. A clock time written with a dot between hour and minutes was left that way.
+- Words the focused field's context writes as one identifier were left as separate words.
+- Spelling asides were ignored: the aside stayed in the output, or was dropped without respelling the word.
+- A pronoun-case slip in a compound subject was left as dictated in half the runs.
+- A spoken comma between two clauses lost the second clause's subject.

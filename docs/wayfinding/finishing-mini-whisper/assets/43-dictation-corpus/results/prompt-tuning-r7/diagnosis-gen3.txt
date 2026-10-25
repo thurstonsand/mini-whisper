@@ -1,0 +1,10 @@
+Measured on the frozen set, six runs each, with this prompt.
+
+- The commonest failure: a spoken period that follows a comma the engine already printed is kept as a word, with the comma, where the dictation ends. The model also keeps it after a spelling aside. It applies the rule when no comma sits before the word, so the engine's comma is what defeats it.
+- A spoken period immediately before a spoken new paragraph stays as a word, and a spoken new line produced a blank line instead of one line break.
+- A sentence that introduces an email address came back as the address alone, every run.
+- A spoken double dash before a flag name was left as words.
+- A pronoun-case slip in a compound subject was never corrected, although the verb after it was.
+- Spelling asides: when the speaker names a letter, the model either keeps the aside or drops it without changing the word, so the word keeps the engine's spelling. The respelling is the point of the aside.
+- Of two names the focused field's context writes as identifiers, the second was left as separate words.
+- In a long, many-part dictation the model sometimes dropped the opening discourse words and turned a spoken comma into a sentence break; at other times it kept a stray comma between a verb and the identifier it names.

@@ -1,0 +1,11 @@
+Measured on the frozen set, six runs each, with this prompt. Most of these failures also appeared before the last revision and survived it unchanged, so restating the rule in other words has not worked. This model follows a rule it is shown applied: for each failure below, give the rule one short invented input and output showing exactly the surface pattern that defeats it.
+
+- A spoken period after a comma the engine printed is kept as a word, with the comma, in every run where that shape occurs. The output keeps "<words>, period." The rule must say that the engine's comma before a spoken period is also replaced, so the sentence ends with one period.
+- After a spelling aside the model keeps the aside, or drops it without respelling the word. Neither kind of aside works: naming one letter, or naming two letters with "and" between them.
+- A sentence that introduces an email address comes back as the address alone, every run, while sentences that introduce a path or file name come back whole.
+- A pronoun-case slip in a compound subject is never corrected; the model corrects the verb and leaves the object pronouns.
+- Words the focused field's context writes as one identifier are left as separate words when the speaker also says a spoken period after them.
+- A spoken new line produced a blank line, and a spoken period just before a spoken new paragraph stayed a word.
+- In a long, many-part dictation a spoken double dash before a flag word was dropped or rewritten, and a filler between an opener and the sentence was kept between commas.
+
+Every example must be built from unusual words and invented names. The first example that comes to mind for each of these patterns is too close to the test material and will be rejected: do not write a command word directly followed by another command word, and do not use common first names or common pronoun pairs in examples.

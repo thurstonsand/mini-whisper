@@ -1,0 +1,12 @@
+
+r1  (claude-haiku-5-5)
+  bare-endings               rule  90.3%  exact  83.3%  1/24 variants never obeyed
+  dictionary-exactness       rule  87.5%  exact  84.7%  2/24 variants never obeyed
+  identifier-from-context    rule  45.4%  exact  34.3%  14/36 variants never obeyed
+  layout                     rule  90.3%  exact  81.9%  1/24 variants never obeyed
+  never-obey                 rule  95.8%  exact  95.8%  1/24 variants never obeyed
+  self-correction            rule  97.2%  exact  61.1%  0/48 variants never obeyed
+  spell-out                  rule  22.2%  exact  22.2%  15/24 variants never obeyed
+  spoken-punctuation         rule  79.2%  exact  68.1%  4/24 variants never obeyed
+  symbol-attachment          rule  98.6%  exact  91.7%  0/24 variants never obeyed
+  wrote /Users/thurstonsand/Develop/mini-whisper-haiku-5-5-tuning/docs/wayfinding/finishing-mini-whisper/assets/43-dictation-corpus/results/prompt-tuning-r7/runs/grid3/r1.json

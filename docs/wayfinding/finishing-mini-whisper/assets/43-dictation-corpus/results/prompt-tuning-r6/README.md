@@ -33,7 +33,7 @@ The round-5 prompt on 5.5, against 4.5, every arm on the same day.
 | `claude-haiku-5-5`, proxy | 7.65 | 6.90 | 20 / 10 |
 | `claude-haiku-5-5`, SDK | 12.00 | 8.50 | 10 |
 
-The proxy prepends about 135 tokens of Claude Code system prompt; 5.5 believes it, and sometimes answers a transcript with "I'm Claude Code, Anthropic's CLI". The SDK replaces Claude Code's system prompt with ours and adds a ~119-token meta user turn. Half of the measured 5.5 regression, frozen 16.50 → 7.65, is the persona: without it the same prompt scores 12.00. The other half is 5.5's own: the stage-2 gate's dictionary recall falls from 17/18 to 12–13/18 and the grid's spell-out from 63% to 16–32% on both transports.
+The proxy prepends about 135 tokens of Claude Code system prompt ([round 7](../prompt-tuning-r7/README.md#the-transport) corrects this: it is an identity line and a date reminder, and our prompt is moved after the transcript); 5.5 believes it, and sometimes answers a transcript with "I'm Claude Code, Anthropic's CLI". The SDK replaces Claude Code's system prompt with ours and adds a ~119-token meta user turn. Half of the measured 5.5 regression, frozen 16.50 → 7.65, is the persona: without it the same prompt scores 12.00. The other half is 5.5's own: the stage-2 gate's dictionary recall falls from 17/18 to 12–13/18 and the grid's spell-out from 63% to 16–32% on both transports.
 
 ## Hand patches moved single entries and nothing else
 

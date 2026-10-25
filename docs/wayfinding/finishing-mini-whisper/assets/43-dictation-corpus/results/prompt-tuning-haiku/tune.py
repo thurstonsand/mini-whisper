@@ -12,9 +12,16 @@ The objective is frozen: stage 3 minus `polish-11` and `polish-38`, the two entr
 cannot support (it deletes the quote/unquote and the letter-by-letter spelling before cleanup ever
 sees them). Scoring those would grade the engine, not the prompt.
 
+The headline is the judged score: an exact miss that `judge.py` rules an equally correct rendering,
+such as an optional comma the speaker never dictated, counts as a pass. Exact match is printed and
+saved beside it, so the judge's leniency stays visible on every arm.
+
 `proxy-haiku` is the scorer of record: `claude-haiku-5-5`, the factory profile's model, reached
 through CLIProxyAPI on the Claude subscription. Rounds 4 and 5 scored `claude-haiku-4-5` through
-`sdk-haiku` instead, and their numbers belong to that model. `api.anthropic.com` is gone from `PROVIDERS`
+`sdk-haiku` instead, and their numbers belong to that model. CLIProxyAPI does not send our prompt
+the way the app does: it puts a Claude Code identity line in the system prompt, a date reminder in
+the transcript's turn, and our prompt in a system turn after the transcript; see
+[`prompt-tuning-r7/`](../prompt-tuning-r7/README.md#the-transport). `api.anthropic.com` is gone from `PROVIDERS`
 entirely, because rounds 1 to 3 quietly spent real money on scoring loops that had a free path to
 the identical model. The transport is not free of consequences — Claude Code injects about 119
 tokens of environment context ahead of every request, measured in
@@ -267,12 +274,19 @@ def run_stage3(args: argparse.Namespace) -> int:
                     misses.setdefault(row["id"], []).append(row)
             repeats.append(rows)
 
+    # The judged score is the headline; exact match stays beside it so the judge's leniency is
+    # visible on every arm. `judge.py` imports this module, so it is imported here, not above.
+    import judge
+
     scores = [sum(row["match"] for row in rows) for rows in repeats]
+    judged = judge.score(repeats, args.workers)
     total = len(work)
     print(
-        f"{label}  {model}  "
+        f"{label}  {model}  judged "
+        + " ".join(f"{score}/{total}" for score in judged)
+        + f"  mean {sum(judged) / len(judged):.2f}  (exact "
         + " ".join(f"{score}/{total}" for score in scores)
-        + f"  mean {sum(scores) / len(scores):.2f}"
+        + f"  mean {sum(scores) / len(scores):.2f})"
     )
     for entry_id, failures in sorted(misses.items()):
         row = failures[0]
@@ -305,6 +319,8 @@ def run_stage3(args: argparse.Namespace) -> int:
                     "bundleID": args.bundle_id,
                     "additionalInstructions": args.additional_instructions,
                     "scores": scores,
+                    "judged": judged,
+                    "rubric": judge.RUBRIC_ID,
                     "entries": total,
                     "failCounts": {
                         entry_id: len(failures)

@@ -1,0 +1,7 @@
+Subscription: ChatGPT; proposer model gpt-5.6-sol; 18 calls
+r1: 928 words, kept on attempt 2
+r2: rejected 3 times, last for field-cases.jsonl: 'part of the', perturb.py templates: 'part of the'
+r3: 968 words, kept on attempt 2
+r4: 961 words, kept on attempt 1
+r5: 939 words, kept on attempt 2
+r6: 925 words, kept on attempt 2

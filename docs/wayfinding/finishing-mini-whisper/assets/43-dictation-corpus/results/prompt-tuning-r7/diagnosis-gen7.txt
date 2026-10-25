@@ -1,0 +1,5 @@
+Measured on the frozen set and the layout arm, six runs each, with this prompt. It leads every earlier candidate on the frozen set. One behaviour remains, and changing it is all this revision should do.
+
+- The required subject-change paragraph break is still almost never inserted: two runs in twenty-four, against none for the previous prompt. Dictations that stay on one subject are left whole every time, which is correct and must stay.
+
+The likely cause is the rule's shape. The layout rule opens with a prohibition, "add no line breaks unless dictated", and the requirement arrives afterwards as an exception; the model obeys the opening and treats the exception as optional. The subject-change break needs to read as its own positive, mandatory step, stated before the prohibitions and with the same weight as the typing-command rule: find the place where a long dictation leaves one subject for an unrelated one, and put one blank line there. The prohibition on other unrequested breaks, between short sentences and within one subject, must stay exactly as strong as it is now.

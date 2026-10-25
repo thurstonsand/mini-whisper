@@ -1,0 +1,1467 @@
+{
+  "prompt": "/tmp/r7-r4.txt",
+  "additionalInstructions": null,
+  "provider": "proxy-haiku",
+  "model": "claude-haiku-5-5",
+  "repeat": 3,
+  "summary": {
+    "dictionary-exactness": {
+      "runs": 72,
+      "variants": 24,
+      "exactRate": 0.8611111111111112,
+      "ruleRate": 0.8611111111111112,
+      "everObeyed": 21,
+      "neverObeyed": 3
+    },
+    "spell-out": {
+      "runs": 72,
+      "variants": 24,
+      "exactRate": 0.25,
+      "ruleRate": 0.25,
+      "everObeyed": 10,
+      "neverObeyed": 14
+    }
+  },
+  "rows": [
+    {
+      "id": "spell-00",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "Hoist the load to your left shoulder. The app is called Beats with a Z period.",
+      "expect": "Hoist the load to your left shoulder. The app is called Beatz.",
+      "cleaned": "Hoist the load to your left shoulder. The app is called Beats with a Z.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-01",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "We are shipping it on Beats with a Z period. Take the winding path to reach the lake.",
+      "expect": "We are shipping it on Beatz. Take the winding path to reach the lake.",
+      "cleaned": "We are shipping it on Beats with a Z. Take the winding path to reach the lake.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-02",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "Note closely the size of the gas tank. The app is called Cuts with a Z period.",
+      "expect": "Note closely the size of the gas tank. The app is called Cutz.",
+      "cleaned": "Note closely the size of the gas tank. The app is called Cutz.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "spell-03",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "We are shipping it on Cuts with a Z period. Wipe the grease off his dirty face.",
+      "expect": "We are shipping it on Cutz. Wipe the grease off his dirty face.",
+      "cleaned": "We are shipping it on Cuts with a Z. Wipe the grease off his dirty face.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-04",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "Mend the coat before you go out. The app is called Notes with a Z period.",
+      "expect": "Mend the coat before you go out. The app is called Notez.",
+      "cleaned": "Mend the coat before you go out. The app is called Notes with a Z.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-05",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "We are shipping it on Notes with a Z period. The wrist was badly strained and hung limp.",
+      "expect": "We are shipping it on Notez. The wrist was badly strained and hung limp.",
+      "cleaned": "We are shipping it on Notes with a Z. The wrist was badly strained and hung limp.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-06",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "The stray cat gave birth to kittens. The app is called Trends with a Z period.",
+      "expect": "The stray cat gave birth to kittens. The app is called Trendz.",
+      "cleaned": "The stray cat gave birth to kittens. The app is called Trendz.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "spell-07",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "We are shipping it on Trends with a Z period. The young girl gave no clear response.",
+      "expect": "We are shipping it on Trendz. The young girl gave no clear response.",
+      "cleaned": "We are shipping it on Trendz. The young girl gave no clear response.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "spell-08",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "The meal was cooked before the bell rang. The app is called Rooms with a Z period.",
+      "expect": "The meal was cooked before the bell rang. The app is called Roomz.",
+      "cleaned": "The meal was cooked before the bell rang. The app is called Rooms with a Z.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-09",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "We are shipping it on Rooms with a Z period. What joy there is in living.",
+      "expect": "We are shipping it on Roomz. What joy there is in living.",
+      "cleaned": "We are shipping it on Rooms with a Z. What joy there is in living.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-10",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "A king ruled the state in the early days. The app is called Tracks with a Z period.",
+      "expect": "A king ruled the state in the early days. The app is called Trackz.",
+      "cleaned": "A king ruled the state in the early days. The app is called Tracks with a Z.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-11",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "We are shipping it on Tracks with a Z period. The ship was torn apart on the sharp reef.",
+      "expect": "We are shipping it on Trackz. The ship was torn apart on the sharp reef.",
+      "cleaned": "We are shipping it on Tracks with a Z. The ship was torn apart on the sharp reef.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-12",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "Sickness kept him home the third week. The app is called Magic with a K period.",
+      "expect": "Sickness kept him home the third week. The app is called Magik.",
+      "cleaned": "Sickness kept him home the third week. The app is called Magic with a K.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-13",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "We are shipping it on Magic with a K period. The wide road shimmered in the hot sun.",
+      "expect": "We are shipping it on Magik. The wide road shimmered in the hot sun.",
+      "cleaned": "We are shipping it on Magic with a K. The wide road shimmered in the hot sun.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-14",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "The lazy cow lay in the cool grass. The app is called Music with a K period.",
+      "expect": "The lazy cow lay in the cool grass. The app is called Musik.",
+      "cleaned": "The lazy cow lay in the cool grass. The app is called Musick.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-15",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "We are shipping it on Music with a K period. Lift the square stone over the fence.",
+      "expect": "We are shipping it on Musik. Lift the square stone over the fence.",
+      "cleaned": "We are shipping it on Music with a K. Lift the square stone over the fence.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-16",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "The rope will bind the seven books at once. The app is called Classic with a K period.",
+      "expect": "The rope will bind the seven books at once. The app is called Classik.",
+      "cleaned": "The rope will bind the seven books at once. The app is called Klassic.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-17",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "We are shipping it on Classic with a K period. Hop over the fence and plunge in.",
+      "expect": "We are shipping it on Classik. Hop over the fence and plunge in.",
+      "cleaned": "We are shipping it on Classic with a K. Hop over the fence and plunge in.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-18",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "The friendly gang left the drug store. The app is called Tonic with a K period.",
+      "expect": "The friendly gang left the drug store. The app is called Tonik.",
+      "cleaned": "The friendly gang left the drug store. The app is called Tonik.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "spell-19",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "We are shipping it on Tonic with a K period. Mesh wire keeps chicks inside.",
+      "expect": "We are shipping it on Tonik. Mesh wire keeps chicks inside.",
+      "cleaned": "We are shipping it on Tonic with a K. Mesh wire keeps chicks inside.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-20",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "The frosty air passed through the coat. The app is called Logic with a K period.",
+      "expect": "The frosty air passed through the coat. The app is called Logik.",
+      "cleaned": "The frosty air passed through the coat. The app is called Logik.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "spell-21",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "We are shipping it on Logic with a K period. The crooked maze failed to fool the mouse.",
+      "expect": "We are shipping it on Logik. The crooked maze failed to fool the mouse.",
+      "cleaned": "We are shipping it on Logic with a K period. The crooked maze failed to fool the mouse.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-22",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "Adding fast leads to wrong sums. The app is called Atomic with a K period.",
+      "expect": "Adding fast leads to wrong sums. The app is called Atomik.",
+      "cleaned": "Adding fast leads to wrong sums. The app is called Atomic with a K.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-23",
+      "rule": "spell-out",
+      "attempt": 0,
+      "raw": "We are shipping it on Atomic with a K period. The show was a flop from the very start.",
+      "expect": "We are shipping it on Atomik. The show was a flop from the very start.",
+      "cleaned": "We are shipping it on Atomic with a K. The show was a flop from the very start.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "dict-00",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "A saw is a tool used for making boards. I opened ghost tea again.",
+      "expect": "A saw is a tool used for making boards. I opened Ghostty again.",
+      "cleaned": "A saw is a tool used for making boards. I opened Ghostty again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-01",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "A parakeet landed on the fence. The wagon moved on well oiled wheels.",
+      "expect": "A parakeet landed on the fence. The wagon moved on well oiled wheels.",
+      "cleaned": "A parakeet landed on the fence. The wagon moved on well oiled wheels.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-02",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "March the soldiers past the next hill. I opened sara bras again.",
+      "expect": "March the soldiers past the next hill. I opened Cerebras again.",
+      "cleaned": "March the soldiers past the next hill. I opened Sara Bras again.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "dict-03",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "The silence held for a moment. A cup of sugar makes sweet fudge.",
+      "expect": "The silence held for a moment. A cup of sugar makes sweet fudge.",
+      "cleaned": "The silence held for a moment. A cup of sugar makes sweet fudge.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-04",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "Place a rosebush near the porch steps. I opened para keet again.",
+      "expect": "Place a rosebush near the porch steps. I opened Parakeet again.",
+      "cleaned": "Place a rosebush near the porch steps. I opened Parakeet again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-05",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "He lost his key chain at the park. Both lost their lives in the raging storm.",
+      "expect": "He lost his key chain at the park. Both lost their lives in the raging storm.",
+      "cleaned": "He lost his key chain at the park. Both lost their lives in the raging storm.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-06",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "We talked of the side show in the circus. I opened fluid audio again.",
+      "expect": "We talked of the side show in the circus. I opened FluidAudio again.",
+      "cleaned": "We talked of the side show in the circus. I opened FluidAudio again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-07",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "They served home brew at the picnic. Use a pencil to write the first draft.",
+      "expect": "They served home brew at the picnic. Use a pencil to write the first draft.",
+      "cleaned": "They served home brew at the picnic. Use a pencil to write the first draft.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-08",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "He ran half way to the hardware store. I opened twee story again.",
+      "expect": "He ran half way to the hardware store. I opened tuistory again.",
+      "cleaned": "He ran half way to the hardware store. I opened tuistory again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-09",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "The old house looked ghostly at dusk. A small creek cut across the field.",
+      "expect": "The old house looked ghostly at dusk. A small creek cut across the field.",
+      "cleaned": "The old house looked ghostly at dusk. A small creek cut across the field.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-10",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "Cars and busses stalled in snow drifts. I opened x c u i test again.",
+      "expect": "Cars and busses stalled in snow drifts. I opened XCUITest again.",
+      "cleaned": "Cars and busses stalled in snow drifts. I opened XCUITest again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-11",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "The lecture covered cerebral blood flow. The set of china hit the floor with a crash.",
+      "expect": "The lecture covered cerebral blood flow. The set of china hit the floor with a crash.",
+      "cleaned": "The lecture covered cerebral blood flow. The set of china hit the floor with a crash.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-12",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "This is a grand season for hikes on the road. I opened zig bee again.",
+      "expect": "This is a grand season for hikes on the road. I opened Zigbee again.",
+      "cleaned": "This is a grand season for hikes on the road. I opened Zigbee again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-13",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "A bee zigzagged across the yard. The dune rose from the edge of the water.",
+      "expect": "A bee zigzagged across the yard. The dune rose from the edge of the water.",
+      "cleaned": "A bee zigzagged across the yard. The dune rose from the edge of the water.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-14",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "Those words were the cue for the actor to leave. I opened llama c p p again.",
+      "expect": "Those words were the cue for the actor to leave. I opened llama.cpp again.",
+      "cleaned": "Those words were the cue for the actor to leave. I opened llama.cpp again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-15",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "When the bell rang we left. The two met while playing on the sand.",
+      "expect": "When the bell rang we left. The two met while playing on the sand.",
+      "cleaned": "When the bell rang we left. The two met while playing on the sand.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-16",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "The ink stain dried on the finished page. I opened sill arrow again.",
+      "expect": "The ink stain dried on the finished page. I opened Silero again.",
+      "cleaned": "The ink stain dried on the finished page. I opened sill arrow again.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "dict-17",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "The current was swift under the bridge. The walled town was seized without a fight.",
+      "expect": "The current was swift under the bridge. The walled town was seized without a fight.",
+      "cleaned": "The current was swift under the bridge. The walled town was seized without a fight.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-18",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "The lease ran out in sixteen weeks. I opened mini whisper again.",
+      "expect": "The lease ran out in sixteen weeks. I opened MiniWhisper again.",
+      "cleaned": "The lease ran out in sixteen weeks. I opened MiniWhisper again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-19",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "The tea was cold by then. A tame squirrel makes a nice pet.",
+      "expect": "The tea was cold by then. A tame squirrel makes a nice pet.",
+      "cleaned": "The tea was cold by then. A tame squirrel makes a nice pet.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-20",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "The horn of the car woke the sleeping cop. I opened key chain again.",
+      "expect": "The horn of the car woke the sleeping cop. I opened Keychain again.",
+      "cleaned": "The horn of the car woke the sleeping cop. I opened Keychain again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-21",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "The colonel gave the order. The heart beat strongly and with firm strokes.",
+      "expect": "The colonel gave the order. The heart beat strongly and with firm strokes.",
+      "cleaned": "The colonel gave the order. The heart beat strongly and with firm strokes.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-22",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "The pearl was worn in a thin silver ring. I opened home brew again.",
+      "expect": "The pearl was worn in a thin silver ring. I opened Homebrew again.",
+      "cleaned": "The pearl was worn in a thin silver ring. I opened home brew again.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "dict-23",
+      "rule": "dictionary-exactness",
+      "attempt": 0,
+      "raw": "She paid the whole thing in cash. The fruit peel was cut in thick slices.",
+      "expect": "She paid the whole thing in cash. The fruit peel was cut in thick slices.",
+      "cleaned": "She paid the whole thing in cash. The fruit peel was cut in thick slices.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "spell-00",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "Hoist the load to your left shoulder. The app is called Beats with a Z period.",
+      "expect": "Hoist the load to your left shoulder. The app is called Beatz.",
+      "cleaned": "Hoist the load to your left shoulder. The app is called Beatz.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "spell-01",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "We are shipping it on Beats with a Z period. Take the winding path to reach the lake.",
+      "expect": "We are shipping it on Beatz. Take the winding path to reach the lake.",
+      "cleaned": "We are shipping it on Beats with a Z. Take the winding path to reach the lake.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-02",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "Note closely the size of the gas tank. The app is called Cuts with a Z period.",
+      "expect": "Note closely the size of the gas tank. The app is called Cutz.",
+      "cleaned": "Note closely the size of the gas tank. The app is called Cutz.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "spell-03",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "We are shipping it on Cuts with a Z period. Wipe the grease off his dirty face.",
+      "expect": "We are shipping it on Cutz. Wipe the grease off his dirty face.",
+      "cleaned": "We are shipping it on Cuts with a Z. Wipe the grease off his dirty face.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-04",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "Mend the coat before you go out. The app is called Notes with a Z period.",
+      "expect": "Mend the coat before you go out. The app is called Notez.",
+      "cleaned": "Mend the coat before you go out. The app is called Notes with a Z.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-05",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "We are shipping it on Notes with a Z period. The wrist was badly strained and hung limp.",
+      "expect": "We are shipping it on Notez. The wrist was badly strained and hung limp.",
+      "cleaned": "We are shipping it on Notes with a Z. The wrist was badly strained and hung limp.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-06",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "The stray cat gave birth to kittens. The app is called Trends with a Z period.",
+      "expect": "The stray cat gave birth to kittens. The app is called Trendz.",
+      "cleaned": "The stray cat gave birth to kittens. The app is called Trendz.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "spell-07",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "We are shipping it on Trends with a Z period. The young girl gave no clear response.",
+      "expect": "We are shipping it on Trendz. The young girl gave no clear response.",
+      "cleaned": "We are shipping it on Trends with a Z. The young girl gave no clear response.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-08",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "The meal was cooked before the bell rang. The app is called Rooms with a Z period.",
+      "expect": "The meal was cooked before the bell rang. The app is called Roomz.",
+      "cleaned": "The meal was cooked before the bell rang. The app is called Rooms with a Z.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-09",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "We are shipping it on Rooms with a Z period. What joy there is in living.",
+      "expect": "We are shipping it on Roomz. What joy there is in living.",
+      "cleaned": "We are shipping it on Rooms with a Z. What joy there is in living.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-10",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "A king ruled the state in the early days. The app is called Tracks with a Z period.",
+      "expect": "A king ruled the state in the early days. The app is called Trackz.",
+      "cleaned": "A king ruled the state in the early days. The app is called Trackz.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "spell-11",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "We are shipping it on Tracks with a Z period. The ship was torn apart on the sharp reef.",
+      "expect": "We are shipping it on Trackz. The ship was torn apart on the sharp reef.",
+      "cleaned": "We are shipping it on Tracks with a Z. The ship was torn apart on the sharp reef.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-12",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "Sickness kept him home the third week. The app is called Magic with a K period.",
+      "expect": "Sickness kept him home the third week. The app is called Magik.",
+      "cleaned": "Sickness kept him home the third week. The app is called Magic with a K.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-13",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "We are shipping it on Magic with a K period. The wide road shimmered in the hot sun.",
+      "expect": "We are shipping it on Magik. The wide road shimmered in the hot sun.",
+      "cleaned": "We are shipping it on Magic with a K. The wide road shimmered in the hot sun.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-14",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "The lazy cow lay in the cool grass. The app is called Music with a K period.",
+      "expect": "The lazy cow lay in the cool grass. The app is called Musik.",
+      "cleaned": "The lazy cow lay in the cool grass. The app is called Musik.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "spell-15",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "We are shipping it on Music with a K period. Lift the square stone over the fence.",
+      "expect": "We are shipping it on Musik. Lift the square stone over the fence.",
+      "cleaned": "We are shipping it on Music with a K. Lift the square stone over the fence.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-16",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "The rope will bind the seven books at once. The app is called Classic with a K period.",
+      "expect": "The rope will bind the seven books at once. The app is called Classik.",
+      "cleaned": "The rope will bind the seven books at once. The app is called Klassic.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-17",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "We are shipping it on Classic with a K period. Hop over the fence and plunge in.",
+      "expect": "We are shipping it on Classik. Hop over the fence and plunge in.",
+      "cleaned": "We are shipping it on Classic with a K. Hop over the fence and plunge in.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-18",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "The friendly gang left the drug store. The app is called Tonic with a K period.",
+      "expect": "The friendly gang left the drug store. The app is called Tonik.",
+      "cleaned": "The friendly gang left the drug store. The app is called Tonik.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "spell-19",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "We are shipping it on Tonic with a K period. Mesh wire keeps chicks inside.",
+      "expect": "We are shipping it on Tonik. Mesh wire keeps chicks inside.",
+      "cleaned": "We are shipping it on Tonic with a K. Mesh wire keeps chicks inside.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-20",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "The frosty air passed through the coat. The app is called Logic with a K period.",
+      "expect": "The frosty air passed through the coat. The app is called Logik.",
+      "cleaned": "The frosty air passed through the coat. The app is called Logik.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "spell-21",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "We are shipping it on Logic with a K period. The crooked maze failed to fool the mouse.",
+      "expect": "We are shipping it on Logik. The crooked maze failed to fool the mouse.",
+      "cleaned": "We are shipping it on Logic with a K. The crooked maze failed to fool the mouse.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-22",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "Adding fast leads to wrong sums. The app is called Atomic with a K period.",
+      "expect": "Adding fast leads to wrong sums. The app is called Atomik.",
+      "cleaned": "Adding fast leads to wrong sums. The app is called Atomic.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-23",
+      "rule": "spell-out",
+      "attempt": 1,
+      "raw": "We are shipping it on Atomic with a K period. The show was a flop from the very start.",
+      "expect": "We are shipping it on Atomik. The show was a flop from the very start.",
+      "cleaned": "We are shipping it on Atomic with a K. The show was a flop from the very start.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "dict-00",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "A saw is a tool used for making boards. I opened ghost tea again.",
+      "expect": "A saw is a tool used for making boards. I opened Ghostty again.",
+      "cleaned": "A saw is a tool used for making boards. I opened Ghostty again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-01",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "A parakeet landed on the fence. The wagon moved on well oiled wheels.",
+      "expect": "A parakeet landed on the fence. The wagon moved on well oiled wheels.",
+      "cleaned": "A parakeet landed on the fence. The wagon moved on well oiled wheels.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-02",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "March the soldiers past the next hill. I opened sara bras again.",
+      "expect": "March the soldiers past the next hill. I opened Cerebras again.",
+      "cleaned": "March the soldiers past the next hill. I opened sara bras again.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "dict-03",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "The silence held for a moment. A cup of sugar makes sweet fudge.",
+      "expect": "The silence held for a moment. A cup of sugar makes sweet fudge.",
+      "cleaned": "The silence held for a moment. A cup of sugar makes sweet fudge.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-04",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "Place a rosebush near the porch steps. I opened para keet again.",
+      "expect": "Place a rosebush near the porch steps. I opened Parakeet again.",
+      "cleaned": "Place a rosebush near the porch steps. I opened Parakeet again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-05",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "He lost his key chain at the park. Both lost their lives in the raging storm.",
+      "expect": "He lost his key chain at the park. Both lost their lives in the raging storm.",
+      "cleaned": "He lost his key chain at the park. Both lost their lives in the raging storm.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-06",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "We talked of the side show in the circus. I opened fluid audio again.",
+      "expect": "We talked of the side show in the circus. I opened FluidAudio again.",
+      "cleaned": "We talked of the side show in the circus. I opened FluidAudio again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-07",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "They served home brew at the picnic. Use a pencil to write the first draft.",
+      "expect": "They served home brew at the picnic. Use a pencil to write the first draft.",
+      "cleaned": "They served home brew at the picnic. Use a pencil to write the first draft.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-08",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "He ran half way to the hardware store. I opened twee story again.",
+      "expect": "He ran half way to the hardware store. I opened tuistory again.",
+      "cleaned": "He ran half way to the hardware store. I opened tuistory again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-09",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "The old house looked ghostly at dusk. A small creek cut across the field.",
+      "expect": "The old house looked ghostly at dusk. A small creek cut across the field.",
+      "cleaned": "The old house looked ghostly at dusk. A small creek cut across the field.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-10",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "Cars and busses stalled in snow drifts. I opened x c u i test again.",
+      "expect": "Cars and busses stalled in snow drifts. I opened XCUITest again.",
+      "cleaned": "Cars and busses stalled in snow drifts. I opened XCUITest again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-11",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "The lecture covered cerebral blood flow. The set of china hit the floor with a crash.",
+      "expect": "The lecture covered cerebral blood flow. The set of china hit the floor with a crash.",
+      "cleaned": "The lecture covered cerebral blood flow. The set of china hit the floor with a crash.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-12",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "This is a grand season for hikes on the road. I opened zig bee again.",
+      "expect": "This is a grand season for hikes on the road. I opened Zigbee again.",
+      "cleaned": "This is a grand season for hikes on the road. I opened Zigbee again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-13",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "A bee zigzagged across the yard. The dune rose from the edge of the water.",
+      "expect": "A bee zigzagged across the yard. The dune rose from the edge of the water.",
+      "cleaned": "A bee zigzagged across the yard. The dune rose from the edge of the water.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-14",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "Those words were the cue for the actor to leave. I opened llama c p p again.",
+      "expect": "Those words were the cue for the actor to leave. I opened llama.cpp again.",
+      "cleaned": "Those words were the cue for the actor to leave. I opened llama.cpp again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-15",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "When the bell rang we left. The two met while playing on the sand.",
+      "expect": "When the bell rang we left. The two met while playing on the sand.",
+      "cleaned": "When the bell rang we left. The two met while playing on the sand.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-16",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "The ink stain dried on the finished page. I opened sill arrow again.",
+      "expect": "The ink stain dried on the finished page. I opened Silero again.",
+      "cleaned": "The ink stain dried on the finished page. I opened sill arrow again.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "dict-17",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "The current was swift under the bridge. The walled town was seized without a fight.",
+      "expect": "The current was swift under the bridge. The walled town was seized without a fight.",
+      "cleaned": "The current was swift under the bridge. The walled town was seized without a fight.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-18",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "The lease ran out in sixteen weeks. I opened mini whisper again.",
+      "expect": "The lease ran out in sixteen weeks. I opened MiniWhisper again.",
+      "cleaned": "The lease ran out in sixteen weeks. I opened MiniWhisper again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-19",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "The tea was cold by then. A tame squirrel makes a nice pet.",
+      "expect": "The tea was cold by then. A tame squirrel makes a nice pet.",
+      "cleaned": "The tea was cold by then. A tame squirrel makes a nice pet.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-20",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "The horn of the car woke the sleeping cop. I opened key chain again.",
+      "expect": "The horn of the car woke the sleeping cop. I opened Keychain again.",
+      "cleaned": "The horn of the car woke the sleeping cop. I opened key chain again.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "dict-21",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "The colonel gave the order. The heart beat strongly and with firm strokes.",
+      "expect": "The colonel gave the order. The heart beat strongly and with firm strokes.",
+      "cleaned": "The colonel gave the order. The heart beat strongly and with firm strokes.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-22",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "The pearl was worn in a thin silver ring. I opened home brew again.",
+      "expect": "The pearl was worn in a thin silver ring. I opened Homebrew again.",
+      "cleaned": "The pearl was worn in a thin silver ring. I opened home brew again.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "dict-23",
+      "rule": "dictionary-exactness",
+      "attempt": 1,
+      "raw": "She paid the whole thing in cash. The fruit peel was cut in thick slices.",
+      "expect": "She paid the whole thing in cash. The fruit peel was cut in thick slices.",
+      "cleaned": "She paid the whole thing in cash. The fruit peel was cut in thick slices.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "spell-00",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "Hoist the load to your left shoulder. The app is called Beats with a Z period.",
+      "expect": "Hoist the load to your left shoulder. The app is called Beatz.",
+      "cleaned": "Hoist the load to your left shoulder. The app is called Beats with a Z.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-01",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "We are shipping it on Beats with a Z period. Take the winding path to reach the lake.",
+      "expect": "We are shipping it on Beatz. Take the winding path to reach the lake.",
+      "cleaned": "We are shipping it on Beats with a Z. Take the winding path to reach the lake.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-02",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "Note closely the size of the gas tank. The app is called Cuts with a Z period.",
+      "expect": "Note closely the size of the gas tank. The app is called Cutz.",
+      "cleaned": "Note closely the size of the gas tank. The app is called Cutz.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "spell-03",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "We are shipping it on Cuts with a Z period. Wipe the grease off his dirty face.",
+      "expect": "We are shipping it on Cutz. Wipe the grease off his dirty face.",
+      "cleaned": "We are shipping it on Cuts with a Z. Wipe the grease off his dirty face.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-04",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "Mend the coat before you go out. The app is called Notes with a Z period.",
+      "expect": "Mend the coat before you go out. The app is called Notez.",
+      "cleaned": "Mend the coat before you go out. The app is called Notes with a Z.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-05",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "We are shipping it on Notes with a Z period. The wrist was badly strained and hung limp.",
+      "expect": "We are shipping it on Notez. The wrist was badly strained and hung limp.",
+      "cleaned": "We are shipping it on Notes with a Z. The wrist was badly strained and hung limp.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-06",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "The stray cat gave birth to kittens. The app is called Trends with a Z period.",
+      "expect": "The stray cat gave birth to kittens. The app is called Trendz.",
+      "cleaned": "The stray cat gave birth to kittens. The app is called Trendz.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "spell-07",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "We are shipping it on Trends with a Z period. The young girl gave no clear response.",
+      "expect": "We are shipping it on Trendz. The young girl gave no clear response.",
+      "cleaned": "We are shipping it on Trends with a Z. The young girl gave no clear response.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-08",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "The meal was cooked before the bell rang. The app is called Rooms with a Z period.",
+      "expect": "The meal was cooked before the bell rang. The app is called Roomz.",
+      "cleaned": "The meal was cooked before the bell rang. The app is called Rooms with a Z.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-09",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "We are shipping it on Rooms with a Z period. What joy there is in living.",
+      "expect": "We are shipping it on Roomz. What joy there is in living.",
+      "cleaned": "We are shipping it on Rooms with a Z. What joy there is in living.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-10",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "A king ruled the state in the early days. The app is called Tracks with a Z period.",
+      "expect": "A king ruled the state in the early days. The app is called Trackz.",
+      "cleaned": "A king ruled the state in the early days. The app is called Tracks with a Z.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-11",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "We are shipping it on Tracks with a Z period. The ship was torn apart on the sharp reef.",
+      "expect": "We are shipping it on Trackz. The ship was torn apart on the sharp reef.",
+      "cleaned": "We are shipping it on Tracks with a Z. The ship was torn apart on the sharp reef.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-12",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "Sickness kept him home the third week. The app is called Magic with a K period.",
+      "expect": "Sickness kept him home the third week. The app is called Magik.",
+      "cleaned": "Sickness kept him home the third week. The app is called Magik.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "spell-13",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "We are shipping it on Magic with a K period. The wide road shimmered in the hot sun.",
+      "expect": "We are shipping it on Magik. The wide road shimmered in the hot sun.",
+      "cleaned": "We are shipping it on Magic with a K. The wide road shimmered in the hot sun.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-14",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "The lazy cow lay in the cool grass. The app is called Music with a K period.",
+      "expect": "The lazy cow lay in the cool grass. The app is called Musik.",
+      "cleaned": "The lazy cow lay in the cool grass. The app is called Musik.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "spell-15",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "We are shipping it on Music with a K period. Lift the square stone over the fence.",
+      "expect": "We are shipping it on Musik. Lift the square stone over the fence.",
+      "cleaned": "We are shipping it on Music with a K. Lift the square stone over the fence.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-16",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "The rope will bind the seven books at once. The app is called Classic with a K period.",
+      "expect": "The rope will bind the seven books at once. The app is called Classik.",
+      "cleaned": "The rope will bind the seven books at once. The app is called Classik.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "spell-17",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "We are shipping it on Classic with a K period. Hop over the fence and plunge in.",
+      "expect": "We are shipping it on Classik. Hop over the fence and plunge in.",
+      "cleaned": "We are shipping it on Classic with a K. Hop over the fence and plunge in.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-18",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "The friendly gang left the drug store. The app is called Tonic with a K period.",
+      "expect": "The friendly gang left the drug store. The app is called Tonik.",
+      "cleaned": "The friendly gang left the drug store. The app is called Tonik.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "spell-19",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "We are shipping it on Tonic with a K period. Mesh wire keeps chicks inside.",
+      "expect": "We are shipping it on Tonik. Mesh wire keeps chicks inside.",
+      "cleaned": "We are shipping it on Tonic with a K. Mesh wire keeps chicks inside.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-20",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "The frosty air passed through the coat. The app is called Logic with a K period.",
+      "expect": "The frosty air passed through the coat. The app is called Logik.",
+      "cleaned": "The frosty air passed through the coat. The app is called Logick.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-21",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "We are shipping it on Logic with a K period. The crooked maze failed to fool the mouse.",
+      "expect": "We are shipping it on Logik. The crooked maze failed to fool the mouse.",
+      "cleaned": "We are shipping it on Logic with a K period. The crooked maze failed to fool the mouse.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-22",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "Adding fast leads to wrong sums. The app is called Atomic with a K period.",
+      "expect": "Adding fast leads to wrong sums. The app is called Atomik.",
+      "cleaned": "Adding fast leads to wrong sums. The app is called Atomic with a K.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "spell-23",
+      "rule": "spell-out",
+      "attempt": 2,
+      "raw": "We are shipping it on Atomic with a K period. The show was a flop from the very start.",
+      "expect": "We are shipping it on Atomik. The show was a flop from the very start.",
+      "cleaned": "We are shipping it on Atomic with a K. The show was a flop from the very start.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "dict-00",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "A saw is a tool used for making boards. I opened ghost tea again.",
+      "expect": "A saw is a tool used for making boards. I opened Ghostty again.",
+      "cleaned": "A saw is a tool used for making boards. I opened Ghostty again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-01",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "A parakeet landed on the fence. The wagon moved on well oiled wheels.",
+      "expect": "A parakeet landed on the fence. The wagon moved on well oiled wheels.",
+      "cleaned": "A parakeet landed on the fence. The wagon moved on well oiled wheels.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-02",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "March the soldiers past the next hill. I opened sara bras again.",
+      "expect": "March the soldiers past the next hill. I opened Cerebras again.",
+      "cleaned": "March the soldiers past the next hill. I opened sara bras again.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "dict-03",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "The silence held for a moment. A cup of sugar makes sweet fudge.",
+      "expect": "The silence held for a moment. A cup of sugar makes sweet fudge.",
+      "cleaned": "The silence held for a moment. A cup of sugar makes sweet fudge.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-04",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "Place a rosebush near the porch steps. I opened para keet again.",
+      "expect": "Place a rosebush near the porch steps. I opened Parakeet again.",
+      "cleaned": "Place a rosebush near the porch steps. I opened Parakeet again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-05",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "He lost his key chain at the park. Both lost their lives in the raging storm.",
+      "expect": "He lost his key chain at the park. Both lost their lives in the raging storm.",
+      "cleaned": "He lost his key chain at the park. Both lost their lives in the raging storm.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-06",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "We talked of the side show in the circus. I opened fluid audio again.",
+      "expect": "We talked of the side show in the circus. I opened FluidAudio again.",
+      "cleaned": "We talked of the side show in the circus. I opened FluidAudio again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-07",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "They served home brew at the picnic. Use a pencil to write the first draft.",
+      "expect": "They served home brew at the picnic. Use a pencil to write the first draft.",
+      "cleaned": "They served home brew at the picnic. Use a pencil to write the first draft.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-08",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "He ran half way to the hardware store. I opened twee story again.",
+      "expect": "He ran half way to the hardware store. I opened tuistory again.",
+      "cleaned": "He ran half way to the hardware store. I opened tuistory again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-09",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "The old house looked ghostly at dusk. A small creek cut across the field.",
+      "expect": "The old house looked ghostly at dusk. A small creek cut across the field.",
+      "cleaned": "The old house looked ghostly at dusk. A small creek cut across the field.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-10",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "Cars and busses stalled in snow drifts. I opened x c u i test again.",
+      "expect": "Cars and busses stalled in snow drifts. I opened XCUITest again.",
+      "cleaned": "Cars and busses stalled in snow drifts. I opened XCUITest again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-11",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "The lecture covered cerebral blood flow. The set of china hit the floor with a crash.",
+      "expect": "The lecture covered cerebral blood flow. The set of china hit the floor with a crash.",
+      "cleaned": "The lecture covered cerebral blood flow. The set of china hit the floor with a crash.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-12",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "This is a grand season for hikes on the road. I opened zig bee again.",
+      "expect": "This is a grand season for hikes on the road. I opened Zigbee again.",
+      "cleaned": "This is a grand season for hikes on the road. I opened Zigbee again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-13",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "A bee zigzagged across the yard. The dune rose from the edge of the water.",
+      "expect": "A bee zigzagged across the yard. The dune rose from the edge of the water.",
+      "cleaned": "A bee zigzagged across the yard. The dune rose from the edge of the water.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-14",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "Those words were the cue for the actor to leave. I opened llama c p p again.",
+      "expect": "Those words were the cue for the actor to leave. I opened llama.cpp again.",
+      "cleaned": "Those words were the cue for the actor to leave. I opened llama.cpp again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-15",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "When the bell rang we left. The two met while playing on the sand.",
+      "expect": "When the bell rang we left. The two met while playing on the sand.",
+      "cleaned": "When the bell rang we left. The two met while playing on the sand.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-16",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "The ink stain dried on the finished page. I opened sill arrow again.",
+      "expect": "The ink stain dried on the finished page. I opened Silero again.",
+      "cleaned": "The ink stain dried on the finished page. I opened sill arrow again.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "dict-17",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "The current was swift under the bridge. The walled town was seized without a fight.",
+      "expect": "The current was swift under the bridge. The walled town was seized without a fight.",
+      "cleaned": "The current was swift under the bridge. The walled town was seized without a fight.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-18",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "The lease ran out in sixteen weeks. I opened mini whisper again.",
+      "expect": "The lease ran out in sixteen weeks. I opened MiniWhisper again.",
+      "cleaned": "The lease ran out in sixteen weeks. I opened MiniWhisper again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-19",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "The tea was cold by then. A tame squirrel makes a nice pet.",
+      "expect": "The tea was cold by then. A tame squirrel makes a nice pet.",
+      "cleaned": "The tea was cold by then. A tame squirrel makes a nice pet.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-20",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "The horn of the car woke the sleeping cop. I opened key chain again.",
+      "expect": "The horn of the car woke the sleeping cop. I opened Keychain again.",
+      "cleaned": "The horn of the car woke the sleeping cop. I opened Keychain again.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-21",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "The colonel gave the order. The heart beat strongly and with firm strokes.",
+      "expect": "The colonel gave the order. The heart beat strongly and with firm strokes.",
+      "cleaned": "The colonel gave the order. The heart beat strongly and with firm strokes.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "dict-22",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "The pearl was worn in a thin silver ring. I opened home brew again.",
+      "expect": "The pearl was worn in a thin silver ring. I opened Homebrew again.",
+      "cleaned": "The pearl was worn in a thin silver ring. I opened home brew again.",
+      "match": false,
+      "obeyed": false
+    },
+    {
+      "id": "dict-23",
+      "rule": "dictionary-exactness",
+      "attempt": 2,
+      "raw": "She paid the whole thing in cash. The fruit peel was cut in thick slices.",
+      "expect": "She paid the whole thing in cash. The fruit peel was cut in thick slices.",
+      "cleaned": "She paid the whole thing in cash. The fruit peel was cut in thick slices.",
+      "match": true,
+      "obeyed": true
+    }
+  ]
+}

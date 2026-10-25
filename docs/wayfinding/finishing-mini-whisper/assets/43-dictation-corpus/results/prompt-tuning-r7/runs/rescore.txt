@@ -1,0 +1,99 @@
+Subscription: ChatGPT; proposer model gpt-5.6-sol; 525 calls
+frozen25-claude-haiku-4-5          claude-haiku-4-5-20251001  n=10  exact 16.50  judged 18.50 / 25
+    polish-30 x10: 'And then we could maybe'
+    polish-36 x2: 'Okay, so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to 20 seconds.'
+    polish-36 x8: 'Okay, so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.'
+frozen25-claude-haiku-5-5          claude-haiku-5-5           n=10  exact  7.40  judged  9.30 / 25
+    polish-20 x2: 'Bump maxRetryCount to 5.'
+    polish-22 x7: 'The demo is at 3:30 p.m. on March 5.'
+    polish-30 x10: 'And then we could maybe'
+holdout-claude-haiku-4-5           claude-haiku-4-5-20251001  n=10  exact  9.10  judged  9.90 / 15
+    hpolish-05 x6: "Let's meet at 11:30 AM on June 9th."
+    hpolish-05 x2: "Let's meet at 11:30am on June 9th."
+holdout-claude-haiku-5-5           claude-haiku-5-5           n=10  exact  7.40  judged  8.80 / 15
+    hpolish-05 x2: "Let's meet at 11:30 AM on June 9th."
+    hpolish-05 x6: "Let's meet at 11:30 a.m. on June 9."
+    hpolish-05 x1: "Let's meet at 11:30 am on June 9."
+    hpolish-11 x5: 'Set the timeout to forty-five seconds.'
+frozen20-hand-524                  claude-haiku-4-5           n=20  exact 16.75  judged 18.75 / 25
+    polish-30 x20: 'And then we could maybe'
+    polish-36 x20: 'Okay, so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.'
+frozen20-incumbent                 claude-haiku-4-5           n=20  exact 17.00  judged 19.00 / 25
+    polish-30 x20: 'And then we could maybe'
+    polish-36 x3: 'Okay, so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to 20 seconds.'
+    polish-36 x17: 'Okay, so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.'
+holdout10-hand-524                 claude-haiku-4-5           n=10  exact  9.40  judged 10.70 / 15
+    hpolish-05 x5: "Let's meet at 11:30 AM on June 9th."
+    hpolish-11 x8: 'Set the timeout to forty-five seconds.'
+holdout10-incumbent                claude-haiku-4-5           n=10  exact  9.40  judged 10.90 / 15
+    hpolish-05 x6: "Let's meet at 11:30 AM on June 9th."
+    hpolish-11 x9: 'Set the timeout to forty-five seconds.'
+frozen27-final-r6-cohere           claude-haiku-5-5           n=10  exact 13.80  judged 17.20 / 27
+    polish-01 x8: 'So, I think we should probably ship it today.'
+    polish-03 x5: 'The meeting is on Wednesday at 3.'
+    polish-11 x10: 'She said, "It ships tonight."'
+    polish-30 x1: 'And then we could maybe'
+    polish-36 x10: 'Okay, so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to 20 seconds.'
+frozen27-final-r6-v2               claude-haiku-5-5           n=10  exact 15.50  judged 18.00 / 27
+    polish-03 x8: 'The meeting is on Wednesday at 3.'
+    polish-20 x2: 'Bump maxRetryCount to 5.'
+    polish-22 x1: 'The demo is at 3:30 p.m. on March 5.'
+    polish-30 x10: 'And then we could maybe'
+    polish-36 x4: 'Okay, so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.'
+frozen27-incumbent-cohere          claude-haiku-5-5           n=10  exact  7.70  judged 10.60 / 27
+    polish-01 x10: 'So, I think we should probably ship it today.'
+    polish-11 x10: 'She said, "It ships tonight."'
+    polish-22 x1: 'The demo is at 3:30 p.m. on March 5.'
+    polish-30 x8: 'And then we could maybe'
+frozen27-incumbent-v2              claude-haiku-5-5           n=10  exact  9.70  judged 11.00 / 27
+    polish-01 x1: 'So, I think we should probably ship it today.'
+    polish-22 x2: 'The demo is at 3:30 p.m. on March 5.'
+    polish-30 x10: 'And then we could maybe'
+holdout10-final-r6-cohere          claude-haiku-5-5           n=10  exact 12.80  judged 12.80 / 15
+holdout10-final-r6-v2              claude-haiku-5-5           n=10  exact  9.00  judged 10.80 / 15
+    hpolish-05 x10: "Let's meet at 11.30am on June 9th."
+    hpolish-11 x8: 'Set the timeout to forty-five seconds.'
+holdout10-incumbent-cohere         claude-haiku-5-5           n=10  exact  8.60  judged  8.60 / 15
+holdout10-incumbent-v2             claude-haiku-5-5           n=10  exact  7.30  judged 10.00 / 15
+    hpolish-05 x10: "Let's meet at 11:30 a.m. on June 9."
+    hpolish-08 x8: 'rename the variable instead.'
+    hpolish-11 x9: 'Set the timeout to forty-five seconds.'
+frozen10-final-r6-haiku45          claude-haiku-4-5-20251001  n=10  exact 17.50  judged 19.20 / 25
+    polish-30 x10: 'And then we could maybe'
+    polish-36 x2: 'Okay, so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to 20 seconds.'
+    polish-36 x5: 'Okay, so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.'
+frozen20-final-r6                  claude-haiku-5-5           n=20  exact 14.00  judged 16.45 / 25
+    polish-03 x6: 'The meeting is on Wednesday at 3.'
+    polish-20 x13: 'Bump maxRetryCount to 5.'
+    polish-22 x7: 'The demo is at 3:30 p.m. on March 5.'
+    polish-30 x20: 'And then we could maybe'
+    polish-36 x3: 'Okay, so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.'
+frozen20-incumbent                 claude-haiku-5-5           n=20  exact  7.65  judged  9.20 / 25
+    polish-01 x2: 'So, I think we should probably ship it today.'
+    polish-22 x9: 'The demo is at 3:30 p.m. on March 5.'
+    polish-30 x20: 'And then we could maybe'
+holdout10-final-r6-haiku45         claude-haiku-4-5-20251001  n=10  exact  8.30  judged  9.30 / 15
+    hpolish-05 x10: "Let's meet at 11:30am on June 9th."
+holdout10-final-r6                 claude-haiku-5-5           n=10  exact  8.30  judged 10.00 / 15
+    hpolish-05 x10: "Let's meet at 11.30am on June 9th."
+    hpolish-11 x7: 'Set the timeout to forty-five seconds.'
+holdout10-incumbent                claude-haiku-5-5           n=10  exact  6.90  judged  8.40 / 15
+    hpolish-05 x2: "Let's meet at 11:30 AM on June 9th."
+    hpolish-05 x8: "Let's meet at 11:30 a.m. on June 9."
+    hpolish-11 x5: 'Set the timeout to forty-five seconds.'
+sdk-frozen10-final-r6              claude-haiku-5-5           n=10  exact 14.00  judged 15.70 / 25
+    polish-01 x3: 'So, I think we should probably ship it today.'
+    polish-22 x1: 'The demo is at 3:30 p.m. on March 5.'
+    polish-30 x10: 'And then we could maybe'
+    polish-36 x3: 'Okay, so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to 20 seconds.'
+sdk-holdout10-final-r6             claude-haiku-5-5           n=10  exact  6.10  judged  7.50 / 15
+    hpolish-05 x6: "Let's meet at 11:30 AM on June 9th."
+    hpolish-05 x3: "Let's meet at 11:30 am on June 9th."
+    hpolish-05 x1: "Let's meet at 11:30am on June 9th."
+    hpolish-11 x4: 'Set the timeout to forty-five seconds.'
+frozen10-incumbent-sdk55           claude-haiku-5-5           n=10  exact 12.00  judged 14.00 / 25
+    polish-22 x6: 'The demo is at 3:30 p.m. on March 5.'
+    polish-30 x10: 'And then we could maybe'
+    polish-36 x4: 'Okay, so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to 20 seconds.'
+holdout10-incumbent-sdk55          claude-haiku-5-5           n=10  exact  8.50  judged  8.70 / 15
+    hpolish-05 x2: "Let's meet at 11:30 AM on June 9th."

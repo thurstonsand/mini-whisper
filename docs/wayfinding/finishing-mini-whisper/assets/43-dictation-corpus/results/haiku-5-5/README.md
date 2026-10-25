@@ -9,7 +9,7 @@ The factory profile's model moves from `claude-haiku-4-5` to `claude-haiku-5-5` 
 | frozen 25 | **16.50** | 7.40 | 10 |
 | recorded holdout (15) | **9.10** | 7.40 | 10 |
 
-Both arms ran on the same day, through the same transport, the new `proxy-haiku` provider: CLIProxyAPI at `aig.thurstons.house` on the Claude subscription. The 4.5 arm reproduces round 5's `sdk-haiku` numbers (16.75 and 9.40) within noise, so the transport is not the difference. The proxy adds about 135 tokens of framing to every request; both arms pay it.
+Both arms ran on the same day, through the same transport, the new `proxy-haiku` provider: CLIProxyAPI at `aig.thurstons.house` on the Claude subscription. The 4.5 arm reproduces round 5's `sdk-haiku` numbers (16.75 and 9.40) within noise, so the transport is not the difference. The proxy adds about 135 tokens of framing to every request; both arms pay it. [Round 7](../prompt-tuning-r7/README.md#the-transport) later found from CLIProxyAPI's source that the two arms did not get the same layout: 4.5 receives our prompt inside the transcript's turn, and 5.5 receives it as a system turn after the transcript.
 
 ## What 5.5 breaks
 

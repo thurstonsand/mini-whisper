@@ -1,0 +1,324 @@
+Subscription: ChatGPT; proposer model gpt-5.6-sol; 15 calls
+drop02  claude-haiku-5-5  judged 10/22 11/22 10/22 9/22 11/22 11/22  mean 10.33  (exact 7/22 7/22 6/22 6/22 6/22 7/22  mean 6.50)
+
+  layout-01 [layout, no-break] failed 6/6
+    raw: I think the retry logic is wrong, it backs off on the wrong error class. We should only retry on timeouts, not on a 400.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -I think the retry logic is wrong. It backs off on the wrong error class. We should only retry on timeouts, not on a 400.
+    +I think the retry logic is wrong, it backs off on the wrong error class. We should only retry on timeouts, not on a 400.
+
+  layout-03 [layout, no-break] failed 3/6
+    raw: Can you check whether the download resumes after a relaunch? I killed the app halfway through and I'm not sure the partial file survives. If it doesn't, that's a bug worth fixing before anything else
+    --- expect
+    +++ cleaned
+    @@ -1 +1,9 @@
+    -Can you check whether the download resumes after a relaunch? I killed the app halfway through and I'm not sure the partial file survives. If it doesn't, that's a bug worth fixing before anything else.
+    +I haven't checked yet, so I don't know whether the partial file survives a relaunch. Here's how I'd check:
+    +
+    +1. **Find the download code.** Search for terms like `download`, `resume`, `partial`, `.part`, `.download`, and `Range`.
+    +2. **Check where partial data goes.** See whether it's written to a temp or cache directory that gets cleared on launch, or to a persistent location.
+    +3. **Check startup cleanup.** Look for code that deletes stale partial files or resets download state when the app starts.
+    +4. **Check resume logic.** If the partial file survives, confirm the code reads its size and sends an HTTP `Range` header on the next attempt. Also check that the server's `Accept-Ranges` or `206` response is handled. A file that survives but isn't resumed is still a bug.
+    +5. **Check persisted state.** Confirm that the download's URL, expected size, and progress are saved somewhere the app reads on launch, not just held in memory.
+    +
+    +If you point me to the repo, or tell me the download feature's module or file names, I'll start there. If you can reproduce it, the app's log output during the kill and relaunch would also help narrow things down.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,16 @@
+    -Can you check whether the download resumes after a relaunch? I killed the app halfway through and I'm not sure the partial file survives. If it doesn't, that's a bug worth fixing before anything else.
+    +I can't tell yet. I haven't looked at the code or run the app, so I don't know whether the partial file survives a relaunch. I can find out if you point me at the repo, or you can run the check below.
+    +
+    +**Manual check:**
+    +1. Start a large download and wait until it's partway through.
+    +2. Find the partial file on disk. Look for a `.part`, `.tmp`, or `.download` file, or check the download directory.
+    +3. Force-quit the app and relaunch it.
+    +4. Check whether the partial file is still there and whether its size is still growing from where it stopped, or whether the download restarted from zero.
+    +
+    +**What to look for in the code:**
+    +- **Where partial data goes.** If it's written to a system temp directory, the OS may purge it.
+    +- **Cleanup on launch.** Any code that deletes temp or partial files at startup would destroy it.
+    +- **Resume support.** The request should send an HTTP `Range: bytes=N-` header, where N is the existing file size. Without it, the server sends the whole file again.
+    +- **Persisted state.** Resuming safely needs the URL, expected total size, and often an ETag or Last-Modified value stored somewhere that survives a restart. If that's missing, the app can't tell whether the partial file still matches the server's file.
+    +- **Validation.** If the file on the server changed, resuming can produce a corrupt file. The code should check the ETag or size before resuming.
+    +
+    +If you can share the download code, or tell me the directory to search, I'll trace the path from the download start through relaunch and tell you whether partial data survives. If it doesn't, I can also help write the fix.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,12 @@
+    -Can you check whether the download resumes after a relaunch? I killed the app halfway through and I'm not sure the partial file survives. If it doesn't, that's a bug worth fixing before anything else.
+    +I'll check this in the code. I haven't looked at the repo yet, so I don't know the answer.
+    +
+    +My plan:
+    +
+    +1. **Find the download code.** Search for terms like `download`, `resume`, `partial`, `.part`, `.tmp`, `Range`, and `URLSession` or `downloadTask`, depending on the stack.
+    +2. **Trace where partial data goes.** Check whether bytes are written to a temp or `.part` file, or only held in memory. If the data is only in memory, a kill loses it.
+    +3. **Check whether resume data is persisted.** Look for resume data, byte offsets, or ETags saved to disk, and whether they're reloaded on launch.
+    +4. **Check startup cleanup.** Look for code that deletes temp or partial files on launch, which would wipe a partial download even if it was saved.
+    +5. **Check the request on relaunch.** If a partial file and offset exist, confirm the request sends a `Range` header, and that the server's `206` response is appended to the file rather than overwriting it.
+    +6. **Check file integrity.** Make sure a partial file written during the kill isn't mistaken for a complete download.
+    +
+    +If you know the module or file where downloads are handled, tell me and I'll start there. Otherwise I'll search the repo. Once I have the code, I'll report whether resume works, and if it doesn't, what breaks and where, before proposing a fix.
+
+  layout-04 [layout, no-break, identifier] failed 6/6
+    raw: The transcript pipeline is the only caller of cleanup conditioning, so moving it is cheap. Do that first. Then the history feature can stop building one of its own
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The TranscriptPipeline is the only caller of CleanupConditioning, so moving it is cheap. Do that first. Then HistoryFeature can stop building one of its own.
+    +The transcript pipeline is the only caller of cleanup conditioning, so moving it is cheap. Do that first. Then the history feature can stop building one of its own.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The TranscriptPipeline is the only caller of CleanupConditioning, so moving it is cheap. Do that first. Then HistoryFeature can stop building one of its own.
+    +The TranscriptPipeline is the only caller of CleanupConditioning, so moving it is cheap. Do that first. Then the history feature can stop building one of its own.
+
+  layout-06 [layout, requested-break, spoken-punctuation] failed 6/6
+    raw: Here's the plan, new line. First, we fix the expectations, new line. Then we run the sweep, new line. Then we decide.
+    --- expect
+    +++ cleaned
+    @@ -1,4 +1,4 @@
+    -Here's the plan.
+    -First we fix the expectations.
+    -Then we run the sweep.
+    +Here's the plan
+    +First, we fix the expectations
+    +Then we run the sweep
+     Then we decide.
+    --- expect
+    +++ cleaned
+    @@ -1,4 +1,4 @@
+    -Here's the plan.
+    -First we fix the expectations.
+    -Then we run the sweep.
+    +Here's the plan,
+    +First, we fix the expectations,
+    +Then we run the sweep,
+     Then we decide.
+    --- expect
+    +++ cleaned
+    @@ -1,4 +1,4 @@
+     Here's the plan.
+    -First we fix the expectations.
+    +First, we fix the expectations.
+     Then we run the sweep.
+     Then we decide.
+
+  layout-07 [layout, requested-break, spoken-punctuation] failed 6/6
+    raw: I looked at the numbers again and the offline profile is fine as it stands. New paragraph. What worries me is the accuracy profile because it sends audio off the machine and nothing in the UI says so.
+    --- expect
+    +++ cleaned
+    @@ -1,3 +1,3 @@
+     I looked at the numbers again and the offline profile is fine as it stands.
+     
+    -What worries me is the accuracy profile, because it sends audio off the machine and nothing in the UI says so.
+    +What worries me is the accuracy profile because it sends audio off the machine and nothing in the UI says so.
+
+  layout-08 [layout, list] failed 6/6
+    raw: Three things I want in the pane. One, the picker. Two, the selected profile's details. Three, a place that says what's on disk and lets me delete it.
+    --- expect
+    +++ cleaned
+    @@ -1,5 +1 @@
+    -Three things I want in the pane:
+    -
+    -1. The picker
+    -2. The selected profile's details
+    -3. A place that says what's on disk and lets me delete it
+    +Three things I want in the pane. One, the picker. Two, the selected profile's details. Three, a place that says what's on disk and lets me delete it.
+
+  layout-09 [layout, no-break, numbers] failed 6/6
+    raw: The fast profile lands around 420 milliseconds, and the accurate one is closer to 2.5 seconds. That's a six times difference for two entries. I'd take the fast one for daily use.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The fast profile lands around 420 milliseconds and the accurate one is closer to 2.5 seconds. That's a 6x difference for two entries. I'd take the fast one for daily use.
+    +The fast profile lands around 420 milliseconds, and the accurate one is closer to 2.5 seconds. That's a six times difference for two entries. I'd take the fast one for daily use.
+
+  layout-10 [layout, no-break, long] failed 6/6
+    raw: So, the thing I keep running into is that when I dictate at a coding agent, the field context is empty because the prompt box is empty. That's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -So the thing I keep running into is that when I dictate at a coding agent the field context is empty, because the prompt box is empty. That's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.
+    +So, the thing I keep running into is that when I dictate at a coding agent, the field context is empty because the prompt box is empty. That's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.
+
+  layout-15 [layout, no-break, long, disfluency] failed 6/6
+    raw: I want to talk through the routing problem because I don't think either shape escapes it. If the provider pushes, we have to associate that process with whatever is frontmost, and that's not easy. If we pull at the end of the dictation, we know the frontmost app, but we still have to work out which process to ask. It's the same problem twice. That's why I think it needs a spike before it needs a design
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -I want to talk through the routing problem, because I don't think either shape escapes it. If the provider pushes, we have to associate that process with whatever is frontmost, and that's not easy. If we pull at the end of the dictation, we know the frontmost app but we still have to work out which process to ask. It's the same problem twice. That's why I think it needs a spike before it needs a design.
+    +I want to talk through the routing problem because I don't think either shape escapes it. If the provider pushes, we have to associate that process with whatever is frontmost, and that's not easy. If we pull at the end of the dictation, we know the frontmost app, but we still have to work out which process to ask. It's the same problem twice. That's why I think it needs a spike before it needs a design.
+
+  layout-16 [layout, requested-break, list] failed 6/6
+    raw: Reply with something like Thanks for the write-up, newline. I have two questions, new line. One, does the key survive a channel reset? And two, what happens when the endpoint is down?
+    --- expect
+    +++ cleaned
+    @@ -1,4 +1,4 @@
+    -Reply with something like: thanks for the writeup
+    -I have two questions
+    -1. Does the key survive a channel reset?
+    -2. What happens when the endpoint is down?
+    +Reply with something like Thanks for the write-up,
+    +I have two questions,
+    +One, does the key survive a channel reset?
+    +And two, what happens when the endpoint is down?
+    --- expect
+    +++ cleaned
+    @@ -1,4 +1,4 @@
+    -Reply with something like: thanks for the writeup
+    +Reply with something like Thanks for the write-up
+     I have two questions
+    -1. Does the key survive a channel reset?
+    -2. What happens when the endpoint is down?
+    +One, does the key survive a channel reset?
+    +And two, what happens when the endpoint is down?
+    --- expect
+    +++ cleaned
+    @@ -1,4 +1,3 @@
+    -Reply with something like: thanks for the writeup
+    +Reply with something like Thanks for the write-up
+     I have two questions
+    -1. Does the key survive a channel reset?
+    -2. What happens when the endpoint is down?
+    +One, does the key survive a channel reset? And two, what happens when the endpoint is down?
+    --- expect
+    +++ cleaned
+    @@ -1,4 +1,3 @@
+    -Reply with something like: thanks for the writeup
+    -I have two questions
+    -1. Does the key survive a channel reset?
+    -2. What happens when the endpoint is down?
+    +Reply with something like Thanks for the write-up,
+    +I have two questions,
+    +One, does the key survive a channel reset? And two, what happens when the endpoint is down?
+
+  layout-17 [layout, unspoken-break, long] failed 6/6
+    raw: Okay, so the picker question, I think we got with the row variant. The cards look better in isolation, but they eat 600 pixels before you see a single setting. And I'd rather compare taglines in a list than scroll. Separately, on the onboarding side, I don't love that the profile step pushes the download a page later. That's a real cost. I want to see what the welcome page looks like without a download button on it before I sign off on that
+    --- expect
+    +++ cleaned
+    @@ -1,3 +1,3 @@
+    -Okay, so the picker question: I think we go with the row variant. The cards look better in isolation but they eat 600 pixels before you see a single setting, and I'd rather compare taglines in a list than scroll.
+    +Okay, so the picker question, I think we got with the row variant. The cards look better in isolation, but they eat 600 pixels before you see a single setting. And I'd rather compare taglines in a list than scroll.
+     
+     Separately, on the onboarding side, I don't love that the profile step pushes the download a page later. That's a real cost. I want to see what the welcome page looks like without a download button on it before I sign off on that.
+    --- expect
+    +++ cleaned
+    @@ -1,3 +1 @@
+    -Okay, so the picker question: I think we go with the row variant. The cards look better in isolation but they eat 600 pixels before you see a single setting, and I'd rather compare taglines in a list than scroll.
+    -
+    -Separately, on the onboarding side, I don't love that the profile step pushes the download a page later. That's a real cost. I want to see what the welcome page looks like without a download button on it before I sign off on that.
+    +Okay, so the picker question, I think we got with the row variant. The cards look better in isolation, but they eat 600 pixels before you see a single setting. And I'd rather compare taglines in a list than scroll. Separately, on the onboarding side, I don't love that the profile step pushes the download a page later. That's a real cost. I want to see what the welcome page looks like without a download button on it before I sign off on that.
+
+  layout-18 [layout, unspoken-break, long] failed 6/6
+    raw: The retry logic needs to only fire on timeouts. Right now, it backs off on any error class at all, which means a 400 gets retried three times before we give up. And that's three seconds of nothing for a request that was never going to work. On a different note, I noticed the history pane is slow to open once you get past a few hundred entries. I don't know if that's the decoder or the list, but it's noticeable now in a way it wasn't last month.
+    --- expect
+    +++ cleaned
+    @@ -1,3 +1,3 @@
+    -The retry logic needs to only fire on timeouts. Right now it backs off on any error class at all, which means a 400 gets retried three times before we give up, and that's three seconds of nothing for a request that was never going to work.
+    +The retry logic needs to only fire on timeouts. Right now, it backs off on any error class at all, which means a 400 gets retried three times before we give up. And that's three seconds of nothing for a request that was never going to work.
+     
+    -On a different note, I noticed the History pane is slow to open once you get past a few hundred entries. I don't know if that's the decoder or the list, but it's noticeable now in a way it wasn't last month.
+    +On a different note, I noticed the history pane is slow to open once you get past a few hundred entries. I don't know if that's the decoder or the list, but it's noticeable now in a way it wasn't last month.
+    --- expect
+    +++ cleaned
+    @@ -1,3 +1 @@
+    -The retry logic needs to only fire on timeouts. Right now it backs off on any error class at all, which means a 400 gets retried three times before we give up, and that's three seconds of nothing for a request that was never going to work.
+    -
+    -On a different note, I noticed the History pane is slow to open once you get past a few hundred entries. I don't know if that's the decoder or the list, but it's noticeable now in a way it wasn't last month.
+    +The retry logic needs to only fire on timeouts. Right now, it backs off on any error class at all, which means a 400 gets retried three times before we give up. And that's three seconds of nothing for a request that was never going to work. On a different note, I noticed the history pane is slow to open once you get past a few hundred entries. I don't know if that's the decoder or the list, but it's noticeable now in a way it wasn't last month.
+
+  layout-19 [layout, unspoken-break, long] failed 6/6
+    raw: So, first thing, the model storage section should live at the bottom of the profiles pane, not in its own destination. It's four rows in a total. It doesn't earn a sidebar item. Second thing, and this one is less obvious to me. When you delete a model that a profile still needs, what happens? I think the profile goes to needs setup and dictation falls back to raw, but I want that written down somewhere before we build it. Third, can we make the delete button say how much space space it frees? I always want to know that before I press it
+    --- expect
+    +++ cleaned
+    @@ -1,5 +1,16 @@
+    -So first thing, the model storage section should live at the bottom of the Profiles pane, not in its own destination. It's four rows and a total, it doesn't earn a sidebar item.
+    +**1. Model storage at the bottom of the profiles pane:** Agreed. Four rows don't justify a sidebar destination. A section at the bottom of the profiles pane keeps the storage controls near the profiles that depend on them.
+     
+    -Second thing, and this one is less obvious to me, when you delete a model that a profile still needs, what happens? I think the profile goes to needs-setup and dictation falls back to raw, but I want that written down somewhere before we build it.
+    +**2. Deleting a model that a profile needs:** Nothing is written down yet, so here's a draft spec to confirm:
+     
+    -Third, can we make the Delete button say how much space it frees. I always want to know that before I press it.
+    +- **Confirmation:** Deleting a model that profiles depend on shows a confirmation that lists the affected profiles by name.
+    +- **Profile state:** On confirm, each affected profile moves to **Needs setup**. The profile's settings are kept, so re-downloading the model restores it without reconfiguration.
+    +- **Dictation fallback:** Dictation using a Needs-setup profile falls back to raw output. Before building this, decide what "raw" means. Is it the engine's unprocessed transcript, or the transcript with only basic cleanup? The answer changes what the user sees.
+    +- **Active use:** If a dictation is in progress with that model, block the delete until it finishes, or cancel the dictation. Don't pull the model out from under a running transcription.
+    +- **Visibility:** Needs-setup profiles should show a status reason ("Model deleted") and a path to fix it, so the fallback doesn't look like a silent failure.
+    +
+    +**3. Showing freed space on the delete button:** This is doable. Show it in the button label, for example "Delete (frees 1.4 GB)", and repeat it in the confirmation. Two things to get right:
+    +
+    +- **Measure actual bytes on disk,** not the size from the model catalog. Partial or failed downloads and extra files make the catalog number wrong.
+    +- **Count only bytes unique to that model.** If models share components, deleting one frees less than its total size. Showing the larger number would be wrong.
+    +
+    +If you tell me where the model storage code lives, I can check how models are stored and whether shared files exist, which determines how accurate the size figure can be.
+    --- expect
+    +++ cleaned
+    @@ -1,5 +1 @@
+    -So first thing, the model storage section should live at the bottom of the Profiles pane, not in its own destination. It's four rows and a total, it doesn't earn a sidebar item.
+    -
+    -Second thing, and this one is less obvious to me, when you delete a model that a profile still needs, what happens? I think the profile goes to needs-setup and dictation falls back to raw, but I want that written down somewhere before we build it.
+    -
+    -Third, can we make the Delete button say how much space it frees. I always want to know that before I press it.
+    +So, first thing, the model storage section should live at the bottom of the profiles pane, not in its own destination. It's four rows in a total. It doesn't earn a sidebar item. Second thing, and this one is less obvious to me. When you delete a model that a profile still needs, what happens? I think the profile goes to needs setup and dictation falls back to raw, but I want that written down somewhere before we build it. Third, can we make the delete button say how much space it frees? I always want to know that before I press it.
+
+  layout-20 [layout, unspoken-break, long] failed 6/6
+    raw: I've been daily driving the Cerebris profile for about two weeks now, and the latency is genuinely the thing that makes it usable. 400 milliseconds feels instant, 2.5 seconds does not. And I notice myself waiting during the second one. Anyway, what I actually wanted to ask about is a dictionary. I have maybe 40 terms in there, and I have no idea which ones are earning their place. Is there a way to see which terms actually fired on a given transcript?
+    --- expect
+    +++ cleaned
+    @@ -1,3 +1,3 @@
+    -I've been daily-driving the Cerebras profile for about two weeks now and the latency is genuinely the thing that makes it usable. 400 milliseconds feels instant, 2.5 seconds does not, and I notice myself waiting during the second one.
+    +I've been daily driving the Cerebris profile for about two weeks now, and the latency is genuinely the thing that makes it usable. 400 milliseconds feels instant, 2.5 seconds does not. And I notice myself waiting during the second one.
+     
+    -Anyway, what I actually wanted to ask about is the dictionary. I have maybe 40 terms in there and I have no idea which ones are earning their place. Is there a way to see which terms actually fired on a given transcript?
+    +Anyway, what I actually wanted to ask about is a dictionary. I have maybe 40 terms in there, and I have no idea which ones are earning their place. Is there a way to see which terms actually fired on a given transcript?
+    --- expect
+    +++ cleaned
+    @@ -1,3 +1,28 @@
+    -I've been daily-driving the Cerebras profile for about two weeks now and the latency is genuinely the thing that makes it usable. 400 milliseconds feels instant, 2.5 seconds does not, and I notice myself waiting during the second one.
+    +I don't know Cerebris's internals, so I can't point you to a built-in view. A few approaches should work, depending on what the tool records.
+     
+    -Anyway, what I actually wanted to ask about is the dictionary. I have maybe 40 terms in there and I have no idea which ones are earning their place. Is there a way to see which terms actually fired on a given transcript?
+    +**1. Check for a log of replacements.** Look in the profile's config or logs for a debug, verbose, or history option. If it stores raw engine output alongside the final text, or records which dictionary entries were applied, that's the easiest path.
+    +
+    +**2. Diff raw against final.** If you can get both versions of a transcript, a term "fired" when it appears in the final text but not the raw text, or when the final text contains its canonical spelling where the raw had a variant. A rough script:
+    +
+    +```python
+    +import json
+    +
+    +terms = [l.strip() for l in open("dictionary.txt") if l.strip()]
+    +counts = {t: 0 for t in terms}
+    +
+    +for line in open("transcripts.jsonl"):
+    +    rec = json.loads(line)
+    +    raw, final = rec["raw"], rec["final"]
+    +    for t in terms:
+    +        if t in final and t not in raw:
+    +            counts[t] += 1
+    +
+    +for t, n in sorted(counts.items(), key=lambda x: x[1]):
+    +    print(f"{n:4d}  {t}")
+    +```
+    +
+    +Terms with zero hits over a few hundred transcripts are candidates for removal. Adjust the matching if your dictionary stores misheard-to-correct pairs rather than bare terms.
+    +
+    +**3. Ablation.** Take a set of saved transcripts, run them through the pipeline with the full dictionary, then again with one entry removed, and see which outputs change. This is slower but measures each entry's actual effect, including cases where a term that rarely appears in raw text still corrects a frequent misrecognition.
+    +
+    +On latency: 40 dictionary entries should be cheap if matching is a simple lookup or string replacement. If the dictionary is included in a model prompt or used in a model-based correction step, though, it adds tokens on every request and could contribute to that 2.5-second wait. If you tell me how the dictionary is applied, or share the log format, I can help write a more specific script.
+
+  layout-21 [layout, no-break, long] failed 6/6
+    raw: The reason I keep coming back to the routing problem is that it doesn't get easier from either direction. If the provider pushes state, we have to associate that process with whatever is frontmost when the dictation lands, and a terminal emulator is frontmost for every pane it owns. If we pull at the end, we know the frontmost app, but we still have to pick which process to ask, which is the same question wearing a different hat. Even the accessibility tree doesn't help because a terminal exposes a grid of characters and not the program drawing them.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The reason I keep coming back to the routing problem is that it doesn't get easier from either direction. If the provider pushes state, we have to associate that process with whatever is frontmost when the dictation lands, and a terminal emulator is frontmost for every pane it owns. If we pull at the end, we know the frontmost app but we still have to pick which process to ask, which is the same question wearing a different hat. Even the accessibility tree doesn't help, because a terminal exposes a grid of characters and not the program drawing them.
+    +The reason I keep coming back to the routing problem is that it doesn't get easier from either direction. If the provider pushes state, we have to associate that process with whatever is frontmost when the dictation lands, and a terminal emulator is frontmost for every pane it owns. If we pull at the end, we know the frontmost app, but we still have to pick which process to ask, which is the same question wearing a different hat. Even the accessibility tree doesn't help because a terminal exposes a grid of characters and not the program drawing them.
+
+  layout-22 [layout, no-break, long] failed 6/6
+    raw: Let's talk about the gate for a second. 500 milliseconds of duration, then one classification at release, and the whole utterance either passes or doesn't. I like that it's one decision instead of a running judgment, because a running judgment would have to be right continuously, and this only has to be right once. The failure mode I worry about is a quiet speaker in a loud room where the duration floor passes and the classifier doesn't, and you get nothing with no explanation for why.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Let's talk about the gate for a second. 500 milliseconds of duration, then one classification at release, and the whole utterance either passes or it doesn't. I like that it's one decision instead of a running judgment, because a running judgment would have to be right continuously and this only has to be right once. The failure mode I worry about is a quiet speaker in a loud room, where the duration floor passes and the classifier doesn't, and you get nothing with no explanation for why.
+    +Let's talk about the gate for a second. 500 milliseconds of duration, then one classification at release, and the whole utterance either passes or doesn't. I like that it's one decision instead of a running judgment, because a running judgment would have to be right continuously, and this only has to be right once. The failure mode I worry about is a quiet speaker in a loud room where the duration floor passes and the classifier doesn't, and you get nothing with no explanation for why.

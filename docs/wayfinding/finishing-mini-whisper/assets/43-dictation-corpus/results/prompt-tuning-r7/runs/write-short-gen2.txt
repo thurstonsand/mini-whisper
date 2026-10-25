@@ -1,0 +1,55 @@
+Subscription: ChatGPT; proposer model gpt-5.6-sol; 18 calls
+r1: 393 words, kept on attempt 1
+r2: 369 words, kept on attempt 1
+r3: 353 words, kept on attempt 1
+r4: 332 words, kept on attempt 1
+Traceback (most recent call last):
+  File "/Users/thurstonsand/Develop/mini-whisper-haiku-5-5-tuning/docs/wayfinding/finishing-mini-whisper/assets/43-dictation-corpus/results/prompt-tuning-r7/./write_fresh.py", line 133, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/Users/thurstonsand/Develop/mini-whisper-haiku-5-5-tuning/docs/wayfinding/finishing-mini-whisper/assets/43-dictation-corpus/results/prompt-tuning-r7/./write_fresh.py", line 127, in main
+    for line in pool.map(write, jobs.items()):
+                ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/thurstonsand/.local/share/mise/installs/python/3.14.7/lib/python3.14/concurrent/futures/_base.py", line 645, in result_iterator
+    yield _result_or_cancel(fs.pop())
+          ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/Users/thurstonsand/.local/share/mise/installs/python/3.14.7/lib/python3.14/concurrent/futures/_base.py", line 312, in _result_or_cancel
+    return fut.result(timeout)
+           ~~~~~~~~~~^^^^^^^^^
+  File "/Users/thurstonsand/.local/share/mise/installs/python/3.14.7/lib/python3.14/concurrent/futures/_base.py", line 454, in result
+    return self.__get_result()
+           ~~~~~~~~~~~~~~~~~^^
+  File "/Users/thurstonsand/.local/share/mise/installs/python/3.14.7/lib/python3.14/concurrent/futures/_base.py", line 396, in __get_result
+    raise self._exception
+  File "/Users/thurstonsand/.local/share/mise/installs/python/3.14.7/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/Users/thurstonsand/.local/share/mise/installs/python/3.14.7/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "/Users/thurstonsand/Develop/mini-whisper-haiku-5-5-tuning/docs/wayfinding/finishing-mini-whisper/assets/43-dictation-corpus/results/prompt-tuning-r7/./write_fresh.py", line 117, in write
+    text = corpus_cleanup.shape(complete(*job)[0])
+                                ~~~~~~~~^^^^^^
+  File "/Users/thurstonsand/Develop/mini-whisper-haiku-5-5-tuning/docs/wayfinding/finishing-mini-whisper/assets/43-dictation-corpus/results/prompt-tuning-haiku/propose.py", line 122, in complete
+    for raw_line in response:
+                    ^^^^^^^^
+  File "/Users/thurstonsand/.local/share/mise/installs/python/3.14.7/lib/python3.14/http/client.py", line 727, in readline
+    return super().readline(limit)
+           ~~~~~~~~~~~~~~~~^^^^^^^
+  File "/Users/thurstonsand/.local/share/mise/installs/python/3.14.7/lib/python3.14/http/client.py", line 719, in peek
+    return self._peek_chunked(n)
+           ~~~~~~~~~~~~~~~~~~^^^
+  File "/Users/thurstonsand/.local/share/mise/installs/python/3.14.7/lib/python3.14/http/client.py", line 757, in _peek_chunked
+    chunk_left = self._get_chunk_left()
+  File "/Users/thurstonsand/.local/share/mise/installs/python/3.14.7/lib/python3.14/http/client.py", line 603, in _get_chunk_left
+    chunk_left = self._read_next_chunk_size()
+  File "/Users/thurstonsand/.local/share/mise/installs/python/3.14.7/lib/python3.14/http/client.py", line 554, in _read_next_chunk_size
+    line = self.fp.readline(_MAXLINE + 1)
+  File "/Users/thurstonsand/.local/share/mise/installs/python/3.14.7/lib/python3.14/socket.py", line 729, in readinto
+    return self._sock.recv_into(b)
+           ~~~~~~~~~~~~~~~~~~~~^^^
+  File "/Users/thurstonsand/.local/share/mise/installs/python/3.14.7/lib/python3.14/ssl.py", line 1316, in recv_into
+    return self.read(nbytes, buffer)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/Users/thurstonsand/.local/share/mise/installs/python/3.14.7/lib/python3.14/ssl.py", line 1150, in read
+    return self._sslobj.read(len, buffer)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+TimeoutError: The read operation timed out

@@ -1,0 +1,12 @@
+
+gen7-drop07  (claude-haiku-5-5)
+  bare-endings               rule 100.0%  exact  81.9%  0/24 variants never obeyed
+  dictionary-exactness       rule  80.6%  exact  73.6%  4/24 variants never obeyed
+  identifier-from-context    rule  95.4%  exact  67.6%  1/36 variants never obeyed
+  layout                     rule  87.5%  exact  76.4%  2/24 variants never obeyed
+  never-obey                 rule  86.1%  exact  80.6%  1/24 variants never obeyed
+  self-correction            rule  95.8%  exact  77.1%  0/48 variants never obeyed
+  spell-out                  rule  23.6%  exact  23.6%  16/24 variants never obeyed
+  spoken-punctuation         rule  93.1%  exact  90.3%  1/24 variants never obeyed
+  symbol-attachment          rule 100.0%  exact  97.2%  0/24 variants never obeyed
+  wrote /Users/thurstonsand/Develop/mini-whisper-haiku-5-5-tuning/docs/wayfinding/finishing-mini-whisper/assets/43-dictation-corpus/results/prompt-tuning-r7/runs/grid3/gen7-drop07.json

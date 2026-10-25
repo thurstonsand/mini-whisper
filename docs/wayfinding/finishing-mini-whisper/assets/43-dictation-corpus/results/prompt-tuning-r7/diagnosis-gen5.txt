@@ -1,0 +1,9 @@
+Measured on the frozen set, ten runs, with this prompt. The prompt's own examples did not transfer for the first three; the model passes the example's shape and fails the same rule elsewhere.
+
+- A sentence that introduces an email address still comes back as the address alone, ten runs of ten, even though the prompt shows that exact case. Paths and file names come back whole. The model seems to treat an address as the answer the user wants rather than as dictated text.
+- Spelling asides are still ignored ten runs of ten. When two letters are named, the aside stays word for word; when one letter is named, the aside is dropped and the word keeps the engine's spelling. The respelling never happens.
+- A pronoun-case slip in a compound subject is half fixed: the second pronoun is corrected and the first is left in object case.
+- A backtrack marked by a soft "actually no" that restarts a question was left unapplied in four runs of ten, cancelled words and all; once the model answered the question as an assistant instead.
+- A spoken period after a comma the engine printed is still kept as a word in half the runs where that shape occurs.
+- Once, the model wrote its draft, then a line saying it was not sure, then a second version, all in the reply.
+- A single spoken dash the engine printed before a flag name was dropped instead of becoming the flag's double dash.
