@@ -153,6 +153,32 @@ Behind the persona, the round's absolute, inert-source wording pulls 5.5 back to
 
 Neither transport is the app's request. The app sends our prompt as the system message straight to the model's endpoint, with no persona and no meta turn, and that is closer to the SDK's shape. So the proxy's numbers may overstate what ships, and the SDK's may understate it. A direct-API arm, the frozen 25 and the holdout at n=10 for both prompts, is about 800 calls of Haiku 5.5. That is the measurement that decides it. It is metered and was out of scope here.
 
+## On another engine's raw
+
+A profile pairs one engine with one prompt, so a prompt has to be judged on the raw it will receive. The [engine bakeoff](https://ampcode.com/threads/T-01a1600b-2fcf-71d0-bc3a-4744a5a663d5) now writes each engine's replay of the same four tuning inputs. Its first run put Cohere Transcribe at MLX 4-bit, Superwhisper's configuration, beside a same-session Parakeet v2 rerun, on branch `engine-bakeoff-harness` at `5b34175`. The fresh v2 raws are byte-identical to the ones every round has scored, so they serve as the control. The Cohere raws are copied into `engines/cohere-transcribe-4bit/`. Every arm below ran in one session on `proxy-haiku`, n=10, with all 27 frozen entries scored.
+
+| guard | v2, round 5 | v2, round 6 | Cohere, round 5 | Cohere, round 6 |
+| ----- | ----------: | ----------: | --------------: | --------------: |
+| frozen 25 | 9.70 | **15.50** | 7.70 | **13.80** |
+| `polish-11` and `polish-38` | 0/20 | 0/20 | 0/20 | 0/20 |
+| recorded holdout, 15 | 7.30 | **9.00** | 8.60 | **12.80** |
+| dictionary wants, three runs | | | 14, 14, 15 / 18 | 16, 16, 14 / 18 |
+| dictionary traps bitten | | | 0 | 0 |
+| layout no-break controls | | | 101/110 | **109/110** |
+| layout unspoken breaks | | | **40/40** | 35/40 |
+| layout requested breaks | | | 16/30 | **20/30** |
+
+**Round 6's gains are not Parakeet's.** On the frozen 25 the same-session gain is +5.80 on v2 and +6.10 on Cohere. On the holdout it is larger on Cohere, 8.60 → 12.80 against 7.30 → 9.00. The trade on the layout arm is the same as on v2: fewer spurious breaks, and `layout-19` merged by the two-sentences-a-side threshold.
+
+**The proxy moved between days.** The same v2 arms scored 7.65 and 14.00 in the confirmation above and 9.70 and 15.50 here; `polish-28` on round 5 went from 1/20 to 10/10. The delta held, and only same-session arms are compared.
+
+**Neither excluded entry comes back yet, for two different reasons.**
+
+- `polish-11` fails on its expectation, not the prompt. Cohere hears the quotation and both prompts return `She said, "It ships tonight."` in 10 of 10 runs; the expectation is `She said "it ships tonight."`. That is an adjudication question: the speaker dictated neither the comma nor the case.
+- `polish-38` fails on the prompt. Cohere hands it `My last name is Sandberg, S-A-N-D-B-E-R-G, period.` and both prompts return `Sandberg, S-A-N-D-B-E-R-G.` They extract the name and keep the hyphenated spelling, so it is the extraction behaviour and the spell-out gap together. It belongs in the next round's objective for engines that hear it.
+
+Cohere's raw changes what three more entries test. `polish-28`'s raw reads *write up home about ducks*, which is the engine's error and unreachable. `polish-29` and `polish-32` keep a trailing `, period` 10 and 8 times in 10 under round 6. That is a real prompt failure, and Cohere produces the shape far more often than v2: the spoken comma is already a comma and the spoken period follows it. `polish-01` fails on the comma Cohere puts after "So".
+
 ## What this round did not do
 
 - **No direct-API arm**, as above.
@@ -180,6 +206,12 @@ F=../prompt-tuning-r6/candidates/final-r6.txt O=../prompt-tuning-r6/runs/final
   --include-excluded --repeat 20 --output $O/layout20-final-r6.json
 for i in 1 2 3; do ./tune.py stage2 --prompt $F --output $O/stage2-final-r6-$i.jsonl; done
 ./perturb.py --prompt $F --repeat 10 --out $O/grid10
+
+# on another engine's raw: any replay of the same scripts, such as bakeoff.py writes
+CO=../prompt-tuning-r6/engines/cohere-transcribe-4bit
+./tune.py stage3 --prompt $F --raw $CO/stage3-raw.jsonl --include-excluded --repeat 10
+./tune.py stage3 --holdout --prompt $F --raw $CO/stage3-holdout-raw.jsonl --repeat 10
+./tune.py stage2 --prompt $F --raw $CO/stage2-bare.jsonl --output $O/stage2-cohere.jsonl
 
 # the second transport
 ./tune.py stage3 --provider sdk-haiku --model claude-haiku-5-5 --prompt $F --repeat 10

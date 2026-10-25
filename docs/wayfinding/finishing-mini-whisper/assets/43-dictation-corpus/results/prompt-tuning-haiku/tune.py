@@ -324,7 +324,7 @@ def run_stage3(args: argparse.Namespace) -> int:
 def run_stage2(args: argparse.Namespace) -> int:
     """The dictionary gate, in `asr-replay`'s shape so `score_corpus.py sweep` scores it."""
     prompt = prompt_text(args)
-    work = entries(STAGE2, STAGE2_RAW, keep_excluded=True)
+    work = entries(STAGE2, args.raw, keep_excluded=True)
     vocabulary: list[str] = []
     for entry in work:
         for term in entry.get("wants", []):
@@ -371,7 +371,13 @@ def arguments() -> argparse.Namespace:
     )
     stages.choices["stage3"].add_argument("--repeat", type=int, default=1)
     stages.choices["stage3"].add_argument("--entry", action="append")
-    stages.choices["stage3"].add_argument("--raw", type=Path, default=STAGE3_RAW)
+    stages.choices["stage3"].add_argument(
+        "--raw",
+        type=Path,
+        help="Another engine's replay of the same scripts, such as one `bakeoff.py` wrote. "
+        "Defaults to Parakeet's, for the frozen set or, with --holdout, the holdout.",
+    )
+    stages.choices["stage2"].add_argument("--raw", type=Path, default=STAGE2_RAW)
     stages.choices["stage3"].add_argument(
         "--script",
         type=Path,
@@ -382,7 +388,8 @@ def arguments() -> argparse.Namespace:
         "--holdout",
         action="store_const",
         const=True,
-        help="Shorthand for the recorded holdout's scripts and its Parakeet replays.",
+        help="Shorthand for the recorded holdout's scripts and, unless --raw names another "
+        "engine's, its Parakeet replays.",
     )
     stages.choices["stage3"].add_argument(
         "--include-excluded",
@@ -396,6 +403,10 @@ def arguments() -> argparse.Namespace:
 
 if __name__ == "__main__":
     args = arguments()
-    if getattr(args, "holdout", None):
-        args.script, args.raw = STAGE3_HOLDOUT, STAGE3_HOLDOUT_RAW
+    if args.command == "stage3":
+        if args.holdout:
+            args.script = STAGE3_HOLDOUT
+            args.raw = args.raw or STAGE3_HOLDOUT_RAW
+        else:
+            args.raw = args.raw or STAGE3_RAW
     raise SystemExit(args.run(args))

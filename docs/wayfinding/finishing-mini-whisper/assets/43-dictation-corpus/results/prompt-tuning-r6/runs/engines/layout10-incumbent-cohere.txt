@@ -1,0 +1,512 @@
+incumbent-cohere  claude-haiku-5-5  3/22 2/22 2/22 2/22 2/22 2/22 3/22 3/22 2/22 2/22  mean 2.30
+
+  layout-02 [layout, no-break, disfluency] failed 10/10
+    raw: Okay, so the picker is fine, but the details underneath it are doing too much. Let's pull the storage section out into its own thing. I don't want to scroll past four sections to find it.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Okay, so the picker is fine, but the details underneath it are doing too much. Let's pull the storage section out into its own thing. I don't want to scroll past four sections to find it.
+    +Pull the storage section out into its own thing. I don't want to scroll past four sections to find it.
+
+  layout-03 [layout, no-break] failed 10/10
+    raw: Can you check whether the download resumes after a relaunch? I killed the app halfway through, and I'm not sure the partial file survives. If it doesn't, that's a bug worth fixing before anything else.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Can you check whether the download resumes after a relaunch? I killed the app halfway through and I'm not sure the partial file survives. If it doesn't, that's a bug worth fixing before anything else.
+    +Can you check whether the download resumes after a relaunch? I killed the app halfway through, and I'm not sure the partial file survives. If it doesn't, that's a bug worth fixing before anything else.
+
+  layout-04 [layout, no-break, identifier] failed 10/10
+    raw: The transcript pipeline is the only caller of cleanup conditioning, so moving it is cheap. Do that first. Then the history feature can stop building one of its own.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The TranscriptPipeline is the only caller of CleanupConditioning, so moving it is cheap. Do that first. Then HistoryFeature can stop building one of its own.
+    +The TranscriptPipeline is the only caller of CleanupConditioning, so moving it is cheap. Do that first. Then the history feature can stop building one of its own.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The TranscriptPipeline is the only caller of CleanupConditioning, so moving it is cheap. Do that first. Then HistoryFeature can stop building one of its own.
+    +The transcript pipeline is the only caller of cleanup conditioning, so moving it is cheap. Do that first. Then the history feature can stop building one of its own.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,3 @@
+    -The TranscriptPipeline is the only caller of CleanupConditioning, so moving it is cheap. Do that first. Then HistoryFeature can stop building one of its own.
+    +The TranscriptPipeline is the only caller of CleanupConditioning, so moving it is cheap. Do that first.
+    +
+    +Then the history feature can stop building one of its own.
+
+  layout-05 [layout, no-break, self-correction] failed 10/10
+    raw: Let's ship the pop up variant. No, the row variant, because the tag lines actually get compared there. It costs more vertical space, but that's the trade. We can revisit if the lineup gets past five.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Let's ship the row variant, because the taglines actually get compared there. It costs more vertical space, but that's the trade. We can revisit if the lineup gets past five.
+    +Let's ship the row variant, because the tag lines actually get compared there. It costs more vertical space, but that's the trade. We can revisit if the lineup gets past five.
+
+  layout-06 [layout, requested-break, spoken-punctuation] failed 10/10
+    raw: Here is the plan. New line. First, we fix the expectations. New line. Then, we run the sweep. New line. Then, we decide.
+    --- expect
+    +++ cleaned
+    @@ -1,4 +1,7 @@
+     Here's the plan.
+    -First we fix the expectations.
+    -Then we run the sweep.
+    -Then we decide.
+    +
+    +First, we fix the expectations.
+    +
+    +Then, we run the sweep.
+    +
+    +Then, we decide.
+    --- expect
+    +++ cleaned
+    @@ -1,4 +1,4 @@
+    -Here's the plan.
+    -First we fix the expectations.
+    -Then we run the sweep.
+    -Then we decide.
+    +Here is the plan.
+    +First, we fix the expectations.
+    +Then, we run the sweep.
+    +Then, we decide.
+    --- expect
+    +++ cleaned
+    @@ -1,4 +1,3 @@
+    -Here's the plan.
+    -First we fix the expectations.
+    -Then we run the sweep.
+    -Then we decide.
+    +Here is the plan.
+    +
+    +First, we fix the expectations. Then, we run the sweep. Then, we decide.
+
+  layout-07 [layout, requested-break, spoken-punctuation] failed 10/10
+    raw: I looked at the numbers again, and the offline profile is fine as it stands. New paragraph. What worries me is the accuracy profile, because it sends audio off the machine, and nothing in the UI says so.
+    --- expect
+    +++ cleaned
+    @@ -1,3 +1,3 @@
+    -I looked at the numbers again and the offline profile is fine as it stands.
+    +The offline profile is fine as it stands.
+     
+    -What worries me is the accuracy profile, because it sends audio off the machine and nothing in the UI says so.
+    +What worries me is the accuracy profile, because it sends audio off the machine, and nothing in the UI says so.
+    --- expect
+    +++ cleaned
+    @@ -1,3 +1,3 @@
+    -I looked at the numbers again and the offline profile is fine as it stands.
+    +I looked at the numbers again, and the offline profile is fine as it stands.
+     
+    -What worries me is the accuracy profile, because it sends audio off the machine and nothing in the UI says so.
+    +What worries me is the accuracy profile, because it sends audio off the machine, and nothing in the UI says so.
+    --- expect
+    +++ cleaned
+    @@ -1,3 +1,3 @@
+    -I looked at the numbers again and the offline profile is fine as it stands.
+    +The offline profile is fine as it stands.
+     
+    -What worries me is the accuracy profile, because it sends audio off the machine and nothing in the UI says so.
+    +What worries me is the accuracy profile. It sends audio off the machine, and nothing in the UI says so.
+
+  layout-08 [layout, list] failed 10/10
+    raw: Three things I want in the pane. One, the picker. Two, the selected profile's details. Three, a place that says what's on disk and lets me delete it.
+    --- expect
+    +++ cleaned
+    @@ -1,5 +1 @@
+    -Three things I want in the pane:
+    -
+    -1. The picker
+    -2. The selected profile's details
+    -3. A place that says what's on disk and lets me delete it
+    +Three things I want in the pane. One, the picker. Two, the selected profile's details. Three, a place that says what's on disk and lets me delete it.
+    --- expect
+    +++ cleaned
+    @@ -1,5 +1,5 @@
+     Three things I want in the pane:
+     
+    -1. The picker
+    -2. The selected profile's details
+    -3. A place that says what's on disk and lets me delete it
+    +1. The picker.
+    +2. The selected profile's details.
+    +3. A place that says what's on disk and lets me delete it.
+
+  layout-09 [layout, no-break, numbers] failed 10/10
+    raw: The fast profile lands around 420 milliseconds, and the accurate one is closer to two and a half seconds. That's a six times difference for two entries. I'd take the fast one for daily use.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The fast profile lands around 420 milliseconds and the accurate one is closer to 2.5 seconds. That's a 6x difference for two entries. I'd take the fast one for daily use.
+    +The fast profile lands around 420 milliseconds, and the accurate one is closer to two and a half seconds. That's a six times difference for two entries. I'd take the fast one for daily use.
+
+  layout-10 [layout, no-break, long] failed 10/10
+    raw: So, the thing I keep running into is that when I dictate at a coding agent, the field context is empty because the prompt box is empty. That's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -So the thing I keep running into is that when I dictate at a coding agent the field context is empty, because the prompt box is empty. That's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.
+    +So, the thing I keep running into is that when I dictate at a coding agent, the field context is empty because the prompt box is empty. That's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -So the thing I keep running into is that when I dictate at a coding agent the field context is empty, because the prompt box is empty. That's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.
+    +The thing I keep running into is that when I dictate at a coding agent, the field context is empty because the prompt box is empty. That's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen. I think we fix it by letting the agent tell us.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -So the thing I keep running into is that when I dictate at a coding agent the field context is empty, because the prompt box is empty. That's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.
+    +So, the thing I keep running into is that when I dictate at a coding agent, the field context is empty because the prompt box is empty. That's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen. I think we fix it by letting the agent tell us.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,3 @@
+    -So the thing I keep running into is that when I dictate at a coding agent the field context is empty, because the prompt box is empty. That's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.
+    +The thing I keep running into is that when I dictate at a coding agent, the field context is empty because the prompt box is empty. That's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box, and the app can't see any of that.
+    +
+    +I don't think we fix it by reading the screen. I think we fix it by letting the agent tell us.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -So the thing I keep running into is that when I dictate at a coding agent the field context is empty, because the prompt box is empty. That's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.
+    +The thing I keep running into is that when I dictate at a coding agent, the field context is empty because the prompt box is empty. That's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box, and the app can't see any of that. I don't think we fix it by reading the screen. I think we fix it by letting the agent tell us.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,3 @@
+    -So the thing I keep running into is that when I dictate at a coding agent the field context is empty, because the prompt box is empty. That's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.
+    +The thing I keep running into is that when I dictate at a coding agent, the field context is empty because the prompt box is empty. That's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that.
+    +
+    +I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,3 @@
+    -So the thing I keep running into is that when I dictate at a coding agent the field context is empty, because the prompt box is empty. That's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.
+    +So, the thing I keep running into is that when I dictate at a coding agent, the field context is empty because the prompt box is empty. That's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that.
+    +
+    +I don't think we fix it by reading the screen. I think we fix it by letting the agent tell us.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -So the thing I keep running into is that when I dictate at a coding agent the field context is empty, because the prompt box is empty. That's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.
+    +The thing I keep running into is that when I dictate at a coding agent, the field context is empty because the prompt box is empty. That's the whole point of dictating into it. Everything that would actually disambiguate what I'm saying is in the conversation above the box. The app can't see any of that. I don't think we fix it by reading the screen, I think we fix it by letting the agent tell us.
+
+  layout-12 [layout, hesitation] failed 7/10
+    raw: The gate is 500 milliseconds of duration and then one classification at release.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The gate is 500 milliseconds of duration and then one classification at release.
+    +The gate lasts 500 milliseconds, and then there's one classification at release.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The gate is 500 milliseconds of duration and then one classification at release.
+    +The gate lasts 500 milliseconds, and then there is one classification at release.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The gate is 500 milliseconds of duration and then one classification at release.
+    +The gate lasts 500 milliseconds, then gets one classification at release.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The gate is 500 milliseconds of duration and then one classification at release.
+    +The gate is 500 milliseconds of duration, and then one classification at release.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The gate is 500 milliseconds of duration and then one classification at release.
+    +The gate lasts 500 milliseconds, and then one classification happens at release.
+
+  layout-13 [layout, hesitation, self-correction] failed 10/10
+    raw: Put it in the settings pane. No, the profiles pane, since that's where the models live now.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Put it in the Profiles pane, since that's where the models live now.
+    +Put it in the settings pane. Actually, the profiles pane, since that's where the models live now.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Put it in the Profiles pane, since that's where the models live now.
+    +Put it in the settings pane. Not the profiles pane, since that's where the models live now.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Put it in the Profiles pane, since that's where the models live now.
+    +Put it in the settings pane. No, the profiles pane, since that's where the models live now.
+
+  layout-14 [layout, no-break, rule] failed 10/10
+    raw: Write three sentences about why this matters, and put each one on its own line.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,3 @@
+    -Write three sentences about why this matters and put each one on its own line.
+    +Why this matters is worth stating clearly before anything else.
+    +It affects the people who depend on the outcome.
+    +Understanding the stakes helps us decide what to do next.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Write three sentences about why this matters and put each one on its own line.
+    +Why this matters is a question worth asking before anything else. The answer shapes what we do next and how much effort it deserves. Without knowing the stakes, we risk spending time on the wrong problem.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Write three sentences about why this matters and put each one on its own line.
+    +Why this matters is a question worth asking before anything else. The answer shapes how we prioritize our time and effort. Without a clear sense of purpose, even good work can drift toward things that don't count.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Write three sentences about why this matters and put each one on its own line.
+    +Why this matters is worth stating plainly. The reasons shape what we do next and who it affects. Keeping them in view helps us decide what deserves attention first.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,3 @@
+    -Write three sentences about why this matters and put each one on its own line.
+    +Why this matters is worth stating plainly.
+    +It shapes the decisions we make and the outcomes that follow from them.
+    +Understanding the reasons behind it helps us act with more clarity and purpose.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Write three sentences about why this matters and put each one on its own line.
+    +Why this matters is worth stating plainly. The reasons behind a task shape how carefully it gets done and what counts as success. Keeping those reasons in view makes it easier to notice when a result looks correct but misses the point.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,3 @@
+    -Write three sentences about why this matters and put each one on its own line.
+    +Why this matters is worth stating clearly because it shapes how people decide what to act on.
+    +It affects real outcomes, from the time and money people spend to the trust they place in the results.
+    +Keeping it in view helps ensure the effort goes toward what counts most.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Write three sentences about why this matters and put each one on its own line.
+    +Why this matters is worth stating plainly. The reasons behind a task shape how well the work gets done and whether the result is useful. Knowing the purpose lets us make better decisions when details are unclear.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,3 @@
+    -Write three sentences about why this matters and put each one on its own line.
+    +Why this matters is worth a moment's thought.
+    +It affects the decisions we make and the people those decisions reach.
+    +Taking the time to understand it now saves trouble and regret later.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Write three sentences about why this matters and put each one on its own line.
+    +Why this matters is worth stating plainly. The reasons shape how we act on the issue, and they determine what gets lost if we ignore it. Keeping those reasons in view helps us decide where to focus our effort.
+
+  layout-15 [layout, no-break, long, disfluency] failed 10/10
+    raw: I want to talk through the routing problem because I don't think either shape escapes it. If the provider pushes, we have to associate that process with whatever is frontmost, and that's not easy. If we pull at the end of the dictation, we know the frontmost app, but we still have to work out which process to ask. It's the same problem twice. That's why I think it needs a spike before it needs a design.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -I want to talk through the routing problem, because I don't think either shape escapes it. If the provider pushes, we have to associate that process with whatever is frontmost, and that's not easy. If we pull at the end of the dictation, we know the frontmost app but we still have to work out which process to ask. It's the same problem twice. That's why I think it needs a spike before it needs a design.
+    +I want to talk through the routing problem because I don't think either shape escapes it. If the provider pushes, we have to associate that process with whatever is frontmost, and that's not easy. If we pull at the end of the dictation, we know the frontmost app, but we still have to work out which process to ask. It's the same problem twice. That's why I think it needs a spike before it needs a design.
+
+  layout-16 [layout, requested-break, list] failed 10/10
+    raw: Reply with something like: Thanks for the write-up. New line. I have two questions. New line. One: Does the key survive a channel reset? And two: What happens when the endpoint is down?
+    --- expect
+    +++ cleaned
+    @@ -1,4 +1,3 @@
+    -Reply with something like: thanks for the writeup
+    -I have two questions
+    -1. Does the key survive a channel reset?
+    -2. What happens when the endpoint is down?
+    +Reply with something like: Thanks for the write-up.
+    +I have two questions.
+    +One: Does the key survive a channel reset? And two: What happens when the endpoint is down?
+    --- expect
+    +++ cleaned
+    @@ -1,4 +1,7 @@
+    -Reply with something like: thanks for the writeup
+    -I have two questions
+    -1. Does the key survive a channel reset?
+    -2. What happens when the endpoint is down?
+    +Thanks for the write-up.
+    +
+    +I have two questions.
+    +
+    +One: Does the key survive a channel reset?
+    +
+    +Two: What happens when the endpoint is down?
+    --- expect
+    +++ cleaned
+    @@ -1,4 +1,3 @@
+    -Reply with something like: thanks for the writeup
+    -I have two questions
+    -1. Does the key survive a channel reset?
+    -2. What happens when the endpoint is down?
+    +Thanks for the write-up.
+    +
+    +I have two questions. Does the key survive a channel reset? And what happens when the endpoint is down?
+    --- expect
+    +++ cleaned
+    @@ -1,4 +1,3 @@
+    -Reply with something like: thanks for the writeup
+    -I have two questions
+    -1. Does the key survive a channel reset?
+    -2. What happens when the endpoint is down?
+    +Thanks for the write-up.
+    +
+    +I have two questions. One: Does the key survive a channel reset? And two: What happens when the endpoint is down?
+
+  layout-17 [layout, unspoken-break, long] failed 10/10
+    raw: Okay, so the picker question I think we got with the row variant. The cards look better in isolation, but they eat 600 pixels before you see a single setting. And I'd rather compare taglines in a list than scroll. Separately, on the onboarding side, I don't love that the profile step pushes the download a page later. That's a real cost. I want to see what the welcome page looks like without a download button on it before I sign off on that.
+    --- expect
+    +++ cleaned
+    @@ -1,3 +1,3 @@
+    -Okay, so the picker question: I think we go with the row variant. The cards look better in isolation but they eat 600 pixels before you see a single setting, and I'd rather compare taglines in a list than scroll.
+    +So the picker question, I think we got with the row variant. The cards look better in isolation, but they eat 600 pixels before you see a single setting. And I'd rather compare taglines in a list than scroll.
+     
+     Separately, on the onboarding side, I don't love that the profile step pushes the download a page later. That's a real cost. I want to see what the welcome page looks like without a download button on it before I sign off on that.
+    --- expect
+    +++ cleaned
+    @@ -1,3 +1,3 @@
+    -Okay, so the picker question: I think we go with the row variant. The cards look better in isolation but they eat 600 pixels before you see a single setting, and I'd rather compare taglines in a list than scroll.
+    +The picker question I think we got with the row variant. The cards look better in isolation, but they eat 600 pixels before you see a single setting. And I'd rather compare taglines in a list than scroll.
+     
+     Separately, on the onboarding side, I don't love that the profile step pushes the download a page later. That's a real cost. I want to see what the welcome page looks like without a download button on it before I sign off on that.
+    --- expect
+    +++ cleaned
+    @@ -1,3 +1,3 @@
+    -Okay, so the picker question: I think we go with the row variant. The cards look better in isolation but they eat 600 pixels before you see a single setting, and I'd rather compare taglines in a list than scroll.
+    +Okay, so the picker question, I think we got with the row variant. The cards look better in isolation, but they eat 600 pixels before you see a single setting. And I'd rather compare taglines in a list than scroll.
+     
+     Separately, on the onboarding side, I don't love that the profile step pushes the download a page later. That's a real cost. I want to see what the welcome page looks like without a download button on it before I sign off on that.
+    --- expect
+    +++ cleaned
+    @@ -1,3 +1,3 @@
+    -Okay, so the picker question: I think we go with the row variant. The cards look better in isolation but they eat 600 pixels before you see a single setting, and I'd rather compare taglines in a list than scroll.
+    +Okay, so the picker question I think we got with the row variant. The cards look better in isolation, but they eat 600 pixels before you see a single setting. And I'd rather compare taglines in a list than scroll.
+     
+     Separately, on the onboarding side, I don't love that the profile step pushes the download a page later. That's a real cost. I want to see what the welcome page looks like without a download button on it before I sign off on that.
+
+  layout-18 [layout, unspoken-break, long] failed 10/10
+    raw: The retry logic needs to only fire on timeouts. Right now, it backs off on any error class at all, which means a 400 gets retried three times before we give up, and that's three seconds of nothing for a request that was never going to work. On a different note, I noticed the history pane is slow to open once you get past a few hundred entries. I don't know if that's the decoder or the list, but it's noticeable now in a way it wasn't last month.
+    --- expect
+    +++ cleaned
+    @@ -1,3 +1,3 @@
+    -The retry logic needs to only fire on timeouts. Right now it backs off on any error class at all, which means a 400 gets retried three times before we give up, and that's three seconds of nothing for a request that was never going to work.
+    +The retry logic needs to only fire on timeouts. Right now, it backs off on any error class at all, which means a 400 gets retried three times before we give up, and that's three seconds of nothing for a request that was never going to work.
+     
+    -On a different note, I noticed the History pane is slow to open once you get past a few hundred entries. I don't know if that's the decoder or the list, but it's noticeable now in a way it wasn't last month.
+    +On a different note, I noticed the history pane is slow to open once you get past a few hundred entries. I don't know if that's the decoder or the list, but it's noticeable now in a way it wasn't last month.
+
+  layout-19 [layout, unspoken-break, long] failed 10/10
+    raw: So, first thing, the model storage section should live at the bottom of the profiles pane, not in its own destination. It's four rows in total. It doesn't earn a sidebar item. Second thing, and this one is less obvious to me, when you delete a model that a profile still needs, what happens? I think the profile goes to needs setup and dictation falls back to raw, but I want that written down somewhere before we build it. Third, can we make the delete button say how much space it frees? I always want to know that before I press it.
+    --- expect
+    +++ cleaned
+    @@ -1,5 +1,5 @@
+    -So first thing, the model storage section should live at the bottom of the Profiles pane, not in its own destination. It's four rows and a total, it doesn't earn a sidebar item.
+    +So, first thing, the model storage section should live at the bottom of the profiles pane, not in its own destination. It's four rows in total. It doesn't earn a sidebar item.
+     
+    -Second thing, and this one is less obvious to me, when you delete a model that a profile still needs, what happens? I think the profile goes to needs-setup and dictation falls back to raw, but I want that written down somewhere before we build it.
+    +Second thing, and this one is less obvious to me, when you delete a model that a profile still needs, what happens? I think the profile goes to needs setup and dictation falls back to raw, but I want that written down somewhere before we build it.
+     
+    -Third, can we make the Delete button say how much space it frees. I always want to know that before I press it.
+    +Third, can we make the delete button say how much space it frees? I always want to know that before I press it.
+    --- expect
+    +++ cleaned
+    @@ -1,5 +1,5 @@
+    -So first thing, the model storage section should live at the bottom of the Profiles pane, not in its own destination. It's four rows and a total, it doesn't earn a sidebar item.
+    +First, the model storage section should live at the bottom of the profiles pane, not in its own destination. It's four rows in total. It doesn't earn a sidebar item.
+     
+    -Second thing, and this one is less obvious to me, when you delete a model that a profile still needs, what happens? I think the profile goes to needs-setup and dictation falls back to raw, but I want that written down somewhere before we build it.
+    +Second, and this one is less obvious to me, when you delete a model that a profile still needs, what happens? I think the profile goes to needs setup and dictation falls back to raw, but I want that written down somewhere before we build it.
+     
+    -Third, can we make the Delete button say how much space it frees. I always want to know that before I press it.
+    +Third, can we make the delete button say how much space it frees? I always want to know that before I press it.
+    --- expect
+    +++ cleaned
+    @@ -1,5 +1,5 @@
+    -So first thing, the model storage section should live at the bottom of the Profiles pane, not in its own destination. It's four rows and a total, it doesn't earn a sidebar item.
+    +First thing, the model storage section should live at the bottom of the profiles pane, not in its own destination. It's four rows in total. It doesn't earn a sidebar item.
+     
+    -Second thing, and this one is less obvious to me, when you delete a model that a profile still needs, what happens? I think the profile goes to needs-setup and dictation falls back to raw, but I want that written down somewhere before we build it.
+    +Second thing, and this one is less obvious to me, when you delete a model that a profile still needs, what happens? I think the profile goes to needs setup and dictation falls back to raw, but I want that written down somewhere before we build it.
+     
+    -Third, can we make the Delete button say how much space it frees. I always want to know that before I press it.
+    +Third, can we make the delete button say how much space it frees? I always want to know that before I press it.
+    --- expect
+    +++ cleaned
+    @@ -1,5 +1,5 @@
+    -So first thing, the model storage section should live at the bottom of the Profiles pane, not in its own destination. It's four rows and a total, it doesn't earn a sidebar item.
+    +First thing, the model storage section should live at the bottom of the profiles pane, not in its own destination. It's four rows in total. It doesn't earn a sidebar item.
+     
+    -Second thing, and this one is less obvious to me, when you delete a model that a profile still needs, what happens? I think the profile goes to needs-setup and dictation falls back to raw, but I want that written down somewhere before we build it.
+    +Second thing, and this one is less obvious to me: when you delete a model that a profile still needs, what happens? I think the profile goes to needs setup and dictation falls back to raw, but I want that written down somewhere before we build it.
+     
+    -Third, can we make the Delete button say how much space it frees. I always want to know that before I press it.
+    +Third, can we make the delete button say how much space it frees? I always want to know that before I press it.
+
+  layout-20 [layout, unspoken-break, long] failed 10/10
+    raw: I've been daily driving the Cerebrus profile for about two weeks now, and the latency is genuinely a thing that makes it usable. 400 milliseconds feels instant, two and a half seconds does not. And I noticed myself waiting during the second one. Anyway, what I actually wanted to ask about is a dictionary. I have maybe 40 terms in there, and I have no idea which ones are earning their place. Is there a way to see which terms actually fired on a given transcript?
+    --- expect
+    +++ cleaned
+    @@ -1,3 +1,3 @@
+    -I've been daily-driving the Cerebras profile for about two weeks now and the latency is genuinely the thing that makes it usable. 400 milliseconds feels instant, 2.5 seconds does not, and I notice myself waiting during the second one.
+    +I've been daily driving the Cerebrus profile for about two weeks now, and the latency is genuinely a thing that makes it usable. 400 milliseconds feels instant, two and a half seconds does not. And I noticed myself waiting during the second one.
+     
+    -Anyway, what I actually wanted to ask about is the dictionary. I have maybe 40 terms in there and I have no idea which ones are earning their place. Is there a way to see which terms actually fired on a given transcript?
+    +What I actually wanted to ask about is a dictionary. I have maybe 40 terms in there, and I have no idea which ones are earning their place. Is there a way to see which terms actually fired on a given transcript?
+    --- expect
+    +++ cleaned
+    @@ -1,3 +1,3 @@
+    -I've been daily-driving the Cerebras profile for about two weeks now and the latency is genuinely the thing that makes it usable. 400 milliseconds feels instant, 2.5 seconds does not, and I notice myself waiting during the second one.
+    +I've been daily driving the Cerebrus profile for about two weeks now, and the latency is genuinely a thing that makes it usable. 400 milliseconds feels instant, two and a half seconds does not. And I noticed myself waiting during the second one.
+     
+    -Anyway, what I actually wanted to ask about is the dictionary. I have maybe 40 terms in there and I have no idea which ones are earning their place. Is there a way to see which terms actually fired on a given transcript?
+    +Anyway, what I actually wanted to ask about is a dictionary. I have maybe 40 terms in there, and I have no idea which ones are earning their place. Is there a way to see which terms actually fired on a given transcript?
+
+  layout-21 [layout, no-break, long] failed 10/10
+    raw: The reason I keep coming back to the routing problem is that it doesn't get easier from either direction. If the provider pushes state, we have to associate that process with whatever is frontmost when the dictation lands, and a terminal emulator is frontmost for every pane it owns. If we pull at the end, we know the frontmost app, but we still have to pick which process to ask, which is the same question wearing a different hat. Even the accessibility tree doesn't help because a terminal at exposes a grid of characters and not the program drawing them.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,3 @@
+    -The reason I keep coming back to the routing problem is that it doesn't get easier from either direction. If the provider pushes state, we have to associate that process with whatever is frontmost when the dictation lands, and a terminal emulator is frontmost for every pane it owns. If we pull at the end, we know the frontmost app but we still have to pick which process to ask, which is the same question wearing a different hat. Even the accessibility tree doesn't help, because a terminal exposes a grid of characters and not the program drawing them.
+    +The reason I keep coming back to the routing problem is that it doesn't get easier from either direction.
+    +
+    +If the provider pushes state, we have to associate that process with whatever is frontmost when the dictation lands, and a terminal emulator is frontmost for every pane it owns. If we pull at the end, we know the frontmost app, but we still have to pick which process to ask, which is the same question wearing a different hat. Even the accessibility tree doesn't help, because a terminal exposes a grid of characters and not the program drawing them.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The reason I keep coming back to the routing problem is that it doesn't get easier from either direction. If the provider pushes state, we have to associate that process with whatever is frontmost when the dictation lands, and a terminal emulator is frontmost for every pane it owns. If we pull at the end, we know the frontmost app but we still have to pick which process to ask, which is the same question wearing a different hat. Even the accessibility tree doesn't help, because a terminal exposes a grid of characters and not the program drawing them.
+    +The reason I keep coming back to the routing problem is that it doesn't get easier from either direction. If the provider pushes state, we have to associate that process with whatever is frontmost when the dictation lands, and a terminal emulator is frontmost for every pane it owns. If we pull at the end, we know the frontmost app, but we still have to pick which process to ask, which is the same question wearing a different hat. Even the accessibility tree doesn't help because a terminal at exposes a grid of characters and not the program drawing them.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The reason I keep coming back to the routing problem is that it doesn't get easier from either direction. If the provider pushes state, we have to associate that process with whatever is frontmost when the dictation lands, and a terminal emulator is frontmost for every pane it owns. If we pull at the end, we know the frontmost app but we still have to pick which process to ask, which is the same question wearing a different hat. Even the accessibility tree doesn't help, because a terminal exposes a grid of characters and not the program drawing them.
+    +The reason I keep coming back to the routing problem is that it doesn't get easier from either direction. If the provider pushes state, we have to associate that process with whatever is frontmost when the dictation lands, and a terminal emulator is frontmost for every pane it owns. If we pull at the end, we know the frontmost app, but we still have to pick which process to ask, which is the same question wearing a different hat. Even the accessibility tree doesn't help because a terminal app exposes a grid of characters and not the program drawing them.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The reason I keep coming back to the routing problem is that it doesn't get easier from either direction. If the provider pushes state, we have to associate that process with whatever is frontmost when the dictation lands, and a terminal emulator is frontmost for every pane it owns. If we pull at the end, we know the frontmost app but we still have to pick which process to ask, which is the same question wearing a different hat. Even the accessibility tree doesn't help, because a terminal exposes a grid of characters and not the program drawing them.
+    +The reason I keep coming back to the routing problem is that it doesn't get easier from either direction. If the provider pushes state, we have to associate that process with whatever is frontmost when the dictation lands, and a terminal emulator is frontmost for every pane it owns. If we pull at the end, we know the frontmost app, but we still have to pick which process to ask, which is the same question wearing a different hat. Even the accessibility tree doesn't help because a terminal that exposes a grid of characters and not the program drawing them.
+
+  layout-22 [layout, no-break, long] failed 10/10
+    raw: Let's talk about the gate for a second. 500 milliseconds of duration, then one classification at release, and the whole utterance either passes or doesn't. I like that it's one decision instead of a running judgment because a running judgment would have to be right continuously, and this only has to be right once. The failure mode I worry about is a quiet speaker in a loud room where the duration floor passes and the classifier doesn't, and you get nothing with no explanation for why.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Let's talk about the gate for a second. 500 milliseconds of duration, then one classification at release, and the whole utterance either passes or it doesn't. I like that it's one decision instead of a running judgment, because a running judgment would have to be right continuously and this only has to be right once. The failure mode I worry about is a quiet speaker in a loud room, where the duration floor passes and the classifier doesn't, and you get nothing with no explanation for why.
+    +Let's talk about the gate for a second. 500 milliseconds of duration, then one classification at release, and the whole utterance either passes or doesn't. I like that it's one decision instead of a running judgment because a running judgment would have to be right continuously, and this only has to be right once. The failure mode I worry about is a quiet speaker in a loud room where the duration floor passes and the classifier doesn't, and you get nothing with no explanation for why.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Let's talk about the gate for a second. 500 milliseconds of duration, then one classification at release, and the whole utterance either passes or it doesn't. I like that it's one decision instead of a running judgment, because a running judgment would have to be right continuously and this only has to be right once. The failure mode I worry about is a quiet speaker in a loud room, where the duration floor passes and the classifier doesn't, and you get nothing with no explanation for why.
+    +Let's talk about the gate for a second. 500 milliseconds of duration, then one classification at release, and the whole utterance either passes or doesn't. I like that it's one decision instead of a running judgment, because a running judgment would have to be right continuously, and this only has to be right once. The failure mode I worry about is a quiet speaker in a loud room, where the duration floor passes and the classifier doesn't, and you get nothing with no explanation for why.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Let's talk about the gate for a second. 500 milliseconds of duration, then one classification at release, and the whole utterance either passes or it doesn't. I like that it's one decision instead of a running judgment, because a running judgment would have to be right continuously and this only has to be right once. The failure mode I worry about is a quiet speaker in a loud room, where the duration floor passes and the classifier doesn't, and you get nothing with no explanation for why.
+    +Let's talk about the gate for a second. 500 milliseconds of duration, then one classification at release, and the whole utterance either passes or doesn't. I like that it's one decision instead of a running judgment, because a running judgment would have to be right continuously, and this only has to be right once. The failure mode I worry about is a quiet speaker in a loud room where the duration floor passes and the classifier doesn't, and you get nothing, with no explanation for why.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Let's talk about the gate for a second. 500 milliseconds of duration, then one classification at release, and the whole utterance either passes or it doesn't. I like that it's one decision instead of a running judgment, because a running judgment would have to be right continuously and this only has to be right once. The failure mode I worry about is a quiet speaker in a loud room, where the duration floor passes and the classifier doesn't, and you get nothing with no explanation for why.
+    +Let's talk about the gate for a second. 500 milliseconds of duration, then one classification at release, and the whole utterance either passes or doesn't. I like that it's one decision instead of a running judgment, because a running judgment would have to be right continuously, and this only has to be right once. The failure mode I worry about is a quiet speaker in a loud room where the duration floor passes and the classifier doesn't, and you get nothing with no explanation for why.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Let's talk about the gate for a second. 500 milliseconds of duration, then one classification at release, and the whole utterance either passes or it doesn't. I like that it's one decision instead of a running judgment, because a running judgment would have to be right continuously and this only has to be right once. The failure mode I worry about is a quiet speaker in a loud room, where the duration floor passes and the classifier doesn't, and you get nothing with no explanation for why.
+    +Let's talk about the gate for a second. 500 milliseconds of duration, then one classification at release, and the whole utterance either passes or doesn't. I like that it's one decision instead of a running judgment, because a running judgment would have to be right continuously, and this only has to be right once. The failure mode I worry about is a quiet speaker in a loud room, where the duration floor passes and the classifier doesn't, and you get nothing, with no explanation for why.

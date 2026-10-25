@@ -1,0 +1,15 @@
+{"audioSeconds": 6.0881875, "id": "hpolish-01", "latencyMs": 124.45904198102653, "outcome": "transcript", "transcript": "So the deploy is. wait, actually, no. Hold off until the tests finish."}
+{"audioSeconds": 5.594875, "id": "hpolish-02", "latencyMs": 122.86350000067614, "outcome": "transcript", "transcript": "Run the linter with dash dash fix and commit the result, period."}
+{"audioSeconds": 5.696875, "id": "hpolish-03", "latencyMs": 104.30916599580087, "outcome": "transcript", "transcript": "Have retry queue call on failure with the last error period."}
+{"audioSeconds": 5.492875, "id": "hpolish-04", "latencyMs": 103.83491701213643, "outcome": "transcript", "transcript": "Send the invoice through zero with an X."}
+{"audioSeconds": 4.9995625, "id": "hpolish-05", "latencyMs": 103.6945000232663, "outcome": "transcript", "transcript": "Let's meet at 11:30 a.m. on June 9th, period."}
+{"audioSeconds": 4.1835625, "id": "hpolish-06", "latencyMs": 83.97966701886617, "outcome": "transcript", "transcript": "We should land the patch today."}
+{"audioSeconds": 3.69025, "id": "hpolish-07", "latencyMs": 82.05870899837464, "outcome": "transcript", "transcript": "Merge it tonight. Actually, no. Wait for CI."}
+{"audioSeconds": 4.6935625, "id": "hpolish-08", "latencyMs": 103.48333299043588, "outcome": "transcript", "transcript": "Add a comment there. Scratch that. Rename the variable instead."}
+{"audioSeconds": 4.8975625, "id": "hpolish-09", "latencyMs": 103.22887499933131, "outcome": "transcript", "transcript": "Put it in the utils folder, I mean the helpers folder."}
+{"audioSeconds": 5.492875, "id": "hpolish-10", "latencyMs": 104.76216598181054, "outcome": "transcript", "transcript": "So the fix is, hold on, just revert the last commit."}
+{"audioSeconds": 4.2855625, "id": "hpolish-11", "latencyMs": 84.50137497857213, "outcome": "transcript", "transcript": "Set the timeout to 30, no wait, 45 seconds."}
+{"audioSeconds": 5.492875, "id": "hpolish-12", "latencyMs": 123.14579199301079, "outcome": "transcript", "transcript": "The meeting is Tuesday, no Wednesday, no wait, Thursday."}
+{"audioSeconds": 6.9895, "id": "hpolish-13", "latencyMs": 126.29074999131262, "outcome": "transcript", "transcript": "Email Mia, that's M-I-A, no wait, email Mara about it."}
+{"audioSeconds": 5.798875, "id": "hpolish-14", "latencyMs": 104.58145901793614, "outcome": "transcript", "transcript": "Send the report to Dana by Friday."}
+{"audioSeconds": 6.1901875, "id": "hpolish-15", "latencyMs": 124.3442909908481, "outcome": "transcript", "transcript": "Run it with dash dash force. Actually, run it plain first."}
