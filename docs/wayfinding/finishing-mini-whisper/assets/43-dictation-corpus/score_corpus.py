@@ -111,9 +111,9 @@ def latency_summary(values: list[float]) -> dict[str, float]:
     }
 
 
-def score_stage1(args: argparse.Namespace) -> dict[str, Any]:
-    scripts = by_id(load_jsonl(args.stage))
-    results = load_jsonl(args.results)
+def stage1_report(
+    scripts: dict[str, dict[str, Any]], results: list[dict[str, Any]]
+) -> dict[str, Any]:
     rows = []
     for result in results:
         reference = normalize(scripts[result["id"]]["say"])
@@ -138,7 +138,7 @@ def score_stage1(args: argparse.Namespace) -> dict[str, Any]:
     errors = sum(
         row["substitutions"] + row["deletions"] + row["insertions"] for row in rows
     )
-    report = {
+    return {
         "stage": "stage1-intelligibility",
         "entries": len(rows),
         "words": words,
@@ -150,6 +150,11 @@ def score_stage1(args: argparse.Namespace) -> dict[str, Any]:
         "latency": latency_summary([row["latencyMs"] for row in rows]),
         "entriesByWer": sorted(rows, key=lambda row: -row["wer"]),
     }
+
+
+def score_stage1(args: argparse.Namespace) -> dict[str, Any]:
+    report = stage1_report(by_id(load_jsonl(args.stage)), load_jsonl(args.results))
+    words = report["words"]
 
     print(
         f"Stage 1 — intelligibility ({report['entries']} entries, {words} reference words)"

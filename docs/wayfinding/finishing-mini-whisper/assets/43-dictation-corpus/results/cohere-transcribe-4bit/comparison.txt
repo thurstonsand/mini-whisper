@@ -1,0 +1,72 @@
+                                      parakeet-v2                          cohere-transcribe-4bit            
+Stage 1 WER                           1.95% (4S 0D 0I / 205)               3.41% (6S 1D 0I / 205)            
+Stage 1 holdout WER                   2.46% (3S 0D 0I / 122)               2.46% (3S 0D 0I / 122)            
+Longform WER                          8.11% (10S 9D 27I / 567)             6.88% (10S 9D 20I / 567)          
+Field cases WER (say seeded from v2)  0.38% (0S 0D 1I / 265)               0.75% (1S 1D 0I / 265)            
+Stage 3 raw vs verbatim say           12.88% (11S 26D 1I / 295)            10.85% (10S 20D 2I / 295)         
+Stage 3 holdout raw vs say            10.06% (7S 6D 3I / 159)              11.95% (7S 11D 1I / 159)          
+Stage 3 layout raw vs say             3.66% (23S 16D 1I / 1094)            3.56% (19S 16D 4I / 1094)         
+Stage 2 bare                          5/18 wants · 0/8 traps               5/18 wants · 0/8 traps            
+Stage 2 boosted                       16/18 wants · 5/8 traps              —                                 
+Stage 2 holdout bare                  5/10 wants · 0/6 traps               4/10 wants · 0/6 traps            
+Stage 2 holdout boosted               9/10 wants · 0/6 traps               —                                 
+Boost overhead (median)               +112.6 ms                            —                                 
+Seam fixtures                         0 dup · 0 dropped · 15/1005 changed  0 dup · 0 dropped · 34/999 changed
+Latency stage 1 med/p90/max           39.2 / 40.4 / 49.9 ms                81.9 / 104.1 / 127.7 ms           
+Latency stage 3 med/p90/max           40.9 / 42.3 / 74.7 ms                84.7 / 123.2 / 330.0 ms           
+Latency longform med/p90/max          103.5 / 136.6 / 144.1 ms             631.1 / 806.0 / 807.2 ms          
+Latency seam med/p90/max              157.9 / 205.8 / 219.0 ms             859.6 / 1135.7 / 1210.9 ms        
+Real-time factor, stage 1             85x                                  39x                               
+Real-time factor, longform            339x                                 63x                               
+Model on disk                         464 MB                               1510 MB                           
+Download                              15.4 s                               already installed                 
+First process load                    23.81 s                              0.72 s                            
+Warm load (median)                    0.291 s                              0.737 s                           
+Peak replay RSS                       953.4 MiB                            1624.6 MiB                        
+
+stage1: where the engines differ
+  confusable-01
+             parakeet-v2: their car is parked over there and they're already late
+    cohere-transcribe-4bit: [their car is → the car's] parked over there and they're already late
+  confusable-05
+             parakeet-v2: the site cited on the sign was quite a sight
+    cohere-transcribe-4bit: the [site cited → sight sighted] on the sign was quite a sight
+  confusable-18
+             parakeet-v2: a weak reference won't survive the [week → weak]
+    cohere-transcribe-4bit: a weak reference won't survive the week
+  confusable-19
+             parakeet-v2: the [daemon → demon] process haunted him like a demon
+    cohere-transcribe-4bit: the daemon process haunted him like a demon
+
+field-cases: where the engines differ
+  field-01
+             parakeet-v2: i think one thing i notice is that i'm actually unable to disable the dictionary improved speech mm sidecar model but still pass the dictionary values through to the llm like it's either both or none and obviously i'd probably prefer it to be just to the llm i suspect this is going to happen naturally as part of the rewrite here so if so don't worry about it i just wanted to call out that i noticed that behavior in the current build
+    cohere-transcribe-4bit: i think one thing i [notice → noticed] is that i'm actually unable to disable the dictionary improved speech [-mm] sidecar model but still pass the dictionary values through to the llm like it's either both or none and obviously i'd probably prefer it to be just to the llm i suspect this is going to happen naturally as part of the rewrite here so if so don't worry about it i just wanted to call out that i noticed that behavior in the current build
+  field-03
+             parakeet-v2: i also notice one of the transcription things there is mm sidecar model i'm not sure where that's coming from so i definitely want to capture that as well this is actually good [+f] field data for our prompt tuning stuff
+    cohere-transcribe-4bit: i also notice one of the transcription things there is mm sidecar model i'm not sure where that's coming from so i definitely want to capture that as well this is actually good field data for our prompt tuning stuff
+
+stage2-bare: where the engines differ
+  dict-10 want Zigbee
+             parakeet-v2: no     The sensor bridges over Zigby to the hub.
+    cohere-transcribe-4bit: hit    The sensor bridges over Zigbee to the hub.
+  dict-14 want Homebrew
+             parakeet-v2: hit    Install the cask through Homebrew.
+    cohere-transcribe-4bit: no     Install the cask through homebrew.
+
+stage2-holdout-bare: where the engines differ
+  hdict-01 want Homebrew
+             parakeet-v2: hit    Point Homebrew at the private tap before installing.
+    cohere-transcribe-4bit: no     Point homebrew at the private tap before installing.
+  hdict-02 want Zigbee
+             parakeet-v2: no     Zigby dropped off the mesh again overnight
+    cohere-transcribe-4bit: hit    Zigbee dropped off the mesh again overnight.
+  hdict-04 want MiniWhisper
+             parakeet-v2: hit    MiniWhisper prewarms the model during onboarding.
+    cohere-transcribe-4bit: no     Minnie Whisper prewarms the model during onboarding.
+  hdict-05 want SwiftUI
+             parakeet-v2: hit    The pill is playing SwiftUI over an AppKit panel.
+    cohere-transcribe-4bit: no     The pill is playing Swift UI over an Apex panel.
+  hdict-08 want llama.cpp
+             parakeet-v2: no     Serve it with llama. cpp on port eight three one seven
+    cohere-transcribe-4bit: hit    Survey with llama.cpp on port 8317.

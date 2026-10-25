@@ -10,6 +10,7 @@ One microphone (built-in), one voice, every run on the same recordings. Each sub
 | **Parakeet TDT v2 (shipping)**       | 1.95%     | 55 ms       | [built-in](built-in/)                                       |
 | FluidAudio + Parakeet TDT v3         | 2.93%     | 55.4 ms     | [fluid-parakeet-v3](fluid-parakeet-v3/)                     |
 | Cohere Transcribe (mlx-audio)        | 3.41%     | 97 ms       | [cohere-transcribe](cohere-transcribe/)                     |
+| Cohere Transcribe, MLX 4-bit         | 3.41%     | 82 ms\*     | [cohere-transcribe-4bit](cohere-transcribe-4bit/)           |
 | Groq whisper-large-v3-turbo (hosted) | 3.41%     | 523 ms      | [groq-whisper-large-v3-turbo](groq-whisper-large-v3-turbo/) |
 | whisper large-v3-turbo               | 3.90%     | 487 ms      | [whisper-large-v3-turbo](whisper-large-v3-turbo/)           |
 | whisper medium.en                    | 3.90%     | 422 ms      | [whisper-medium-en](whisper-medium-en/)                     |
@@ -17,6 +18,8 @@ One microphone (built-in), one voice, every run on the same recordings. Each sub
 | Voz + Parakeet TDT v3                | 5.85%     | **52.5 ms** | [voz](voz/)                                                 |
 
 Hosted latencies are network round trips measured from this machine, not provider inference time — network-dependent, and re-measure before betting on them.
+
+\* Superwhisper's configuration on a community 4-bit conversion, against a same-session v2 at 39 ms. Quantizing costs no accuracy here, and Cohere beats v2 on long-form (6.88% vs 8.11%), but it is twice as slow per dictation, six times slower on half a minute of audio, and peaks at 1.6 GiB.
 
 **Scribe v2 is the first engine to beat Parakeet on accuracy**, at half the error rate, and it wins every e2e cleanup column except s1-mini's. It costs 583 ms more per utterance, a network, and an account. Parakeet remains the only engine that is free, offline, and instant. Groq's whisper is the same weights as the local whisper at the same speed — hosting whisper buys nothing on an M4 Pro. Gemini-as-engine is the slowest by an order of magnitude and paraphrases what it hears. Voz is the fastest and the least accurate: the same Parakeet v3 weights FluidAudio runs at 2.93%, compressed onto Desert Ant's runtime, clip final words and lose another three points for a 3 ms gain.
 

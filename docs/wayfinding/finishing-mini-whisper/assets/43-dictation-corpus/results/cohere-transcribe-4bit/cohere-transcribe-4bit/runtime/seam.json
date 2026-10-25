@@ -1,0 +1,8 @@
+{
+  "entries": 6,
+  "identity": "lyzgeorge/cohere-transcribe-03-2026-mlx-4bit@f2f6d89b1a300c51f48ae1ecb8523dbb58636cb0",
+  "loadSeconds": 1.1439305839885492,
+  "modelBytes": 1509986631,
+  "peakResidentBytes": 1703542784,
+  "stage": "seam-fixtures.jsonl"
+}

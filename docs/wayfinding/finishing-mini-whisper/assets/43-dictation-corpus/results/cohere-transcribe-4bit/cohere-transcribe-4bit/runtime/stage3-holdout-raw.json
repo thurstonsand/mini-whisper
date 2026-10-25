@@ -1,0 +1,8 @@
+{
+  "entries": 15,
+  "identity": "lyzgeorge/cohere-transcribe-03-2026-mlx-4bit@f2f6d89b1a300c51f48ae1ecb8523dbb58636cb0",
+  "loadSeconds": 0.7370476250071079,
+  "modelBytes": 1509986631,
+  "peakResidentBytes": 1663713280,
+  "stage": "stage3-holdout.jsonl"
+}
