@@ -1,0 +1,5 @@
+Subscription: ChatGPT; proposer model gpt-5.6-sol; 12 calls
+typing-commands-1: section 65 words, prompt 812, kept on attempt 1
+typing-commands-2: section 57 words, prompt 804, kept on attempt 1
+typing-commands-3: section 59 words, prompt 806, kept on attempt 1
+typing-commands-4: section 57 words, prompt 804, kept on attempt 1

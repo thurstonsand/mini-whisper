@@ -24,6 +24,7 @@ compared on the same final text.
 from __future__ import annotations
 
 import argparse
+from collections.abc import Callable
 from difflib import unified_diff
 import json
 import os
@@ -186,6 +187,8 @@ def complete(
     timeout: float,
     extra_body: dict[str, Any],
     retries: int,
+    *,
+    on_usage: Callable[[dict[str, Any]], None] | None = None,
 ) -> tuple[str, float, float]:
     """The app's request body exactly: model, messages, stream=false. No temperature or token cap,
     so the measured latency is the latency the pipeline would see. `extra_body` exists for the one
@@ -193,7 +196,8 @@ def complete(
 
     Returns the content, the latency of the request that answered, and the seconds spent waiting
     out rate limits. A free tier that throttles is a throughput fact, not a latency one, so the
-    two are never mixed into one number."""
+    two are never mixed into one number. `on_usage` receives the response's `usage` object, for a
+    caller that has to account for what the call cost."""
     body = json.dumps(
         {
             "model": model,
@@ -240,6 +244,8 @@ def complete(
             time.sleep(delay)
             throttled += delay
     elapsed = time.perf_counter() - started
+    if on_usage:
+        on_usage(response["usage"])
     content = response["choices"][0]["message"]["content"]
     if not isinstance(content, str):
         raise ValueError("chat-completion content is not a string")

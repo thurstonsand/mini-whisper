@@ -1,0 +1,17 @@
+judge-calibration.jsonl: 72 pairs, 8 accepts
+  sol            agree 71/72  kappa  0.93  false accepts 1  false rejects 0
+  jev single    0.3 agree 54/72  kappa  0.36  false accepts 18  false rejects 0
+  jev checklist 0.3 agree 64/72  kappa  0.00  false accepts 0  false rejects 8
+  jev single    0.5 agree 61/72  kappa  0.52  false accepts 11  false rejects 0
+  jev checklist 0.5 agree 63/72  kappa -0.03  false accepts 1  false rejects 8
+  jev single    0.7 agree 64/72  kappa  0.58  false accepts 7  false rejects 1
+  jev checklist 0.7 agree 62/72  kappa  0.10  false accepts 3  false rejects 7
+judge-heldout.jsonl: 33 pairs, 1 accepts
+  sol            agree 33/33  kappa  1.00  false accepts 0  false rejects 0
+  jev single    0.3 agree 25/33  kappa  0.15  false accepts 8  false rejects 0
+  jev checklist 0.3 agree 32/33  kappa  0.00  false accepts 0  false rejects 1
+  jev single    0.5 agree 29/33  kappa  0.30  false accepts 4  false rejects 0
+  jev checklist 0.5 agree 33/33  kappa  1.00  false accepts 0  false rejects 0
+  jev single    0.7 agree 32/33  kappa  0.65  false accepts 1  false rejects 0
+  jev checklist 0.7 agree 31/33  kappa  0.48  false accepts 2  false rejects 0
+Jev: 105 calls, 88362 input tokens, $0.0037 reported

@@ -1,0 +1,7 @@
+Subscription: ChatGPT; proposer model gpt-5.6-sol; 18 calls
+paragraphs-topic-1: section 106 words, prompt 801, kept on attempt 1
+paragraphs-topic-2: section 103 words, prompt 798, kept on attempt 1
+paragraphs-topic-3: section 104 words, prompt 799, kept on attempt 1
+paragraphs-topic-4: section 101 words, prompt 796, kept on attempt 1
+paragraphs-topic-5: section 99 words, prompt 794, kept on attempt 1
+paragraphs-topic-6: section 110 words, prompt 805, kept on attempt 1

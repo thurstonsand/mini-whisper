@@ -1,0 +1,739 @@
+{
+  "prompt": "/Users/thurstonsand/Develop/mini-whisper-haiku-5-5-tuning/docs/wayfinding/finishing-mini-whisper/assets/43-dictation-corpus/results/prompt-tuning-r8/candidates/s-typing-commands/typing-commands-2.txt",
+  "additionalInstructions": null,
+  "provider": "anthropic-api",
+  "model": "claude-haiku-5-5",
+  "repeat": 3,
+  "summary": {
+    "spoken-punctuation": {
+      "runs": 72,
+      "variants": 24,
+      "exactRate": 1.0,
+      "ruleRate": 1.0,
+      "everObeyed": 24,
+      "neverObeyed": 0
+    }
+  },
+  "rows": [
+    {
+      "id": "punct-00",
+      "rule": "spoken-punctuation",
+      "attempt": 0,
+      "raw": "First comma hoist the load to your left shoulder period.",
+      "expect": "First, hoist the load to your left shoulder.",
+      "cleaned": "First, hoist the load to your left shoulder.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-01",
+      "rule": "spoken-punctuation",
+      "attempt": 0,
+      "raw": "Take the winding path to reach the lake question mark",
+      "expect": "Take the winding path to reach the lake?",
+      "cleaned": "Take the winding path to reach the lake?",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-02",
+      "rule": "spoken-punctuation",
+      "attempt": 0,
+      "raw": "Here is the note colon note closely the size of the gas tank period.",
+      "expect": "Here is the note: note closely the size of the gas tank.",
+      "cleaned": "Here is the note: note closely the size of the gas tank.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-03",
+      "rule": "spoken-punctuation",
+      "attempt": 0,
+      "raw": "Careful semicolon wipe the grease off his dirty face period.",
+      "expect": "Careful; wipe the grease off his dirty face.",
+      "cleaned": "Careful; wipe the grease off his dirty face.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-04",
+      "rule": "spoken-punctuation",
+      "attempt": 0,
+      "raw": "Mend the coat before you go out exclamation point",
+      "expect": "Mend the coat before you go out!",
+      "cleaned": "Mend the coat before you go out!",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-05",
+      "rule": "spoken-punctuation",
+      "attempt": 0,
+      "raw": "Note new line The wrist was badly strained and hung limp period.",
+      "expect": "Note\nThe wrist was badly strained and hung limp.",
+      "cleaned": "Note\nThe wrist was badly strained and hung limp.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-06",
+      "rule": "spoken-punctuation",
+      "attempt": 0,
+      "raw": "Reminder new paragraph The stray cat gave birth to kittens period.",
+      "expect": "Reminder\n\nThe stray cat gave birth to kittens.",
+      "cleaned": "Reminder\n\nThe stray cat gave birth to kittens.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-07",
+      "rule": "spoken-punctuation",
+      "attempt": 0,
+      "raw": "Also comma the young girl gave no clear response full stop.",
+      "expect": "Also, the young girl gave no clear response.",
+      "cleaned": "Also, the young girl gave no clear response.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-08",
+      "rule": "spoken-punctuation",
+      "attempt": 0,
+      "raw": "First comma the meal was cooked before the bell rang period.",
+      "expect": "First, the meal was cooked before the bell rang.",
+      "cleaned": "First, the meal was cooked before the bell rang.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-09",
+      "rule": "spoken-punctuation",
+      "attempt": 0,
+      "raw": "What joy there is in living question mark",
+      "expect": "What joy there is in living?",
+      "cleaned": "What joy there is in living?",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-10",
+      "rule": "spoken-punctuation",
+      "attempt": 0,
+      "raw": "Here is the note colon a king ruled the state in the early days period.",
+      "expect": "Here is the note: a king ruled the state in the early days.",
+      "cleaned": "Here is the note: a king ruled the state in the early days.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-11",
+      "rule": "spoken-punctuation",
+      "attempt": 0,
+      "raw": "Careful semicolon the ship was torn apart on the sharp reef period.",
+      "expect": "Careful; the ship was torn apart on the sharp reef.",
+      "cleaned": "Careful; the ship was torn apart on the sharp reef.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-12",
+      "rule": "spoken-punctuation",
+      "attempt": 0,
+      "raw": "Sickness kept him home the third week exclamation point",
+      "expect": "Sickness kept him home the third week!",
+      "cleaned": "Sickness kept him home the third week!",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-13",
+      "rule": "spoken-punctuation",
+      "attempt": 0,
+      "raw": "Note new line The wide road shimmered in the hot sun period.",
+      "expect": "Note\nThe wide road shimmered in the hot sun.",
+      "cleaned": "Note\nThe wide road shimmered in the hot sun.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-14",
+      "rule": "spoken-punctuation",
+      "attempt": 0,
+      "raw": "Reminder new paragraph The lazy cow lay in the cool grass period.",
+      "expect": "Reminder\n\nThe lazy cow lay in the cool grass.",
+      "cleaned": "Reminder\n\nThe lazy cow lay in the cool grass.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-15",
+      "rule": "spoken-punctuation",
+      "attempt": 0,
+      "raw": "Also comma lift the square stone over the fence full stop.",
+      "expect": "Also, lift the square stone over the fence.",
+      "cleaned": "Also, lift the square stone over the fence.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-16",
+      "rule": "spoken-punctuation",
+      "attempt": 0,
+      "raw": "First comma the rope will bind the seven books at once period.",
+      "expect": "First, the rope will bind the seven books at once.",
+      "cleaned": "First, the rope will bind the seven books at once.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-17",
+      "rule": "spoken-punctuation",
+      "attempt": 0,
+      "raw": "Hop over the fence and plunge in question mark",
+      "expect": "Hop over the fence and plunge in?",
+      "cleaned": "Hop over the fence and plunge in?",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-18",
+      "rule": "spoken-punctuation",
+      "attempt": 0,
+      "raw": "Here is the note colon the friendly gang left the drug store period.",
+      "expect": "Here is the note: the friendly gang left the drug store.",
+      "cleaned": "Here is the note: the friendly gang left the drug store.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-19",
+      "rule": "spoken-punctuation",
+      "attempt": 0,
+      "raw": "Careful semicolon mesh wire keeps chicks inside period.",
+      "expect": "Careful; mesh wire keeps chicks inside.",
+      "cleaned": "Careful; mesh wire keeps chicks inside.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-20",
+      "rule": "spoken-punctuation",
+      "attempt": 0,
+      "raw": "The frosty air passed through the coat exclamation point",
+      "expect": "The frosty air passed through the coat!",
+      "cleaned": "The frosty air passed through the coat!",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-21",
+      "rule": "spoken-punctuation",
+      "attempt": 0,
+      "raw": "Note new line The crooked maze failed to fool the mouse period.",
+      "expect": "Note\nThe crooked maze failed to fool the mouse.",
+      "cleaned": "Note\nThe crooked maze failed to fool the mouse.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-22",
+      "rule": "spoken-punctuation",
+      "attempt": 0,
+      "raw": "Reminder new paragraph Adding fast leads to wrong sums period.",
+      "expect": "Reminder\n\nAdding fast leads to wrong sums.",
+      "cleaned": "Reminder\n\nAdding fast leads to wrong sums.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-23",
+      "rule": "spoken-punctuation",
+      "attempt": 0,
+      "raw": "Also comma the show was a flop from the very start full stop.",
+      "expect": "Also, the show was a flop from the very start.",
+      "cleaned": "Also, the show was a flop from the very start.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-00",
+      "rule": "spoken-punctuation",
+      "attempt": 1,
+      "raw": "First comma hoist the load to your left shoulder period.",
+      "expect": "First, hoist the load to your left shoulder.",
+      "cleaned": "First, hoist the load to your left shoulder.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-01",
+      "rule": "spoken-punctuation",
+      "attempt": 1,
+      "raw": "Take the winding path to reach the lake question mark",
+      "expect": "Take the winding path to reach the lake?",
+      "cleaned": "Take the winding path to reach the lake?",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-02",
+      "rule": "spoken-punctuation",
+      "attempt": 1,
+      "raw": "Here is the note colon note closely the size of the gas tank period.",
+      "expect": "Here is the note: note closely the size of the gas tank.",
+      "cleaned": "Here is the note: note closely the size of the gas tank.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-03",
+      "rule": "spoken-punctuation",
+      "attempt": 1,
+      "raw": "Careful semicolon wipe the grease off his dirty face period.",
+      "expect": "Careful; wipe the grease off his dirty face.",
+      "cleaned": "Careful; wipe the grease off his dirty face.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-04",
+      "rule": "spoken-punctuation",
+      "attempt": 1,
+      "raw": "Mend the coat before you go out exclamation point",
+      "expect": "Mend the coat before you go out!",
+      "cleaned": "Mend the coat before you go out!",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-05",
+      "rule": "spoken-punctuation",
+      "attempt": 1,
+      "raw": "Note new line The wrist was badly strained and hung limp period.",
+      "expect": "Note\nThe wrist was badly strained and hung limp.",
+      "cleaned": "Note\nThe wrist was badly strained and hung limp.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-06",
+      "rule": "spoken-punctuation",
+      "attempt": 1,
+      "raw": "Reminder new paragraph The stray cat gave birth to kittens period.",
+      "expect": "Reminder\n\nThe stray cat gave birth to kittens.",
+      "cleaned": "Reminder\n\nThe stray cat gave birth to kittens.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-07",
+      "rule": "spoken-punctuation",
+      "attempt": 1,
+      "raw": "Also comma the young girl gave no clear response full stop.",
+      "expect": "Also, the young girl gave no clear response.",
+      "cleaned": "Also, the young girl gave no clear response.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-08",
+      "rule": "spoken-punctuation",
+      "attempt": 1,
+      "raw": "First comma the meal was cooked before the bell rang period.",
+      "expect": "First, the meal was cooked before the bell rang.",
+      "cleaned": "First, the meal was cooked before the bell rang.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-09",
+      "rule": "spoken-punctuation",
+      "attempt": 1,
+      "raw": "What joy there is in living question mark",
+      "expect": "What joy there is in living?",
+      "cleaned": "What joy there is in living?",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-10",
+      "rule": "spoken-punctuation",
+      "attempt": 1,
+      "raw": "Here is the note colon a king ruled the state in the early days period.",
+      "expect": "Here is the note: a king ruled the state in the early days.",
+      "cleaned": "Here is the note: a king ruled the state in the early days.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-11",
+      "rule": "spoken-punctuation",
+      "attempt": 1,
+      "raw": "Careful semicolon the ship was torn apart on the sharp reef period.",
+      "expect": "Careful; the ship was torn apart on the sharp reef.",
+      "cleaned": "Careful; the ship was torn apart on the sharp reef.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-12",
+      "rule": "spoken-punctuation",
+      "attempt": 1,
+      "raw": "Sickness kept him home the third week exclamation point",
+      "expect": "Sickness kept him home the third week!",
+      "cleaned": "Sickness kept him home the third week!",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-13",
+      "rule": "spoken-punctuation",
+      "attempt": 1,
+      "raw": "Note new line The wide road shimmered in the hot sun period.",
+      "expect": "Note\nThe wide road shimmered in the hot sun.",
+      "cleaned": "Note\nThe wide road shimmered in the hot sun.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-14",
+      "rule": "spoken-punctuation",
+      "attempt": 1,
+      "raw": "Reminder new paragraph The lazy cow lay in the cool grass period.",
+      "expect": "Reminder\n\nThe lazy cow lay in the cool grass.",
+      "cleaned": "Reminder\n\nThe lazy cow lay in the cool grass.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-15",
+      "rule": "spoken-punctuation",
+      "attempt": 1,
+      "raw": "Also comma lift the square stone over the fence full stop.",
+      "expect": "Also, lift the square stone over the fence.",
+      "cleaned": "Also, lift the square stone over the fence.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-16",
+      "rule": "spoken-punctuation",
+      "attempt": 1,
+      "raw": "First comma the rope will bind the seven books at once period.",
+      "expect": "First, the rope will bind the seven books at once.",
+      "cleaned": "First, the rope will bind the seven books at once.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-17",
+      "rule": "spoken-punctuation",
+      "attempt": 1,
+      "raw": "Hop over the fence and plunge in question mark",
+      "expect": "Hop over the fence and plunge in?",
+      "cleaned": "Hop over the fence and plunge in?",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-18",
+      "rule": "spoken-punctuation",
+      "attempt": 1,
+      "raw": "Here is the note colon the friendly gang left the drug store period.",
+      "expect": "Here is the note: the friendly gang left the drug store.",
+      "cleaned": "Here is the note: the friendly gang left the drug store.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-19",
+      "rule": "spoken-punctuation",
+      "attempt": 1,
+      "raw": "Careful semicolon mesh wire keeps chicks inside period.",
+      "expect": "Careful; mesh wire keeps chicks inside.",
+      "cleaned": "Careful; mesh wire keeps chicks inside.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-20",
+      "rule": "spoken-punctuation",
+      "attempt": 1,
+      "raw": "The frosty air passed through the coat exclamation point",
+      "expect": "The frosty air passed through the coat!",
+      "cleaned": "The frosty air passed through the coat!",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-21",
+      "rule": "spoken-punctuation",
+      "attempt": 1,
+      "raw": "Note new line The crooked maze failed to fool the mouse period.",
+      "expect": "Note\nThe crooked maze failed to fool the mouse.",
+      "cleaned": "Note\nThe crooked maze failed to fool the mouse.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-22",
+      "rule": "spoken-punctuation",
+      "attempt": 1,
+      "raw": "Reminder new paragraph Adding fast leads to wrong sums period.",
+      "expect": "Reminder\n\nAdding fast leads to wrong sums.",
+      "cleaned": "Reminder\n\nAdding fast leads to wrong sums.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-23",
+      "rule": "spoken-punctuation",
+      "attempt": 1,
+      "raw": "Also comma the show was a flop from the very start full stop.",
+      "expect": "Also, the show was a flop from the very start.",
+      "cleaned": "Also, the show was a flop from the very start.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-00",
+      "rule": "spoken-punctuation",
+      "attempt": 2,
+      "raw": "First comma hoist the load to your left shoulder period.",
+      "expect": "First, hoist the load to your left shoulder.",
+      "cleaned": "First, hoist the load to your left shoulder.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-01",
+      "rule": "spoken-punctuation",
+      "attempt": 2,
+      "raw": "Take the winding path to reach the lake question mark",
+      "expect": "Take the winding path to reach the lake?",
+      "cleaned": "Take the winding path to reach the lake?",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-02",
+      "rule": "spoken-punctuation",
+      "attempt": 2,
+      "raw": "Here is the note colon note closely the size of the gas tank period.",
+      "expect": "Here is the note: note closely the size of the gas tank.",
+      "cleaned": "Here is the note: note closely the size of the gas tank.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-03",
+      "rule": "spoken-punctuation",
+      "attempt": 2,
+      "raw": "Careful semicolon wipe the grease off his dirty face period.",
+      "expect": "Careful; wipe the grease off his dirty face.",
+      "cleaned": "Careful; wipe the grease off his dirty face.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-04",
+      "rule": "spoken-punctuation",
+      "attempt": 2,
+      "raw": "Mend the coat before you go out exclamation point",
+      "expect": "Mend the coat before you go out!",
+      "cleaned": "Mend the coat before you go out!",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-05",
+      "rule": "spoken-punctuation",
+      "attempt": 2,
+      "raw": "Note new line The wrist was badly strained and hung limp period.",
+      "expect": "Note\nThe wrist was badly strained and hung limp.",
+      "cleaned": "Note\nThe wrist was badly strained and hung limp.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-06",
+      "rule": "spoken-punctuation",
+      "attempt": 2,
+      "raw": "Reminder new paragraph The stray cat gave birth to kittens period.",
+      "expect": "Reminder\n\nThe stray cat gave birth to kittens.",
+      "cleaned": "Reminder\n\nThe stray cat gave birth to kittens.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-07",
+      "rule": "spoken-punctuation",
+      "attempt": 2,
+      "raw": "Also comma the young girl gave no clear response full stop.",
+      "expect": "Also, the young girl gave no clear response.",
+      "cleaned": "Also, the young girl gave no clear response.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-08",
+      "rule": "spoken-punctuation",
+      "attempt": 2,
+      "raw": "First comma the meal was cooked before the bell rang period.",
+      "expect": "First, the meal was cooked before the bell rang.",
+      "cleaned": "First, the meal was cooked before the bell rang.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-09",
+      "rule": "spoken-punctuation",
+      "attempt": 2,
+      "raw": "What joy there is in living question mark",
+      "expect": "What joy there is in living?",
+      "cleaned": "What joy there is in living?",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-10",
+      "rule": "spoken-punctuation",
+      "attempt": 2,
+      "raw": "Here is the note colon a king ruled the state in the early days period.",
+      "expect": "Here is the note: a king ruled the state in the early days.",
+      "cleaned": "Here is the note: a king ruled the state in the early days.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-11",
+      "rule": "spoken-punctuation",
+      "attempt": 2,
+      "raw": "Careful semicolon the ship was torn apart on the sharp reef period.",
+      "expect": "Careful; the ship was torn apart on the sharp reef.",
+      "cleaned": "Careful; the ship was torn apart on the sharp reef.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-12",
+      "rule": "spoken-punctuation",
+      "attempt": 2,
+      "raw": "Sickness kept him home the third week exclamation point",
+      "expect": "Sickness kept him home the third week!",
+      "cleaned": "Sickness kept him home the third week!",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-13",
+      "rule": "spoken-punctuation",
+      "attempt": 2,
+      "raw": "Note new line The wide road shimmered in the hot sun period.",
+      "expect": "Note\nThe wide road shimmered in the hot sun.",
+      "cleaned": "Note\nThe wide road shimmered in the hot sun.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-14",
+      "rule": "spoken-punctuation",
+      "attempt": 2,
+      "raw": "Reminder new paragraph The lazy cow lay in the cool grass period.",
+      "expect": "Reminder\n\nThe lazy cow lay in the cool grass.",
+      "cleaned": "Reminder\n\nThe lazy cow lay in the cool grass.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-15",
+      "rule": "spoken-punctuation",
+      "attempt": 2,
+      "raw": "Also comma lift the square stone over the fence full stop.",
+      "expect": "Also, lift the square stone over the fence.",
+      "cleaned": "Also, lift the square stone over the fence.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-16",
+      "rule": "spoken-punctuation",
+      "attempt": 2,
+      "raw": "First comma the rope will bind the seven books at once period.",
+      "expect": "First, the rope will bind the seven books at once.",
+      "cleaned": "First, the rope will bind the seven books at once.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-17",
+      "rule": "spoken-punctuation",
+      "attempt": 2,
+      "raw": "Hop over the fence and plunge in question mark",
+      "expect": "Hop over the fence and plunge in?",
+      "cleaned": "Hop over the fence and plunge in?",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-18",
+      "rule": "spoken-punctuation",
+      "attempt": 2,
+      "raw": "Here is the note colon the friendly gang left the drug store period.",
+      "expect": "Here is the note: the friendly gang left the drug store.",
+      "cleaned": "Here is the note: the friendly gang left the drug store.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-19",
+      "rule": "spoken-punctuation",
+      "attempt": 2,
+      "raw": "Careful semicolon mesh wire keeps chicks inside period.",
+      "expect": "Careful; mesh wire keeps chicks inside.",
+      "cleaned": "Careful; mesh wire keeps chicks inside.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-20",
+      "rule": "spoken-punctuation",
+      "attempt": 2,
+      "raw": "The frosty air passed through the coat exclamation point",
+      "expect": "The frosty air passed through the coat!",
+      "cleaned": "The frosty air passed through the coat!",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-21",
+      "rule": "spoken-punctuation",
+      "attempt": 2,
+      "raw": "Note new line The crooked maze failed to fool the mouse period.",
+      "expect": "Note\nThe crooked maze failed to fool the mouse.",
+      "cleaned": "Note\nThe crooked maze failed to fool the mouse.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-22",
+      "rule": "spoken-punctuation",
+      "attempt": 2,
+      "raw": "Reminder new paragraph Adding fast leads to wrong sums period.",
+      "expect": "Reminder\n\nAdding fast leads to wrong sums.",
+      "cleaned": "Reminder\n\nAdding fast leads to wrong sums.",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "punct-23",
+      "rule": "spoken-punctuation",
+      "attempt": 2,
+      "raw": "Also comma the show was a flop from the very start full stop.",
+      "expect": "Also, the show was a flop from the very start.",
+      "cleaned": "Also, the show was a flop from the very start.",
+      "match": true,
+      "obeyed": true
+    }
+  ]
+}

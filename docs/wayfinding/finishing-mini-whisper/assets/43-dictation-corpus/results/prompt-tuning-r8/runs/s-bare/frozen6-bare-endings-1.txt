@@ -1,0 +1,112 @@
+METERED: 150 calls to claude-haiku-5-5 via anthropic-api
+SPENT: 150 calls, 297282 in + 16271 out tokens, $0.0379 at list price
+Subscription: ChatGPT; proposer model gpt-5.6-sol; 6 calls
+bare-endings-1  claude-haiku-5-5  judged 22/25 20/25 22/25 20/25 20/25 20/25  mean 20.67  (exact 19/25 18/25 20/25 19/25 19/25 18/25  mean 18.83)
+
+  polish-03 [disfluency, self-correction] failed 3/6
+    raw: The meeting is on Tuesday - I mean Wednesday - at three
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The meeting is on Wednesday at three.
+    +The meeting is on Wednesday at 3:00.
+
+  polish-15 [symbols, path] failed 4/6
+    raw: Look in slash user slash local slash bin period
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Look in /usr/local/bin.
+    +Look in /user/local/bin.
+
+  polish-20 [identifier, context] failed 6/6
+    raw: Bump max retry count to 5, period.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Bump maxRetryCount to five.
+    +Bump max retry count to 5.
+
+  polish-30 [rule, bare-ending] failed 6/6
+    raw: And then we could maybe
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -and then we could maybe
+    +And then we could maybe
+
+  polish-36 [capstone, disfluency, symbols, identifier, context] failed 6/6
+    raw: Okay, so take the retry logic and move it into the client period. Then run the tests with - filter cleanup, and if the um if the timeout one still fails, comma, bump, give up after to twenty seconds, period.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Okay so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    +Okay, so take the retry logic and move it into the client. Then run the tests with -filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Okay so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    +Okay, so take the retry logic and move it into the client. Then run the tests with -filter cleanup, and if the timeout one still fails, bump, give up after to twenty seconds.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Okay so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    +Okay, so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump, give up after to twenty seconds.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Okay so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    +Okay, so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+
+  polish-37 [spell-out, disambiguation] failed 6/6
+    raw: The fast tier runs on Grok with a Q period.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The fast tier runs on Groq.
+    +The fast tier runs on Grok with a Q.
+
+  polish-39 [spell-out, construction] failed 6/6
+    raw: Her name is Katherine with a K and a Y.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,7 @@
+    -Her name is Kathryn.
+    +Spelling aside: "Katherine" with a K and a Y. The modified word is "Katherine"; the letters to replace are the "K" sound at the start... Per the rule, "with C and Y" inserts CY in that order, and the aside is deleted after the word is changed.
+    +
+    +Applying the rule: the modified word is "Katherine," and the named letters are K and Y, so the word becomes "KYatherine"? That would alter an unrelated letter, which the rule forbids. The rule says to replace the corresponding sound or letters, often the ending. The matching sound for "Katherine" is the "Kath" sound, so the replacement is "KY" in place of "Kath"? That would give "KYerine," which is not a sound-matching change either.
+    +
+    +The most faithful reading: the spoken aside names the letters K and Y for the name's spelling, so the entire word is respelled letter by letter as "KY," replacing the heard form, since the aside indicates a full spelling of the name.
+    +
+    +Her name is KY.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Her name is Kathryn.
+    +Her name is Kyatherine.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Her name is Kathryn.
+    +Her name is Kathy.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,7 @@
+    -Her name is Kathryn.
+    +Her name is Katharyn.
+    +
+    +Wait, let me apply the spelling aside correctly. The spelling aside says "with a K and a Y" in relation to the word "Katherine," which is the modified word. The instruction says to replace the corresponding sound or letters, often the ending, with the named letters in order. "Katherine" ends in "-ine," and the aside asks for K and Y, so the respelling replaces the ending to produce "Katherkiy"... but the more natural reading is that the first letter sound is "K" and the ending sound is "Y," so the name is spelled with K and Y as its distinguishing letters.
+    +
+    +Final output:
+    +
+    +Her name is Katheriny.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Her name is Kathryn.
+    +Her name is Katheryn.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Her name is Kathryn.
+    +Her name is Katherky.

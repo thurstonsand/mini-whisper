@@ -1,0 +1,9 @@
+METERED: 24 calls to claude-haiku-5-5 via anthropic-api
+SPENT: 24 calls, 44824 in + 2218 out tokens, $0.0056 at list price
+Wrote /Users/thurstonsand/Develop/mini-whisper-haiku-5-5-tuning/docs/wayfinding/finishing-mini-whisper/assets/43-dictation-corpus/results/prompt-tuning-r8/runs/confirm/stage2-gen7-747-1.jsonl
+METERED: 24 calls to claude-haiku-5-5 via anthropic-api
+SPENT: 24 calls, 44824 in + 2154 out tokens, $0.0056 at list price
+Wrote /Users/thurstonsand/Develop/mini-whisper-haiku-5-5-tuning/docs/wayfinding/finishing-mini-whisper/assets/43-dictation-corpus/results/prompt-tuning-r8/runs/confirm/stage2-gen7-747-2.jsonl
+METERED: 24 calls to claude-haiku-5-5 via anthropic-api
+SPENT: 24 calls, 44824 in + 2369 out tokens, $0.0057 at list price
+Wrote /Users/thurstonsand/Develop/mini-whisper-haiku-5-5-tuning/docs/wayfinding/finishing-mini-whisper/assets/43-dictation-corpus/results/prompt-tuning-r8/runs/confirm/stage2-gen7-747-3.jsonl

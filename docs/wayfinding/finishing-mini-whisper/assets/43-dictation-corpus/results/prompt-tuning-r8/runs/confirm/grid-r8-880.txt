@@ -1,0 +1,14 @@
+METERED: 2520 calls to claude-haiku-5-5 via anthropic-api
+
+r8-880  (claude-haiku-5-5)
+  bare-endings               rule  99.6%  exact  77.5%  0/24 variants never obeyed
+  dictionary-exactness       rule  85.0%  exact  85.0%  2/24 variants never obeyed
+  identifier-from-context    rule 100.0%  exact  98.9%  0/36 variants never obeyed
+  layout                     rule  95.8%  exact  89.6%  1/24 variants never obeyed
+  never-obey                 rule  99.6%  exact  96.2%  0/24 variants never obeyed
+  self-correction            rule  95.4%  exact  83.1%  1/48 variants never obeyed
+  spell-out                  rule  70.4%  exact  69.2%  0/24 variants never obeyed
+  spoken-punctuation         rule  94.6%  exact  94.2%  0/24 variants never obeyed
+  symbol-attachment          rule 100.0%  exact 100.0%  0/24 variants never obeyed
+  wrote /Users/thurstonsand/Develop/mini-whisper-haiku-5-5-tuning/docs/wayfinding/finishing-mini-whisper/assets/43-dictation-corpus/results/prompt-tuning-r8/runs/confirm/grid/r8-880.json
+SPENT: 2520 calls, 5275660 in + 443263 out tokens, $0.7492 at list price

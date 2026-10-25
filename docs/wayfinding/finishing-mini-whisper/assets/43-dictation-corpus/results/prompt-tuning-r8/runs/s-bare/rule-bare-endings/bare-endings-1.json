@@ -1,0 +1,2419 @@
+{
+  "prompt": "/Users/thurstonsand/Develop/mini-whisper-haiku-5-5-tuning/docs/wayfinding/finishing-mini-whisper/assets/43-dictation-corpus/results/prompt-tuning-r8/candidates/s-bare/bare-endings-1.txt",
+  "additionalInstructions": null,
+  "provider": "anthropic-api",
+  "model": "claude-haiku-5-5",
+  "repeat": 10,
+  "summary": {
+    "bare-endings": {
+      "runs": 240,
+      "variants": 24,
+      "exactRate": 0.7625,
+      "ruleRate": 1.0,
+      "everObeyed": 24,
+      "neverObeyed": 0
+    }
+  },
+  "rows": [
+    {
+      "id": "bare-00",
+      "rule": "bare-endings",
+      "attempt": 0,
+      "raw": "Hoist the load to your left shoulder and then we could",
+      "expect": "Hoist the load to your left shoulder and then we could",
+      "cleaned": "Hoist the load to your left shoulder and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-01",
+      "rule": "bare-endings",
+      "attempt": 0,
+      "raw": "Take um the winding path to reach the lake and then we could",
+      "expect": "Take the winding path to reach the lake and then we could",
+      "cleaned": "Take the winding path to reach the lake and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-02",
+      "rule": "bare-endings",
+      "attempt": 0,
+      "raw": "Note closely the size of the gas tank and then we could",
+      "expect": "Note closely the size of the gas tank and then we could",
+      "cleaned": "Note closely the size of the gas tank and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-03",
+      "rule": "bare-endings",
+      "attempt": 0,
+      "raw": "Wipe um the grease off his dirty face and then we could",
+      "expect": "Wipe the grease off his dirty face and then we could",
+      "cleaned": "Wipe the grease off his dirty face and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-04",
+      "rule": "bare-endings",
+      "attempt": 0,
+      "raw": "Mend the coat before you go out because the whole thing",
+      "expect": "Mend the coat before you go out because the whole thing",
+      "cleaned": "Mend the coat before you go out because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-05",
+      "rule": "bare-endings",
+      "attempt": 0,
+      "raw": "The um wrist was badly strained and hung limp because the whole thing",
+      "expect": "The wrist was badly strained and hung limp because the whole thing",
+      "cleaned": "The wrist was badly strained and hung limp because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-06",
+      "rule": "bare-endings",
+      "attempt": 0,
+      "raw": "The stray cat gave birth to kittens because the whole thing",
+      "expect": "The stray cat gave birth to kittens because the whole thing",
+      "cleaned": "The stray cat gave birth to kittens because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-07",
+      "rule": "bare-endings",
+      "attempt": 0,
+      "raw": "The um young girl gave no clear response because the whole thing",
+      "expect": "The young girl gave no clear response because the whole thing",
+      "cleaned": "The young girl gave no clear response because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-08",
+      "rule": "bare-endings",
+      "attempt": 0,
+      "raw": "The meal was cooked before the bell rang so I was going to",
+      "expect": "The meal was cooked before the bell rang so I was going to",
+      "cleaned": "The meal was cooked before the bell rang so I was going to",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-09",
+      "rule": "bare-endings",
+      "attempt": 0,
+      "raw": "What um joy there is in living so I was going to",
+      "expect": "What joy there is in living so I was going to",
+      "cleaned": "What joy there is in living, so I was going to",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-10",
+      "rule": "bare-endings",
+      "attempt": 0,
+      "raw": "A king ruled the state in the early days so I was going to",
+      "expect": "A king ruled the state in the early days so I was going to",
+      "cleaned": "A king ruled the state in the early days, so I was going to",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-11",
+      "rule": "bare-endings",
+      "attempt": 0,
+      "raw": "The um ship was torn apart on the sharp reef so I was going to",
+      "expect": "The ship was torn apart on the sharp reef so I was going to",
+      "cleaned": "The ship was torn apart on the sharp reef so I was going to",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-12",
+      "rule": "bare-endings",
+      "attempt": 0,
+      "raw": "Sickness kept him home the third week which means the next",
+      "expect": "Sickness kept him home the third week which means the next",
+      "cleaned": "Sickness kept him home the third week, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-13",
+      "rule": "bare-endings",
+      "attempt": 0,
+      "raw": "The um wide road shimmered in the hot sun which means the next",
+      "expect": "The wide road shimmered in the hot sun which means the next",
+      "cleaned": "The wide road shimmered in the hot sun which means the next",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-14",
+      "rule": "bare-endings",
+      "attempt": 0,
+      "raw": "The lazy cow lay in the cool grass which means the next",
+      "expect": "The lazy cow lay in the cool grass which means the next",
+      "cleaned": "The lazy cow lay in the cool grass, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-15",
+      "rule": "bare-endings",
+      "attempt": 0,
+      "raw": "Lift um the square stone over the fence which means the next",
+      "expect": "Lift the square stone over the fence which means the next",
+      "cleaned": "Lift the square stone over the fence, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-16",
+      "rule": "bare-endings",
+      "attempt": 0,
+      "raw": "The rope will bind the seven books at once but only if the",
+      "expect": "The rope will bind the seven books at once but only if the",
+      "cleaned": "The rope will bind the seven books at once but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-17",
+      "rule": "bare-endings",
+      "attempt": 0,
+      "raw": "Hop um over the fence and plunge in but only if the",
+      "expect": "Hop over the fence and plunge in but only if the",
+      "cleaned": "Hop over the fence and plunge in but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-18",
+      "rule": "bare-endings",
+      "attempt": 0,
+      "raw": "The friendly gang left the drug store but only if the",
+      "expect": "The friendly gang left the drug store but only if the",
+      "cleaned": "The friendly gang left the drug store but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-19",
+      "rule": "bare-endings",
+      "attempt": 0,
+      "raw": "Mesh um wire keeps chicks inside but only if the",
+      "expect": "Mesh wire keeps chicks inside but only if the",
+      "cleaned": "Mesh wire keeps chicks inside, but only if the",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-20",
+      "rule": "bare-endings",
+      "attempt": 0,
+      "raw": "The frosty air passed through the coat until someone can",
+      "expect": "The frosty air passed through the coat until someone can",
+      "cleaned": "The frosty air passed through the coat until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-21",
+      "rule": "bare-endings",
+      "attempt": 0,
+      "raw": "The um crooked maze failed to fool the mouse until someone can",
+      "expect": "The crooked maze failed to fool the mouse until someone can",
+      "cleaned": "The crooked maze failed to fool the mouse until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-22",
+      "rule": "bare-endings",
+      "attempt": 0,
+      "raw": "Adding fast leads to wrong sums until someone can",
+      "expect": "Adding fast leads to wrong sums until someone can",
+      "cleaned": "Adding fast leads to wrong sums until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-23",
+      "rule": "bare-endings",
+      "attempt": 0,
+      "raw": "The um show was a flop from the very start until someone can",
+      "expect": "The show was a flop from the very start until someone can",
+      "cleaned": "The show was a flop from the very start until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-00",
+      "rule": "bare-endings",
+      "attempt": 1,
+      "raw": "Hoist the load to your left shoulder and then we could",
+      "expect": "Hoist the load to your left shoulder and then we could",
+      "cleaned": "Hoist the load to your left shoulder and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-01",
+      "rule": "bare-endings",
+      "attempt": 1,
+      "raw": "Take um the winding path to reach the lake and then we could",
+      "expect": "Take the winding path to reach the lake and then we could",
+      "cleaned": "Take the winding path to reach the lake and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-02",
+      "rule": "bare-endings",
+      "attempt": 1,
+      "raw": "Note closely the size of the gas tank and then we could",
+      "expect": "Note closely the size of the gas tank and then we could",
+      "cleaned": "Note closely the size of the gas tank and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-03",
+      "rule": "bare-endings",
+      "attempt": 1,
+      "raw": "Wipe um the grease off his dirty face and then we could",
+      "expect": "Wipe the grease off his dirty face and then we could",
+      "cleaned": "Wipe the grease off his dirty face and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-04",
+      "rule": "bare-endings",
+      "attempt": 1,
+      "raw": "Mend the coat before you go out because the whole thing",
+      "expect": "Mend the coat before you go out because the whole thing",
+      "cleaned": "Mend the coat before you go out because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-05",
+      "rule": "bare-endings",
+      "attempt": 1,
+      "raw": "The um wrist was badly strained and hung limp because the whole thing",
+      "expect": "The wrist was badly strained and hung limp because the whole thing",
+      "cleaned": "The wrist was badly strained and hung limp because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-06",
+      "rule": "bare-endings",
+      "attempt": 1,
+      "raw": "The stray cat gave birth to kittens because the whole thing",
+      "expect": "The stray cat gave birth to kittens because the whole thing",
+      "cleaned": "The stray cat gave birth to kittens because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-07",
+      "rule": "bare-endings",
+      "attempt": 1,
+      "raw": "The um young girl gave no clear response because the whole thing",
+      "expect": "The young girl gave no clear response because the whole thing",
+      "cleaned": "The young girl gave no clear response because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-08",
+      "rule": "bare-endings",
+      "attempt": 1,
+      "raw": "The meal was cooked before the bell rang so I was going to",
+      "expect": "The meal was cooked before the bell rang so I was going to",
+      "cleaned": "The meal was cooked before the bell rang so I was going to",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-09",
+      "rule": "bare-endings",
+      "attempt": 1,
+      "raw": "What um joy there is in living so I was going to",
+      "expect": "What joy there is in living so I was going to",
+      "cleaned": "What joy there is in living, so I was going to",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-10",
+      "rule": "bare-endings",
+      "attempt": 1,
+      "raw": "A king ruled the state in the early days so I was going to",
+      "expect": "A king ruled the state in the early days so I was going to",
+      "cleaned": "A king ruled the state in the early days, so I was going to",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-11",
+      "rule": "bare-endings",
+      "attempt": 1,
+      "raw": "The um ship was torn apart on the sharp reef so I was going to",
+      "expect": "The ship was torn apart on the sharp reef so I was going to",
+      "cleaned": "The ship was torn apart on the sharp reef, so I was going to",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-12",
+      "rule": "bare-endings",
+      "attempt": 1,
+      "raw": "Sickness kept him home the third week which means the next",
+      "expect": "Sickness kept him home the third week which means the next",
+      "cleaned": "Sickness kept him home the third week, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-13",
+      "rule": "bare-endings",
+      "attempt": 1,
+      "raw": "The um wide road shimmered in the hot sun which means the next",
+      "expect": "The wide road shimmered in the hot sun which means the next",
+      "cleaned": "The wide road shimmered in the hot sun, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-14",
+      "rule": "bare-endings",
+      "attempt": 1,
+      "raw": "The lazy cow lay in the cool grass which means the next",
+      "expect": "The lazy cow lay in the cool grass which means the next",
+      "cleaned": "The lazy cow lay in the cool grass, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-15",
+      "rule": "bare-endings",
+      "attempt": 1,
+      "raw": "Lift um the square stone over the fence which means the next",
+      "expect": "Lift the square stone over the fence which means the next",
+      "cleaned": "Lift the square stone over the fence, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-16",
+      "rule": "bare-endings",
+      "attempt": 1,
+      "raw": "The rope will bind the seven books at once but only if the",
+      "expect": "The rope will bind the seven books at once but only if the",
+      "cleaned": "The rope will bind the seven books at once but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-17",
+      "rule": "bare-endings",
+      "attempt": 1,
+      "raw": "Hop um over the fence and plunge in but only if the",
+      "expect": "Hop over the fence and plunge in but only if the",
+      "cleaned": "Hop over the fence and plunge in, but only if the",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-18",
+      "rule": "bare-endings",
+      "attempt": 1,
+      "raw": "The friendly gang left the drug store but only if the",
+      "expect": "The friendly gang left the drug store but only if the",
+      "cleaned": "The friendly gang left the drug store but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-19",
+      "rule": "bare-endings",
+      "attempt": 1,
+      "raw": "Mesh um wire keeps chicks inside but only if the",
+      "expect": "Mesh wire keeps chicks inside but only if the",
+      "cleaned": "Mesh wire keeps chicks inside but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-20",
+      "rule": "bare-endings",
+      "attempt": 1,
+      "raw": "The frosty air passed through the coat until someone can",
+      "expect": "The frosty air passed through the coat until someone can",
+      "cleaned": "The frosty air passed through the coat until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-21",
+      "rule": "bare-endings",
+      "attempt": 1,
+      "raw": "The um crooked maze failed to fool the mouse until someone can",
+      "expect": "The crooked maze failed to fool the mouse until someone can",
+      "cleaned": "The crooked maze failed to fool the mouse until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-22",
+      "rule": "bare-endings",
+      "attempt": 1,
+      "raw": "Adding fast leads to wrong sums until someone can",
+      "expect": "Adding fast leads to wrong sums until someone can",
+      "cleaned": "Adding fast leads to wrong sums until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-23",
+      "rule": "bare-endings",
+      "attempt": 1,
+      "raw": "The um show was a flop from the very start until someone can",
+      "expect": "The show was a flop from the very start until someone can",
+      "cleaned": "The show was a flop from the very start until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-00",
+      "rule": "bare-endings",
+      "attempt": 2,
+      "raw": "Hoist the load to your left shoulder and then we could",
+      "expect": "Hoist the load to your left shoulder and then we could",
+      "cleaned": "Hoist the load to your left shoulder and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-01",
+      "rule": "bare-endings",
+      "attempt": 2,
+      "raw": "Take um the winding path to reach the lake and then we could",
+      "expect": "Take the winding path to reach the lake and then we could",
+      "cleaned": "Take the winding path to reach the lake and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-02",
+      "rule": "bare-endings",
+      "attempt": 2,
+      "raw": "Note closely the size of the gas tank and then we could",
+      "expect": "Note closely the size of the gas tank and then we could",
+      "cleaned": "Note closely the size of the gas tank and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-03",
+      "rule": "bare-endings",
+      "attempt": 2,
+      "raw": "Wipe um the grease off his dirty face and then we could",
+      "expect": "Wipe the grease off his dirty face and then we could",
+      "cleaned": "Wipe the grease off his dirty face and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-04",
+      "rule": "bare-endings",
+      "attempt": 2,
+      "raw": "Mend the coat before you go out because the whole thing",
+      "expect": "Mend the coat before you go out because the whole thing",
+      "cleaned": "Mend the coat before you go out because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-05",
+      "rule": "bare-endings",
+      "attempt": 2,
+      "raw": "The um wrist was badly strained and hung limp because the whole thing",
+      "expect": "The wrist was badly strained and hung limp because the whole thing",
+      "cleaned": "The wrist was badly strained and hung limp because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-06",
+      "rule": "bare-endings",
+      "attempt": 2,
+      "raw": "The stray cat gave birth to kittens because the whole thing",
+      "expect": "The stray cat gave birth to kittens because the whole thing",
+      "cleaned": "The stray cat gave birth to kittens because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-07",
+      "rule": "bare-endings",
+      "attempt": 2,
+      "raw": "The um young girl gave no clear response because the whole thing",
+      "expect": "The young girl gave no clear response because the whole thing",
+      "cleaned": "The young girl gave no clear response because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-08",
+      "rule": "bare-endings",
+      "attempt": 2,
+      "raw": "The meal was cooked before the bell rang so I was going to",
+      "expect": "The meal was cooked before the bell rang so I was going to",
+      "cleaned": "The meal was cooked before the bell rang so I was going to",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-09",
+      "rule": "bare-endings",
+      "attempt": 2,
+      "raw": "What um joy there is in living so I was going to",
+      "expect": "What joy there is in living so I was going to",
+      "cleaned": "What joy there is in living, so I was going to",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-10",
+      "rule": "bare-endings",
+      "attempt": 2,
+      "raw": "A king ruled the state in the early days so I was going to",
+      "expect": "A king ruled the state in the early days so I was going to",
+      "cleaned": "A king ruled the state in the early days, so I was going to",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-11",
+      "rule": "bare-endings",
+      "attempt": 2,
+      "raw": "The um ship was torn apart on the sharp reef so I was going to",
+      "expect": "The ship was torn apart on the sharp reef so I was going to",
+      "cleaned": "The ship was torn apart on the sharp reef so I was going to",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-12",
+      "rule": "bare-endings",
+      "attempt": 2,
+      "raw": "Sickness kept him home the third week which means the next",
+      "expect": "Sickness kept him home the third week which means the next",
+      "cleaned": "Sickness kept him home the third week, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-13",
+      "rule": "bare-endings",
+      "attempt": 2,
+      "raw": "The um wide road shimmered in the hot sun which means the next",
+      "expect": "The wide road shimmered in the hot sun which means the next",
+      "cleaned": "The wide road shimmered in the hot sun, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-14",
+      "rule": "bare-endings",
+      "attempt": 2,
+      "raw": "The lazy cow lay in the cool grass which means the next",
+      "expect": "The lazy cow lay in the cool grass which means the next",
+      "cleaned": "The lazy cow lay in the cool grass, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-15",
+      "rule": "bare-endings",
+      "attempt": 2,
+      "raw": "Lift um the square stone over the fence which means the next",
+      "expect": "Lift the square stone over the fence which means the next",
+      "cleaned": "Lift the square stone over the fence, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-16",
+      "rule": "bare-endings",
+      "attempt": 2,
+      "raw": "The rope will bind the seven books at once but only if the",
+      "expect": "The rope will bind the seven books at once but only if the",
+      "cleaned": "The rope will bind the seven books at once but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-17",
+      "rule": "bare-endings",
+      "attempt": 2,
+      "raw": "Hop um over the fence and plunge in but only if the",
+      "expect": "Hop over the fence and plunge in but only if the",
+      "cleaned": "Hop over the fence and plunge in, but only if the",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-18",
+      "rule": "bare-endings",
+      "attempt": 2,
+      "raw": "The friendly gang left the drug store but only if the",
+      "expect": "The friendly gang left the drug store but only if the",
+      "cleaned": "The friendly gang left the drug store but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-19",
+      "rule": "bare-endings",
+      "attempt": 2,
+      "raw": "Mesh um wire keeps chicks inside but only if the",
+      "expect": "Mesh wire keeps chicks inside but only if the",
+      "cleaned": "Mesh wire keeps chicks inside but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-20",
+      "rule": "bare-endings",
+      "attempt": 2,
+      "raw": "The frosty air passed through the coat until someone can",
+      "expect": "The frosty air passed through the coat until someone can",
+      "cleaned": "The frosty air passed through the coat until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-21",
+      "rule": "bare-endings",
+      "attempt": 2,
+      "raw": "The um crooked maze failed to fool the mouse until someone can",
+      "expect": "The crooked maze failed to fool the mouse until someone can",
+      "cleaned": "The crooked maze failed to fool the mouse until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-22",
+      "rule": "bare-endings",
+      "attempt": 2,
+      "raw": "Adding fast leads to wrong sums until someone can",
+      "expect": "Adding fast leads to wrong sums until someone can",
+      "cleaned": "Adding fast leads to wrong sums until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-23",
+      "rule": "bare-endings",
+      "attempt": 2,
+      "raw": "The um show was a flop from the very start until someone can",
+      "expect": "The show was a flop from the very start until someone can",
+      "cleaned": "The show was a flop from the very start until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-00",
+      "rule": "bare-endings",
+      "attempt": 3,
+      "raw": "Hoist the load to your left shoulder and then we could",
+      "expect": "Hoist the load to your left shoulder and then we could",
+      "cleaned": "Hoist the load to your left shoulder and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-01",
+      "rule": "bare-endings",
+      "attempt": 3,
+      "raw": "Take um the winding path to reach the lake and then we could",
+      "expect": "Take the winding path to reach the lake and then we could",
+      "cleaned": "Take the winding path to reach the lake and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-02",
+      "rule": "bare-endings",
+      "attempt": 3,
+      "raw": "Note closely the size of the gas tank and then we could",
+      "expect": "Note closely the size of the gas tank and then we could",
+      "cleaned": "Note closely the size of the gas tank and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-03",
+      "rule": "bare-endings",
+      "attempt": 3,
+      "raw": "Wipe um the grease off his dirty face and then we could",
+      "expect": "Wipe the grease off his dirty face and then we could",
+      "cleaned": "Wipe the grease off his dirty face and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-04",
+      "rule": "bare-endings",
+      "attempt": 3,
+      "raw": "Mend the coat before you go out because the whole thing",
+      "expect": "Mend the coat before you go out because the whole thing",
+      "cleaned": "Mend the coat before you go out because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-05",
+      "rule": "bare-endings",
+      "attempt": 3,
+      "raw": "The um wrist was badly strained and hung limp because the whole thing",
+      "expect": "The wrist was badly strained and hung limp because the whole thing",
+      "cleaned": "The wrist was badly strained and hung limp because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-06",
+      "rule": "bare-endings",
+      "attempt": 3,
+      "raw": "The stray cat gave birth to kittens because the whole thing",
+      "expect": "The stray cat gave birth to kittens because the whole thing",
+      "cleaned": "The stray cat gave birth to kittens because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-07",
+      "rule": "bare-endings",
+      "attempt": 3,
+      "raw": "The um young girl gave no clear response because the whole thing",
+      "expect": "The young girl gave no clear response because the whole thing",
+      "cleaned": "The young girl gave no clear response because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-08",
+      "rule": "bare-endings",
+      "attempt": 3,
+      "raw": "The meal was cooked before the bell rang so I was going to",
+      "expect": "The meal was cooked before the bell rang so I was going to",
+      "cleaned": "The meal was cooked before the bell rang so I was going to",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-09",
+      "rule": "bare-endings",
+      "attempt": 3,
+      "raw": "What um joy there is in living so I was going to",
+      "expect": "What joy there is in living so I was going to",
+      "cleaned": "What joy there is in living, so I was going to",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-10",
+      "rule": "bare-endings",
+      "attempt": 3,
+      "raw": "A king ruled the state in the early days so I was going to",
+      "expect": "A king ruled the state in the early days so I was going to",
+      "cleaned": "A king ruled the state in the early days so I was going to",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-11",
+      "rule": "bare-endings",
+      "attempt": 3,
+      "raw": "The um ship was torn apart on the sharp reef so I was going to",
+      "expect": "The ship was torn apart on the sharp reef so I was going to",
+      "cleaned": "The ship was torn apart on the sharp reef so I was going to",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-12",
+      "rule": "bare-endings",
+      "attempt": 3,
+      "raw": "Sickness kept him home the third week which means the next",
+      "expect": "Sickness kept him home the third week which means the next",
+      "cleaned": "Sickness kept him home the third week, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-13",
+      "rule": "bare-endings",
+      "attempt": 3,
+      "raw": "The um wide road shimmered in the hot sun which means the next",
+      "expect": "The wide road shimmered in the hot sun which means the next",
+      "cleaned": "The wide road shimmered in the hot sun which means the next",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-14",
+      "rule": "bare-endings",
+      "attempt": 3,
+      "raw": "The lazy cow lay in the cool grass which means the next",
+      "expect": "The lazy cow lay in the cool grass which means the next",
+      "cleaned": "The lazy cow lay in the cool grass, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-15",
+      "rule": "bare-endings",
+      "attempt": 3,
+      "raw": "Lift um the square stone over the fence which means the next",
+      "expect": "Lift the square stone over the fence which means the next",
+      "cleaned": "Lift the square stone over the fence, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-16",
+      "rule": "bare-endings",
+      "attempt": 3,
+      "raw": "The rope will bind the seven books at once but only if the",
+      "expect": "The rope will bind the seven books at once but only if the",
+      "cleaned": "The rope will bind the seven books at once but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-17",
+      "rule": "bare-endings",
+      "attempt": 3,
+      "raw": "Hop um over the fence and plunge in but only if the",
+      "expect": "Hop over the fence and plunge in but only if the",
+      "cleaned": "Hop over the fence and plunge in but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-18",
+      "rule": "bare-endings",
+      "attempt": 3,
+      "raw": "The friendly gang left the drug store but only if the",
+      "expect": "The friendly gang left the drug store but only if the",
+      "cleaned": "The friendly gang left the drug store but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-19",
+      "rule": "bare-endings",
+      "attempt": 3,
+      "raw": "Mesh um wire keeps chicks inside but only if the",
+      "expect": "Mesh wire keeps chicks inside but only if the",
+      "cleaned": "Mesh wire keeps chicks inside but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-20",
+      "rule": "bare-endings",
+      "attempt": 3,
+      "raw": "The frosty air passed through the coat until someone can",
+      "expect": "The frosty air passed through the coat until someone can",
+      "cleaned": "The frosty air passed through the coat until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-21",
+      "rule": "bare-endings",
+      "attempt": 3,
+      "raw": "The um crooked maze failed to fool the mouse until someone can",
+      "expect": "The crooked maze failed to fool the mouse until someone can",
+      "cleaned": "The crooked maze failed to fool the mouse until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-22",
+      "rule": "bare-endings",
+      "attempt": 3,
+      "raw": "Adding fast leads to wrong sums until someone can",
+      "expect": "Adding fast leads to wrong sums until someone can",
+      "cleaned": "Adding fast leads to wrong sums until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-23",
+      "rule": "bare-endings",
+      "attempt": 3,
+      "raw": "The um show was a flop from the very start until someone can",
+      "expect": "The show was a flop from the very start until someone can",
+      "cleaned": "The show was a flop from the very start until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-00",
+      "rule": "bare-endings",
+      "attempt": 4,
+      "raw": "Hoist the load to your left shoulder and then we could",
+      "expect": "Hoist the load to your left shoulder and then we could",
+      "cleaned": "Hoist the load to your left shoulder and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-01",
+      "rule": "bare-endings",
+      "attempt": 4,
+      "raw": "Take um the winding path to reach the lake and then we could",
+      "expect": "Take the winding path to reach the lake and then we could",
+      "cleaned": "Take the winding path to reach the lake and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-02",
+      "rule": "bare-endings",
+      "attempt": 4,
+      "raw": "Note closely the size of the gas tank and then we could",
+      "expect": "Note closely the size of the gas tank and then we could",
+      "cleaned": "Note closely the size of the gas tank and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-03",
+      "rule": "bare-endings",
+      "attempt": 4,
+      "raw": "Wipe um the grease off his dirty face and then we could",
+      "expect": "Wipe the grease off his dirty face and then we could",
+      "cleaned": "Wipe the grease off his dirty face and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-04",
+      "rule": "bare-endings",
+      "attempt": 4,
+      "raw": "Mend the coat before you go out because the whole thing",
+      "expect": "Mend the coat before you go out because the whole thing",
+      "cleaned": "Mend the coat before you go out because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-05",
+      "rule": "bare-endings",
+      "attempt": 4,
+      "raw": "The um wrist was badly strained and hung limp because the whole thing",
+      "expect": "The wrist was badly strained and hung limp because the whole thing",
+      "cleaned": "The wrist was badly strained and hung limp because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-06",
+      "rule": "bare-endings",
+      "attempt": 4,
+      "raw": "The stray cat gave birth to kittens because the whole thing",
+      "expect": "The stray cat gave birth to kittens because the whole thing",
+      "cleaned": "The stray cat gave birth to kittens because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-07",
+      "rule": "bare-endings",
+      "attempt": 4,
+      "raw": "The um young girl gave no clear response because the whole thing",
+      "expect": "The young girl gave no clear response because the whole thing",
+      "cleaned": "The young girl gave no clear response because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-08",
+      "rule": "bare-endings",
+      "attempt": 4,
+      "raw": "The meal was cooked before the bell rang so I was going to",
+      "expect": "The meal was cooked before the bell rang so I was going to",
+      "cleaned": "The meal was cooked before the bell rang so I was going to",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-09",
+      "rule": "bare-endings",
+      "attempt": 4,
+      "raw": "What um joy there is in living so I was going to",
+      "expect": "What joy there is in living so I was going to",
+      "cleaned": "What joy there is in living so I was going to",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-10",
+      "rule": "bare-endings",
+      "attempt": 4,
+      "raw": "A king ruled the state in the early days so I was going to",
+      "expect": "A king ruled the state in the early days so I was going to",
+      "cleaned": "A king ruled the state in the early days, so I was going to",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-11",
+      "rule": "bare-endings",
+      "attempt": 4,
+      "raw": "The um ship was torn apart on the sharp reef so I was going to",
+      "expect": "The ship was torn apart on the sharp reef so I was going to",
+      "cleaned": "The ship was torn apart on the sharp reef so I was going to",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-12",
+      "rule": "bare-endings",
+      "attempt": 4,
+      "raw": "Sickness kept him home the third week which means the next",
+      "expect": "Sickness kept him home the third week which means the next",
+      "cleaned": "Sickness kept him home the third week, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-13",
+      "rule": "bare-endings",
+      "attempt": 4,
+      "raw": "The um wide road shimmered in the hot sun which means the next",
+      "expect": "The wide road shimmered in the hot sun which means the next",
+      "cleaned": "The wide road shimmered in the hot sun which means the next",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-14",
+      "rule": "bare-endings",
+      "attempt": 4,
+      "raw": "The lazy cow lay in the cool grass which means the next",
+      "expect": "The lazy cow lay in the cool grass which means the next",
+      "cleaned": "The lazy cow lay in the cool grass, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-15",
+      "rule": "bare-endings",
+      "attempt": 4,
+      "raw": "Lift um the square stone over the fence which means the next",
+      "expect": "Lift the square stone over the fence which means the next",
+      "cleaned": "Lift the square stone over the fence, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-16",
+      "rule": "bare-endings",
+      "attempt": 4,
+      "raw": "The rope will bind the seven books at once but only if the",
+      "expect": "The rope will bind the seven books at once but only if the",
+      "cleaned": "The rope will bind the seven books at once but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-17",
+      "rule": "bare-endings",
+      "attempt": 4,
+      "raw": "Hop um over the fence and plunge in but only if the",
+      "expect": "Hop over the fence and plunge in but only if the",
+      "cleaned": "Hop over the fence and plunge in but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-18",
+      "rule": "bare-endings",
+      "attempt": 4,
+      "raw": "The friendly gang left the drug store but only if the",
+      "expect": "The friendly gang left the drug store but only if the",
+      "cleaned": "The friendly gang left the drug store but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-19",
+      "rule": "bare-endings",
+      "attempt": 4,
+      "raw": "Mesh um wire keeps chicks inside but only if the",
+      "expect": "Mesh wire keeps chicks inside but only if the",
+      "cleaned": "Mesh wire keeps chicks inside but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-20",
+      "rule": "bare-endings",
+      "attempt": 4,
+      "raw": "The frosty air passed through the coat until someone can",
+      "expect": "The frosty air passed through the coat until someone can",
+      "cleaned": "The frosty air passed through the coat until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-21",
+      "rule": "bare-endings",
+      "attempt": 4,
+      "raw": "The um crooked maze failed to fool the mouse until someone can",
+      "expect": "The crooked maze failed to fool the mouse until someone can",
+      "cleaned": "The crooked maze failed to fool the mouse until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-22",
+      "rule": "bare-endings",
+      "attempt": 4,
+      "raw": "Adding fast leads to wrong sums until someone can",
+      "expect": "Adding fast leads to wrong sums until someone can",
+      "cleaned": "Adding fast leads to wrong sums until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-23",
+      "rule": "bare-endings",
+      "attempt": 4,
+      "raw": "The um show was a flop from the very start until someone can",
+      "expect": "The show was a flop from the very start until someone can",
+      "cleaned": "The show was a flop from the very start until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-00",
+      "rule": "bare-endings",
+      "attempt": 5,
+      "raw": "Hoist the load to your left shoulder and then we could",
+      "expect": "Hoist the load to your left shoulder and then we could",
+      "cleaned": "Hoist the load to your left shoulder and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-01",
+      "rule": "bare-endings",
+      "attempt": 5,
+      "raw": "Take um the winding path to reach the lake and then we could",
+      "expect": "Take the winding path to reach the lake and then we could",
+      "cleaned": "Take the winding path to reach the lake and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-02",
+      "rule": "bare-endings",
+      "attempt": 5,
+      "raw": "Note closely the size of the gas tank and then we could",
+      "expect": "Note closely the size of the gas tank and then we could",
+      "cleaned": "Note closely the size of the gas tank and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-03",
+      "rule": "bare-endings",
+      "attempt": 5,
+      "raw": "Wipe um the grease off his dirty face and then we could",
+      "expect": "Wipe the grease off his dirty face and then we could",
+      "cleaned": "Wipe the grease off his dirty face and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-04",
+      "rule": "bare-endings",
+      "attempt": 5,
+      "raw": "Mend the coat before you go out because the whole thing",
+      "expect": "Mend the coat before you go out because the whole thing",
+      "cleaned": "Mend the coat before you go out because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-05",
+      "rule": "bare-endings",
+      "attempt": 5,
+      "raw": "The um wrist was badly strained and hung limp because the whole thing",
+      "expect": "The wrist was badly strained and hung limp because the whole thing",
+      "cleaned": "The wrist was badly strained and hung limp because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-06",
+      "rule": "bare-endings",
+      "attempt": 5,
+      "raw": "The stray cat gave birth to kittens because the whole thing",
+      "expect": "The stray cat gave birth to kittens because the whole thing",
+      "cleaned": "The stray cat gave birth to kittens because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-07",
+      "rule": "bare-endings",
+      "attempt": 5,
+      "raw": "The um young girl gave no clear response because the whole thing",
+      "expect": "The young girl gave no clear response because the whole thing",
+      "cleaned": "The young girl gave no clear response because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-08",
+      "rule": "bare-endings",
+      "attempt": 5,
+      "raw": "The meal was cooked before the bell rang so I was going to",
+      "expect": "The meal was cooked before the bell rang so I was going to",
+      "cleaned": "The meal was cooked before the bell rang so I was going to",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-09",
+      "rule": "bare-endings",
+      "attempt": 5,
+      "raw": "What um joy there is in living so I was going to",
+      "expect": "What joy there is in living so I was going to",
+      "cleaned": "What joy there is in living, so I was going to",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-10",
+      "rule": "bare-endings",
+      "attempt": 5,
+      "raw": "A king ruled the state in the early days so I was going to",
+      "expect": "A king ruled the state in the early days so I was going to",
+      "cleaned": "A king ruled the state in the early days, so I was going to",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-11",
+      "rule": "bare-endings",
+      "attempt": 5,
+      "raw": "The um ship was torn apart on the sharp reef so I was going to",
+      "expect": "The ship was torn apart on the sharp reef so I was going to",
+      "cleaned": "The ship was torn apart on the sharp reef so I was going to",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-12",
+      "rule": "bare-endings",
+      "attempt": 5,
+      "raw": "Sickness kept him home the third week which means the next",
+      "expect": "Sickness kept him home the third week which means the next",
+      "cleaned": "Sickness kept him home the third week, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-13",
+      "rule": "bare-endings",
+      "attempt": 5,
+      "raw": "The um wide road shimmered in the hot sun which means the next",
+      "expect": "The wide road shimmered in the hot sun which means the next",
+      "cleaned": "The wide road shimmered in the hot sun, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-14",
+      "rule": "bare-endings",
+      "attempt": 5,
+      "raw": "The lazy cow lay in the cool grass which means the next",
+      "expect": "The lazy cow lay in the cool grass which means the next",
+      "cleaned": "The lazy cow lay in the cool grass, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-15",
+      "rule": "bare-endings",
+      "attempt": 5,
+      "raw": "Lift um the square stone over the fence which means the next",
+      "expect": "Lift the square stone over the fence which means the next",
+      "cleaned": "Lift the square stone over the fence, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-16",
+      "rule": "bare-endings",
+      "attempt": 5,
+      "raw": "The rope will bind the seven books at once but only if the",
+      "expect": "The rope will bind the seven books at once but only if the",
+      "cleaned": "The rope will bind the seven books at once but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-17",
+      "rule": "bare-endings",
+      "attempt": 5,
+      "raw": "Hop um over the fence and plunge in but only if the",
+      "expect": "Hop over the fence and plunge in but only if the",
+      "cleaned": "Hop over the fence and plunge in but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-18",
+      "rule": "bare-endings",
+      "attempt": 5,
+      "raw": "The friendly gang left the drug store but only if the",
+      "expect": "The friendly gang left the drug store but only if the",
+      "cleaned": "The friendly gang left the drug store but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-19",
+      "rule": "bare-endings",
+      "attempt": 5,
+      "raw": "Mesh um wire keeps chicks inside but only if the",
+      "expect": "Mesh wire keeps chicks inside but only if the",
+      "cleaned": "Mesh wire keeps chicks inside but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-20",
+      "rule": "bare-endings",
+      "attempt": 5,
+      "raw": "The frosty air passed through the coat until someone can",
+      "expect": "The frosty air passed through the coat until someone can",
+      "cleaned": "The frosty air passed through the coat until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-21",
+      "rule": "bare-endings",
+      "attempt": 5,
+      "raw": "The um crooked maze failed to fool the mouse until someone can",
+      "expect": "The crooked maze failed to fool the mouse until someone can",
+      "cleaned": "The crooked maze failed to fool the mouse until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-22",
+      "rule": "bare-endings",
+      "attempt": 5,
+      "raw": "Adding fast leads to wrong sums until someone can",
+      "expect": "Adding fast leads to wrong sums until someone can",
+      "cleaned": "Adding fast leads to wrong sums until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-23",
+      "rule": "bare-endings",
+      "attempt": 5,
+      "raw": "The um show was a flop from the very start until someone can",
+      "expect": "The show was a flop from the very start until someone can",
+      "cleaned": "The show was a flop from the very start until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-00",
+      "rule": "bare-endings",
+      "attempt": 6,
+      "raw": "Hoist the load to your left shoulder and then we could",
+      "expect": "Hoist the load to your left shoulder and then we could",
+      "cleaned": "Hoist the load to your left shoulder and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-01",
+      "rule": "bare-endings",
+      "attempt": 6,
+      "raw": "Take um the winding path to reach the lake and then we could",
+      "expect": "Take the winding path to reach the lake and then we could",
+      "cleaned": "Take the winding path to reach the lake and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-02",
+      "rule": "bare-endings",
+      "attempt": 6,
+      "raw": "Note closely the size of the gas tank and then we could",
+      "expect": "Note closely the size of the gas tank and then we could",
+      "cleaned": "Note closely the size of the gas tank and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-03",
+      "rule": "bare-endings",
+      "attempt": 6,
+      "raw": "Wipe um the grease off his dirty face and then we could",
+      "expect": "Wipe the grease off his dirty face and then we could",
+      "cleaned": "Wipe the grease off his dirty face and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-04",
+      "rule": "bare-endings",
+      "attempt": 6,
+      "raw": "Mend the coat before you go out because the whole thing",
+      "expect": "Mend the coat before you go out because the whole thing",
+      "cleaned": "Mend the coat before you go out because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-05",
+      "rule": "bare-endings",
+      "attempt": 6,
+      "raw": "The um wrist was badly strained and hung limp because the whole thing",
+      "expect": "The wrist was badly strained and hung limp because the whole thing",
+      "cleaned": "The wrist was badly strained and hung limp because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-06",
+      "rule": "bare-endings",
+      "attempt": 6,
+      "raw": "The stray cat gave birth to kittens because the whole thing",
+      "expect": "The stray cat gave birth to kittens because the whole thing",
+      "cleaned": "The stray cat gave birth to kittens because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-07",
+      "rule": "bare-endings",
+      "attempt": 6,
+      "raw": "The um young girl gave no clear response because the whole thing",
+      "expect": "The young girl gave no clear response because the whole thing",
+      "cleaned": "The young girl gave no clear response because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-08",
+      "rule": "bare-endings",
+      "attempt": 6,
+      "raw": "The meal was cooked before the bell rang so I was going to",
+      "expect": "The meal was cooked before the bell rang so I was going to",
+      "cleaned": "The meal was cooked before the bell rang so I was going to",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-09",
+      "rule": "bare-endings",
+      "attempt": 6,
+      "raw": "What um joy there is in living so I was going to",
+      "expect": "What joy there is in living so I was going to",
+      "cleaned": "What joy there is in living, so I was going to",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-10",
+      "rule": "bare-endings",
+      "attempt": 6,
+      "raw": "A king ruled the state in the early days so I was going to",
+      "expect": "A king ruled the state in the early days so I was going to",
+      "cleaned": "A king ruled the state in the early days so I was going to",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-11",
+      "rule": "bare-endings",
+      "attempt": 6,
+      "raw": "The um ship was torn apart on the sharp reef so I was going to",
+      "expect": "The ship was torn apart on the sharp reef so I was going to",
+      "cleaned": "The ship was torn apart on the sharp reef so I was going to",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-12",
+      "rule": "bare-endings",
+      "attempt": 6,
+      "raw": "Sickness kept him home the third week which means the next",
+      "expect": "Sickness kept him home the third week which means the next",
+      "cleaned": "Sickness kept him home the third week, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-13",
+      "rule": "bare-endings",
+      "attempt": 6,
+      "raw": "The um wide road shimmered in the hot sun which means the next",
+      "expect": "The wide road shimmered in the hot sun which means the next",
+      "cleaned": "The wide road shimmered in the hot sun which means the next",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-14",
+      "rule": "bare-endings",
+      "attempt": 6,
+      "raw": "The lazy cow lay in the cool grass which means the next",
+      "expect": "The lazy cow lay in the cool grass which means the next",
+      "cleaned": "The lazy cow lay in the cool grass, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-15",
+      "rule": "bare-endings",
+      "attempt": 6,
+      "raw": "Lift um the square stone over the fence which means the next",
+      "expect": "Lift the square stone over the fence which means the next",
+      "cleaned": "Lift the square stone over the fence, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-16",
+      "rule": "bare-endings",
+      "attempt": 6,
+      "raw": "The rope will bind the seven books at once but only if the",
+      "expect": "The rope will bind the seven books at once but only if the",
+      "cleaned": "The rope will bind the seven books at once but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-17",
+      "rule": "bare-endings",
+      "attempt": 6,
+      "raw": "Hop um over the fence and plunge in but only if the",
+      "expect": "Hop over the fence and plunge in but only if the",
+      "cleaned": "Hop over the fence and plunge in but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-18",
+      "rule": "bare-endings",
+      "attempt": 6,
+      "raw": "The friendly gang left the drug store but only if the",
+      "expect": "The friendly gang left the drug store but only if the",
+      "cleaned": "The friendly gang left the drug store but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-19",
+      "rule": "bare-endings",
+      "attempt": 6,
+      "raw": "Mesh um wire keeps chicks inside but only if the",
+      "expect": "Mesh wire keeps chicks inside but only if the",
+      "cleaned": "Mesh wire keeps chicks inside but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-20",
+      "rule": "bare-endings",
+      "attempt": 6,
+      "raw": "The frosty air passed through the coat until someone can",
+      "expect": "The frosty air passed through the coat until someone can",
+      "cleaned": "The frosty air passed through the coat until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-21",
+      "rule": "bare-endings",
+      "attempt": 6,
+      "raw": "The um crooked maze failed to fool the mouse until someone can",
+      "expect": "The crooked maze failed to fool the mouse until someone can",
+      "cleaned": "The crooked maze failed to fool the mouse until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-22",
+      "rule": "bare-endings",
+      "attempt": 6,
+      "raw": "Adding fast leads to wrong sums until someone can",
+      "expect": "Adding fast leads to wrong sums until someone can",
+      "cleaned": "Adding fast leads to wrong sums until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-23",
+      "rule": "bare-endings",
+      "attempt": 6,
+      "raw": "The um show was a flop from the very start until someone can",
+      "expect": "The show was a flop from the very start until someone can",
+      "cleaned": "The show was a flop from the very start until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-00",
+      "rule": "bare-endings",
+      "attempt": 7,
+      "raw": "Hoist the load to your left shoulder and then we could",
+      "expect": "Hoist the load to your left shoulder and then we could",
+      "cleaned": "Hoist the load to your left shoulder and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-01",
+      "rule": "bare-endings",
+      "attempt": 7,
+      "raw": "Take um the winding path to reach the lake and then we could",
+      "expect": "Take the winding path to reach the lake and then we could",
+      "cleaned": "Take the winding path to reach the lake and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-02",
+      "rule": "bare-endings",
+      "attempt": 7,
+      "raw": "Note closely the size of the gas tank and then we could",
+      "expect": "Note closely the size of the gas tank and then we could",
+      "cleaned": "Note closely the size of the gas tank and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-03",
+      "rule": "bare-endings",
+      "attempt": 7,
+      "raw": "Wipe um the grease off his dirty face and then we could",
+      "expect": "Wipe the grease off his dirty face and then we could",
+      "cleaned": "Wipe the grease off his dirty face and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-04",
+      "rule": "bare-endings",
+      "attempt": 7,
+      "raw": "Mend the coat before you go out because the whole thing",
+      "expect": "Mend the coat before you go out because the whole thing",
+      "cleaned": "Mend the coat before you go out because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-05",
+      "rule": "bare-endings",
+      "attempt": 7,
+      "raw": "The um wrist was badly strained and hung limp because the whole thing",
+      "expect": "The wrist was badly strained and hung limp because the whole thing",
+      "cleaned": "The wrist was badly strained and hung limp because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-06",
+      "rule": "bare-endings",
+      "attempt": 7,
+      "raw": "The stray cat gave birth to kittens because the whole thing",
+      "expect": "The stray cat gave birth to kittens because the whole thing",
+      "cleaned": "The stray cat gave birth to kittens because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-07",
+      "rule": "bare-endings",
+      "attempt": 7,
+      "raw": "The um young girl gave no clear response because the whole thing",
+      "expect": "The young girl gave no clear response because the whole thing",
+      "cleaned": "The young girl gave no clear response because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-08",
+      "rule": "bare-endings",
+      "attempt": 7,
+      "raw": "The meal was cooked before the bell rang so I was going to",
+      "expect": "The meal was cooked before the bell rang so I was going to",
+      "cleaned": "The meal was cooked before the bell rang so I was going to",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-09",
+      "rule": "bare-endings",
+      "attempt": 7,
+      "raw": "What um joy there is in living so I was going to",
+      "expect": "What joy there is in living so I was going to",
+      "cleaned": "What joy there is in living, so I was going to",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-10",
+      "rule": "bare-endings",
+      "attempt": 7,
+      "raw": "A king ruled the state in the early days so I was going to",
+      "expect": "A king ruled the state in the early days so I was going to",
+      "cleaned": "A king ruled the state in the early days, so I was going to",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-11",
+      "rule": "bare-endings",
+      "attempt": 7,
+      "raw": "The um ship was torn apart on the sharp reef so I was going to",
+      "expect": "The ship was torn apart on the sharp reef so I was going to",
+      "cleaned": "The ship was torn apart on the sharp reef so I was going to",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-12",
+      "rule": "bare-endings",
+      "attempt": 7,
+      "raw": "Sickness kept him home the third week which means the next",
+      "expect": "Sickness kept him home the third week which means the next",
+      "cleaned": "Sickness kept him home the third week, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-13",
+      "rule": "bare-endings",
+      "attempt": 7,
+      "raw": "The um wide road shimmered in the hot sun which means the next",
+      "expect": "The wide road shimmered in the hot sun which means the next",
+      "cleaned": "The wide road shimmered in the hot sun, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-14",
+      "rule": "bare-endings",
+      "attempt": 7,
+      "raw": "The lazy cow lay in the cool grass which means the next",
+      "expect": "The lazy cow lay in the cool grass which means the next",
+      "cleaned": "The lazy cow lay in the cool grass, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-15",
+      "rule": "bare-endings",
+      "attempt": 7,
+      "raw": "Lift um the square stone over the fence which means the next",
+      "expect": "Lift the square stone over the fence which means the next",
+      "cleaned": "Lift the square stone over the fence, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-16",
+      "rule": "bare-endings",
+      "attempt": 7,
+      "raw": "The rope will bind the seven books at once but only if the",
+      "expect": "The rope will bind the seven books at once but only if the",
+      "cleaned": "The rope will bind the seven books at once but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-17",
+      "rule": "bare-endings",
+      "attempt": 7,
+      "raw": "Hop um over the fence and plunge in but only if the",
+      "expect": "Hop over the fence and plunge in but only if the",
+      "cleaned": "Hop over the fence and plunge in, but only if the",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-18",
+      "rule": "bare-endings",
+      "attempt": 7,
+      "raw": "The friendly gang left the drug store but only if the",
+      "expect": "The friendly gang left the drug store but only if the",
+      "cleaned": "The friendly gang left the drug store but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-19",
+      "rule": "bare-endings",
+      "attempt": 7,
+      "raw": "Mesh um wire keeps chicks inside but only if the",
+      "expect": "Mesh wire keeps chicks inside but only if the",
+      "cleaned": "Mesh wire keeps chicks inside but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-20",
+      "rule": "bare-endings",
+      "attempt": 7,
+      "raw": "The frosty air passed through the coat until someone can",
+      "expect": "The frosty air passed through the coat until someone can",
+      "cleaned": "The frosty air passed through the coat until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-21",
+      "rule": "bare-endings",
+      "attempt": 7,
+      "raw": "The um crooked maze failed to fool the mouse until someone can",
+      "expect": "The crooked maze failed to fool the mouse until someone can",
+      "cleaned": "The crooked maze failed to fool the mouse until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-22",
+      "rule": "bare-endings",
+      "attempt": 7,
+      "raw": "Adding fast leads to wrong sums until someone can",
+      "expect": "Adding fast leads to wrong sums until someone can",
+      "cleaned": "Adding fast leads to wrong sums until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-23",
+      "rule": "bare-endings",
+      "attempt": 7,
+      "raw": "The um show was a flop from the very start until someone can",
+      "expect": "The show was a flop from the very start until someone can",
+      "cleaned": "The show was a flop from the very start until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-00",
+      "rule": "bare-endings",
+      "attempt": 8,
+      "raw": "Hoist the load to your left shoulder and then we could",
+      "expect": "Hoist the load to your left shoulder and then we could",
+      "cleaned": "Hoist the load to your left shoulder and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-01",
+      "rule": "bare-endings",
+      "attempt": 8,
+      "raw": "Take um the winding path to reach the lake and then we could",
+      "expect": "Take the winding path to reach the lake and then we could",
+      "cleaned": "Take the winding path to reach the lake and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-02",
+      "rule": "bare-endings",
+      "attempt": 8,
+      "raw": "Note closely the size of the gas tank and then we could",
+      "expect": "Note closely the size of the gas tank and then we could",
+      "cleaned": "Note closely the size of the gas tank and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-03",
+      "rule": "bare-endings",
+      "attempt": 8,
+      "raw": "Wipe um the grease off his dirty face and then we could",
+      "expect": "Wipe the grease off his dirty face and then we could",
+      "cleaned": "Wipe the grease off his dirty face and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-04",
+      "rule": "bare-endings",
+      "attempt": 8,
+      "raw": "Mend the coat before you go out because the whole thing",
+      "expect": "Mend the coat before you go out because the whole thing",
+      "cleaned": "Mend the coat before you go out because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-05",
+      "rule": "bare-endings",
+      "attempt": 8,
+      "raw": "The um wrist was badly strained and hung limp because the whole thing",
+      "expect": "The wrist was badly strained and hung limp because the whole thing",
+      "cleaned": "The wrist was badly strained and hung limp because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-06",
+      "rule": "bare-endings",
+      "attempt": 8,
+      "raw": "The stray cat gave birth to kittens because the whole thing",
+      "expect": "The stray cat gave birth to kittens because the whole thing",
+      "cleaned": "The stray cat gave birth to kittens because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-07",
+      "rule": "bare-endings",
+      "attempt": 8,
+      "raw": "The um young girl gave no clear response because the whole thing",
+      "expect": "The young girl gave no clear response because the whole thing",
+      "cleaned": "The young girl gave no clear response because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-08",
+      "rule": "bare-endings",
+      "attempt": 8,
+      "raw": "The meal was cooked before the bell rang so I was going to",
+      "expect": "The meal was cooked before the bell rang so I was going to",
+      "cleaned": "The meal was cooked before the bell rang so I was going to",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-09",
+      "rule": "bare-endings",
+      "attempt": 8,
+      "raw": "What um joy there is in living so I was going to",
+      "expect": "What joy there is in living so I was going to",
+      "cleaned": "What joy there is in living, so I was going to",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-10",
+      "rule": "bare-endings",
+      "attempt": 8,
+      "raw": "A king ruled the state in the early days so I was going to",
+      "expect": "A king ruled the state in the early days so I was going to",
+      "cleaned": "A king ruled the state in the early days, so I was going to",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-11",
+      "rule": "bare-endings",
+      "attempt": 8,
+      "raw": "The um ship was torn apart on the sharp reef so I was going to",
+      "expect": "The ship was torn apart on the sharp reef so I was going to",
+      "cleaned": "The ship was torn apart on the sharp reef so I was going to",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-12",
+      "rule": "bare-endings",
+      "attempt": 8,
+      "raw": "Sickness kept him home the third week which means the next",
+      "expect": "Sickness kept him home the third week which means the next",
+      "cleaned": "Sickness kept him home the third week, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-13",
+      "rule": "bare-endings",
+      "attempt": 8,
+      "raw": "The um wide road shimmered in the hot sun which means the next",
+      "expect": "The wide road shimmered in the hot sun which means the next",
+      "cleaned": "The wide road shimmered in the hot sun, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-14",
+      "rule": "bare-endings",
+      "attempt": 8,
+      "raw": "The lazy cow lay in the cool grass which means the next",
+      "expect": "The lazy cow lay in the cool grass which means the next",
+      "cleaned": "The lazy cow lay in the cool grass, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-15",
+      "rule": "bare-endings",
+      "attempt": 8,
+      "raw": "Lift um the square stone over the fence which means the next",
+      "expect": "Lift the square stone over the fence which means the next",
+      "cleaned": "Lift the square stone over the fence, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-16",
+      "rule": "bare-endings",
+      "attempt": 8,
+      "raw": "The rope will bind the seven books at once but only if the",
+      "expect": "The rope will bind the seven books at once but only if the",
+      "cleaned": "The rope will bind the seven books at once but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-17",
+      "rule": "bare-endings",
+      "attempt": 8,
+      "raw": "Hop um over the fence and plunge in but only if the",
+      "expect": "Hop over the fence and plunge in but only if the",
+      "cleaned": "Hop over the fence and plunge in but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-18",
+      "rule": "bare-endings",
+      "attempt": 8,
+      "raw": "The friendly gang left the drug store but only if the",
+      "expect": "The friendly gang left the drug store but only if the",
+      "cleaned": "The friendly gang left the drug store but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-19",
+      "rule": "bare-endings",
+      "attempt": 8,
+      "raw": "Mesh um wire keeps chicks inside but only if the",
+      "expect": "Mesh wire keeps chicks inside but only if the",
+      "cleaned": "Mesh wire keeps chicks inside but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-20",
+      "rule": "bare-endings",
+      "attempt": 8,
+      "raw": "The frosty air passed through the coat until someone can",
+      "expect": "The frosty air passed through the coat until someone can",
+      "cleaned": "The frosty air passed through the coat until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-21",
+      "rule": "bare-endings",
+      "attempt": 8,
+      "raw": "The um crooked maze failed to fool the mouse until someone can",
+      "expect": "The crooked maze failed to fool the mouse until someone can",
+      "cleaned": "The crooked maze failed to fool the mouse until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-22",
+      "rule": "bare-endings",
+      "attempt": 8,
+      "raw": "Adding fast leads to wrong sums until someone can",
+      "expect": "Adding fast leads to wrong sums until someone can",
+      "cleaned": "Adding fast leads to wrong sums until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-23",
+      "rule": "bare-endings",
+      "attempt": 8,
+      "raw": "The um show was a flop from the very start until someone can",
+      "expect": "The show was a flop from the very start until someone can",
+      "cleaned": "The show was a flop from the very start until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-00",
+      "rule": "bare-endings",
+      "attempt": 9,
+      "raw": "Hoist the load to your left shoulder and then we could",
+      "expect": "Hoist the load to your left shoulder and then we could",
+      "cleaned": "Hoist the load to your left shoulder and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-01",
+      "rule": "bare-endings",
+      "attempt": 9,
+      "raw": "Take um the winding path to reach the lake and then we could",
+      "expect": "Take the winding path to reach the lake and then we could",
+      "cleaned": "Take the winding path to reach the lake and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-02",
+      "rule": "bare-endings",
+      "attempt": 9,
+      "raw": "Note closely the size of the gas tank and then we could",
+      "expect": "Note closely the size of the gas tank and then we could",
+      "cleaned": "Note closely the size of the gas tank and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-03",
+      "rule": "bare-endings",
+      "attempt": 9,
+      "raw": "Wipe um the grease off his dirty face and then we could",
+      "expect": "Wipe the grease off his dirty face and then we could",
+      "cleaned": "Wipe the grease off his dirty face and then we could",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-04",
+      "rule": "bare-endings",
+      "attempt": 9,
+      "raw": "Mend the coat before you go out because the whole thing",
+      "expect": "Mend the coat before you go out because the whole thing",
+      "cleaned": "Mend the coat before you go out because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-05",
+      "rule": "bare-endings",
+      "attempt": 9,
+      "raw": "The um wrist was badly strained and hung limp because the whole thing",
+      "expect": "The wrist was badly strained and hung limp because the whole thing",
+      "cleaned": "The wrist was badly strained and hung limp because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-06",
+      "rule": "bare-endings",
+      "attempt": 9,
+      "raw": "The stray cat gave birth to kittens because the whole thing",
+      "expect": "The stray cat gave birth to kittens because the whole thing",
+      "cleaned": "The stray cat gave birth to kittens because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-07",
+      "rule": "bare-endings",
+      "attempt": 9,
+      "raw": "The um young girl gave no clear response because the whole thing",
+      "expect": "The young girl gave no clear response because the whole thing",
+      "cleaned": "The young girl gave no clear response because the whole thing",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-08",
+      "rule": "bare-endings",
+      "attempt": 9,
+      "raw": "The meal was cooked before the bell rang so I was going to",
+      "expect": "The meal was cooked before the bell rang so I was going to",
+      "cleaned": "The meal was cooked before the bell rang so I was going to",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-09",
+      "rule": "bare-endings",
+      "attempt": 9,
+      "raw": "What um joy there is in living so I was going to",
+      "expect": "What joy there is in living so I was going to",
+      "cleaned": "What joy there is in living, so I was going to",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-10",
+      "rule": "bare-endings",
+      "attempt": 9,
+      "raw": "A king ruled the state in the early days so I was going to",
+      "expect": "A king ruled the state in the early days so I was going to",
+      "cleaned": "A king ruled the state in the early days, so I was going to",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-11",
+      "rule": "bare-endings",
+      "attempt": 9,
+      "raw": "The um ship was torn apart on the sharp reef so I was going to",
+      "expect": "The ship was torn apart on the sharp reef so I was going to",
+      "cleaned": "The ship was torn apart on the sharp reef so I was going to",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-12",
+      "rule": "bare-endings",
+      "attempt": 9,
+      "raw": "Sickness kept him home the third week which means the next",
+      "expect": "Sickness kept him home the third week which means the next",
+      "cleaned": "Sickness kept him home the third week, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-13",
+      "rule": "bare-endings",
+      "attempt": 9,
+      "raw": "The um wide road shimmered in the hot sun which means the next",
+      "expect": "The wide road shimmered in the hot sun which means the next",
+      "cleaned": "The wide road shimmered in the hot sun which means the next",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-14",
+      "rule": "bare-endings",
+      "attempt": 9,
+      "raw": "The lazy cow lay in the cool grass which means the next",
+      "expect": "The lazy cow lay in the cool grass which means the next",
+      "cleaned": "The lazy cow lay in the cool grass, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-15",
+      "rule": "bare-endings",
+      "attempt": 9,
+      "raw": "Lift um the square stone over the fence which means the next",
+      "expect": "Lift the square stone over the fence which means the next",
+      "cleaned": "Lift the square stone over the fence, which means the next",
+      "match": false,
+      "obeyed": true
+    },
+    {
+      "id": "bare-16",
+      "rule": "bare-endings",
+      "attempt": 9,
+      "raw": "The rope will bind the seven books at once but only if the",
+      "expect": "The rope will bind the seven books at once but only if the",
+      "cleaned": "The rope will bind the seven books at once but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-17",
+      "rule": "bare-endings",
+      "attempt": 9,
+      "raw": "Hop um over the fence and plunge in but only if the",
+      "expect": "Hop over the fence and plunge in but only if the",
+      "cleaned": "Hop over the fence and plunge in but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-18",
+      "rule": "bare-endings",
+      "attempt": 9,
+      "raw": "The friendly gang left the drug store but only if the",
+      "expect": "The friendly gang left the drug store but only if the",
+      "cleaned": "The friendly gang left the drug store but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-19",
+      "rule": "bare-endings",
+      "attempt": 9,
+      "raw": "Mesh um wire keeps chicks inside but only if the",
+      "expect": "Mesh wire keeps chicks inside but only if the",
+      "cleaned": "Mesh wire keeps chicks inside but only if the",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-20",
+      "rule": "bare-endings",
+      "attempt": 9,
+      "raw": "The frosty air passed through the coat until someone can",
+      "expect": "The frosty air passed through the coat until someone can",
+      "cleaned": "The frosty air passed through the coat until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-21",
+      "rule": "bare-endings",
+      "attempt": 9,
+      "raw": "The um crooked maze failed to fool the mouse until someone can",
+      "expect": "The crooked maze failed to fool the mouse until someone can",
+      "cleaned": "The crooked maze failed to fool the mouse until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-22",
+      "rule": "bare-endings",
+      "attempt": 9,
+      "raw": "Adding fast leads to wrong sums until someone can",
+      "expect": "Adding fast leads to wrong sums until someone can",
+      "cleaned": "Adding fast leads to wrong sums until someone can",
+      "match": true,
+      "obeyed": true
+    },
+    {
+      "id": "bare-23",
+      "rule": "bare-endings",
+      "attempt": 9,
+      "raw": "The um show was a flop from the very start until someone can",
+      "expect": "The show was a flop from the very start until someone can",
+      "cleaned": "The show was a flop from the very start until someone can",
+      "match": true,
+      "obeyed": true
+    }
+  ]
+}

@@ -1,0 +1,138 @@
+METERED: 250 calls to claude-haiku-5-5 via anthropic-api
+SPENT: 250 calls, 471470 in + 27715 out tokens, $0.0610 at list price
+Subscription: ChatGPT; proposer model gpt-5.6-sol; 12 calls
+plain-1  claude-haiku-5-5  judged 19/25 21/25 19/25 19/25 20/25 20/25 19/25 19/25 20/25 21/25  mean 19.70  (exact 16/25 18/25 16/25 17/25 17/25 18/25 17/25 16/25 18/25 17/25  mean 17.00)
+
+  polish-01 [disfluency] failed 3/10
+    raw: So um I think we should um probably ship it today.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -So I think we should probably ship it today.
+    +I think we should probably ship it today.
+
+  polish-02 [disfluency, restart] failed 8/10
+    raw: Can you send me the actually no, can you post the numbers in the channel
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Can you post the numbers in the channel?
+    +Can you post the numbers in the channel
+
+  polish-03 [disfluency, self-correction] failed 10/10
+    raw: The meeting is on Tuesday - I mean Wednesday - at three
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The meeting is on Wednesday at three.
+    +The meeting is on Wednesday at 3:00.
+
+  polish-15 [symbols, path] failed 10/10
+    raw: Look in slash user slash local slash bin period
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Look in /usr/local/bin.
+    +Look in /user/local/bin.
+
+  polish-20 [identifier, context] failed 10/10
+    raw: Bump max retry count to 5, period.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Bump maxRetryCount to five.
+    +Bump max retry count to 5.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Bump maxRetryCount to five.
+    +Bump maxRetryCount to 5.
+
+  polish-30 [rule, bare-ending] failed 10/10
+    raw: And then we could maybe
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -and then we could maybe
+    +And then we could maybe
+
+  polish-36 [capstone, disfluency, symbols, identifier, context] failed 10/10
+    raw: Okay, so take the retry logic and move it into the client period. Then run the tests with - filter cleanup, and if the um if the timeout one still fails, comma, bump, give up after to twenty seconds, period.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Okay so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    +Okay, so take the retry logic and move it into the client. Then run the tests with -filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Okay so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    +Okay, so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+
+  polish-37 [spell-out, disambiguation] failed 9/10
+    raw: The fast tier runs on Grok with a Q period.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The fast tier runs on Groq.
+    +The fast tier runs on Grok with a Q.
+
+  polish-39 [spell-out, construction] failed 10/10
+    raw: Her name is Katherine with a K and a Y.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Her name is Kathryn.
+    +Her name is Katy.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,7 @@
+    -Her name is Kathryn.
+    +Her name is Katharine with a K and a Y.
+    +
+    +Wait, let me apply the spelling aside correctly. The aside says "with a K and a Y," which means the word should end in the sound replaced by K and Y. The word "Katherine" becomes "Katheriny"? No: the spelling aside applies to the modified word, replacing the corresponding sound. Here the aside names the letters K and Y, which should replace the ending of the word, so "Katherine" becomes "Katherky"? That is not right either, so the sound-based reading applies to the name as heard.
+    +
+    +Correct output:
+    +
+    +Her name is Katy.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,7 @@
+    -Her name is Kathryn.
+    +Her name is Katharine with a K and a Y.
+    +
+    +Wait, let me apply the spelling aside correctly. "Katherine" with a K and a Y: the aside says the matching sound is changed to Y, and the spelling aside is "with a K and a Y," which means the word should contain K and Y in order. Applying the rule to "Katherine," the spelling aside instructs replacing the sound with the named letters.
+    +
+    +Final output:
+    +
+    +Her name is KatherY.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Her name is Kathryn.
+    +Her name is Katheryn.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,7 @@
+    -Her name is Kathryn.
+    +Her name is Katherine with a K and a Y.
+    +
+    +Applying the spelling aside: "Katherine" becomes the spelling with the matching ending changed. "With a K and a Y" means the name is spelled with K and Y inserted as named, so the word is "Katherine" with the final sound replaced by "KY" in order.
+    +
+    +Result:
+    +
+    +Her name is KatherKY.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,5 @@
+    -Her name is Kathryn.
+    +Her name is Katharine... wait, the spelling aside says "with a K and a Y," so the name is Katherine. The aside tells us to change the matching sound to a Y and keep K. The word "Katherine" ends in "-ine," so the change is: replace the ending sound with "Y."
+    +
+    +Applying the rule: "Katherine" becomes "Katherey"? That isn't a standard spelling, and the instruction is to replace the modified sound with the named letters in order. The word the aside modifies is "Katherine," with the sound changed to a K and Y, producing "Katherink" is not right either. The clear reading: the name is spelled with a K and a Y, so the dictation becomes:
+    +
+    +Her name is Kathy.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Her name is Kathryn.
+    +Her name is Katherky.

@@ -1,0 +1,14 @@
+METERED: 756 calls to claude-haiku-5-5 via anthropic-api
+
+c-two  (claude-haiku-5-5)
+  bare-endings               rule  91.7%  exact  75.0%  2/24 variants never obeyed
+  dictionary-exactness       rule  90.3%  exact  90.3%  2/24 variants never obeyed
+  identifier-from-context    rule 100.0%  exact  98.1%  0/36 variants never obeyed
+  layout                     rule  97.2%  exact  88.9%  0/24 variants never obeyed
+  never-obey                 rule  97.2%  exact  93.1%  0/24 variants never obeyed
+  self-correction            rule  93.8%  exact  74.3%  1/48 variants never obeyed
+  spell-out                  rule  69.4%  exact  69.4%  5/24 variants never obeyed
+  spoken-punctuation         rule  88.9%  exact  87.5%  2/24 variants never obeyed
+  symbol-attachment          rule 100.0%  exact  98.6%  0/24 variants never obeyed
+  wrote /Users/thurstonsand/Develop/mini-whisper-haiku-5-5-tuning/docs/wayfinding/finishing-mini-whisper/assets/43-dictation-corpus/results/prompt-tuning-r8/runs/compose/grid/c-two.json
+SPENT: 756 calls, 1461738 in + 130753 out tokens, $0.2116 at list price

@@ -1,0 +1,7 @@
+Subscription: ChatGPT; proposer model gpt-5.6-sol; 18 calls
+r1: 663 words, kept on attempt 3
+r2: rejected 3 times, last for stage1-longform.jsonl: 'it even if'
+r3: rejected 3 times, last for stage1-longform.jsonl: 'it even if', stage3-layout.jsonl: 'new line one'
+r4: rejected 3 times, last for stage3-polish.jsonl: 'a y period', stage3-layout.jsonl: 'new line one', perturb.py templates: 'rather than the'
+r5: 656 words, kept on attempt 3
+r6: 710 words, kept on attempt 1

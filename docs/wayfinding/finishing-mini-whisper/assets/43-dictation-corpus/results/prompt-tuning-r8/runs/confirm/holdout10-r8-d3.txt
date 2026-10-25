@@ -1,0 +1,127 @@
+METERED: 150 calls to claude-haiku-5-5 via anthropic-api
+SPENT: 150 calls, 290170 in + 18475 out tokens, $0.0383 at list price
+Subscription: ChatGPT; proposer model gpt-5.6-sol; 18 calls
+r8-d3  claude-haiku-5-5  judged 12/15 12/15 12/15 12/15 11/15 13/15 13/15 12/15 13/15 12/15  mean 12.20  (exact 10/15 10/15 10/15 10/15 9/15 11/15 11/15 10/15 11/15 10/15  mean 10.20)
+
+  hpolish-01 [disfluency, restart] failed 10/10
+    raw: Um so the deploy is wait actually no, hold off until the tests uh finish
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Hold off until the tests finish.
+    +So the deploy is hold off until the tests finish.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,5 @@
+    -Hold off until the tests finish.
+    +So the deploy is hold off until the tests finish.
+    +
+    +Wait — the self-correction: "the deploy is wait actually no, hold off until the tests uh finish." The retracted wording is "wait actually no," and the superseded thought is "the deploy is." The final intended version keeps "hold off until the tests finish" after an unaffected sentence frame. The sentence frame "So the deploy is" is the superseded fragment, so the cleaned sentence is:
+    +
+    +"Hold off until the tests finish."
+    --- expect
+    +++ cleaned
+    @@ -1 +1,7 @@
+    +So the deploy is, hold off until the tests finish.
+    +
+    +Wait, let me apply the rules properly: the self-correction "wait actually no" is removed, leaving only the final intended version.
+    +
+    +Final output:
+    +
+     Hold off until the tests finish.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,7 @@
+    +So the deploy is, hold off until the tests finish.
+    +
+    +Wait, let me apply the rules properly. The self-correction "wait actually no" is a cue, and the superseded thought is "the deploy is." The final intended version is "hold off until the tests finish." The sentence frame "So the deploy is" is not unaffected by the correction; it is part of the superseded start, so it goes too. Filler "um" is removed.
+    +
+    +Final output:
+    +
+     Hold off until the tests finish.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,7 @@
+    -Hold off until the tests finish.
+    +So the deploy is—hold off until the tests finish.
+    +
+    +Wait, let me apply the rules precisely. The self-correction "the deploy is wait actually no, hold off..." means the superseded fragment "the deploy is" is not retracted by a complete replacement sentence frame; the final intended version is "hold off until the tests finish." The unaffected frame "So the deploy is" is kept.
+    +
+    +**Final output:**
+    +
+    +So the deploy is hold off until the tests finish.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,7 @@
+    +So the deploy is—hold off until the tests finish.
+    +
+    +Wait, let me give the cleaned version: "Hold off until the tests finish."
+    +
+    +Hmm, I should give just the final text. Here it is:
+    +
+     Hold off until the tests finish.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Hold off until the tests finish.
+    +So hold off until the tests finish.
+
+  hpolish-03 [identifier, context] failed 2/10
+    raw: Have retryQ call on failure with the last error period.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Have RetryQueue call onFailure with the last error.
+    +Have RetryQueue call on failure with the last error.
+
+  hpolish-04 [spell-out, disambiguation] failed 6/10
+    raw: Send the invoice through zero with an X.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Send the invoice through Xero.
+    +Send the invoice through zerx.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Send the invoice through Xero.
+    +Send the invoice through Zerx.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Send the invoice through Xero.
+    +Send the invoice through zex.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Send the invoice through Xero.
+    +Send the invoice through zerox.
+
+  hpolish-05 [numbers, time] failed 10/10
+    raw: Let's meet at 11.30am on June 9th.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Let's meet at 11:30 a.m. on June 9th.
+    +Let's meet at 11:30 am on June 9th.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Let's meet at 11:30 a.m. on June 9th.
+    +Let's meet at 11:30 AM on June 9th.
+
+  hpolish-10 [disfluency, backtrack, restart] failed 10/10
+    raw: So the fix is um hold on, just revert the last commit
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Just revert the last commit.
+    +So the fix is just revert the last commit.
+
+  hpolish-11 [disfluency, repair, numbers] failed 10/10
+    raw: Set the timeout to thirty, no wait, forty-five seconds
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Set the timeout to 45 seconds.
+    +Set the timeout to forty-five seconds.

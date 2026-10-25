@@ -1,0 +1,6 @@
+METERED: 144 calls to claude-haiku-5-5 via anthropic-api
+
+self-correction-frame-3  (claude-haiku-5-5)
+  self-correction            rule  95.8%  exact  87.5%  1/48 variants never obeyed
+  wrote /Users/thurstonsand/Develop/mini-whisper-haiku-5-5-tuning/docs/wayfinding/finishing-mini-whisper/assets/43-dictation-corpus/results/prompt-tuning-r8/runs/s-sc-frame/rule-self-correction/self-correction-frame-3.json
+SPENT: 144 calls, 276306 in + 15973 out tokens, $0.0356 at list price

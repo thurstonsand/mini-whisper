@@ -1,0 +1,7 @@
+Subscription: ChatGPT; proposer model gpt-5.6-sol; 18 calls
+r1: 691 words, kept on attempt 3
+r2: rejected 3 times, last for stage1-longform.jsonl: 'it even if', exemplar yappy: 'keep only the final version'
+r3: rejected 3 times, last for stage3-layout.jsonl: 'in its own', stage3-layout.jsonl: 'new line one', perturb.py templates: 'the edited text'
+r4: rejected 3 times, last for stage3-layout.jsonl: 'new line one'
+r5: rejected 3 times, last for stage3-layout.jsonl: 'the gate is', perturb.py templates: 'the edited text', exemplar yappy: 'keep only the final version'
+r6: rejected 3 times, last for perturb.py templates: 'to replace the', exemplar yappy: 'keep only the final version'

@@ -1,0 +1,7 @@
+Subscription: ChatGPT; proposer model gpt-5.6-sol; 18 calls
+r1: rejected 3 times, last for stage3-layout.jsonl: 'new line one'
+r2: 676 words, kept on attempt 3
+r3: rejected 3 times, last for stage1-longform.jsonl: 'it even if', stage3-polish.jsonl: 'comma new line', perturb.py templates: 'rather than the'
+r4: rejected 3 times, last for exemplar openwhispr: 'and nothing else no preamble', exemplar yappy: 'keep only the final version'
+r5: rejected 3 times, last for stage3-polish.jsonl: 'period new paragraph', stage3-layout.jsonl: 'new line one', perturb.py templates: 'the edited text'
+r6: rejected 3 times, last for stage1-longform.jsonl: 'it even if', stage3-layout.jsonl: 'new line one', perturb.py templates: 'the edited text'

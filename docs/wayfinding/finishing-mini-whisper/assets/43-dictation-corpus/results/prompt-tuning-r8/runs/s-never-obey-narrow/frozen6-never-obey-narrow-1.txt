@@ -1,0 +1,108 @@
+METERED: 150 calls to claude-haiku-5-5 via anthropic-api
+SPENT: 150 calls, 311382 in + 14824 out tokens, $0.0386 at list price
+Subscription: ChatGPT; proposer model gpt-5.6-sol; 9 calls
+never-obey-narrow-1  claude-haiku-5-5  judged 22/25 21/25 20/25 21/25 21/25 21/25  mean 21.00  (exact 19/25 19/25 18/25 18/25 19/25 19/25  mean 18.67)
+
+  polish-02 [disfluency, restart] failed 1/6
+    raw: Can you send me the actually no, can you post the numbers in the channel
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Can you post the numbers in the channel?
+    +Can you send me the numbers... no, can you post the numbers in the channel?
+
+  polish-03 [disfluency, self-correction] failed 6/6
+    raw: The meeting is on Tuesday - I mean Wednesday - at three
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The meeting is on Wednesday at three.
+    +The meeting is on Wednesday at 3:00.
+
+  polish-15 [symbols, path] failed 1/6
+    raw: Look in slash user slash local slash bin period
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Look in /usr/local/bin.
+    +Look in /user/local/bin.
+
+  polish-20 [identifier, context] failed 6/6
+    raw: Bump max retry count to 5, period.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Bump maxRetryCount to five.
+    +Bump max retry count to 5.
+
+  polish-30 [rule, bare-ending] failed 6/6
+    raw: And then we could maybe
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -and then we could maybe
+    +And then we could maybe
+
+  polish-36 [capstone, disfluency, symbols, identifier, context] failed 6/6
+    raw: Okay, so take the retry logic and move it into the client period. Then run the tests with - filter cleanup, and if the um if the timeout one still fails, comma, bump, give up after to twenty seconds, period.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Okay so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    +Okay, so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Okay so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    +Okay, so take the retry logic and move it into the client. Then run the tests with -filter cleanup, and if the timeout one still fails, bump, giveUpAfter to twenty seconds.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Okay so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    +Okay, so take the retry logic and move it into the client. Then run the tests with -filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Okay so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    +Okay, so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump, giveUpAfter to twenty seconds.
+
+  polish-37 [spell-out, disambiguation] failed 6/6
+    raw: The fast tier runs on Grok with a Q period.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The fast tier runs on Groq.
+    +The fast tier runs on Grok with a Q.
+
+  polish-39 [spell-out, construction] failed 6/6
+    raw: Her name is Katherine with a K and a Y.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Her name is Kathryn.
+    +Her name is Katherky.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,5 @@
+    -Her name is Kathryn.
+    +Her name is Katherine with a K and a Y.
+    +
+    +Applying the spelling aside: "Katherine" changes its matching sound to "Y" as the letters K and Y are named. The aside is "with a K and a Y," which means the word is respelled with the letters K then Y, giving "Katherine" respelled as "Katherine" with the ending replaced by "KY."
+    +
+    +Her name is Katheriny.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Her name is Kathryn.
+    +Her name is Katheryn.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,7 @@
+    -Her name is Kathryn.
+    +Her name is Katherine with a K and a Y.
+    +
+    +Applying the spelling aside: "Katherine" is modified by "with a K and a Y," so the word is respelled with those letters in order at the matching ending, and the aside is deleted. The sound-matching rule applies to the ending "-ine," and the aside "with a K and a Y" directs the respelling to "Katherine" itself.
+    +
+    +Corrected output:
+    +
+    +Her name is Katherine.

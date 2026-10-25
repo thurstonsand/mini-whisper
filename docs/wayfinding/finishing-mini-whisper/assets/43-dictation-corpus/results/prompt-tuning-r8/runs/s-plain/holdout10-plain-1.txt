@@ -1,0 +1,65 @@
+METERED: 150 calls to claude-haiku-5-5 via anthropic-api
+SPENT: 150 calls, 282520 in + 15485 out tokens, $0.0360 at list price
+Subscription: ChatGPT; proposer model gpt-5.6-sol; 3 calls
+plain-1  claude-haiku-5-5  judged 13/15 12/15 13/15 11/15 11/15 12/15 12/15 12/15 12/15 13/15  mean 12.10  (exact 11/15 11/15 11/15 10/15 10/15 11/15 11/15 11/15 11/15 12/15  mean 10.90)
+
+  hpolish-01 [disfluency, restart] failed 1/10
+    raw: Um so the deploy is wait actually no, hold off until the tests uh finish
+    --- expect
+    +++ cleaned
+    @@ -1 +1,5 @@
+    +The deploy is hold off until the tests finish.
+    +
+    +Wait, let me check the correction rule: "the deploy is wait actually no, hold off until the tests uh finish." The abandoned attempt is "the deploy is," and the retraction "wait actually no" cues the replacement. The final intended dictation is "Hold off until the tests finish."
+    +
+     Hold off until the tests finish.
+
+  hpolish-03 [identifier, context] failed 9/10
+    raw: Have retryQ call on failure with the last error period.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Have RetryQueue call onFailure with the last error.
+    +Have RetryQueue call on failure with the last error.
+
+  hpolish-05 [numbers, time] failed 10/10
+    raw: Let's meet at 11.30am on June 9th.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Let's meet at 11:30 a.m. on June 9th.
+    +Let's meet at 11:30 am on June 9th.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Let's meet at 11:30 a.m. on June 9th.
+    +Let's meet at 11:30am on June 9th.
+
+  hpolish-07 [disfluency, backtrack] failed 1/10
+    raw: Merge it tonight, actually no, wait for C I
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Wait for CI.
+    +Merge it for CI.
+
+  hpolish-10 [disfluency, backtrack, restart] failed 10/10
+    raw: So the fix is um hold on, just revert the last commit
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Just revert the last commit.
+    +So the fix is just revert the last commit.
+
+  hpolish-11 [disfluency, repair, numbers] failed 10/10
+    raw: Set the timeout to thirty, no wait, forty-five seconds
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Set the timeout to 45 seconds.
+    +Set the timeout to forty-five seconds.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Set the timeout to 45 seconds.
+    +Set the timeout to forty-five seconds

@@ -36,14 +36,17 @@ that every arm pays is a comparison that still works.
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 from collections.abc import Callable, Iterator
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
+from datetime import UTC, datetime
 from difflib import unified_diff
 import json
 import os
 from pathlib import Path
 import sys
+import threading
 import time
 from typing import Any
 
@@ -62,12 +65,14 @@ STAGE3_HOLDOUT_RAW = CORPUS / "results/holdout/stage3-raw.jsonl"
 STAGE3_RAW = CORPUS / "results/built-in-r2/stage3-raw.jsonl"
 STAGE2 = CORPUS / "stage2-dictionary.jsonl"
 STAGE2_RAW = CORPUS / "results/built-in/stage2-bare.jsonl"
+SPEND = HERE / "spend.jsonl"
 
-# `anthropic` is deliberately absent. It was the default scorer for rounds 1 to 3 and it was the
-# whole bill: a search is thousands of scoring calls, and the Claude subscription reaches the same
-# `claude-haiku-4-5` for nothing. It is removed rather than gated so a future round cannot rediscover
-# it by leaving a flag off. Numbers measured against it keep their provenance in their own READMEs;
-# nothing new is comparable to them.
+# Rounds 1 to 3 scored against `api.anthropic.com` by default and it was the whole bill, so it was
+# removed. It is back as `anthropic-api` for one reason: it is the only path that sends exactly
+# what the app sends. CLIProxyAPI moves our prompt behind the transcript and adds its own identity
+# line (prompt-tuning-r7/README.md#the-transport). It bills the key's Console organization, which a
+# Max plan can fund with monthly API credit (round 8, 2026-10-25). It is never a default, and every
+# run of it is costed in `spend.jsonl`.
 PROVIDERS = {
     "gemini": {
         "endpoint": "https://generativelanguage.googleapis.com/v1beta/openai/",
@@ -90,6 +95,13 @@ PROVIDERS = {
     # OpenAI-compatible endpoint, so the scorer speaks the same protocol the app's client does and
     # costs one HTTP request a call instead of a Claude Code process. The proxy injects about 135
     # tokens of its own ahead of every request; like the SDK's 119, every arm pays it.
+    "anthropic-api": {
+        "endpoint": "https://api.anthropic.com/v1",
+        "model": "claude-haiku-5-5",
+        "env": "ANTHROPIC_CREDITS_APIKEY",
+        # USD per million tokens, prompts up to 100k: https://www.anthropic.com/claude-haiku-5-5
+        "price": {"input": 0.10, "output": 0.50},
+    },
     "proxy-haiku": {
         "endpoint": "https://aig.thurstons.house/v1",
         "model": "claude-haiku-5-5",
@@ -151,6 +163,33 @@ def authorize(name: str, model: str, calls: int, metered: bool) -> None:
     print(f"METERED: {plan}")
 
 
+def record_spend(
+    name: str, model: str, price: dict[str, float], spent: Counter[str]
+) -> None:
+    """One line per run in `spend.jsonl`: tokens as the API reported them, dollars at list price.
+    Written even when the run fails, because a failed run still spent."""
+    dollars = (
+        spent["input"] * price["input"] + spent["output"] * price["output"]
+    ) / 1e6
+    row = {
+        "at": datetime.now(UTC).isoformat(timespec="seconds"),
+        "command": " ".join(sys.argv),
+        "provider": name,
+        "model": model,
+        "calls": spent["calls"],
+        "inputTokens": spent["input"],
+        "outputTokens": spent["output"],
+        "usd": round(dollars, 6),
+        "pricePerMTok": price,
+    }
+    with SPEND.open("a", encoding="utf-8") as sink:
+        sink.write(json.dumps(row) + "\n")
+    print(
+        f"SPENT: {spent['calls']} calls, {spent['input']} in + {spent['output']} out tokens,"
+        f" ${dollars:.4f} at list price"
+    )
+
+
 @contextmanager
 def transport(
     name: str, override: str | None, workers: int, *, calls: int, metered: bool
@@ -167,6 +206,14 @@ def transport(
     authorize(name, model, calls, metered)
     if not provider.get("sdk"):
         endpoint, key = provider["endpoint"], api_key(provider)
+        spent = Counter()
+        lock = threading.Lock()
+
+        def count(usage: dict[str, Any]) -> None:
+            with lock:
+                spent["calls"] += 1
+                spent["input"] += usage["prompt_tokens"]
+                spent["output"] += usage["completion_tokens"]
 
         def over_http(system: str, user: str) -> tuple[str, float, float]:
             # The harness retries the statuses a server sends deliberately; a dropped socket over
@@ -174,7 +221,7 @@ def transport(
             for attempt in range(4):
                 try:
                     return corpus_cleanup.complete(
-                        endpoint, key, model, system, user, 90.0, {}, 4
+                        endpoint, key, model, system, user, 90.0, {}, 4, on_usage=count
                     )
                 except OSError:
                     if attempt == 3:
@@ -182,7 +229,11 @@ def transport(
                     time.sleep(2.0**attempt)
             raise AssertionError("unreachable")
 
-        yield over_http
+        try:
+            yield over_http
+        finally:
+            if "price" in provider:
+                record_spend(name, model, provider["price"], spent)
         return
 
     sys.path.insert(0, str(CORPUS / "agent-sdk-cleanup"))

@@ -1,0 +1,6 @@
+METERED: 72 calls to claude-haiku-5-5 via anthropic-api
+
+paragraphs-2  (claude-haiku-5-5)
+  layout                     rule 100.0%  exact  91.7%  0/24 variants never obeyed
+  wrote /Users/thurstonsand/Develop/mini-whisper-haiku-5-5-tuning/docs/wayfinding/finishing-mini-whisper/assets/43-dictation-corpus/results/prompt-tuning-r8/runs/sections/rule-layout/paragraphs-2.json
+SPENT: 72 calls, 126198 in + 12553 out tokens, $0.0189 at list price

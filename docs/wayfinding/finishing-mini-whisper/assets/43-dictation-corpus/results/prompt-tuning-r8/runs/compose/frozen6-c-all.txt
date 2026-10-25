@@ -1,0 +1,134 @@
+METERED: 150 calls to claude-haiku-5-5 via anthropic-api
+SPENT: 150 calls, 299082 in + 12536 out tokens, $0.0362 at list price
+Subscription: ChatGPT; proposer model gpt-5.6-sol; 12 calls
+c-all  claude-haiku-5-5  judged 19/25 19/25 18/25 19/25 21/25 18/25  mean 19.00  (exact 17/25 17/25 16/25 17/25 18/25 16/25  mean 16.83)
+
+  polish-01 [disfluency] failed 3/6
+    raw: So um I think we should um probably ship it today.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -So I think we should probably ship it today.
+    +I think we should probably ship it today.
+
+  polish-02 [disfluency, restart] failed 5/6
+    raw: Can you send me the actually no, can you post the numbers in the channel
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Can you post the numbers in the channel?
+    +Can you post the numbers in the channel
+
+  polish-03 [disfluency, self-correction] failed 6/6
+    raw: The meeting is on Tuesday - I mean Wednesday - at three
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The meeting is on Wednesday at three.
+    +The meeting is on Wednesday at 3:00.
+
+  polish-15 [symbols, path] failed 5/6
+    raw: Look in slash user slash local slash bin period
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Look in /usr/local/bin.
+    +Look in /user/local/bin.
+
+  polish-20 [identifier, context] failed 6/6
+    raw: Bump max retry count to 5, period.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Bump maxRetryCount to five.
+    +Bump max retry count to 5.
+
+  polish-30 [rule, bare-ending] failed 6/6
+    raw: And then we could maybe
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -and then we could maybe
+    +And then we could maybe
+
+  polish-36 [capstone, disfluency, symbols, identifier, context] failed 6/6
+    raw: Okay, so take the retry logic and move it into the client period. Then run the tests with - filter cleanup, and if the um if the timeout one still fails, comma, bump, give up after to twenty seconds, period.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Okay so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    +Okay, so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump, give up after twenty seconds.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Okay so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    +Okay, so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Okay so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    +Okay, so take the retry logic and move it into the client. Then run the tests with -filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Okay so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    +Okay, so take the retry logic and move it into the client. Then run the tests with -filter cleanup, and if the timeout one still fails, bump, giveUpAfter to twenty seconds.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Okay so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    +Okay, so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump, giveUpAfter to twenty seconds.
+
+  polish-37 [spell-out, disambiguation] failed 6/6
+    raw: The fast tier runs on Grok with a Q period.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The fast tier runs on Groq.
+    +The fast tier runs on Grok with a Q.
+
+  polish-39 [spell-out, construction] failed 6/6
+    raw: Her name is Katherine with a K and a Y.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,5 @@
+    -Her name is Kathryn.
+    +Katherine with a K and a Y becomes: the spelling aside says to respell the word "Katherine" so it begins with K and ends with Y... Let me apply the rule precisely: "Katherine" is the modified word, and the aside "with a K and a Y" means to replace the corresponding letters with the named letters in order. The named letters are K and Y, so the word becomes "KatheriKY"? That is not the rule's intent for a single-letter aside, so I should apply it as the rule states.
+    +
+    +Given the rule's example, "with C and Y" inserts CY in place of the matching sound. Here the matching sound is the ending of "Katherine," which I'll replace with KY, giving "KatheriKY"... Because this is a mechanical application, I'll output the result once.
+    +
+    +Her name is KatheriKY.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,5 @@
+    -Her name is Kathryn.
+    +Her name is Katherine with a K and a Y.
+    +
+    +Applying the spelling aside: "Katherine" changes to "Katherine" with the ending sound replaced by K and Y? The aside says "with a K and a Y," meaning the matching sound changes to K-Y ending. Per the rule, the modified word is "Katherine," and the aside is replaced by inserting the letters at the corresponding sound, so the result is "Katheriny"... but the instruction says to replace the corresponding sound or letters with every named letter in order. The corresponding sound at the end of "Katherine" is "-ine," which becomes "KY," giving "Kathery"... The cleanest reading is that the spelling aside applies to the name itself, so the name is spelled "KY" in order.
+    +
+    +Her name is Katherine with a K and a Y.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,5 @@
+    -Her name is Kathryn.
+    +Her name is Katyerine.
+    +
+    +Wait, let me check the spelling aside: "Katherine" with a K and a Y. The aside says to modify the word, replacing the matching sound with K and Y. The word is "Katherine," and the sound to replace is "Ka" at the start, which becomes "KY."
+    +
+    +Her name is KYatherine.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Her name is Kathryn.
+    +Her name is Katheryn.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,7 @@
+    -Her name is Kathryn.
+    +Her name is Katylyn.
+    +
+    +Wait, I should check the spelling aside: "Katherine with a K and a Y" means replace the word with K and Y, so "Katherine" becomes "Ky" ... Let me apply it properly.
+    +
+    +The spelling aside applies to the modified word "Katherine," and the instruction says to replace the corresponding sound or letters with the named letters in order. Here the named letters are K and Y, so the word becomes "KY."
+    +
+    +Her name is KY.

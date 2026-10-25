@@ -1,0 +1,5 @@
+Subscription: ChatGPT; proposer model gpt-5.6-sol; 12 calls
+spell-out-1: section 98 words, prompt 750, kept on attempt 2
+spell-out-2: section 91 words, prompt 743, kept on attempt 3
+spell-out-3: rejected 3 times, last for stage3-polish.jsonl: 'a y period'
+spell-out-4: rejected 3 times, last for perturb.py templates: 'to replace the'

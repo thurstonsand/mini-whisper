@@ -1,0 +1,120 @@
+METERED: 150 calls to claude-haiku-5-5 via anthropic-api
+SPENT: 150 calls, 276582 in + 11151 out tokens, $0.0332 at list price
+Subscription: ChatGPT; proposer model gpt-5.6-sol; 18 calls
+output-3  claude-haiku-5-5  judged 21/25 20/25 20/25 20/25 20/25 21/25  mean 20.33  (exact 19/25 19/25 18/25 18/25 18/25 19/25  mean 18.50)
+
+  polish-03 [disfluency, self-correction] failed 6/6
+    raw: The meeting is on Tuesday - I mean Wednesday - at three
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The meeting is on Wednesday at three.
+    +The meeting is on Wednesday at 3:00.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The meeting is on Wednesday at three.
+    +The meeting is on Wednesday at 3:00
+
+  polish-15 [symbols, path] failed 3/6
+    raw: Look in slash user slash local slash bin period
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Look in /usr/local/bin.
+    +Look in /user/local/bin.
+
+  polish-20 [identifier, context] failed 6/6
+    raw: Bump max retry count to 5, period.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Bump maxRetryCount to five.
+    +Bump max retry count to 5.
+
+  polish-30 [rule, bare-ending] failed 6/6
+    raw: And then we could maybe
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -and then we could maybe
+    +And then we could maybe
+
+  polish-36 [capstone, disfluency, symbols, identifier, context] failed 6/6
+    raw: Okay, so take the retry logic and move it into the client period. Then run the tests with - filter cleanup, and if the um if the timeout one still fails, comma, bump, give up after to twenty seconds, period.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Okay so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    +Okay, so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Okay so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    +Okay, so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump, give up after to twenty seconds.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Okay so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    +Okay, so take the retry logic and move it into the client. Then run the tests with -filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+
+  polish-37 [spell-out, disambiguation] failed 6/6
+    raw: The fast tier runs on Grok with a Q period.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The fast tier runs on Groq.
+    +The fast tier runs on Grok with a Q.
+
+  polish-39 [spell-out, construction] failed 6/6
+    raw: Her name is Katherine with a K and a Y.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,5 @@
+    -Her name is Kathryn.
+    +Her name is Kathyrine.
+    +
+    +Wait, that's not right. Let me restate it cleanly:
+    +
+    +Her name is Katherine with a K and a Y.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Her name is Kathryn.
+    +Her name is Kytherine.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,9 @@
+    -Her name is Kathryn.
+    +Her name is Kathyrn.
+    +
+    +Wait, that's not right. The spelling aside says "with a K and a Y," which modifies "Katherine," so the name should be "Kayherine"? No: the aside names letters the word contains, so the word is Katherine with K and Y present. The engine's "Katherine" has no Y, so the correct result is:
+    +
+    +Her name is Katherine.
+    +
+    +Hmm, but the aside explicitly requires the letters K and Y to appear, so applying it means replacing the spelling so that it uses the named letters in order. Katherine already has K first, but no Y, so the spelling must become Kytherine.
+    +
+    +Her name is Kytherine.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,5 @@
+    -Her name is Kathryn.
+    +Her name is Kathyrn.
+    +
+    +Wait, that's not right. The aside asks for a K and a Y, which modifies "Katherine." Replacing the spelling with all named letters in order gives "Katherine" changed to... the spelling aside says "with a K and a Y," so the word is "Katherine" with the letters K and Y named. Applying the rule: replace the engine's spelling using the named letters, then delete the aside.
+    +
+    +Her name is Katherine.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,3 @@
+    -Her name is Kathryn.
+    +Her name is Kathyrn... wait, let me restate that cleanly.
+    +
+    +Her name is Katherine.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,3 @@
+    -Her name is Kathryn.
+    +Her name is Kathyrn... wait, let me restate that properly.
+    +
+    +Her name is Katherine with a K and a Y.

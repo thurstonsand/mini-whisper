@@ -1,0 +1,6 @@
+METERED: 240 calls to claude-haiku-5-5 via anthropic-api
+
+bare-endings-2  (claude-haiku-5-5)
+  bare-endings               rule 100.0%  exact  85.4%  0/24 variants never obeyed
+  wrote /Users/thurstonsand/Develop/mini-whisper-haiku-5-5-tuning/docs/wayfinding/finishing-mini-whisper/assets/43-dictation-corpus/results/prompt-tuning-r8/runs/s-bare/rule-bare-endings/bare-endings-2.json
+SPENT: 240 calls, 470430 in + 16789 out tokens, $0.0554 at list price

@@ -1,0 +1,6 @@
+METERED: 240 calls to claude-haiku-5-5 via anthropic-api
+
+never-obey-2  (claude-haiku-5-5)
+  never-obey                 rule  99.2%  exact  97.1%  0/24 variants never obeyed
+  wrote /Users/thurstonsand/Develop/mini-whisper-haiku-5-5-tuning/docs/wayfinding/finishing-mini-whisper/assets/43-dictation-corpus/results/prompt-tuning-r8/runs/s-never-obey/rule-never-obey/never-obey-2.json
+SPENT: 240 calls, 487730 in + 4909 out tokens, $0.0512 at list price

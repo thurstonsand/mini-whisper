@@ -1,0 +1,131 @@
+METERED: 250 calls to claude-haiku-5-5 via anthropic-api
+SPENT: 250 calls, 480470 in + 33746 out tokens, $0.0649 at list price
+Subscription: ChatGPT; proposer model gpt-5.6-sol; 9 calls
+self-correction-frame-3  claude-haiku-5-5  judged 20/25 21/25 20/25 21/25 21/25 21/25 22/25 19/25 22/25 21/25  mean 20.80  (exact 17/25 18/25 17/25 18/25 19/25 18/25 19/25 17/25 18/25 18/25  mean 17.90)
+
+  polish-01 [disfluency] failed 1/10
+    raw: So um I think we should um probably ship it today.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -So I think we should probably ship it today.
+    +I think we should probably ship it today.
+
+  polish-02 [disfluency, restart] failed 1/10
+    raw: Can you send me the actually no, can you post the numbers in the channel
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Can you post the numbers in the channel?
+    +Can you post the numbers in the channel
+
+  polish-03 [disfluency, self-correction] failed 7/10
+    raw: The meeting is on Tuesday - I mean Wednesday - at three
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The meeting is on Wednesday at three.
+    +The meeting is on Wednesday at 3:00.
+
+  polish-13 [symbols] failed 2/10
+    raw: Run the command with dash dash help period.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,7 @@
+    +"Run the command with --help."
+    +
+    +Wait, I need to follow the rule: convert spoken symbol names, "dash dash" preserved as two dashes. "Run the command with dash dash help period" → "Run the command with --help."
+    +
+    +Final answer:
+    +
+     Run the command with --help.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,7 @@
+    +"Run the command with --help."
+    +
+    +Wait, I need to follow the rules carefully: "Run the command with dash dash help period." The "dash dash" becomes "--" attached to "help", and "period" becomes ".".
+    +
+    +Final output:
+    +
+     Run the command with --help.
+
+  polish-15 [symbols, path] failed 10/10
+    raw: Look in slash user slash local slash bin period
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Look in /usr/local/bin.
+    +Look in /user/local/bin.
+
+  polish-20 [identifier, context] failed 10/10
+    raw: Bump max retry count to 5, period.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Bump maxRetryCount to five.
+    +Bump max retry count to 5.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Bump maxRetryCount to five.
+    +Bump maxRetryCount to 5.
+
+  polish-30 [rule, bare-ending] failed 10/10
+    raw: And then we could maybe
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -and then we could maybe
+    +And then we could maybe
+
+  polish-36 [capstone, disfluency, symbols, identifier, context] failed 10/10
+    raw: Okay, so take the retry logic and move it into the client period. Then run the tests with - filter cleanup, and if the um if the timeout one still fails, comma, bump, give up after to twenty seconds, period.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Okay so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    +Okay, so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Okay so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    +Okay, so take the retry logic and move it into the client. Then run the tests with -filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Okay so take the retry logic and move it into the client. Then run the tests with --filter cleanup, and if the timeout one still fails, bump giveUpAfter to twenty seconds.
+    +Okay, so take the retry logic and move it into the client. Then run the tests with -filter cleanup, and if the timeout one still fails, bump, giveUpAfter to twenty seconds.
+
+  polish-37 [spell-out, disambiguation] failed 10/10
+    raw: The fast tier runs on Grok with a Q period.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -The fast tier runs on Groq.
+    +The fast tier runs on Grok with a Q.
+
+  polish-39 [spell-out, construction] failed 10/10
+    raw: Her name is Katherine with a K and a Y.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Her name is Kathryn.
+    +Her name is Katheryn.
+    --- expect
+    +++ cleaned
+    @@ -1 +1,3 @@
+    -Her name is Kathryn.
+    +Katherine with a K and a Y: the spelling aside says to change "Katherine" so the matching sound is spelled with K and Y in that order. Applying it: the word "Katherine" becomes "Kathery"? The instruction says to replace the corresponding sound or letters, often the ending, with every named letter in order. The ending "-ine" is the sound being modified, so "Katheri" plus "KY" gives "KatheriKY"... that is not a natural name, so the rule's intent is to replace the matching sound with "KY." The sound at the end of "Katherine" is "-ine," which becomes "KY," giving "KatherKY."
+    +
+    +Her name is KatherKY.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Her name is Kathryn.
+    +Her name is Katherky.
+    --- expect
+    +++ cleaned
+    @@ -1 +1 @@
+    -Her name is Kathryn.
+    +Her name is Kathery.
