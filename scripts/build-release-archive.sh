@@ -177,6 +177,10 @@ if [[ "${RELEASE_SIGNING:-0}" == 1 ]]; then
 
   # Export reads the archive's requested entitlements and pairs them with the pinned profile. The
   # ad-hoc signature is only that handoff; export replaces it with the Developer ID signature.
+  # codesign refuses a bundle whose nested code is unsigned, so the frameworks go first.
+  for framework in "${archived_app}/Contents/Frameworks/"*.framework; do
+    codesign --force --sign - --options runtime "${framework}"
+  done
   codesign \
     --force \
     --sign - \
