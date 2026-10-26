@@ -12,6 +12,8 @@ jobs:
     runs-on: macos-26
     env:
       CODE_SIGNING_ALLOWED: "NO"
+      # xcodebuild hands only TEST_RUNNER_-prefixed variables to the test host, minus the prefix.
+      TEST_RUNNER_CI: "true"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7

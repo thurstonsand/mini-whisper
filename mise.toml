@@ -84,6 +84,7 @@ xcodebuild -scheme $SCHEME \
     -skipMacroValidation \
     -skipPackagePluginValidation \
     -skip-testing:MiniWhisperUITests \
+    ${CODE_SIGNING_ALLOWED:+CODE_SIGNING_ALLOWED=$CODE_SIGNING_ALLOWED} \
     test | xcbeautify -q --disable-colored-output --disable-logging
 """
 
