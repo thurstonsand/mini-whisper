@@ -235,7 +235,7 @@ extension View {
 
   /// Apply to the scrolling container itself; every row it holds must carry `.id(cursor)`.
   func keyboardCursorScroll(
-    store: StoreOf<SettingsWindowFeature>, cursor: some Hashable?,
+    store: StoreOf<SettingsWindowFeature>, cursor: (some Hashable)?,
   ) -> some View {
     modifier(KeyboardCursorScroll(store: store, cursor: cursor))
   }
