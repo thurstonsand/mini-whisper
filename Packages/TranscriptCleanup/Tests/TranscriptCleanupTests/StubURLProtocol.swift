@@ -33,7 +33,7 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
     }
     stub.log.record(request, body: Self.body(of: request))
 
-    switch stub.reply {
+    switch stub.route(request) {
     case let .response(status, body):
       let response = HTTPURLResponse(
         url: request.url!, statusCode: status, httpVersion: "HTTP/1.1", headerFields: nil,
@@ -55,18 +55,26 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
   static func session(
     reply: Reply, observedRequests: RequestLog = RequestLog(),
   ) -> (session: URLSession, log: RequestLog) {
+    session(observedRequests: observedRequests) { _ in reply }
+  }
+
+  /// A session whose endpoint answers each request as `route` decides.
+  static func session(
+    observedRequests: RequestLog = RequestLog(),
+    route: @escaping @Sendable (URLRequest) -> Reply,
+  ) -> (session: URLSession, log: RequestLog) {
     let configuration = URLSessionConfiguration.ephemeral
     configuration.protocolClasses = [StubURLProtocol.self]
     let identifier = UUID()
     configuration.httpAdditionalHeaders = ["X-Stub-Identifier": identifier.uuidString]
-    registry.withLock { $0[identifier] = Stub(reply: reply, log: observedRequests) }
+    registry.withLock { $0[identifier] = Stub(route: route, log: observedRequests) }
     return (URLSession(configuration: configuration), observedRequests)
   }
 
   // MARK: Private
 
   private struct Stub {
-    let reply: Reply
+    let route: @Sendable (URLRequest) -> Reply
     let log: RequestLog
   }
 

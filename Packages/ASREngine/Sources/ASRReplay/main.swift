@@ -1,6 +1,7 @@
 import ASREngine
 import AVFoundation
 import Foundation
+import ModelLibrary
 
 // Offline replay of a recorded dictation corpus through the real engine. One WAV per stage entry
 // in, one JSONL line of `{id, transcript, latencyMs}` out, so a scorer never has to know how the
@@ -16,7 +17,7 @@ usage: asr-replay --stage <stage.jsonl> --recordings <dir> --output <out.jsonl>
   --output          JSONL destination: {id, transcript, latencyMs, outcome}
   --engine          speech model: \(SpeechModel.catalogue.map(\.id).joined(separator: ", "));
                     defaults to \(SpeechModel.parakeetV2.id). A missing artifact is downloaded first.
-  --model-root      pinned model artifact; defaults to the engine's under the dev channel
+  --model-root      pinned model library; defaults to the dev channel's
   --runtime         JSON destination: download and load seconds, peak resident memory
   --boost-from-wants  stage the union of the stage file's `wants` terms as the dictionary
   --vocabulary      stage a newline-separated term list as the dictionary
@@ -70,10 +71,7 @@ struct Options {
       throw ReplayError(description: "unknown --engine '\(engineID)'\n\n\(usage)")
     }
     self.speechModel = speechModel
-    modelRoot = values["--model-root"].map { URL(filePath: $0) }
-      ?? Options.devChannelEngineDirectory.appending(
-        path: speechModel.artifactName, directoryHint: .isDirectory,
-      )
+    modelRoot = values["--model-root"].map { URL(filePath: $0) } ?? Options.devChannelModelRoot
     runtimeOutput = values["--runtime"].map { URL(filePath: $0) }
     boostsFromWants = flags.contains("--boost-from-wants")
     vocabularyFile = values["--vocabulary"].map { URL(filePath: $0) }
@@ -89,10 +87,11 @@ struct Options {
 
   // MARK: Internal
 
-  /// The dev channel's engines, resolved exactly the way `Channel.engineRoot` resolves its own.
-  static let devChannelEngineDirectory = FileManager.default.urls(
+  /// The dev channel's library, resolved exactly the way `Channel.engineRoot` resolves it. A
+  /// candidate installs beside the app's assets there, and the app never offers it.
+  static let devChannelModelRoot = FileManager.default.urls(
     for: .applicationSupportDirectory, in: .userDomainMask,
-  )[0].appending(path: "MiniWhisper Dev/Engine", directoryHint: .isDirectory)
+  )[0].appending(path: "MiniWhisper Dev/Engine/pinned-v1", directoryHint: .isDirectory)
 
   let stage: URL
   let recordings: URL
@@ -208,6 +207,8 @@ func follow(_ updates: AsyncStream<EngineReadiness>) async throws -> EngineSetup
       compileStarted = compileStarted ?? .now
     case .prewarming:
       continue
+    case .credentialMissing:
+      preconditionFailure("the local engine has no key to miss")
     case .ready:
       let loadStarted = compileStarted ?? started
       return EngineSetup(
@@ -225,23 +226,9 @@ func seconds(_ duration: Duration) -> Double {
   Double(duration.components.seconds) + Double(duration.components.attoseconds) / 1e18
 }
 
-/// The speech model's pinned files, as the artifact's own provenance records them.
+/// The speech model's pinned files, as the library's provenance records them.
 func installedModelBytes(_ options: Options) throws -> Int {
-  let provenance = options.modelRoot.appending(path: "provenance.json")
-  guard let object = try JSONSerialization.jsonObject(with: Data(contentsOf: provenance))
-    as? [String: Any],
-    let repositories = object["repositories"] as? [[String: Any]],
-    let files = repositories.first(where: {
-      $0["repository"] as? String == options.speechModel.repository
-    })?["files"] as? [[String: Any]]
-  else {
-    throw ReplayError(description: "\(provenance.path) does not list the speech model")
-  }
-  let sizes = files.compactMap { $0["size"] as? Int }
-  guard sizes.count == files.count else {
-    throw ReplayError(description: "\(provenance.path) has a file without a size")
-  }
-  return sizes.reduce(0, +)
+  try ModelLibrary(root: options.modelRoot).validate([options.speechModel.repository])
 }
 
 /// `ru_maxrss` is bytes on Darwin.
@@ -276,7 +263,7 @@ func run() async throws {
   )
 
   let engine = LocalASREngine(
-    modelRoot: options.modelRoot, speechModel: options.speechModel,
+    library: ModelLibrary(root: options.modelRoot), speechModel: options.speechModel,
     boostThresholds: options.boostThresholds,
   )
   let setup = try await prepare(engine, options: options)

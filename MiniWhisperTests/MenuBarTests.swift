@@ -62,7 +62,8 @@ struct MenuBarViewStateTests {
   ) -> MenuBarViewState {
     MenuBarViewState(
       degradations: degradations, engineReadiness: engineReadiness,
-      inputDeviceName: inputDeviceName, canCopyLastTranscript: hasLastTranscript,
+      engineStatusText: engineReadiness.statusText(.parakeet), inputDeviceName: inputDeviceName,
+      canCopyLastTranscript: hasLastTranscript,
     )
   }
 }

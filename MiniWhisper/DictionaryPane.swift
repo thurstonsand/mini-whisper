@@ -11,48 +11,6 @@ struct DictionaryPane: View {
   var body: some View {
     List {
       Section {
-        HStack(spacing: 6) {
-          Toggle(
-            "Improve recognition",
-            isOn: $store.dictionary.improveRecognition.sending(
-              \.dictionary.improveRecognitionChanged,
-            ),
-          )
-          .accessibilityIdentifier(AccessibilityID.dictionaryImproveRecognition)
-          .fixedSize()
-
-          // The switch's own hit area stays the toggle and its label; the badge is a sibling, so
-          // a click on it can only ever open the explanation.
-          Button {
-            isExplainingRecognition.toggle()
-          } label: {
-            Image(systemName: "info.circle")
-              .imageScale(.medium)
-              .foregroundStyle(.secondary)
-          }
-          .buttonStyle(.plain)
-          .help(DictionaryFieldCopy.improveRecognition)
-          .accessibilityIdentifier(AccessibilityID.dictionaryImproveRecognitionInfo)
-          .accessibilityLabel("About improve recognition")
-          .popover(isPresented: $isExplainingRecognition, arrowEdge: .bottom) {
-            SemanticText(
-              DictionaryFieldCopy.improveRecognition,
-              identifier: AccessibilityID.dictionaryImproveRecognitionPopover,
-              label: "Improve recognition explanation",
-            )
-            .font(.callout)
-            .fixedSize(horizontal: false, vertical: true)
-            .frame(width: 260, alignment: .leading)
-            .padding(12)
-          }
-
-          Spacer(minLength: 0)
-        }
-      } header: {
-        Text("Recognition")
-      }
-
-      Section {
         ForEach(store.dictionary.entries) { entry in
           DictionaryRow(store: store, entry: entry)
         }
@@ -88,8 +46,6 @@ struct DictionaryPane: View {
   }
 
   // MARK: Private
-
-  @State private var isExplainingRecognition = false
 
   private var draftPresented: Binding<Bool> {
     Binding(

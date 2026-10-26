@@ -1,12 +1,9 @@
 import FluidAudio
 import Foundation
+import ModelLibrary
 import OSLog
 
 private let engineLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "engine")
-
-/// Gesture timing is deliberately irrelevant here: 500 ms covers press reaction time plus the
-/// minimum voicing needed for an intended utterance.
-let minimumUtteranceDuration: TimeInterval = 0.5
 
 // MARK: - LocalASREngine
 
@@ -14,18 +11,14 @@ public actor LocalASREngine {
   // MARK: Lifecycle
 
   public init(
-    modelRoot: URL, speechModel: SpeechModel, gateConfiguration: GateConfiguration = .calibrated,
+    library: ModelLibrary, speechModel: SpeechModel,
+    gateConfiguration: GateConfiguration = .calibrated,
     boostThresholds: RecognitionBoostThresholds = .default,
   ) {
-    self.gateConfiguration = gateConfiguration
+    self.library = library
+    self.speechModel = speechModel
+    gate = SpeechGate(library: library, configuration: gateConfiguration)
     self.boostThresholds = boostThresholds
-    modelStore = PinnedModelStore(root: modelRoot, speechModel: speechModel)
-  }
-
-  init(gateConfiguration: GateConfiguration, modelStore: PinnedModelStore) {
-    self.gateConfiguration = gateConfiguration
-    boostThresholds = .default
-    self.modelStore = modelStore
   }
 
   // MARK: Public
@@ -44,31 +37,25 @@ public actor LocalASREngine {
     }
   }
 
+  /// Lets go of every loaded model so its files can be deleted. Setup in flight is left alone:
+  /// whatever it is loading, it finishes or fails on its own.
+  public func unload() {
+    guard !readiness.isSetupInProgress else {
+      return
+    }
+    gate.unload()
+    asrManager = nil
+    decoderLayerCount = nil
+    boost = nil
+    readiness = .modelMissing
+  }
+
   public func submit(
     _ samples: [Float], sampleRate: Double, dictionary: TranscriptionDictionary,
   ) async throws -> TranscriptionOutcome {
-    precondition(sampleRate > 0)
-    let duration = Double(samples.count) / sampleRate
-    guard duration >= minimumUtteranceDuration else {
-      engineLogger.notice(
-        "Gate discarded recording below duration floor: duration=\(duration, format: .fixed(precision: 3))s",
-      )
-      return .tooShort
+    if let refusal = try await gate.refusal(of: samples, sampleRate: sampleRate) {
+      return refusal
     }
-    guard readiness == .ready, let vadManager else {
-      throw ASREngineError.notReady
-    }
-
-    let gateSamples = GateFraming.zeroPaddedCopy(of: samples)
-    let results = try await vadManager.process(gateSamples)
-    let segments = await vadManager.segmentSpeech(
-      from: results, totalSamples: samples.count,
-      config: gateConfiguration.segmentationConfiguration,
-    )
-    guard !segments.isEmpty else {
-      return .noSpeech
-    }
-
     return try await decode(samples, dictionary: dictionary)
   }
 
@@ -84,14 +71,24 @@ public actor LocalASREngine {
 
   // MARK: Private
 
-  private let gateConfiguration: GateConfiguration
+  private let gate: SpeechGate
   private let boostThresholds: RecognitionBoostThresholds
-  private let modelStore: PinnedModelStore
+  private let library: ModelLibrary
+  private let speechModel: SpeechModel
   private var readiness: EngineReadiness = .modelMissing
-  private var vadManager: VadManager?
   private var asrManager: AsrManager?
   private var decoderLayerCount: Int?
   private var boost: VocabularyBoost?
+
+  /// The gate, and the speech model's asset when it ships.
+  private var assets: [ModelAsset] {
+    [.gate] + (speechModel.asset.map { [$0] } ?? [])
+  }
+
+  /// A candidate has no asset, so it brings the recognition helper the shipped asset carries.
+  private var candidateRepositories: [PinnedRepository] {
+    [speechModel.repository, .parakeetCTC]
+  }
 
   private func decode(
     _ samples: [Float], dictionary: TranscriptionDictionary,
@@ -131,9 +128,14 @@ public actor LocalASREngine {
       return
     }
     do {
-      try modelStore.validateInstalledArtifact()
+      for asset in assets {
+        _ = try library.validate(asset)
+      }
+      if speechModel.asset == nil {
+        _ = try library.validate(candidateRepositories)
+      }
       try await loadAndPrewarm { continuation.yield($0) }
-    } catch ASREngineError.modelMissing {
+    } catch ModelLibraryError.missing, ModelLibraryError.missingRepository {
       updateReadiness(.modelMissing) { continuation.yield($0) }
     } catch { updateReadiness(.failed(error.localizedDescription)) { continuation.yield($0) } }
   }
@@ -146,7 +148,21 @@ public actor LocalASREngine {
     }
     do {
       updateReadiness(.downloading(0)) { continuation.yield($0) }
-      try await modelStore.download { fraction in continuation.yield(.downloading(fraction)) }
+      // A validated install that still failed to load is the one case a fresh download of
+      // everything repairs; otherwise only what is missing is fetched.
+      let missing = assets.filter { (try? library.validate($0)) == nil }
+      try await library.install(missing.isEmpty ? assets : missing) { fraction in
+        continuation.yield(.downloading(fraction))
+      }
+      if speechModel.asset == nil {
+        // The recognition helper is usually there already, as half of the shipped asset.
+        let missing = candidateRepositories.filter { (try? library.validate([$0])) == nil }
+        if !missing.isEmpty {
+          try await library.install(missing, name: speechModel.id) { fraction in
+            continuation.yield(.downloading(fraction))
+          }
+        }
+      }
       try await loadAndPrewarm { continuation.yield($0) }
     } catch { updateReadiness(.failed(error.localizedDescription)) { continuation.yield($0) } }
   }
@@ -156,13 +172,9 @@ public actor LocalASREngine {
   ) async throws {
     ModelHub.offlineMode = true
     updateReadiness(.compiling, progress: progress)
-    let vadManager = try await VadManager(
-      config: VadConfig(defaultThreshold: gateConfiguration.threshold, computeUnits: .cpuOnly),
-      modelDirectory: modelStore.vadBaseDirectory,
-    )
-    // `load` resolves a family's own repository folder; the pinned artifact lives in ours.
+    // `load` resolves a family's own repository folder; the pinned model lives in the library's.
     let models = try AsrModels.loadLocal(
-      from: modelStore.asrDirectory, version: modelStore.speechModel.family,
+      from: library.directory(speechModel.repository), version: speechModel.family,
     )
     let asrManager = AsrManager(
       config: ASRConfig(
@@ -172,18 +184,17 @@ public actor LocalASREngine {
     )
 
     updateReadiness(.prewarming, progress: progress)
-    _ = try await vadManager.process(Array(repeating: 0, count: GateFraming.frameSampleCount))
+    try await gate.load()
     var decoderState = try TdtDecoderState(decoderLayers: models.version.decoderLayers)
     _ = try await asrManager.transcribe(
       Array(repeating: 0, count: 16000), decoderState: &decoderState,
     )
 
-    self.vadManager = vadManager
     self.asrManager = asrManager
     decoderLayerCount = models.version.decoderLayers
     boost = try await VocabularyBoost(
       backend: FluidVocabularyBoostBackend.load(
-        from: modelStore.ctcDirectory, thresholds: boostThresholds,
+        from: library.directory(.parakeetCTC), thresholds: boostThresholds,
       ),
     )
     updateReadiness(.ready, progress: progress)

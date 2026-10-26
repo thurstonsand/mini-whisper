@@ -166,9 +166,13 @@ import TranscriptCleanup
     let last = makeEntry()
     var state = makeState([previous, last])
     state.cursor = last.id
-    let store = TestStore(initialState: state) { HistoryFeature() }
+    let deletion = Gate()
+    let store = TestStore(initialState: state) { HistoryFeature() } withDependencies: {
+      $0.historyClient.deleteAudio = { _ in await deletion.wait() }
+    }
 
     await store.send(.deleteTapped(last.id))
+    deletion.open()
     await store.receive(.deleteCompleted(last.id)) {
       $0.cursor = previous.id
       $0.$log.withLock { $0.entries = [previous] }
@@ -289,11 +293,15 @@ import TranscriptCleanup
     state.$dictionary.withLock {
       $0.vocabulary = [VocabularyEntry(text: "TCA", addedAt: date)]
     }
+    let audioRelease = Gate()
     let store = TestStore(initialState: state) { HistoryFeature() } withDependencies: {
       $0.date.now = date
-      $0.historyClient.loadAudio = { _ in CanonicalRecording(samples: [0]) }
-      $0.asrEngine.identity = { "second-engine" }
-      $0.asrEngine.submit = { _, dictionary in
+      $0.historyClient.loadAudio = { _ in
+        await audioRelease.wait()
+        return CanonicalRecording(samples: [0])
+      }
+      $0.asrEngine.identity = { _ in "second-engine" }
+      $0.asrEngine.submit = { _, _, dictionary in
         #expect(dictionary.vocabulary == ["TCA"])
         #expect(dictionary.corrections.isEmpty)
         return .transcript("Second opinion")
@@ -303,9 +311,11 @@ import TranscriptCleanup
     await store.send(.retranscribeTapped(entry.id)) {
       $0.retranscribingEntryIDs.insert(entry.id)
     }
+    audioRelease.open()
     await store.receive(
       .retranscriptionCompleted(
-        entry.id, ProcessedTranscript(outcome: .transcript("Second opinion"), cleanup: nil),
+        entry.id, .parakeet,
+        ProcessedTranscript(outcome: .transcript("Second opinion"), cleanup: nil),
       ),
     ) {
       $0.retranscribingEntryIDs.remove(entry.id)
@@ -327,11 +337,15 @@ import TranscriptCleanup
     state.$dictionary.withLock {
       $0.vocabulary = [VocabularyEntry(text: "TCA", addedAt: date)]
     }
+    let audioRelease = Gate()
     let store = TestStore(initialState: state) { HistoryFeature() } withDependencies: {
       $0.date.now = date
-      $0.historyClient.loadAudio = { _ in CanonicalRecording(samples: [0]) }
-      $0.asrEngine.identity = { "second-engine" }
-      $0.asrEngine.submit = { _, dictionary in
+      $0.historyClient.loadAudio = { _ in
+        await audioRelease.wait()
+        return CanonicalRecording(samples: [0])
+      }
+      $0.asrEngine.identity = { _ in "second-engine" }
+      $0.asrEngine.submit = { _, _, dictionary in
         #expect(dictionary.vocabulary == ["TCA"])
         return .transcript("um second opinion")
       }
@@ -357,7 +371,8 @@ import TranscriptCleanup
     await store.send(.retranscribeTapped(entry.id)) {
       $0.retranscribingEntryIDs.insert(entry.id)
     }
-    await store.receive(.retranscriptionCompleted(entry.id, processed)) {
+    audioRelease.open()
+    await store.receive(.retranscriptionCompleted(entry.id, .parakeet, processed)) {
       $0.retranscribingEntryIDs.remove(entry.id)
       $0.$log.withLock {
         $0.entries[0].addRetranscription(
@@ -379,11 +394,15 @@ import TranscriptCleanup
   @Test func `a re-run with cleanup off is engine-only, exactly as a dictation would be`() async {
     let date = Date(timeIntervalSince1970: 1_700_000_100)
     let entry = makeEntry(text: "Original text", fieldContext: terminalContext)
+    let audioRelease = Gate()
     let store = TestStore(initialState: makeState([entry])) { HistoryFeature() } withDependencies: {
       $0.date.now = date
-      $0.historyClient.loadAudio = { _ in CanonicalRecording(samples: [0]) }
-      $0.asrEngine.identity = { "second-engine" }
-      $0.asrEngine.submit = { _, _ in .transcript("second opinion") }
+      $0.historyClient.loadAudio = { _ in
+        await audioRelease.wait()
+        return CanonicalRecording(samples: [0])
+      }
+      $0.asrEngine.identity = { _ in "second-engine" }
+      $0.asrEngine.submit = { _, _, _ in .transcript("second opinion") }
       $0.cleanup.clean = { _, _, _ in
         Issue.record("A disabled cleanup pass must never send a request")
         return .cancelled
@@ -393,9 +412,11 @@ import TranscriptCleanup
     await store.send(.retranscribeTapped(entry.id)) {
       $0.retranscribingEntryIDs.insert(entry.id)
     }
+    audioRelease.open()
     await store.receive(
       .retranscriptionCompleted(
-        entry.id, ProcessedTranscript(outcome: .transcript("second opinion"), cleanup: nil),
+        entry.id, .parakeet,
+        ProcessedTranscript(outcome: .transcript("second opinion"), cleanup: nil),
       ),
     ) {
       $0.retranscribingEntryIDs.remove(entry.id)
@@ -442,8 +463,8 @@ import TranscriptCleanup
         activate: [Hotkey(keyCode: 0, modifiers: [.leftCommand])],
         pasteLastTranscript: HotkeyBindingsSettings.defaults.hotkeys(for: .pasteLastTranscript),
       ),
-      microphone: .systemDefault, sounds: .silent, retention: .defaults,
-      improveRecognition: true, cleanup: .defaults,
+      microphone: .systemDefault, sounds: .silent, retention: .defaults, profiles: .defaults,
+      cleanupTimeout: CleanupConfiguration.defaultTimeout, additionalInstructions: "",
     )
     try SettingsCoding.encode(stored).write(to: settingsURL)
 
@@ -491,6 +512,29 @@ import TranscriptCleanup
   }
 }
 
+// MARK: - Gate
+
+/// Holds an effect's dependency until the test opens it. The log is shared state, so an effect
+/// whose mocks never suspend can land its result before `send` is asserted, and the step would be
+/// charged with a change the next action made.
+final class Gate: Sendable {
+  // MARK: Internal
+
+  func wait() async {
+    for await _ in stream {
+      return
+    }
+  }
+
+  func open() {
+    continuation.yield()
+  }
+
+  // MARK: Private
+
+  private let (stream, continuation) = AsyncStream.makeStream(of: Void.self)
+}
+
 // MARK: - CopiedTextRecorder
 
 private actor CopiedTextRecorder {
@@ -512,22 +556,33 @@ private actor DeletedAudioRecorder {
 }
 
 private let gatewayEndpoint = URL(string: "https://gateway.example/v1")!
-private let configuredCleanup = CleanupSettings(
-  enabled: true, endpoint: gatewayEndpoint, model: "gpt-oss-120b", timeout: 10,
-  additionalInstructions: "",
-)
+/// Custom with cleanup off: a re-run is the engine alone, and no key is ever read.
+private let rawSettings: MiniWhisperSettings = {
+  var settings = MiniWhisperSettings.defaults
+  settings.profiles.active = .custom
+  return settings
+}()
+
+private let configuredCleanup: MiniWhisperSettings = {
+  var settings = rawSettings
+  settings.profiles.custom = CustomProfileSettings(
+    cleanupEnabled: true, endpoint: gatewayEndpoint, model: "gpt-oss-120b",
+    boostsVocabulary: false,
+  )
+  return settings
+}()
+
 private let terminalContext = FocusedTextContext(
   role: "AXTextArea", before: "$ ", selected: "", after: "", selectedRange: 2 ..< 2,
   beforeWasTruncated: false, selectionWasTruncated: false, afterWasTruncated: false,
 )
 
 private func makeState(
-  _ entries: [HistoryEntry], cleanup: CleanupSettings = .defaults,
+  _ entries: [HistoryEntry], cleanup: MiniWhisperSettings = rawSettings,
 ) -> HistoryFeature.State {
   HistoryFeature.State(
     log: Shared(value: HistoryLog(entries: entries)), retention: Shared(value: .defaults),
-    dictionary: Shared(value: .empty), improveRecognition: Shared(value: true),
-    cleanup: Shared(value: cleanup),
+    dictionary: Shared(value: .empty), settings: Shared(value: cleanup),
   )
 }
 

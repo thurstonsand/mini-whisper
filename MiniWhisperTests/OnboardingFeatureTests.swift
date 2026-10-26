@@ -5,7 +5,9 @@ import ComposableArchitecture
 import Foundation
 import HotkeyListener
 @testable import MiniWhisper
+import ModelLibrary
 import Testing
+import TranscriptCleanup
 
 // MARK: - OnboardingStepDerivationTests
 
@@ -20,40 +22,53 @@ struct OnboardingStepDerivationTests {
     var readiness = EngineReadiness.modelMissing
     #expect(
       OnboardingStep.derive(
-        from: snapshot, engineReadiness: readiness, hasCompletedShortcut: false,
+        from: snapshot, isMissingKeys: false, isSetUp: readiness == .ready,
+        hasCompletedShortcut: false,
       ) == .permissions,
     )
 
     snapshot.permissions.microphoneStatus = .granted
     #expect(
       OnboardingStep.derive(
-        from: snapshot, engineReadiness: readiness, hasCompletedShortcut: false,
+        from: snapshot, isMissingKeys: false, isSetUp: readiness == .ready,
+        hasCompletedShortcut: false,
       ) == .permissions,
     )
 
     snapshot.permissions.hasAccessibilityPermission = true
     #expect(
       OnboardingStep.derive(
-        from: snapshot, engineReadiness: readiness, hasCompletedShortcut: false,
+        from: snapshot, isMissingKeys: false, isSetUp: readiness == .ready,
+        hasCompletedShortcut: false,
       ) == .shortcut,
     )
     #expect(
       OnboardingStep.derive(
-        from: snapshot, engineReadiness: readiness, hasCompletedShortcut: true,
+        from: snapshot, isMissingKeys: false, isSetUp: readiness == .ready,
+        hasCompletedShortcut: true,
       ) == .model,
     )
 
     readiness = .ready
     #expect(
       OnboardingStep.derive(
-        from: snapshot, engineReadiness: readiness, hasCompletedShortcut: true,
+        from: snapshot, isMissingKeys: false, isSetUp: readiness == .ready,
+        hasCompletedShortcut: true,
       ) == .tryIt,
+    )
+
+    // A profile's missing key comes first: nothing after it can be finished without it.
+    #expect(
+      OnboardingStep.derive(
+        from: snapshot, isMissingKeys: true, isSetUp: true, hasCompletedShortcut: true,
+      ) == .keys,
     )
 
     snapshot.isCompleted = true
     #expect(
       OnboardingStep.derive(
-        from: snapshot, engineReadiness: readiness, hasCompletedShortcut: true,
+        from: snapshot, isMissingKeys: false, isSetUp: readiness == .ready,
+        hasCompletedShortcut: true,
       ) == .ready,
     )
   }
@@ -83,7 +98,7 @@ struct OnboardingStepDerivationTests {
 
     #expect(
       OnboardingStep.derive(
-        from: snapshot, engineReadiness: .ready, hasCompletedShortcut: true,
+        from: snapshot, isMissingKeys: false, isSetUp: true, hasCompletedShortcut: true,
       ) == .permissions,
     )
     #expect(!snapshot.permissions.isGranted(.microphone))
@@ -160,7 +175,8 @@ struct OnboardingStepDerivationTests {
       $0.continuousClock = clock
       $0.microphonePermission.status = { statuses.value.microphoneStatus }
       $0.accessibilityPermission.hasPermission = { statuses.value.hasAccessibilityPermission }
-      $0.asrEngine.installAndPrepare = { AsyncStream { $0.finish() } }
+      $0.asrEngine.installAndPrepare = { _ in AsyncStream { $0.finish() } }
+      $0.keychain.read = { _ in "sk-ant-test" }
     }
 
     let initialSnapshot = OnboardingSnapshot(
@@ -172,6 +188,7 @@ struct OnboardingStepDerivationTests {
     await store.send(.present(initialSnapshot)) {
       $0.isPresented = true
       $0.snapshot = initialSnapshot
+      $0.storedKeys = [CredentialSlot(profile: .haiku, provider: .anthropic)]
     }
     await store.receive(.delegate(.setupModelRequested))
 
@@ -652,6 +669,242 @@ struct OnboardingStepDerivationTests {
       ),
       hasModelDownloadConsent: true, isCompleted: false,
     )
+  }
+}
+
+// MARK: - OnboardingProfileTests
+
+@MainActor struct OnboardingProfileTests {
+  // MARK: Internal
+
+  /// What the button downloads is the chosen profile's models, minus the megabyte gate that rides
+  /// along with anything; a profile with nothing large to fetch just starts.
+  @Test(arguments: [
+    (ProfileID.haiku, "Download Parakeet TDT v2"),
+    (.offline, "Download Parakeet TDT v2 and S1-mini"),
+    (.accurate, "Get Started"),
+    (.custom, "Download Parakeet TDT v2"),
+  ])
+  func `the welcome button names what the chosen profile downloads`(
+    _ id: ProfileID, title: String,
+  ) {
+    var state = welcomeState()
+    state.$settings.withLock { $0.profiles.active = id }
+    #expect(state.welcomeActionTitle == title)
+  }
+
+  @Test func `the footnote sizes the download and names the keys that come next`() {
+    var state = welcomeState()
+    state.storedKeys = [CredentialSlot(profile: .accurate, provider: .google)]
+    state.$settings.withLock { $0.profiles.active = .accurate }
+    #expect(state.welcomeFootnote == "You’ll add an ElevenLabs key next.")
+    state.storedKeys = []
+    #expect(state.welcomeFootnote == "You’ll add ElevenLabs and Google keys next.")
+
+    state.$settings.withLock { $0.profiles.active = .offline }
+    state.assets[.parakeet] = .installed(bytes: ModelAsset.parakeet.pinnedBytes)
+    let size = ByteCountFormatter.string(
+      fromByteCount: Int64(ModelAsset.s1Mini.pinnedBytes), countStyle: .file,
+    )
+    #expect(state.welcomeActionTitle == "Download S1-mini")
+    #expect(state.welcomeFootnote == "\(size) downloads while you finish setup.")
+  }
+
+  /// Most accurate needs two keys, each in its own slot: a key pasted into the wrong one would be
+  /// sent to the wrong company.
+  @Test func `every missing key must be typed, and each lands in its own slot`() async {
+    let stored = TestBox<[CredentialSlot: String]>([:])
+    var state = welcomeState()
+    state.isShowingWelcome = false
+    state.snapshot.hasModelDownloadConsent = true
+    state.$settings.withLock { $0.profiles.active = .accurate }
+    state.storedKeys = []
+    let verified = TestBox<(CleanupConfiguration, String?)?>(nil)
+    let engineChecked = TestBox<(SpeechEngine, String)?>(nil)
+    let store = TestStore(initialState: state) {
+      OnboardingFeature()
+    } withDependencies: {
+      $0.keychain.store = { key, slot in stored.value[slot] = key }
+      $0.keychain.read = { stored.value[$0] }
+      $0.asrEngine.verifyKey = { engine, key in
+        #expect(stored.value.isEmpty, "Nothing is stored before the engine key is proven")
+        engineChecked.value = (engine, key)
+      }
+      $0.cleanup.verify = { configuration, key in
+        #expect(stored.value.isEmpty, "Nothing is stored before the cleanup key is proven")
+        verified.value = (configuration, key)
+        return .verified
+      }
+    }
+    let elevenLabs = CredentialSlot(profile: .accurate, provider: .elevenlabs)
+    let google = CredentialSlot(profile: .accurate, provider: .google)
+    #expect(store.state.step == .keys)
+
+    await store
+      .send(.keyEdited(elevenLabs, " sk_eleven ")) { $0.keyDrafts[elevenLabs] = " sk_eleven " }
+    #expect(!store.state.canContinueFromKeys)
+    await store.send(.keysContinueTapped)
+    #expect(stored.value.isEmpty)
+
+    await store.send(.keyEdited(google, "AIzaGoogle")) { $0.keyDrafts[google] = "AIzaGoogle" }
+    await store.send(.keysContinueTapped) { $0.isCheckingKeys = true }
+    await store.receive(.keysVerified) {
+      $0.isCheckingKeys = false
+      $0.storedKeys = [elevenLabs, google]
+      $0.keyDrafts = [:]
+    }
+    await store.receive(.delegate(.keysStored))
+
+    #expect(verified.value?.0.endpoint.host() == "generativelanguage.googleapis.com")
+    #expect(verified.value?.0.model == "gemini-3.8-flash")
+    #expect(verified.value?.1 == "AIzaGoogle")
+    #expect(engineChecked.value?.0 == .scribe)
+    #expect(engineChecked.value?.1 == "sk_eleven")
+    #expect(stored.value == [elevenLabs: "sk_eleven", google: "AIzaGoogle"])
+    #expect(store.state.step == .permissions)
+  }
+
+  @Test func `a cleanup key the provider refuses is never stored`() async {
+    var state = welcomeState()
+    state.isShowingWelcome = false
+    state.snapshot.hasModelDownloadConsent = true
+    state.storedKeys = []
+    let haiku = CredentialSlot(profile: .haiku, provider: .anthropic)
+    let store = TestStore(initialState: state) {
+      OnboardingFeature()
+    } withDependencies: {
+      $0.keychain.store = { _, _ in Issue.record("A refused key is never stored") }
+      $0.cleanup.verify = { _, _ in .failed(.httpStatus(code: 401, message: nil)) }
+    }
+
+    await store.send(.keyEdited(haiku, "sk-ant-wrong")) { $0.keyDrafts[haiku] = "sk-ant-wrong" }
+    await store.send(.keysContinueTapped) { $0.isCheckingKeys = true }
+    await store.receive(.keysCheckFailed("Invalid Anthropic key.")) {
+      $0.isCheckingKeys = false
+      $0.failureMessage = "Invalid Anthropic key."
+    }
+    #expect(store.state.step == .keys)
+    #expect(store.state.canContinueFromKeys)
+  }
+
+  @Test func `an engine key Scribe refuses stops the step before cleanup is asked`() async {
+    var state = welcomeState()
+    state.isShowingWelcome = false
+    state.snapshot.hasModelDownloadConsent = true
+    state.$settings.withLock { $0.profiles.active = .accurate }
+    state.storedKeys = []
+    let elevenLabs = CredentialSlot(profile: .accurate, provider: .elevenlabs)
+    let google = CredentialSlot(profile: .accurate, provider: .google)
+    let store = TestStore(initialState: state) {
+      OnboardingFeature()
+    } withDependencies: {
+      $0.keychain.store = { _, _ in Issue.record("A refused key is never stored") }
+      $0.asrEngine.verifyKey = { _, _ in throw ASREngineError.credentialRejected }
+    }
+
+    await store.send(.keyEdited(elevenLabs, "sk_wrong")) { $0.keyDrafts[elevenLabs] = "sk_wrong" }
+    await store.send(.keyEdited(google, "AIzaGoogle")) { $0.keyDrafts[google] = "AIzaGoogle" }
+    await store.send(.keysContinueTapped) { $0.isCheckingKeys = true }
+    await store.receive(.keysCheckFailed("Invalid ElevenLabs key.")) {
+      $0.isCheckingKeys = false
+      $0.failureMessage = "Invalid ElevenLabs key."
+    }
+    #expect(store.state.step == .keys)
+  }
+
+  @Test func `the way past a factory key is Custom with no cleanup`() async {
+    var state = welcomeState()
+    state.isShowingWelcome = false
+    state.storedKeys = []
+    state.$settings.withLock { $0.profiles.custom.cleanupEnabled = true }
+    let store = TestStore(initialState: state) {
+      OnboardingFeature()
+    } withDependencies: {
+      $0.keychain.read = { _ in nil }
+    }
+    #expect(store.state.step == .keys)
+
+    await store.send(.useCustomTapped) {
+      $0.$settings.withLock {
+        $0.profiles.active = .custom
+        $0.profiles.custom.cleanupEnabled = false
+      }
+      $0.storedKeys = []
+    }
+    await store.receive(.delegate(.profileSelected))
+    #expect(store.state.step == .permissions)
+  }
+
+  /// Skipping the key is allowed, not advised: the rail moves on, but Try It has nothing that
+  /// can dictate, and Skip is the way out of it.
+  @Test func `a skipped key moves the rail on and leaves nothing to try`() async {
+    var state = welcomeState()
+    state.isShowingWelcome = false
+    state.snapshot = OnboardingSnapshot(
+      permissions: grantedPermissionStatuses, hasModelDownloadConsent: true, isCompleted: false,
+    )
+    state.hasCompletedShortcut = true
+    state.$health.withLock { $0.engineReadiness = .ready }
+    state.storedKeys = []
+    let store = TestStore(initialState: state) { OnboardingFeature() }
+    #expect(store.state.step == .keys)
+
+    await store.send(.keysSkipped) { $0.hasSkippedKeys = true }
+    #expect(store.state.step == .tryIt)
+    #expect(!store.state.canTryDictation)
+    #expect(store.state.canSkip)
+  }
+
+  /// The choice belongs to the welcome page: once the download it chose has started, another
+  /// card press would leave the rail describing a profile that is not downloading.
+  @Test func `a profile is chosen only on the welcome page`() async {
+    var state = welcomeState()
+    let store = TestStore(initialState: state) {
+      OnboardingFeature()
+    } withDependencies: {
+      $0.keychain.read = { _ in nil }
+    }
+    await store.send(.profileSelected(.offline)) {
+      $0.$settings.withLock { $0.profiles.active = .offline }
+      $0.storedKeys = []
+    }
+    await store.receive(.delegate(.profileSelected))
+
+    state = store.state
+    state.isShowingWelcome = false
+    let later = TestStore(initialState: state) { OnboardingFeature() }
+    await later.send(.profileSelected(.haiku))
+  }
+
+  /// Offline's cleanup model is part of its setup, so the engine being ready is not the end of the
+  /// Speech Model step until S1-mini is on disk too.
+  @Test func `offline waits on its cleanup model as well as its engine`() {
+    var state = welcomeState()
+    state.isShowingWelcome = false
+    state.snapshot = OnboardingSnapshot(
+      permissions: grantedPermissionStatuses, hasModelDownloadConsent: true, isCompleted: false,
+    )
+    state.hasCompletedShortcut = true
+    state.$health.withLock { $0.engineReadiness = .ready }
+    state.$settings.withLock { $0.profiles.active = .offline }
+    state.assets = [.s1Mini: .downloading(0.5)]
+    #expect(state.step == .model)
+    #expect(!state.needsModelSetup)
+
+    state.assets[.s1Mini] = .failed("offline")
+    #expect(state.needsModelSetup)
+
+    state.assets[.s1Mini] = .installed(bytes: 1)
+    #expect(state.step == .tryIt)
+  }
+
+  // MARK: Private
+
+  private func welcomeState() -> OnboardingFeature.State {
+    var state = OnboardingFeature.State(settings: Shared(value: .defaults))
+    state.isPresented = true
+    state.isShowingWelcome = true
+    return state
   }
 }
 

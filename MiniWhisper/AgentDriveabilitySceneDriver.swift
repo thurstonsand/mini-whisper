@@ -68,9 +68,9 @@ import History
         guard let fraction = Double(fields[2]) else {
           return
         }
-        store.send(.engineReadinessUpdated(.downloading(fraction)))
+        store.send(.engineReadinessUpdated(.parakeet, .downloading(fraction)))
       case "model-ready":
-        store.send(.engineReadinessUpdated(.ready))
+        store.send(.engineReadinessUpdated(.parakeet, .ready))
       case "dictionary-save-failed":
         store.send(.settingsWindow(.dictionary(.persistenceFailed(.pane, String(fields[2])))))
       case "history-first-entries":

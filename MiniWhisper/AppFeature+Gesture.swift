@@ -63,9 +63,18 @@ extension AppFeature {
       // comparison rather than a round trip to an actor that is busy or absent.
       let readiness = state.health.engineReadiness
       guard readiness == .ready else {
-        gestureLogger.notice("Dictation refused: \(readiness.statusText, privacy: .public)")
+        let status = state.health.engineStatusText
+        gestureLogger.notice("Dictation refused: \(status, privacy: .public)")
         return .merge(
-          .send(.pill(.speechModelUnavailable(readiness.statusText))),
+          .send(.pill(.speechModelUnavailable(status))),
+          playSound(state.settings.sounds.error),
+        )
+      }
+      if let provider = state.health.missingCleanupKey {
+        let status = "Needs \(provider.keyPhrase)"
+        gestureLogger.notice("Dictation refused: \(status, privacy: .public)")
+        return .merge(
+          .send(.pill(.speechModelUnavailable(status))),
           playSound(state.settings.sounds.error),
         )
       }
@@ -96,9 +105,9 @@ extension AppFeature {
           playSound(state.settings.sounds.activate),
           // Waking a Chromium tree costs far more than delivery can spend, so it happens here.
           .run { _ in await contextCapture.prewarmFrontmostApp() },
-          .run { send in
-            for await readiness in asrEngine.prepareForActivation() {
-              await send(.engineReadinessUpdated(readiness))
+          .run { [engine = state.health.engine] send in
+            for await readiness in asrEngine.prepareForActivation(engine) {
+              await send(.engineReadinessUpdated(engine, readiness))
             }
           },
         ),

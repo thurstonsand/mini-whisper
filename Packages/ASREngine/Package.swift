@@ -9,6 +9,7 @@ let package = Package(
     .executable(name: "asr-replay", targets: ["ASRReplay"]),
   ],
   dependencies: [
+    .package(path: "../ModelLibrary"),
     .package(
       url: "https://github.com/FluidInference/FluidAudio.git",
       exact: "0.17.5",
@@ -18,9 +19,9 @@ let package = Package(
   targets: [
     .target(
       name: "ASREngine",
-      dependencies: [.product(name: "FluidAudio", package: "FluidAudio")],
+      dependencies: [.product(name: "FluidAudio", package: "FluidAudio"), "ModelLibrary"],
     ),
-    .executableTarget(name: "ASRReplay", dependencies: ["ASREngine"]),
-    .testTarget(name: "ASREngineTests", dependencies: ["ASREngine"]),
+    .executableTarget(name: "ASRReplay", dependencies: ["ASREngine", "ModelLibrary"]),
+    .testTarget(name: "ASREngineTests", dependencies: ["ASREngine", "ModelLibrary"]),
   ],
 )

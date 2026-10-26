@@ -275,29 +275,65 @@ public struct MiniWhisperSettings: Equatable, Sendable {
 
   public init(
     bindings: HotkeyBindingsSettings, microphone: MicrophoneSelection, sounds: SoundSettings,
-    retention: RetentionPolicy, improveRecognition: Bool, cleanup: CleanupSettings,
+    retention: RetentionPolicy, profiles: ProfileSettings, cleanupTimeout: TimeInterval,
+    additionalInstructions: String,
   ) {
+    precondition(cleanupTimeout > 0)
     self.bindings = bindings
     self.microphone = microphone
     self.sounds = sounds
     self.retention = retention
-    self.improveRecognition = improveRecognition
-    self.cleanup = cleanup
+    self.profiles = profiles
+    self.cleanupTimeout = cleanupTimeout
+    self.additionalInstructions = additionalInstructions
   }
 
   // MARK: Public
 
   public static let defaults = MiniWhisperSettings(
     bindings: .defaults, microphone: .systemDefault, sounds: .defaults, retention: .defaults,
-    improveRecognition: true, cleanup: .defaults,
+    profiles: .defaults, cleanupTimeout: CleanupConfiguration.defaultTimeout,
+    additionalInstructions: "",
   )
 
   public var bindings: HotkeyBindingsSettings
   public var microphone: MicrophoneSelection
   public var sounds: SoundSettings
   public var retention: RetentionPolicy
-  public var improveRecognition: Bool
-  public var cleanup: CleanupSettings
+  public var profiles: ProfileSettings
+
+  /// The unattended backstop, stored as a plain duration; the pane offers presets over it.
+  public private(set) var cleanupTimeout: TimeInterval
+  public var additionalInstructions: String
+
+  public var activeProfile: Profile {
+    profiles.activeProfile
+  }
+
+  /// What the active profile's cleanup pass runs with, or nil when there is nothing to run — the
+  /// one place "needs setup is the same as off" is decided.
+  public var cleanupTarget: CleanupTarget? {
+    if activeProfile.cleanup == .local {
+      return .local(timeout: cleanupTimeout)
+    }
+    guard case let .endpoint(leg) = activeProfile.cleanup, let endpoint = leg.endpoint,
+          let model = leg.model, !model.isEmpty
+    else {
+      return nil
+    }
+    return CleanupTarget(
+      configuration: CleanupConfiguration(
+        endpoint: endpoint, model: model, timeout: cleanupTimeout,
+        additionalInstructions: additionalInstructions,
+      ),
+      credential: leg.credential,
+    )
+  }
+
+  public mutating func setCleanupTimeout(_ timeout: TimeInterval) {
+    precondition(timeout > 0)
+    cleanupTimeout = timeout
+  }
 }
 
 // MARK: Codable
@@ -308,12 +344,14 @@ extension MiniWhisperSettings: Codable {
     case microphone
     case sounds
     case retention
-    case improveRecognition
-    case cleanup
+    case profiles
+    case cleanupTimeout
+    case additionalInstructions
   }
 
   /// The file is meant to be edited by hand, so an absent key means "never configured" and takes
-  /// the default rather than treating the file as corrupt.
+  /// the default rather than treating the file as corrupt. A timeout that is present but unusable
+  /// is an edit the user meant, so it fails rather than being rounded up.
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     bindings = try container.decodeIfPresent(HotkeyBindingsSettings.self, forKey: .bindings)
@@ -323,9 +361,21 @@ extension MiniWhisperSettings: Codable {
     sounds = try container.decodeIfPresent(SoundSettings.self, forKey: .sounds) ?? .defaults
     retention = try container.decodeIfPresent(RetentionPolicy.self, forKey: .retention)
       ?? .defaults
-    improveRecognition = try container.decodeIfPresent(Bool.self, forKey: .improveRecognition)
-      ?? true
-    cleanup = try container.decodeIfPresent(CleanupSettings.self, forKey: .cleanup) ?? .defaults
+    profiles = try container.decodeIfPresent(ProfileSettings.self, forKey: .profiles)
+      ?? .defaults
+    cleanupTimeout = try container.decodeIfPresent(TimeInterval.self, forKey: .cleanupTimeout)
+      ?? CleanupConfiguration.defaultTimeout
+    guard cleanupTimeout > 0 else {
+      throw DecodingError.dataCorrupted(
+        .init(
+          codingPath: container.codingPath + [CodingKeys.cleanupTimeout],
+          debugDescription: "The cleanup timeout must be a positive number of seconds",
+        ),
+      )
+    }
+    additionalInstructions = try container.decodeIfPresent(
+      String.self, forKey: .additionalInstructions,
+    ) ?? ""
   }
 }
 

@@ -1,5 +1,5 @@
 ---
-status: open
+status: closed
 type: grilling
 blocked-by: [18]
 ---
@@ -20,3 +20,7 @@ Make picking a good cleanup setup easy: a curated shortlist of well-known provid
 - **Full frontier (round 2 addendum, Parakeet rows):** gemini-3.6-flash 19/27 @ ~2.5 s (crown); claude-haiku-4-5 via Anthropic's OpenAI-compat endpoint 17/27 @ 696 ms e2e — dominates gpt-5.6-luna outright (same score, quarter latency; luna has no remaining argument); Cerebras gpt-oss-120b 15/27 @ 420 ms but with rule failures (untranslated `period` twice — once on the no-instruction-following invariant — and a forbidden trailing period on the bare-ending entry); s1-mini 12/27 @ 107 ms offline. Dictionary three-way across four models: every model bites strictly more traps on boosted input and recovers zero additional terms; haiku adds 94.4% recall at +671 ms, gpt-oss 83.3% at +381 ms, so even the sidecar's latency argument thins to the cleanup-off case. Both new endpoints accepted the app's request body unchanged (haiku alias resolves to claude-haiku-4-5-20251001; Cerebras' extra `reasoning` field needs no shaping change).
 - **Round 3 (routes):** the gateway is not why gemini is slow — direct Google API saves 618 ms at the median (247 ms paired) with an identical 19/27 and failure set; the thinking tail is the model's own. Haiku on the Claude subscription (Agent SDK, OAuth verified, API key scrubbed) scores the identical 17/27 at 627 ms warm / 993 ms fresh vs 638 ms metered — subscription parity is real, but adaptive thinking must be disabled (costs 4.4 s and two entries) and persistent sessions contaminate output with accumulated transcript context. Profile stacks decided in [results/profiles-recommendation.md](../assets/43-dictation-corpus/results/profiles-recommendation.md); gpt-oss-120b needs its ticket-48 prompt pass before any profile ships it.
 - **Subscription-parity asterisk (post anti-overfit tooling):** the Agent SDK route is not score-neutral after all — Claude Code injects ~140 tokens of its own user-context framing (email, date), measured at 16.25/25 vs 19.00/25 metered on the same prompt and n. Round 3's "identical 17/27" comparison was too coarse to catch it. Consequence: the subscription runs proposers and screens; anything scored for the record runs metered. A native integration (this ticket's presets) would use the API directly and is unaffected.
+
+## Resolution
+
+Presets became factory profiles, the same type as the user's own with different provenance; see [Profiles](../../../designs/04-profiles.md). v1 ships Parakeet + Claude Haiku (`claude-haiku-5-5`, the default), Offline (s1-mini), Most accurate (ElevenLabs Scribe v2 + `gemini-3.6-flash`), and Parakeet + Cerebras (`gpt-oss-120b`), with Custom always present. Every prompt-bearing profile ships the one built-in prompt, tuned for Haiku 5.5; per-profile prompts wait for evidence. Groq and Cohere did not make the list.

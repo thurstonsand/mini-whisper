@@ -1,3 +1,4 @@
+import AppSettings
 import ComposableArchitecture
 import Foundation
 import OSLog
@@ -13,10 +14,6 @@ enum DictionaryFieldCopy {
   static let word = "Word or phrase"
   static let correction = "Correct spelling"
   static let misspelling = "Misspelling"
-  static let improveRecognition = """
-  Part of the speech transcription pipeline; turning off can speed up transcription, but will no \
-  longer consider words or phrases. Replacements are always applied.
-  """
 }
 
 // MARK: - DictionaryFeature
@@ -69,17 +66,18 @@ enum DictionaryFieldCopy {
     // MARK: Lifecycle
 
     init(
-      dictionary: Shared<DictionaryContents>,
-      improveRecognition: Shared<Bool>,
+      dictionary: Shared<DictionaryContents>, profiles: Shared<ProfileSettings>,
     ) {
       _dictionary = dictionary
-      _improveRecognition = improveRecognition
+      _profiles = profiles
     }
 
     // MARK: Internal
 
     @Shared var dictionary: DictionaryContents
-    @Shared var improveRecognition: Bool
+    /// Read only for whether the active profile hears the vocabulary at all; the Profiles pane
+    /// owns every change to it.
+    @Shared var profiles: ProfileSettings
     var sort = Sort.newestFirst
     var cursor: EntryID?
     var draft: Draft?
@@ -129,7 +127,7 @@ enum DictionaryFieldCopy {
     }
 
     func usesReducedEmphasis(_ entry: Entry) -> Bool {
-      guard !improveRecognition else {
+      guard !profiles.activeProfile.usesVocabulary else {
         return false
       }
       if case .vocabulary = entry.kind {
@@ -156,7 +154,6 @@ enum DictionaryFieldCopy {
 
   enum Action: Equatable {
     case sortChanged(Sort)
-    case improveRecognitionChanged(Bool)
     case cursorMoved(CursorMovement)
     case cursorHovered(EntryID)
     case addRequested
@@ -196,9 +193,6 @@ enum DictionaryFieldCopy {
       case let .sortChanged(sort):
         state.sort = sort
         return .none
-      case let .improveRecognitionChanged(isEnabled):
-        state.$improveRecognition.withLock { $0 = isEnabled }
-        return save(state.$improveRecognition, context: .pane)
       case let .cursorMoved(movement):
         let entries = state.entries
         guard let place = state.cursorEntry,

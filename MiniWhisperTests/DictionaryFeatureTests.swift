@@ -9,51 +9,31 @@ import Testing
 // MARK: - DictionaryFeatureTests
 
 @MainActor struct DictionaryFeatureTests {
-  @Test func `recognition setting persists and only vocabulary loses emphasis`() async throws {
-    let directory = FileManager.default.temporaryDirectory.appending(
-      path: "recognition-setting-\(UUID().uuidString)", directoryHint: .isDirectory,
-    )
-    defer { try? FileManager.default.removeItem(at: directory) }
-    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-    let url = directory.appending(path: "settings.json")
-    let settings = withDependencies {
-      $0.defaultFileStorage = .fileSystem
-    } operation: {
-      Shared(
-        wrappedValue: MiniWhisperSettings.defaults,
-        .fileStorage(url, decode: SettingsCoding.decode, encode: SettingsCoding.encode),
-      )
-    }
+  /// Custom with neither cleanup nor the sidecar is the one profile whose dictations never read
+  /// the vocabulary; corrections still apply after the engine, so only vocabulary fades.
+  @Test func `a profile that ignores vocabulary fades only vocabulary`() throws {
+    var profiles = ProfileSettings.defaults
+    profiles.active = .custom
+    profiles.custom.boostsVocabulary = false
     let dictionary = DictionaryContents(
       vocabulary: [VocabularyEntry(text: "MiniWhisper", addedAt: .distantPast)],
       corrections: [
         CorrectionEntry(misspelling: "mini whisperer", text: "MiniWhisper", addedAt: .distantPast),
       ],
     )
-    let store = TestStore(
-      initialState: DictionaryFeature.State(
-        dictionary: Shared(value: dictionary), improveRecognition: settings.improveRecognition,
-      ),
-    ) { DictionaryFeature() } withDependencies: {
-      $0.defaultFileStorage = .fileSystem
-    }
+    let state = DictionaryFeature.State(
+      dictionary: Shared(value: dictionary), profiles: Shared(value: profiles),
+    )
 
-    await store.send(.improveRecognitionChanged(false)) {
-      $0.$improveRecognition.withLock { $0 = false }
-    }
-    await store.finish()
+    let vocabulary = try #require(state.entries.first { $0.kind == .vocabulary })
+    let correction = try #require(state.entries.first { $0.kind != .vocabulary })
+    #expect(state.usesReducedEmphasis(vocabulary))
+    #expect(!state.usesReducedEmphasis(correction))
 
-    let vocabulary = try #require(store.state.entries.first { $0.kind == .vocabulary })
-    let correction = try #require(store.state.entries.first {
-      if case .correction = $0.kind {
-        return true
-      }
-      return false
-    })
-    #expect(store.state.usesReducedEmphasis(vocabulary))
-    #expect(!store.state.usesReducedEmphasis(correction))
-    let persisted = try SettingsCoding.decode(Data(contentsOf: url))
-    #expect(!persisted.improveRecognition)
+    let haiku = DictionaryFeature.State(
+      dictionary: Shared(value: dictionary), profiles: Shared(value: .defaults),
+    )
+    #expect(!haiku.usesReducedEmphasis(vocabulary))
   }
 
   @Test func `one sorted list presents vocabulary and corrections`() {
@@ -284,6 +264,6 @@ private func makeRecognitionEnabledDictionaryState(
   dictionary: Shared<DictionaryContents>,
 ) -> DictionaryFeature.State {
   DictionaryFeature.State(
-    dictionary: dictionary, improveRecognition: Shared(value: true),
+    dictionary: dictionary, profiles: Shared(value: .defaults),
   )
 }

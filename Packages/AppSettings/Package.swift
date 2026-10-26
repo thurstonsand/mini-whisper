@@ -10,15 +10,20 @@ let package = Package(
     .package(path: "../History"),
     .package(path: "../AudioCapture"),
     .package(path: "../TranscriptCleanup"),
+    .package(path: "../ModelLibrary"),
   ],
   targets: [
     .target(
       name: "AppSettings",
-      dependencies: ["HotkeyListener", "History", "AudioCapture", "TranscriptCleanup"],
+      dependencies: [
+        "HotkeyListener", "History", "AudioCapture", "TranscriptCleanup", "ModelLibrary",
+      ],
     ),
     .testTarget(
       name: "AppSettingsTests",
-      dependencies: ["AppSettings", "HotkeyListener", "AudioCapture", "TranscriptCleanup"],
+      dependencies: [
+        "AppSettings", "HotkeyListener", "AudioCapture", "TranscriptCleanup", "ModelLibrary",
+      ],
     ),
   ],
 )

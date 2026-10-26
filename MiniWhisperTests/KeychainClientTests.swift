@@ -1,3 +1,4 @@
+import AppSettings
 import Foundation
 @testable import MiniWhisper
 import Security
@@ -13,22 +14,22 @@ struct KeychainClientTests {
   @Test(.enabled(if: ProcessInfo.processInfo.environment["CI"] == nil))
   func `a secret is stored, read back, replaced, and deleted`() throws {
     let keychain = KeychainStore(service: "com.thurstonsand.MiniWhisperTests.\(UUID())")
-    let account = KeychainAccount.cleanupAPIKey
-    defer { try? keychain.delete(account) }
+    let slot = CredentialSlot(profile: .haiku, provider: .anthropic)
+    defer { try? keychain.delete(slot) }
 
-    #expect(try keychain.read(account) == nil)
+    #expect(try keychain.read(slot) == nil)
 
-    try keychain.store("sk-smoke-first", account: account)
-    #expect(try keychain.read(account) == "sk-smoke-first")
+    try keychain.store("sk-smoke-first", slot: slot)
+    #expect(try keychain.read(slot) == "sk-smoke-first")
 
-    try keychain.store("sk-smoke-second", account: account)
-    #expect(try keychain.read(account) == "sk-smoke-second")
+    try keychain.store("sk-smoke-second", slot: slot)
+    #expect(try keychain.read(slot) == "sk-smoke-second")
 
-    try keychain.delete(account)
-    #expect(try keychain.read(account) == nil)
+    try keychain.delete(slot)
+    #expect(try keychain.read(slot) == nil)
 
     // Deleting what is already gone is the same outcome, so a failed cleanup cannot cascade.
-    try keychain.delete(account)
+    try keychain.delete(slot)
   }
 
   @Test func `a keychain failure reports which operation lost`() {

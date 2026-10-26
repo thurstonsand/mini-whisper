@@ -1,5 +1,7 @@
+import AppSettings
 import ASREngine
 import ComposableArchitecture
+import ModelLibrary
 import SwiftUI
 
 // MARK: - OnboardingStepPage
@@ -60,65 +62,121 @@ struct OnboardingStepPage<Card: View>: View {
 
 // MARK: - OnboardingWelcomePage
 
+/// The choice and the consent on one page, so the download the profile needs starts on the first
+/// click. Three over two, so every tradeoff is on screen at once and compared rather than read in
+/// turn.
 struct OnboardingWelcomePage: View {
+  // MARK: Internal
+
   let store: StoreOf<OnboardingFeature>
   var focus: FocusState<OnboardingFocus?>.Binding
 
   var body: some View {
     VStack(spacing: 0) {
-      ZStack {
-        RoundedRectangle(cornerRadius: 22).fill(Color.accentColor.opacity(0.12)).frame(
-          width: 92, height: 92,
-        )
-        Image(systemName: "mic.fill").font(.system(size: 42, weight: .semibold)).foregroundStyle(
-          Color.accentColor,
-        )
-      }.accessibilityHidden(true)
       SemanticText(
         Channel.name, identifier: AccessibilityID.onboardingWelcomeTitle,
         label: "Application name",
       )
-      .font(.system(size: 34, weight: .semibold))
-      .padding(.top, 24)
+      .font(.system(size: 30, weight: .semibold))
       SemanticText(
         "Fast, accurate dictation that runs on your Mac.",
         identifier: AccessibilityID.onboardingWelcomeSummary, label: "Welcome summary",
       )
-      .font(.system(size: 16))
+      .font(.system(size: 14))
       .foregroundStyle(.secondary)
-      .padding(.top, 8)
-      SemanticText(
-        "Download the speech model in the background while you finish setup.",
-        identifier: AccessibilityID.onboardingWelcomeModelInfo, label: "Model download information",
-      )
-      .font(.system(size: 13))
-      .foregroundStyle(.secondary)
-      .lineLimit(1)
-      .padding(.top, 12)
-      Button("Download Parakeet v2") { store.send(.downloadModel) }
+      .padding(.top, 4)
+      VStack(spacing: 10) {
+        HStack(spacing: 10) {
+          ForEach(lineup.prefix(3)) { card($0) }
+        }
+        .fixedSize(horizontal: false, vertical: true)
+        HStack(spacing: 10) {
+          ForEach(lineup.dropFirst(3)) { card($0) }
+        }
+        .fixedSize(horizontal: false, vertical: true)
+      }
+      .padding(.top, 20)
+      Button(store.welcomeActionTitle) { store.send(.downloadModel) }
         .buttonStyle(.borderedProminent)
         .controlSize(.large)
         .disabled(store.isRecordingModelDownloadConsent)
         .focused(focus, equals: .welcomeAction)
         .keyboardShortcut(.defaultAction)
-        .padding(.top, 30)
+        .padding(.top, 20)
         .accessibilityIdentifier(AccessibilityID.onboardingDownloadModel)
-        .accessibilityLabel("Download Parakeet v2")
+        .accessibilityLabel(store.welcomeActionTitle)
+      SemanticText(
+        store.welcomeFootnote, identifier: AccessibilityID.onboardingWelcomeModelInfo,
+        label: "Model download information",
+      )
+      .font(.system(size: 12))
+      .foregroundStyle(.secondary)
+      .lineLimit(1)
+      .padding(.top, 10)
       if let failureMessage = store.failureMessage {
         Label(failureMessage, systemImage: "exclamationmark.triangle.fill")
           .font(.system(size: 12))
           .foregroundStyle(.red)
-          .padding(.top, 16)
+          .padding(.top, 10)
           .accessibilityElement(children: .ignore)
           .accessibilityIdentifier(AccessibilityID.onboardingWelcomeFailure)
           .accessibilityLabel("Model download error")
           .accessibilityValue(failureMessage)
       }
     }
+    // The cards are not Tab stops, so Tab still lands on the one button; the arrows choose.
+    .background {
+      WindowCharacterKeys { characters in
+        switch characters {
+        case FunctionKey.leftArrow:
+          select(offset: -1)
+        case FunctionKey.rightArrow:
+          select(offset: 1)
+        default:
+          false
+        }
+      }
+    }
     .accessibilityElement(children: .contain)
     .accessibilityIdentifier(AccessibilityID.onboardingWelcome)
     .accessibilityLabel("Welcome to \(Channel.name)")
     .frame(maxWidth: .infinity, maxHeight: .infinity)
+  }
+
+  // MARK: Private
+
+  private var lineup: [Profile] {
+    store.settings.profiles.lineup
+  }
+
+  private func card(_ profile: Profile) -> some View {
+    let isSelected = profile.id == store.profile.id
+    // Only a key is worth saying here: every profile's downloads are named on the button.
+    let note = profile.credentials.isEmpty
+      ? nil : "Needs \(OnboardingFeature.State.keysPhrase(profile.credentials))"
+    let selection = isSelected ? "Selected" : "Not selected"
+    return ProfileCard(profile: profile, isSelected: isSelected) {
+      store.send(.profileSelected(profile.id))
+    } status: {
+      if let note {
+        Text(note)
+          .foregroundStyle(.secondary)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+    }
+    .focusable(false)
+    .frame(width: 220)
+    .accessibilityValue(note.map { "\(selection); \($0)" } ?? selection)
+  }
+
+  private func select(offset: Int) -> Bool {
+    guard let index = lineup.firstIndex(where: { $0.id == store.profile.id }),
+          lineup.indices.contains(index + offset)
+    else {
+      return false
+    }
+    store.send(.profileSelected(lineup[index + offset].id))
+    return true
   }
 }
 
@@ -152,6 +210,12 @@ struct OnboardingStepRail: View {
       .padding(.top, 3)
 
       VStack(alignment: .leading, spacing: 17) {
+        if !store.profile.credentials.isEmpty {
+          railItem(
+            store.profile.credentials.count == 1 ? "API Key" : "API Keys", step: .keys,
+            symbol: "key",
+          )
+        }
         railItem("Permissions", step: .permissions, symbol: "lock.shield")
         railItem("Shortcut", step: .shortcut, symbol: "command")
         railItem("Speech Model", step: .model, symbol: "cpu")
@@ -183,6 +247,7 @@ struct OnboardingStepRail: View {
          .prewarming:
       ProgressView().controlSize(.mini)
     case .modelMissing,
+         .credentialMissing,
          .ready,
          .failed:
       EmptyView()
@@ -193,12 +258,14 @@ struct OnboardingStepRail: View {
     let isCurrent = store.visibleStep == step || (store.visibleStep == .ready && step == .tryIt)
     let isComplete =
       switch step {
+      case .keys:
+        store.storedKeys != nil && store.missingKeys.isEmpty
       case .permissions:
         store.snapshot.permissions.allGranted
       case .shortcut:
         store.hasCompletedShortcut
       case .model:
-        store.engineReadiness == .ready
+        store.isSetUp
       case .tryIt,
            .ready:
         store.snapshot.isCompleted
@@ -232,10 +299,100 @@ struct OnboardingStepRail: View {
     .accessibilityLabel(title)
     .accessibilityValue(
       OnboardingAccessibility.railValue(
-        step: step, readiness: store.engineReadiness, isComplete: isComplete,
-        isCurrent: isCurrent,
+        step: step, engine: store.health.engine, readiness: store.engineReadiness,
+        isComplete: isComplete, isCurrent: isCurrent,
       ),
     )
+  }
+}
+
+// MARK: - OnboardingKeysPage
+
+/// A factory profile is prescriptive, so this page has no Skip. The only way past it is a profile
+/// that needs no key, and the link says which one and what it costs.
+struct OnboardingKeysPage: View {
+  // MARK: Internal
+
+  let store: StoreOf<OnboardingFeature>
+  var focus: FocusState<OnboardingFocus?>.Binding
+
+  var body: some View {
+    OnboardingStepPage(
+      symbol: "key",
+      title: .init(
+        text: title,
+        identifier: AccessibilityID.onboardingKeysTitle,
+        label: "Keys heading",
+      ),
+      summary: .init(
+        text: "\(store.profile.tagline) Keys stay in your Keychain and are used only by this profile.",
+        identifier: AccessibilityID.onboardingKeysSummary, label: "Keys information",
+      ),
+      summaryMaxWidth: 430,
+      cardPadding: 18,
+      cardAlignment: .topLeading,
+    ) {
+      VStack(alignment: .leading, spacing: 12) {
+        ForEach(store.profile.credentials, id: \.self) { slot in
+          keyRow(slot)
+        }
+        Divider()
+        Button("Use Custom to skip cleanup") {
+          store.send(.useCustomTapped)
+        }
+        .buttonStyle(.link)
+        .focused(focus, equals: .useCustom)
+        .accessibilityIdentifier(AccessibilityID.onboardingKeysUseCustom)
+      }
+    }
+    .accessibilityIdentifier(AccessibilityID.onboardingKeys)
+    .accessibilityLabel("API keys")
+  }
+
+  // MARK: Private
+
+  private var title: String {
+    let slots = store.profile.credentials
+    return slots.count == 1 ? "Add your \(slots[0].provider.displayName) key" : "Add your keys"
+  }
+
+  @ViewBuilder private func keyRow(_ slot: CredentialSlot) -> some View {
+    let provider = slot.provider
+    if store.missingKeys.contains(slot) {
+      VStack(alignment: .leading, spacing: 6) {
+        SecureField(
+          "\(provider.displayName) key",
+          text: Binding(
+            get: { store.keyDrafts[slot] ?? "" },
+            set: { store.send(.keyEdited(slot, $0)) },
+          ),
+          prompt: Text(provider.keyPrompt),
+        )
+        .textFieldStyle(.roundedBorder)
+        .labelsHidden()
+        .focused(focus, equals: .keyField(slot))
+        .onSubmit { store.send(.keysContinueTapped) }
+        .accessibilityIdentifier(AccessibilityID.onboardingKeyField(provider))
+        .accessibilityLabel("\(provider.displayName) key")
+        if let url = provider.keysURL {
+          Link("Get a key from \(provider.displayName)", destination: url)
+            .font(.system(size: 12))
+            .focusable(false)
+            .accessibilityIdentifier(AccessibilityID.onboardingKeyLink(provider))
+        }
+      }
+    } else {
+      Label(
+        "\(provider.displayName) key saved in your Keychain",
+        systemImage: "checkmark.circle.fill",
+      )
+      .font(.system(size: 13))
+      .foregroundStyle(.green)
+      .accessibilityElement(children: .ignore)
+      .accessibilityIdentifier(AccessibilityID.onboardingKeyField(provider))
+      .accessibilityLabel("\(provider.displayName) key")
+      .accessibilityValue("Saved")
+    }
   }
 }
 
@@ -367,20 +524,26 @@ struct OnboardingModelPage: View {
     OnboardingStepPage(
       symbol: "cpu",
       title: .init(
-        text: "Prepare Parakeet v2", identifier: AccessibilityID.onboardingModelTitle,
+        text: title, identifier: AccessibilityID.onboardingModelTitle,
         label: "Model setup heading",
       ),
       summary: .init(
-        text: "Downloads once (~550 MB), then everything runs on this Mac.",
-        identifier: AccessibilityID.onboardingModelSummary, label: "Model setup information",
+        text: summary, identifier: AccessibilityID.onboardingModelSummary,
+        label: "Model setup information",
       ),
       summaryLineLimit: 1,
       summaryMaxWidth: 430,
       cardPadding: 18,
       cardAlignment: .topLeading,
     ) {
-      VStack(alignment: .leading, spacing: 10) { cardContent }
-        .animation(.easeInOut(duration: 0.2), value: store.engineReadiness)
+      VStack(alignment: .leading, spacing: 10) {
+        cardContent
+        ForEach(store.cleanupAssets, id: \.self) { asset in
+          Divider()
+          partRow(asset)
+        }
+      }
+      .animation(.easeInOut(duration: 0.2), value: store.engineReadiness)
     }
     .accessibilityIdentifier(AccessibilityID.onboardingModel)
     .accessibilityLabel("Speech model setup")
@@ -388,10 +551,29 @@ struct OnboardingModelPage: View {
 
   // MARK: Private
 
+  private var engineName: String {
+    store.health.engine.name
+  }
+
+  /// One model reads as itself; a set reads as the profile it makes up.
+  private var title: String {
+    let downloads = store.profile.assets.filter { $0 != .gate }
+    return downloads.count == 1
+      ? "Prepare \(downloads[0].name)" : "Prepare \(store.profile.name)"
+  }
+
+  private var summary: String {
+    let size = Self.size(store.profile.assets)
+    guard store.profile.engineCredential == nil else {
+      return "Only the \(size) speech gate downloads; \(engineName) transcribes in the cloud."
+    }
+    return "Downloads once (\(size)), then runs on this Mac."
+  }
+
   @ViewBuilder private var cardContent: some View {
     switch store.engineReadiness {
     case let .downloading(fraction):
-      downloadProgress(title: "Downloading Parakeet v2…", fraction: fraction)
+      downloadProgress(title: "Downloading \(engineName)…", fraction: fraction)
     case .compiling:
       progressRow("Preparing Core ML models…", value: "Compiling")
     case .prewarming:
@@ -406,15 +588,25 @@ struct OnboardingModelPage: View {
       }
     case .modelMissing,
          .failed:
-      Label("About 550 MB · downloaded once", systemImage: "internaldrive")
+      Label(
+        "\(Self.size(store.health.engine.assets)) · downloaded once", systemImage: "internaldrive",
+      )
+      .font(.system(size: 12))
+      .foregroundStyle(.secondary)
+      .accessibilityElement(children: .ignore)
+      .accessibilityIdentifier(AccessibilityID.onboardingModelStatus)
+      .accessibilityLabel("Model status")
+      .accessibilityValue("Not installed")
+    case .credentialMissing:
+      Label("Installed · waiting on a key", systemImage: "key")
         .font(.system(size: 12))
         .foregroundStyle(.secondary)
         .accessibilityElement(children: .ignore)
         .accessibilityIdentifier(AccessibilityID.onboardingModelStatus)
         .accessibilityLabel("Model status")
-        .accessibilityValue("Not installed")
+        .accessibilityValue("Needs a key")
     case .ready:
-      Label("Parakeet v2 is ready", systemImage: "checkmark.circle.fill")
+      Label("\(engineName) is ready", systemImage: "checkmark.circle.fill")
         .foregroundStyle(.green)
         .accessibilityElement(children: .ignore)
         .accessibilityIdentifier(AccessibilityID.onboardingModelStatus)
@@ -444,6 +636,59 @@ struct OnboardingModelPage: View {
     }
   }
 
+  /// A model no engine owns reports only through the library, so it gets a row of its own under
+  /// the engine's status.
+  private func partRow(_ asset: ModelAsset) -> some View {
+    let state = store.assets[asset]
+    let value =
+      switch state {
+      case let .downloading(fraction):
+        "\(Int(fraction * 100))% of \(Self.size([asset]))"
+      case .installed:
+        "Ready"
+      case .failed:
+        "Failed"
+      case .missing,
+           nil:
+        Self.size([asset])
+      }
+    return HStack(spacing: 10) {
+      partIcon(state)
+        .frame(width: 18)
+        .accessibilityHidden(true)
+      VStack(alignment: .leading, spacing: 2) {
+        Text(asset.name).font(.system(size: 13, weight: .medium))
+        Text("Local cleanup").font(.system(size: 11)).foregroundStyle(.secondary)
+      }
+      Spacer()
+      Text(value)
+        .font(.system(size: 12))
+        .monospacedDigit()
+        .foregroundStyle(.secondary)
+    }
+    .accessibilityElement(children: .ignore)
+    .accessibilityIdentifier(AccessibilityID.onboardingModelPart(asset))
+    .accessibilityLabel(asset.name)
+    .accessibilityValue(value)
+  }
+
+  /// Progress, never an arrow: nothing in this row is a button.
+  @ViewBuilder private func partIcon(_ state: AssetState?) -> some View {
+    switch state {
+    case let .downloading(fraction):
+      ProgressView(value: fraction)
+        .progressViewStyle(.circular)
+        .controlSize(.small)
+    case .installed:
+      Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+    case .failed:
+      Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
+    case .missing,
+         nil:
+      Image(systemName: "clock").foregroundStyle(.secondary)
+    }
+  }
+
   private func progressRow(_ title: String, value: String) -> some View {
     HStack(spacing: 10) {
       ProgressView().controlSize(.small)
@@ -453,6 +698,12 @@ struct OnboardingModelPage: View {
     .accessibilityIdentifier(AccessibilityID.onboardingModelProgress)
     .accessibilityLabel("Model preparation")
     .accessibilityValue(value)
+  }
+
+  private static func size(_ assets: [ModelAsset]) -> String {
+    ByteCountFormatter.string(
+      fromByteCount: Int64(assets.map(\.pinnedBytes).reduce(0, +)), countStyle: .file,
+    )
   }
 }
 
@@ -495,5 +746,55 @@ struct OnboardingReadyPage: View {
     .accessibilityElement(children: .contain)
     .accessibilityIdentifier(AccessibilityID.onboardingReady)
     .accessibilityLabel("\(Channel.name) is ready")
+  }
+}
+
+// MARK: - ProfileCard
+
+/// One profile, whole: what it is, what it costs, and what it still needs. The welcome page lays
+/// the lineup out as cards so the taglines get compared rather than read in turn.
+struct ProfileCard<Status: View>: View {
+  let profile: Profile
+  let isSelected: Bool
+  let select: () -> Void
+  @ViewBuilder let status: Status
+
+  var body: some View {
+    Button(action: select) {
+      VStack(alignment: .leading, spacing: 6) {
+        HStack(spacing: 8) {
+          Image(systemName: profile.symbol)
+            .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
+          // A name is never truncated; a long one wraps instead.
+          Text(profile.name)
+            .fontWeight(.medium)
+            .fixedSize(horizontal: false, vertical: true)
+          Spacer(minLength: 0)
+        }
+        Text(profile.tagline)
+          .font(.callout)
+          .foregroundStyle(.secondary)
+          .fixedSize(horizontal: false, vertical: true)
+          .frame(maxWidth: .infinity, minHeight: 32, alignment: .topLeading)
+        Spacer(minLength: 0)
+        status
+          .font(.caption)
+      }
+      .padding(12)
+      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+      .background(.quinary, in: .rect(cornerRadius: 8))
+      .overlay {
+        RoundedRectangle(cornerRadius: 8)
+          .strokeBorder(
+            isSelected ? AnyShapeStyle(.tint) : AnyShapeStyle(.separator),
+            lineWidth: isSelected ? 2 : 1,
+          )
+      }
+      .contentShape(.rect(cornerRadius: 8))
+    }
+    .buttonStyle(.plain)
+    .accessibilityIdentifier(AccessibilityID.profilesCard(profile.id))
+    .accessibilityLabel(profile.name)
+    .accessibilityAddTraits(isSelected ? .isSelected : [])
   }
 }

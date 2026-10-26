@@ -4,7 +4,9 @@ import AudioCapture
 import ComposableArchitecture
 import Foundation
 import HotkeyListener
+import ModelLibrary
 import OSLog
+import TranscriptCleanup
 
 private let onboardingLogger = Logger(
   subsystem: "com.thurstonsand.MiniWhisper", category: "onboarding",
@@ -59,6 +61,7 @@ struct OnboardingSnapshot: Equatable {
 // MARK: - OnboardingStep
 
 enum OnboardingStep: Int, Equatable {
+  case keys
   case permissions
   case shortcut
   case model
@@ -68,16 +71,19 @@ enum OnboardingStep: Int, Equatable {
   // MARK: Internal
 
   static func derive(
-    from snapshot: OnboardingSnapshot, engineReadiness: EngineReadiness,
+    from snapshot: OnboardingSnapshot, isMissingKeys: Bool, isSetUp: Bool,
     hasCompletedShortcut: Bool,
   ) -> Self {
+    guard !isMissingKeys else {
+      return .keys
+    }
     guard snapshot.permissions.allGranted else {
       return .permissions
     }
     guard hasCompletedShortcut else {
       return .shortcut
     }
-    guard engineReadiness == .ready else {
+    guard isSetUp else {
       return .model
     }
     return snapshot.isCompleted ? .ready : .tryIt
@@ -99,6 +105,7 @@ enum OnboardingStep: Int, Equatable {
       health: Shared<AppHealth> = Shared(value: AppHealth()),
     ) {
       shortcutBindings = HotkeyBindingsFeature.State(settings: settings, command: .activate)
+      _settings = settings
       _health = health
     }
 
@@ -109,7 +116,18 @@ enum OnboardingStep: Int, Equatable {
       case skip
     }
 
+    @Shared var settings: MiniWhisperSettings
     @Shared var health: AppHealth
+    /// Which of the active profile's keys the Keychain holds. Unread is not missing: until the
+    /// Keychain has answered, no step is shown that it might not need.
+    var storedKeys: Set<CredentialSlot>?
+    var keyDrafts: [CredentialSlot: String] = [:]
+    /// The user chose to go on without the keys. Not advised: the profile does not dictate until
+    /// they are added in Settings.
+    var hasSkippedKeys = false
+    /// The cleanup key is being proven against its endpoint before it is stored.
+    var isCheckingKeys = false
+    var assets: [ModelAsset: AssetState] = [:]
     var shortcutBindings: HotkeyBindingsFeature.State
     var isPresented = false
     var snapshot = OnboardingSnapshot(
@@ -131,9 +149,42 @@ enum OnboardingStep: Int, Equatable {
 
     var step: OnboardingStep {
       OnboardingStep.derive(
-        from: snapshot, engineReadiness: health.engineReadiness,
+        from: snapshot, isMissingKeys: !missingKeys.isEmpty && !hasSkippedKeys, isSetUp: isSetUp,
         hasCompletedShortcut: hasCompletedShortcut,
       )
+    }
+
+    var profile: Profile {
+      settings.activeProfile
+    }
+
+    var missingKeys: [CredentialSlot] {
+      guard let storedKeys else {
+        return []
+      }
+      return profile.credentials.filter { !storedKeys.contains($0) }
+    }
+
+    /// Every missing key has something typed for it, and none is already being proven.
+    var canContinueFromKeys: Bool {
+      visibleStep == .keys && !isCheckingKeys
+        && missingKeys.allSatisfy { !draft(for: $0).isEmpty }
+    }
+
+    /// Models the profile needs that no engine owns. The engine's own models report through its
+    /// readiness; these report only through the library.
+    var cleanupAssets: [ModelAsset] {
+      profile.assets.filter { !profile.engine.assets.contains($0) }
+    }
+
+    var isSetUp: Bool {
+      engineReadiness == .ready && cleanupAssets.allSatisfy { assets[$0]?.isInstalled == true }
+    }
+
+    /// What the welcome button downloads. The gate is a megabyte and goes along silently, so it
+    /// never names the button on its own.
+    var pendingDownloads: [ModelAsset] {
+      profile.assets.filter { $0 != .gate && assets[$0]?.isInstalled != true }
     }
 
     var engineReadiness: EngineReadiness {
@@ -163,13 +214,43 @@ enum OnboardingStep: Int, Equatable {
       isPresented && visibleStep == .tryIt
     }
 
+    /// Try It needs a dictation that can run, and a profile still missing its key cannot.
+    var canTryDictation: Bool {
+      step == .tryIt && missingKeys.isEmpty
+    }
+
+    var welcomeActionTitle: String {
+      switch pendingDownloads.count {
+      case 0:
+        "Get Started"
+      default:
+        "Download \(pendingDownloads.map(\.name).formatted(.list(type: .and)))"
+      }
+    }
+
+    var welcomeFootnote: String {
+      var sentences: [String] = []
+      if !pendingDownloads.isEmpty {
+        let bytes = pendingDownloads.map(\.pinnedBytes).reduce(0, +)
+        let size = ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .file)
+        sentences.append("\(size) downloads while you finish setup.")
+      }
+      if !missingKeys.isEmpty {
+        sentences.append("You’ll add \(Self.keysPhrase(missingKeys)) next.")
+      }
+      return sentences.isEmpty
+        ? "Everything it needs is already on this Mac." : sentences.joined(separator: " ")
+    }
+
+    /// A missing key is the key step's business, not a download's.
     var needsModelSetup: Bool {
-      !engineReadiness.isSetupInProgress && engineReadiness != .ready
+      let engineNeedsSetup = !engineReadiness.isSetupInProgress && engineReadiness != .ready
+        && engineReadiness != .credentialMissing
+      return engineNeedsSetup || cleanupAssets.contains { assets[$0]?.isDownloadable == true }
     }
 
     var canContinueFromModel: Bool {
-      visibleStep == .model && engineReadiness == .ready && step.rawValue > OnboardingStep.model
-        .rawValue
+      visibleStep == .model && isSetUp && step.rawValue > OnboardingStep.model.rawValue
     }
 
     var isMarkingCompletion: Bool {
@@ -182,6 +263,18 @@ enum OnboardingStep: Int, Equatable {
 
     var activePermission: OnboardingPermission? {
       OnboardingPermission.allCases.first { !snapshot.permissions.isGranted($0) }
+    }
+
+    /// The keys as a sentence names them: "an Anthropic key", "ElevenLabs and Google keys".
+    static func keysPhrase(_ slots: [CredentialSlot]) -> String {
+      guard slots.count > 1 else {
+        return slots[0].provider.keyPhrase
+      }
+      return "\(slots.map(\.provider.displayName).formatted(.list(type: .and))) keys"
+    }
+
+    func draft(for slot: CredentialSlot) -> String {
+      (keyDrafts[slot] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     /// macOS prompts at most once per permission, so an unfulfilled request means the rest of the
@@ -202,7 +295,16 @@ enum OnboardingStep: Int, Equatable {
   }
 
   enum Action: Equatable {
+    case task
+    case assetsUpdated([ModelAsset: AssetState])
     case present(OnboardingSnapshot)
+    case profileSelected(ProfileID)
+    case keyEdited(CredentialSlot, String)
+    case keysContinueTapped
+    case keysVerified
+    case keysCheckFailed(String)
+    case keysSkipped
+    case useCustomTapped
     case downloadModel
     case modelDownloadConsented
     case modelDownloadConsentFailed(String)
@@ -232,6 +334,8 @@ enum OnboardingStep: Int, Equatable {
     // MARK: Internal
 
     enum Delegate: Equatable {
+      case profileSelected
+      case keysStored
       case dismissed
       case setupModelRequested
       case permissionsUpdated(OnboardingPermissionStatuses)
@@ -242,8 +346,12 @@ enum OnboardingStep: Int, Equatable {
   static let permissionPollInterval = Duration.seconds(1)
 
   @Dependency(\.accessibilityPermission) var accessibilityPermission
+  @Dependency(\.asrEngine) var asrEngine
+  @Dependency(\.cleanup) var cleanup
   @Dependency(\.continuousClock) var clock
+  @Dependency(\.keychain) var keychain
   @Dependency(\.microphonePermission) var microphonePermission
+  @Dependency(\.modelLibrary) var modelLibrary
   @Dependency(\.onboardingCompletion) var onboardingCompletion
   @Dependency(\.workspace) var workspace
 
@@ -252,8 +360,20 @@ enum OnboardingStep: Int, Equatable {
 
     Reduce { state, action in
       switch action {
+      case .task:
+        return .run { send in
+          for await states in modelLibrary.states() {
+            await send(.assetsUpdated(states))
+          }
+        }
+      case let .assetsUpdated(states):
+        state.assets = states
+        return .none
       case let .present(snapshot):
         state.isPresented = true
+        state.storedKeys = storedKeys(of: state.profile)
+        state.keyDrafts = [:]
+        state.hasSkippedKeys = false
         state.snapshot = snapshot
         state.selectedStep = nil
         state.isShowingWelcome = state.shouldShowWelcome
@@ -268,6 +388,137 @@ enum OnboardingStep: Int, Equatable {
         let polling = permissionPollingEffect(for: state)
         return snapshot.hasModelDownloadConsent
           ? .merge(polling, modelSetupEffect(for: &state)) : polling
+      // The choice is made before anything downloads, so it is only ever a choice: the button
+      // under the cards is what starts this profile's download.
+      case let .profileSelected(id):
+        guard state.isShowingWelcome, !state.isRecordingModelDownloadConsent else {
+          return .none
+        }
+        state.$settings.withLock { $0.profiles.active = id }
+        state.storedKeys = storedKeys(of: state.profile)
+        state.keyDrafts = [:]
+        state.hasSkippedKeys = false
+        return .send(.delegate(.profileSelected))
+      case let .keyEdited(slot, text):
+        state.keyDrafts[slot] = text
+        return .none
+      // Every key is proven before any is stored, as the pane's Save proves them.
+      case .keysContinueTapped:
+        guard state.canContinueFromKeys else {
+          return .none
+        }
+        let engine = state.profile.engine
+        var engineKey: (provider: String, key: String)?
+        if let slot = state.profile.engineCredential, state.missingKeys.contains(slot) {
+          engineKey = (slot.provider.displayName, state.draft(for: slot))
+        }
+        var cleanupKey: (provider: String, key: String, configuration: CleanupConfiguration)?
+        if let leg = state.profile.endpointLeg, state.missingKeys.contains(leg.credential),
+           let endpoint = leg.endpoint, let model = leg.model
+        {
+          cleanupKey = (
+            leg.credential.provider.displayName, state.draft(for: leg.credential),
+            CleanupConfiguration(
+              endpoint: endpoint, model: model, timeout: CleanupConfiguration.verificationTimeout,
+              additionalInstructions: "",
+            ),
+          )
+        }
+        guard engineKey != nil || cleanupKey != nil else {
+          return .send(.keysVerified)
+        }
+        state.isCheckingKeys = true
+        state.failureMessage = nil
+        return .run { [engineKey, cleanupKey] send in
+          if let (provider, key) = engineKey {
+            do {
+              try await asrEngine.verifyKey(engine, key)
+            } catch ASREngineError.credentialRejected {
+              await send(.keysCheckFailed("Invalid \(provider) key."))
+              return
+            } catch is URLError {
+              await send(.keysCheckFailed("Couldn’t reach \(provider)."))
+              return
+            } catch {
+              onboardingLogger.error(
+                "Key check failed: \(error.localizedDescription, privacy: .public)",
+              )
+              await send(.keysCheckFailed("Couldn’t check the key with \(provider)."))
+              return
+            }
+          }
+          if let (provider, key, configuration) = cleanupKey {
+            switch await cleanup.verify(configuration, key) {
+            case .verified:
+              break
+            case .cancelled:
+              await send(.keysCheckFailed("Couldn’t check the key with \(provider)."))
+              return
+            case let .failed(failure):
+              onboardingLogger.error(
+                "Key check failed: \(failure.localizedDescription, privacy: .public)",
+              )
+              if failure.rejectsKey {
+                await send(.keysCheckFailed("Invalid \(provider) key."))
+                return
+              }
+              switch failure {
+              case .unreachable,
+                   .timedOut:
+                await send(.keysCheckFailed("Couldn’t reach \(provider)."))
+              default:
+                await send(.keysCheckFailed("Couldn’t check the key with \(provider)."))
+              }
+              return
+            }
+          }
+          await send(.keysVerified)
+        }
+      case let .keysCheckFailed(message):
+        state.isCheckingKeys = false
+        state.failureMessage = message
+        return .none
+      case .keysVerified:
+        state.isCheckingKeys = false
+        do {
+          for slot in state.missingKeys {
+            try keychain.store(state.draft(for: slot), slot)
+          }
+        } catch {
+          state.failureMessage = "Couldn’t save the key to the Keychain."
+          onboardingLogger
+            .error("Key store failed: \(error.localizedDescription, privacy: .public)")
+          return .none
+        }
+        state.storedKeys = storedKeys(of: state.profile)
+        state.keyDrafts = [:]
+        state.failureMessage = nil
+        state.selectedStep = nil
+        return .send(.delegate(.keysStored))
+      case .keysSkipped:
+        guard state.visibleStep == .keys else {
+          return .none
+        }
+        state.hasSkippedKeys = true
+        state.keyDrafts = [:]
+        state.failureMessage = nil
+        state.selectedStep = nil
+        return .none
+      // The other way past a factory profile's keys is a profile that needs none. Custom shares
+      // the factory engine, so whatever is already downloading is still what it needs.
+      case .useCustomTapped:
+        guard state.visibleStep == .keys else {
+          return .none
+        }
+        state.$settings.withLock {
+          $0.profiles.active = .custom
+          $0.profiles.custom.cleanupEnabled = false
+        }
+        state.storedKeys = storedKeys(of: state.profile)
+        state.keyDrafts = [:]
+        state.failureMessage = nil
+        state.selectedStep = nil
+        return .send(.delegate(.profileSelected))
       case .downloadModel:
         guard !state.isRecordingModelDownloadConsent else {
           return .none
@@ -470,6 +721,17 @@ enum OnboardingStep: Int, Equatable {
         await send(.refreshPermissionStatuses)
       }
     }.cancellable(id: CancelID.permissionPolling, cancelInFlight: true)
+  }
+
+  private func storedKeys(of profile: Profile) -> Set<CredentialSlot> {
+    Set(profile.credentials.filter { slot in
+      do {
+        return try keychain.read(slot) != nil
+      } catch {
+        onboardingLogger.error("Key unreadable: \(error.localizedDescription, privacy: .public)")
+        return false
+      }
+    })
   }
 
   private func markCompletion() -> Effect<Action> {

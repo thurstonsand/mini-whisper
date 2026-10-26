@@ -8,7 +8,8 @@ import Foundation
 public struct OpenAICompatibleCleanup: Sendable {
   // MARK: Lifecycle
 
-  public init(configuration: CleanupConfiguration, apiKey: String, session: URLSession = .shared) {
+  /// A nil key sends no `Authorization` header: a local server such as Ollama asks for none.
+  public init(configuration: CleanupConfiguration, apiKey: String?, session: URLSession = .shared) {
     self.configuration = configuration
     self.apiKey = apiKey
     self.session = session
@@ -41,37 +42,64 @@ public struct OpenAICompatibleCleanup: Sendable {
     }
   }
 
-  /// Proves endpoint, key, and model together with the smallest completion that can fail for each
-  /// of those reasons separately. What comes back is irrelevant — that it came back is the point,
-  /// and grading a micro-completion's text would invent a failure the pane could not explain.
+  /// Proves endpoint, key, and model together, for free when the model list can: it names the
+  /// model, and the endpoint refuses to list without the key. Anything less — no list, a name
+  /// missing from it that may still be an alias, a list anyone can read — falls back to the
+  /// smallest completion, which spends tokens only when it succeeds.
   public func verify() async -> VerificationOutcome {
-    let messages = [
-      ChatMessage(role: "system", content: "Reply with the single word: ready."),
-      ChatMessage(role: "user", content: "ready"),
-    ]
-    switch await completion(
-      messages: messages, timeout: CleanupConfiguration.verificationTimeout,
-    ) {
-    case .succeeded:
-      return .verified
+    switch await listModels() {
     case .cancelled:
       return .cancelled
-    case let .failed(failure):
-      return .failed(failure)
+    case let .unavailable(failure):
+      switch failure {
+      case .unreachable,
+           .timedOut:
+        return .failed(failure)
+      default:
+        break
+      }
+    case let .models(models):
+      guard models.contains(configuration.model) else {
+        break
+      }
+      guard apiKey != nil else {
+        return .verified
+      }
+      let anonymous = OpenAICompatibleCleanup(
+        configuration: configuration, apiKey: nil, session: session,
+      )
+      switch await anonymous.listModels() {
+      case .cancelled:
+        return .cancelled
+      case .unavailable(.httpStatus):
+        return .verified
+      case .models,
+           .unavailable:
+        break
+      }
     }
+    return await verifyByCompletion()
   }
 
   public func listModels() async -> ModelListing {
     var request = URLRequest(url: configuration.modelsURL)
     request.httpMethod = "GET"
     request.timeoutInterval = CleanupConfiguration.verificationTimeout
-    request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+    if let apiKey {
+      request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+    }
+    // Anthropic answers this path from its own API, which refuses a request without a version.
+    // Every other endpoint ignores a header it does not know.
+    request.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
 
     switch await send(request, timeout: CleanupConfiguration.verificationTimeout) {
     case let .succeeded(data):
       do {
         let listing = try JSONDecoder().decode(ModelsResponse.self, from: data)
-        return .models(listing.data.map(\.id))
+        // Google lists `models/gemini-…` but answers to the bare name, the one people type.
+        return .models(listing.data.map {
+          $0.id.hasPrefix("models/") ? String($0.id.dropFirst("models/".count)) : $0.id
+        })
       } catch {
         return .unavailable(.malformedResponse("model list: \(error.localizedDescription)"))
       }
@@ -91,16 +119,39 @@ public struct OpenAICompatibleCleanup: Sendable {
   }
 
   private let configuration: CleanupConfiguration
-  private let apiKey: String
+  private let apiKey: String?
   private let session: URLSession
 
+  /// Google wraps its OpenAI-compatible errors in a one-element array.
   private static func errorMessage(in data: Data) -> String? {
-    guard let response = try? JSONDecoder().decode(ErrorResponse.self, from: data),
-          let message = response.error.message, !message.isEmpty
+    let decoder = JSONDecoder()
+    guard let response = (try? decoder.decode(ErrorResponse.self, from: data))
+      ?? (try? decoder.decode([ErrorResponse].self, from: data))?.first,
+      let message = response.error.message, !message.isEmpty
     else {
       return nil
     }
     return message
+  }
+
+  /// The smallest completion that can fail for endpoint, key, and model separately. What comes
+  /// back is irrelevant — that it came back is the point, and grading a micro-completion's text
+  /// would invent a failure the pane could not explain.
+  private func verifyByCompletion() async -> VerificationOutcome {
+    let messages = [
+      ChatMessage(role: "system", content: "Reply with the single word: ready."),
+      ChatMessage(role: "user", content: "ready"),
+    ]
+    switch await completion(
+      messages: messages, timeout: CleanupConfiguration.verificationTimeout,
+    ) {
+    case .succeeded:
+      return .verified
+    case .cancelled:
+      return .cancelled
+    case let .failed(failure):
+      return .failed(failure)
+    }
   }
 
   private func completion(
@@ -110,7 +161,9 @@ public struct OpenAICompatibleCleanup: Sendable {
     request.httpMethod = "POST"
     request.timeoutInterval = timeout
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+    if let apiKey {
+      request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+    }
     do {
       request.httpBody = try JSONEncoder().encode(
         ChatCompletionRequest(model: configuration.model, messages: messages),

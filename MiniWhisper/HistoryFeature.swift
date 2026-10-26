@@ -1,3 +1,4 @@
+import AppSettings
 import ASREngine
 import ComposableArchitecture
 import Foundation
@@ -27,25 +28,21 @@ import TranscriptCleanup
 
     init(
       log: Shared<HistoryLog>, retention: Shared<RetentionPolicy>,
-      dictionary: Shared<DictionaryContents>,
-      improveRecognition: Shared<Bool>,
-      cleanup: Shared<CleanupSettings>,
+      dictionary: Shared<DictionaryContents>, settings: Shared<MiniWhisperSettings>,
     ) {
       _log = log
       _retention = retention
       _dictionary = dictionary
-      _improveRecognition = improveRecognition
-      _cleanup = cleanup
+      _settings = settings
     }
 
     // MARK: Internal
 
     @Shared var log: HistoryLog
     @Shared var dictionary: DictionaryContents
-    @Shared var improveRecognition: Bool
-    /// A re-transcription is a dictation minus the delivery, so it polishes under whatever the
-    /// pane says right now — not under whatever governed the dictation months ago.
-    @Shared var cleanup: CleanupSettings
+    /// A re-transcription is a dictation minus the delivery, so it runs under whatever profile is
+    /// active right now — not under whatever governed the dictation months ago.
+    @Shared var settings: MiniWhisperSettings
     var search = ""
     var cursor: UUID?
     var copiedEntryID: UUID?
@@ -108,7 +105,7 @@ import TranscriptCleanup
     case deleteCompleted(UUID)
     case deleteFailed(UUID, String)
     case retranscribeTapped(UUID)
-    case retranscriptionCompleted(UUID, ProcessedTranscript)
+    case retranscriptionCompleted(UUID, SpeechEngine, ProcessedTranscript)
     case retranscriptionFailed(UUID, String)
     case storagePresentationChanged(Bool)
     case retentionProposed(RetentionPolicy.Key, RetentionTTL)
@@ -230,33 +227,35 @@ import TranscriptCleanup
         return .none
       // A re-run is the same processing a dictation gets — the engine, then the cleanup pass —
       // conditioned by the facts the entry kept: the field the words were meant for and the
-      // application they were bound for, against today's vocabulary and today's pane.
+      // application they were bound for, against today's vocabulary and today's profile.
       case let .retranscribeTapped(id):
         guard let entry = state.log.entries.first(where: { $0.id == id }), entry.audio != nil
         else {
           return .none
         }
         let dictionary = state.dictionary.transcriptionDictionary(
-          boostsVocabulary: state.improveRecognition,
+          boostsVocabulary: state.settings.activeProfile.boostsVocabulary,
         )
         let conditioning = CleanupConditioning(
           fieldContext: entry.fieldContext,
           vocabulary: state.dictionary.vocabulary.map(\.text),
           targetBundleID: entry.targetApp?.bundleID,
         )
-        let cleanup = state.cleanup
+        let target = state.settings.cleanupTarget
+        let engine = state.settings.activeProfile.engine
         state.retranscribingEntryIDs.insert(id)
         state.retranscriptionFailures[id] = nil
         return .run { send in
           do {
             let recording = try await historyClient.loadAudio(id)
             let processed = try await TranscriptPipeline().process(
-              recording, dictionary: dictionary, conditioning: conditioning, settings: cleanup,
+              recording, engine: engine, dictionary: dictionary, conditioning: conditioning,
+              target: target,
             )
-            await send(.retranscriptionCompleted(id, processed))
+            await send(.retranscriptionCompleted(id, engine, processed))
           } catch { await send(.retranscriptionFailed(id, error.localizedDescription)) }
         }
-      case let .retranscriptionCompleted(id, processed):
+      case let .retranscriptionCompleted(id, engine, processed):
         state.retranscribingEntryIDs.remove(id)
         guard case let .transcript(text) = processed.outcome,
               let index = state.log.entries.firstIndex(where: { $0.id == id })
@@ -279,7 +278,7 @@ import TranscriptCleanup
         state.$log.withLock {
           $0.entries[index].addRetranscription(
             Transcription(
-              text: text, engine: asrEngine.identity(), transcribedAt: now,
+              text: text, engine: asrEngine.identity(engine), transcribedAt: now,
               cleanup: processed.cleanup,
             ),
           )

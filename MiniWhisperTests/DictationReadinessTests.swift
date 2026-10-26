@@ -1,3 +1,4 @@
+import AppSettings
 import ASREngine
 import ComposableArchitecture
 import Foundation
@@ -32,6 +33,31 @@ import Testing
     #expect(!store.state.dictationInFlight)
     #expect(await sounds.recorded == ["Basso"])
     await store.send(.pill(.dismiss)) { $0.pill.presentation = nil }
+  }
+
+  /// A factory profile chosen without its key promises a cleanup it cannot run, so it refuses
+  /// rather than quietly dictating raw.
+  @Test func `a factory profile without its cleanup key refuses to dictate`() async {
+    var state = AppFeature.State()
+    state.$health.withLock {
+      $0 = .healthy
+      $0.missingCleanupKey = .anthropic
+    }
+    state.onboardingCompleted = true
+    #expect(state.health.degradations == [.cleanupKeyMissing])
+    let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
+      $0.audioCapture.start = { _ in
+        Issue.record("The microphone was opened for a dictation that cannot be cleaned")
+        throw CancellationError()
+      }
+      $0.sounds.play = { _ in }
+      $0.continuousClock = TestClock()
+    }
+    store.exhaustivity = .off(showSkippedAssertions: false)
+
+    await store.send(.hotkeyListenerEvent(.gesture(.startRecording)))
+    await store.receive(.pill(.speechModelUnavailable("Needs an Anthropic key")))
+    #expect(!store.state.dictationInFlight)
   }
 
   @Test func `the refusal says what the engine is actually doing`() async {

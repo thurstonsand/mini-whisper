@@ -1,4 +1,5 @@
 import AppKit
+import AppSettings
 import ComposableArchitecture
 
 @MainActor final class MenuBarController: NSObject, NSMenuDelegate {
@@ -31,7 +32,7 @@ import ComposableArchitecture
     if refreshesStateOnOpen {
       store.send(.menuWillOpen)
     }
-    quickAddView.improvesRecognition = store.state.settingsWindow.dictionary.improveRecognition
+    quickAddView.usesVocabulary = store.state.settings.activeProfile.usesVocabulary
     rebuild(menu, state: store.state.menuBar)
   }
 
@@ -190,6 +191,11 @@ import ComposableArchitecture
   @objc private func repairDegradation(_ sender: NSMenuItem) {
     guard let degradation = sender.representedObject as? Degradation else {
       preconditionFailure("A repair row was built without the failure it repairs")
+    }
+    // A key is typed into the Profiles pane, so the repair is the pane, open.
+    if degradation == .engineKeyMissing || degradation == .cleanupKeyMissing {
+      presentSettings(destination: .profiles)
+      return
     }
     store.send(.repairRequested(degradation))
   }

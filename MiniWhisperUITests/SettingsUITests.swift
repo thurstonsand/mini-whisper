@@ -23,16 +23,16 @@ final class SettingsUITests: MiniWhisperUITestCase, SurfaceTagged {
           "History; Not selected",
         ),
         contract(
-          .staticText, "miniwhisper.settings.sidebar.model", "Model section",
-          "Model; Not selected",
-        ),
-        contract(
           .staticText, "miniwhisper.settings.sidebar.dictionary", "Dictionary section",
           "Dictionary; Not selected",
         ),
         contract(
-          .staticText, "miniwhisper.settings.sidebar.cleanup", "Cleanup section",
-          "Cleanup; Not selected",
+          .staticText, "miniwhisper.settings.sidebar.profiles", "Profiles section",
+          "Profiles; Not selected",
+        ),
+        contract(
+          .staticText, "miniwhisper.settings.sidebar.models", "Models section",
+          "Models; Not selected",
         ),
         contract(.group, "miniwhisper.settings.shortcut.activate", "Activate shortcut"),
         contract(
@@ -184,7 +184,7 @@ final class SettingsUITests: MiniWhisperUITestCase, SurfaceTagged {
     )
     XCTAssertEqual(
       app.buttons["miniwhisper.settings.repair.model-setup-failed.action"].label,
-      "Retry Parakeet v2 Setup",
+      "Retry Speech Setup",
     )
     assertValue(
       "Speech model setup failed", of: app.staticTexts["miniwhisper.settings.engine-status"],

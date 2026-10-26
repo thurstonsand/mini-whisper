@@ -168,9 +168,11 @@ private func pasted(_ text: String) -> AppFeature.DeliveryResult {
 ) -> TestStoreOf<AppFeature> {
   var settings = MiniWhisperSettings.defaults
   settings.retention.audio = .never
-  settings.cleanup = CleanupSettings(
-    enabled: true, endpoint: URL(string: "https://gateway.example/v1")!, model: "gpt-oss-120b",
-    timeout: 10, additionalInstructions: "",
+  settings.profiles.active = .custom
+  settings.profiles.custom = CustomProfileSettings(
+    cleanupEnabled: true, endpoint: URL(string: "https://gateway.example/v1")!,
+    model: "gpt-oss-120b",
+    boostsVocabulary: true,
   )
   let captureSessionID = UUID(uuidString: "00000000-0000-0000-0000-0000000000AA")!
   // A capture that stays open: a stream that ends is a microphone failure, and the next dictation
@@ -204,7 +206,7 @@ private func pasted(_ text: String) -> AppFeature.DeliveryResult {
     ),
   )
   pending.capture = capture
-  pending.cleanup = settings.cleanup.configuration
+  pending.cleanup = settings.cleanupTarget?.configuration
   pending.cleanupStartedAt = Date(timeIntervalSince1970: 198)
   state.pendingDictation = pending
   // The machine is waiting on the endpoint, exactly as the cleanup effect left it.
@@ -221,7 +223,7 @@ private func pasted(_ text: String) -> AppFeature.DeliveryResult {
     }
     $0.audioCapture.cancel = { _ in }
     $0.audioCapture.stop = { _ in CanonicalRecording(samples: [0.1]) }
-    $0.asrEngine.prepareForActivation = { AsyncStream { $0.finish() } }
+    $0.asrEngine.prepareForActivation = { _ in AsyncStream { $0.finish() } }
     $0.contextCapture.capture = { _ in .unavailable(.noFocusedElement) }
     $0.contextCapture.prewarmFrontmostApp = {}
     $0.continuousClock = TestClock()

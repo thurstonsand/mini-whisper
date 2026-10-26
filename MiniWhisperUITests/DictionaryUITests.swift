@@ -23,9 +23,7 @@ final class DictionaryUITests: MiniWhisperUITestCase, SurfaceTagged {
         try require(vocabulary.awaitExistence(timeout: 5))
         try require(correction.exists)
 
-        let improveRecognition = app.checkBoxes["miniwhisper.dictionary.improve-recognition"]
-        try require(improveRecognition.awaitHittable(timeout: 2))
-        improveRecognition.click()
+        // The scene's profile never reads the vocabulary, so only vocabulary fades.
         self.assertValue(
           "Grey off; Cursor off; Emphasis reduced",
           of: app.staticTexts[
@@ -94,59 +92,8 @@ final class DictionaryUITests: MiniWhisperUITestCase, SurfaceTagged {
         XCTAssertTrue(correction.awaitNonExistence())
       },
 
-      // The badge and the switch share a row, so the one thing worth pinning is that they never
-      // share a click: opening the explanation must not silently change the setting.
-      Law("The info badge explains without toggling the setting") { app in
-        let improveRecognition = app.checkBoxes["miniwhisper.dictionary.improve-recognition"]
-        try require(improveRecognition.awaitHittable(timeout: 2))
-        let wasEnabled = improveRecognition.value as? Int
-
-        let badge = app.buttons["miniwhisper.dictionary.improve-recognition.info"]
-        try require(badge.awaitHittable(timeout: 2))
-        badge.click()
-
-        let explanation = app.descendants(matching: .any)[
-          "miniwhisper.dictionary.improve-recognition.popover",
-        ]
-        try require(explanation.awaitExistence(timeout: 2))
-        self.assertValue(
-          """
-          Part of the speech transcription pipeline; turning off can speed up transcription, but \
-          will no longer consider words or phrases. Replacements are always applied.
-          """,
-          of: explanation,
-        )
-        XCTAssertEqual(
-          improveRecognition.value as? Int, wasEnabled,
-          "Opening the explanation changed the setting",
-        )
-        self.recordScreenshot("recognition-info-popover", screenshot: app.screenshot())
-
-        app.typeKey(.escape, modifierFlags: [])
-        try require(explanation.awaitNonExistence())
-
-        // And the switch still answers a click of its own — which also restores recognition to
-        // on, the ground the marker law expects.
-        improveRecognition.click()
-        XCTAssertTrue(poll { improveRecognition.value as? Int != wasEnabled })
-      },
-
       Law("Quick Add marks recognition off, collapsed and expanded") { app in
-        let improveRecognition = app.checkBoxes["miniwhisper.dictionary.improve-recognition"]
-        try require(improveRecognition.awaitHittable(timeout: 2))
-        try require(improveRecognition.value as? Int == 1, "Recognition is not on")
-        app.buttons["miniwhisper.dictionary.add"].click()
-        let sheet = app.sheets.firstMatch
-        try require(sheet.awaitExistence(timeout: 2))
-        app.typeKey(.escape, modifierFlags: [])
-        try require(sheet.awaitNonExistence())
-
         let markerID = "miniwhisper.menu.quick-add.recognition-off"
-        self.openStatusMenu(app)
-        XCTAssertFalse(app.staticTexts[markerID].exists)
-        self.closeStatusMenu(app)
-
-        improveRecognition.click()
         self.openStatusMenu(app)
         XCTAssertTrue(app.staticTexts[markerID].awaitExistence(timeout: 2))
         let quickAddItem = app.descendants(matching: .any)["miniwhisper.menu.quick-add"]

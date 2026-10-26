@@ -21,6 +21,10 @@ extension AppFeature {
     /// What the engine said, and only that. Cleanup's rewrite is kept apart in `cleanupRecord`
     /// and joined to the transcription when the entry is written.
     var original: History.Transcription?
+    /// The active profile's cleanup, resolved when the recording ended — the same moment the
+    /// engine's vocabulary was — so a profile switch mid-dictation cannot give one dictation two
+    /// profiles' stacks.
+    var cleanupTarget: CleanupTarget?
     /// The focused field as it was immediately before the paste — one snapshot, which conditions
     /// the cleanup prompt and then adjusts the joined text.
     var capture: ContextCapture?
@@ -207,7 +211,7 @@ extension CleanupRecord {
     case let .skipped(elapsed):
       disposition = .skipped
       seconds = elapsed
-    case let .failed(reason, elapsed):
+    case let .failed(reason, elapsed, _):
       disposition = .failed(reason)
       seconds = elapsed
     }
@@ -244,6 +248,8 @@ extension CleanupFailure {
       "malformedResponse"
     case .degenerateResponse:
       "degenerateResponse"
+    case .localModel:
+      "localModel"
     }
   }
 }

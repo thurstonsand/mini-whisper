@@ -117,7 +117,7 @@ private final class AudioInputLevelMonitorSession: @unchecked Sendable {
   private let stateLock = NSLock()
   private var engine: AVAudioEngine?
   private var inputNode: AVAudioInputNode?
-  private var configurationObserver: (any NSObjectProtocol)?
+  private var configurationObserver: any NSObjectProtocol?
   private var isActive = true
   private var throttle = AudioInputLevelThrottle()
 

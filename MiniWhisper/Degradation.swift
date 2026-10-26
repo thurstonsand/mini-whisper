@@ -1,3 +1,4 @@
+import AppSettings
 import ASREngine
 import AudioCapture
 import Foundation
@@ -16,10 +17,46 @@ enum HotkeyTapStatus: Equatable {
 // MARK: - AppHealth
 
 struct AppHealth: Equatable {
-  var hotkeyTap = HotkeyTapStatus.idle
-  var micStatus: MicPermissionStatus = .undetermined
-  var accessibilityGranted = false
-  var engineReadiness = EngineReadiness.modelMissing
+  // MARK: Lifecycle
+
+  init(
+    hotkeyTap: HotkeyTapStatus = .idle, micStatus: MicPermissionStatus = .undetermined,
+    accessibilityGranted: Bool = false, engine: SpeechEngine = .parakeet,
+    engineReadiness: EngineReadiness = .modelMissing,
+  ) {
+    self.hotkeyTap = hotkeyTap
+    self.micStatus = micStatus
+    self.accessibilityGranted = accessibilityGranted
+    self.engine = engine
+    readinessByEngine = [engine: engineReadiness]
+  }
+
+  // MARK: Internal
+
+  var hotkeyTap: HotkeyTapStatus
+  var micStatus: MicPermissionStatus
+  var accessibilityGranted: Bool
+  /// The active profile's engine: the one a dictation would reach, and the only one whose
+  /// readiness can degrade the app.
+  var engine: SpeechEngine
+  /// Every engine's last known readiness. A download keeps reporting after its profile is
+  /// switched away from, and that report belongs to its own engine, not to whichever is active.
+  var readinessByEngine: [SpeechEngine: EngineReadiness]
+  /// The cleanup key a factory profile was chosen without. A factory profile promises its
+  /// cleanup, so it does not dictate raw in the meantime.
+  var missingCleanupKey: CredentialProvider?
+  /// Keys an endpoint refused on a real request. Said beside the key, not as a degradation: the
+  /// dictation still delivered, just uncleaned.
+  var rejectedKeys: Set<CredentialSlot> = []
+
+  var engineReadiness: EngineReadiness {
+    get { readinessByEngine[engine] ?? .modelMissing }
+    set { readinessByEngine[engine] = newValue }
+  }
+
+  var engineStatusText: String {
+    engineReadiness.statusText(engine)
+  }
 
   var degradations: [Degradation] {
     var degradations: [Degradation] = []
@@ -46,14 +83,19 @@ struct AppHealth: Equatable {
     }
     switch engineReadiness {
     case .modelMissing:
-      degradations.append(.modelMissing)
+      degradations.append(engine == .parakeet ? .modelMissing : .gateMissing)
     case .failed:
       degradations.append(.modelSetupFailed)
+    case .credentialMissing:
+      degradations.append(.engineKeyMissing)
     case .downloading,
          .compiling,
          .prewarming,
          .ready:
       break
+    }
+    if missingCleanupKey != nil {
+      degradations.append(.cleanupKeyMissing)
     }
     return degradations
   }
@@ -72,7 +114,10 @@ enum Degradation: String, Hashable {
   case microphoneAccessDenied = "microphone"
   case accessibilityDenied = "accessibility"
   case modelMissing = "model-missing"
+  case gateMissing = "gate-missing"
   case modelSetupFailed = "model-setup-failed"
+  case engineKeyMissing = "engine-key"
+  case cleanupKeyMissing = "cleanup-key"
 
   // MARK: Internal
 
@@ -100,9 +145,21 @@ enum Degradation: String, Hashable {
         title: "Download & Prepare Parakeet v2",
         reason: "Required to transcribe speech",
       )
+    case .gateMissing:
+      Presentation(
+        title: "Download the Speech Gate", reason: "Required before any speech leaves this Mac",
+      )
     case .modelSetupFailed:
       Presentation(
-        title: "Retry Parakeet v2 Setup", reason: "Setup failed, so nothing can be transcribed",
+        title: "Retry Speech Setup", reason: "Setup failed, so nothing can be transcribed",
+      )
+    case .engineKeyMissing:
+      Presentation(
+        title: "Add an ElevenLabs Key…", reason: "Most accurate can’t transcribe without one",
+      )
+    case .cleanupKeyMissing:
+      Presentation(
+        title: "Add Your API Key…", reason: "Dictation is off until the profile has its key",
       )
     }
   }
@@ -111,18 +168,21 @@ enum Degradation: String, Hashable {
 // MARK: - EngineReadiness Presentation
 
 extension EngineReadiness {
-  var statusText: String {
-    switch self {
+  func statusText(_ engine: SpeechEngine) -> String {
+    let name = engine.shortName
+    return switch self {
     case .ready:
-      "Ready · Parakeet v2"
+      "Ready · \(name)"
     case let .downloading(fraction):
-      "Downloading Parakeet v2 · \(Int(fraction * 100))%"
+      "Downloading \(engine == .parakeet ? name : "speech gate") · \(Int(fraction * 100))%"
     case .compiling:
-      "Compiling Parakeet v2"
+      "Compiling \(name)"
     case .prewarming:
-      "Prewarming Parakeet v2"
+      "Prewarming \(name)"
     case .modelMissing:
       "Speech model not installed"
+    case .credentialMissing:
+      "\(name) needs a key"
     case .failed:
       "Speech model setup failed"
     }
@@ -136,6 +196,7 @@ extension EngineReadiness {
     case .downloading,
          .compiling,
          .prewarming,
+         .credentialMissing,
          .ready:
       false
     }
@@ -151,4 +212,16 @@ enum SystemSettingsPane {
   static let accessibility = URL(
     string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
   )!
+}
+
+extension SpeechEngine {
+  /// The name a one-line status has room for.
+  var shortName: String {
+    switch self {
+    case .parakeet:
+      "Parakeet v2"
+    case .scribe:
+      "Scribe v2"
+    }
+  }
 }

@@ -14,10 +14,8 @@ enum ChromiumAccessibility {
   // MARK: Internal
 
   static func prewarmFrontmostApp() async {
-    guard AXIsProcessTrusted() else {
-      return
-    }
-    guard let frontmost = NSWorkspace.shared.frontmostApplication,
+    guard AXIsProcessTrusted(),
+          let frontmost = NSWorkspace.shared.frontmostApplication,
           let family = family(of: frontmost.bundleURL)
     else {
       return

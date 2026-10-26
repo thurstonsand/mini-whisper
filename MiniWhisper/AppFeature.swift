@@ -6,6 +6,7 @@ import FieldContext
 import Foundation
 import History
 import HotkeyListener
+import ModelLibrary
 import OSLog
 import SpeechDictionary
 import TranscriptCleanup
@@ -115,7 +116,8 @@ private let performanceLogger = Logger(
     var menuBar: MenuBarViewState {
       MenuBarViewState(
         degradations: health.degradations, engineReadiness: health.engineReadiness,
-        inputDeviceName: inputDeviceName, canCopyLastTranscript: lastTranscript != nil,
+        engineStatusText: health.engineStatusText, inputDeviceName: inputDeviceName,
+        canCopyLastTranscript: lastTranscript != nil,
       )
     }
   }
@@ -148,7 +150,7 @@ private let performanceLogger = Logger(
     case workspaceOpenFailed(String)
     case modelDownloadConsentRecorded
     case modelDownloadConsentRecordingFailed(String)
-    case engineReadinessUpdated(EngineReadiness)
+    case engineReadinessUpdated(SpeechEngine, EngineReadiness)
     /// Agent-driveability state injection. In Release, `AgentDriveabilityScene` has no cases and
     /// no caller constructs either action.
     case agentScenePresented(AgentDriveabilityScene)
@@ -186,7 +188,10 @@ private let performanceLogger = Logger(
   @Dependency(\.historyClient) var historyClient
   @Dependency(\.hotkeyListener) var hotkeyListener
   @Dependency(\.microphonePermission) var microphonePermission
+  @Dependency(\.keychain) var keychain
   @Dependency(\.modelDownloadConsent) var modelDownloadConsent
+  @Dependency(\.modelLibrary) var modelLibrary
+  @Dependency(\.cleanup) var cleanup
   @Dependency(\.onboardingCompletion) var onboardingCompletion
   @Dependency(\.sounds) var sounds
   @Dependency(\.uuid) var uuid
@@ -211,6 +216,27 @@ private let performanceLogger = Logger(
         return .send(.recording(.microphoneChanged(selection)))
       case let .settingsWindow(.settingsPane(.delegate(.repair(repair)))):
         return .send(.repairRequested(repair))
+      case let .settingsWindow(.models(.delegate(.deleteAsset(asset)))):
+        return deleteAsset(asset, &state)
+      // The child has already made the choice; the app follows it to the engine it names.
+      case .settingsWindow(.profiles(.profileSelected)):
+        checkCleanupKey(&state)
+        return .merge(activateEngine(&state), prepareLocalCleanup(state))
+      case let .settingsWindow(.models(.delegate(.downloadAsset(asset)))):
+        return downloadAsset(asset, &state)
+      // A cleanup model downloading during onboarding is part of the Speech Model step, so its
+      // failure is said there as well as in the pane.
+      case let .settingsWindow(.models(.assetDownloadFailed(message))):
+        return state.onboarding.isPresented ? .send(.onboarding(.modelSetupFailed(message))) : .none
+      // A hosted engine's key is read when it is needed, so a new one only has to be noticed.
+      case let .settingsWindow(.profiles(.delegate(.keysStored(slots)))):
+        checkCleanupKey(&state)
+        guard let engineSlot = state.settings.activeProfile.engineCredential,
+              slots.contains(engineSlot)
+        else {
+          return .none
+        }
+        return prepareInstalled(state.health.engine)
       case let .settingsWindow(
         .settingsPane(.bindingEditors(.element(id: command, action: .delegate(.recordingStarted)))),
       ):
@@ -254,8 +280,11 @@ private let performanceLogger = Logger(
             """,
           )
         }
+        state.$health.withLock { $0.engine = state.settings.activeProfile.engine }
+        checkCleanupKey(&state)
         return .merge(
-          .send(.recording(.task)), startupEffect(), .send(.historyMaintenanceRequested),
+          .send(.recording(.task)), startupEffect(state.health.engine),
+          prepareLocalCleanup(state), .send(.historyMaintenanceRequested),
           seedSettingsFile(state.$settings),
         )
       case .historyMaintenanceRequested:
@@ -318,7 +347,7 @@ private let performanceLogger = Logger(
         state.onboardingCompleted = facts.onboardingCompleted
         state.$health.withLock { $0.micStatus = facts.permissions.microphoneStatus }
         state.$health.withLock { $0.engineReadiness = facts.engineReadiness }
-        logEngineReadiness(facts.engineReadiness)
+        logEngineReadiness(facts.engineReadiness, state.health.engine)
 
         var effects = [
           reconcileAccessibility(facts.permissions.hasAccessibilityPermission, &state),
@@ -326,7 +355,10 @@ private let performanceLogger = Logger(
         // Consent is what makes a download durable, so an interrupted one resumes here rather
         // than waiting for a user who has finished onboarding to find the menu bar. A failed
         // setup is left alone: retrying it every launch would be a network loop nobody asked for.
-        if facts.modelDownloadConsented, facts.engineReadiness == .modelMissing {
+        if facts.modelDownloadConsented,
+           facts.engineReadiness == .modelMissing
+           || !facts.onboardingCompleted && needsCleanupModel(state)
+        {
           effects.append(setUpModel(&state))
         }
         if !facts.onboardingCompleted {
@@ -452,7 +484,7 @@ private let performanceLogger = Logger(
       case let .modelDownloadConsentRecordingFailed(message):
         let failure = "Could not record download consent: \(message)"
         state.$health.withLock { $0.engineReadiness = .failed(failure) }
-        logEngineReadiness(.failed(failure))
+        logEngineReadiness(.failed(failure), state.health.engine)
         return .merge(
           state.onboarding.isPresented
             ? .send(.onboarding(.modelDownloadConsentFailed(failure))) : .none,
@@ -464,16 +496,21 @@ private let performanceLogger = Logger(
       case let .agentScenePresented(scene):
         state = scene.initialState
         return scene.initialAction.map { .send($0) } ?? .none
-      case let .engineReadinessUpdated(readiness):
+      case let .engineReadinessUpdated(engine, readiness):
         let wasFailed =
-          switch state.health.engineReadiness {
+          switch state.health.readinessByEngine[engine] {
           case .failed:
             true
           default:
             false
           }
-        state.$health.withLock { $0.engineReadiness = readiness }
-        logEngineReadiness(readiness)
+        state.$health.withLock { $0.readinessByEngine[engine] = readiness }
+        logEngineReadiness(readiness, engine)
+        // A download that outlived its profile reports to the end, but only the active engine's
+        // troubles are anybody's to hear about.
+        guard engine == state.health.engine else {
+          return .none
+        }
         let onboardingFailure: Effect<Action> =
           if case let .failed(message) = readiness, state.onboarding.isPresented {
             .send(.onboarding(.modelSetupFailed(message)))
@@ -493,12 +530,14 @@ private let performanceLogger = Logger(
         return .send(.pill(.levelUpdated(level)))
       case let .recording(.delegate(.completed(recording))):
         let generation = state.transcriptionGeneration
+        let engine = state.health.engine
         state.pendingDictation = PendingDictation(
           generation: generation, recording: recording, createdAt: now,
-          engine: asrEngine.identity(), original: nil,
+          engine: asrEngine.identity(engine), original: nil,
+          cleanupTarget: state.settings.cleanupTarget,
         )
         let dictionary = state.dictionary.transcriptionDictionary(
-          boostsVocabulary: state.settings.improveRecognition,
+          boostsVocabulary: state.settings.activeProfile.boostsVocabulary,
         )
         return .concatenate(
           .send(.pill(.transcribingStarted)),
@@ -506,9 +545,18 @@ private let performanceLogger = Logger(
             performanceLogger.notice("benchmark transcription-started")
             do {
               try await send(
-                .transcriptionCompleted(generation, asrEngine.submit(recording, dictionary)),
+                .transcriptionCompleted(
+                  generation, asrEngine.submit(engine, recording, dictionary),
+                ),
               )
-            } catch { await send(.transcriptionFailed(generation, error.localizedDescription)) }
+            } catch {
+              // A refused key is the profile needing setup, not the engine breaking: the repair
+              // is a new key, and the pane is where it goes.
+              if case ASREngineError.credentialRejected = error {
+                await send(.engineReadinessUpdated(engine, .credentialMissing))
+              }
+              await send(.transcriptionFailed(generation, error.localizedDescription))
+            }
           }.cancellable(id: CancelID.transcription, cancelInFlight: true),
         )
       case .recording(.delegate(.discarded)):
@@ -568,7 +616,11 @@ private let performanceLogger = Logger(
         guard generation == state.transcriptionGeneration else {
           return .none
         }
-        state.$health.withLock { $0.engineReadiness = .failed(message) }
+        // A local engine that fails has broken; a hosted one has failed this request, and the
+        // next dictation asks the service again.
+        if state.health.engine == .parakeet {
+          state.$health.withLock { $0.engineReadiness = .failed(message) }
+        }
         engineLogger.error("Transcription failed: \(message, privacy: .public)")
         let history = finishDictation(&state, delivery: nil)
         return .merge(
@@ -587,7 +639,7 @@ private let performanceLogger = Logger(
         state.pendingDictation = pending
         // Whether a pass is worth attempting at all. Whether one actually runs is the pipeline's
         // to decide, and it says so by starting one.
-        guard state.settings.cleanup.configuration != nil else {
+        guard let target = pending.cleanupTarget else {
           return .send(.cleanupResolved(generation, .passedThrough))
         }
         return cleanupEffect(
@@ -603,7 +655,7 @@ private let performanceLogger = Logger(
             vocabulary: state.dictionary.vocabulary.map(\.text),
             targetBundleID: targetApp?.bundleID,
           ),
-          settings: state.settings.cleanup,
+          target: target,
         )
       case let .cleanupStarted(generation, configuration):
         guard var pending = state.pendingDictation, pending.generation == generation else {
@@ -621,6 +673,7 @@ private let performanceLogger = Logger(
           return .none
         }
         let record = CleanupRecord(resolution)
+        noteKeyVerdict(resolution, state: &state)
         pending.cleanupRecord = record
         state.pendingDictation = pending
         let text = record?.cleanedText ?? transcript
@@ -702,6 +755,19 @@ private let performanceLogger = Logger(
         )
       case .onboarding(.delegate(.setupModelRequested)):
         return setUpModel(&state)
+      case .onboarding(.delegate(.profileSelected)):
+        checkCleanupKey(&state)
+        return .merge(activateEngine(&state), prepareLocalCleanup(state))
+      // A hosted engine reads its key at the end of every prepare, so one already running will
+      // find it; otherwise it is asked again now that there is something to find.
+      case .onboarding(.delegate(.keysStored)):
+        checkCleanupKey(&state)
+        guard state.settings.activeProfile.engineCredential != nil,
+              !state.health.engineReadiness.isSetupInProgress
+        else {
+          return .none
+        }
+        return prepareInstalled(state.health.engine)
       case let .onboarding(.delegate(.permissionsUpdated(permissions))):
         state.$health.withLock { $0.micStatus = permissions.microphoneStatus }
         return reconcileAccessibility(permissions.hasAccessibilityPermission, &state)
@@ -794,8 +860,130 @@ private let performanceLogger = Logger(
     case .accessibilityDenied:
       open(SystemSettingsPane.accessibility)
     case .modelMissing,
+         .gateMissing,
          .modelSetupFailed:
       setUpModel(&state)
+    case .engineKeyMissing,
+         .cleanupKeyMissing:
+      .send(.settingsWindow(.selectionChanged(.profiles)))
+    }
+  }
+
+  /// Follows the active profile to its engine. An engine already heard from keeps what it said;
+  /// one never asked is asked now. Nothing is downloaded here: a profile that needs a model asks
+  /// for it the ordinary way, through the repair it raises.
+  private func activateEngine(_ state: inout State) -> Effect<Action> {
+    let engine = state.settings.activeProfile.engine
+    guard engine != state.health.engine else {
+      return .none
+    }
+    state.$health.withLock { $0.engine = engine }
+    if let readiness = state.health.readinessByEngine[engine], readiness.isSetupInProgress {
+      return .none
+    }
+    return prepareInstalled(engine)
+  }
+
+  private func prepareInstalled(_ engine: SpeechEngine) -> Effect<Action> {
+    .run { send in
+      for await readiness in asrEngine.prepareInstalled(engine) {
+        await send(.engineReadinessUpdated(engine, readiness))
+      }
+    }
+  }
+
+  /// S1-mini takes seconds to load, so a profile that cleans with it loads it as soon as it is
+  /// chosen rather than on its first dictation.
+  private func prepareLocalCleanup(_ state: State) -> Effect<Action> {
+    guard state.settings.activeProfile.cleanup == .local, modelLibrary.isInstalled(.s1Mini) else {
+      return .none
+    }
+    return .run { _ in await cleanup.prepareLocal() }
+  }
+
+  /// An asset the active engine needs is that engine's repair, so it reports where the engine
+  /// does; anything else downloads quietly, and the pane hears it through the library.
+  private func downloadAsset(_ asset: ModelAsset, _ state: inout State) -> Effect<Action> {
+    if state.health.engine.assets.contains(asset) {
+      return setUpModel(&state)
+    }
+    let preparesCleanup = asset == .s1Mini && state.settings.activeProfile.cleanup == .local
+    return .run { send in
+      await install(asset, preparingCleanup: preparesCleanup, send: send)
+    }
+  }
+
+  private func install(
+    _ asset: ModelAsset, preparingCleanup: Bool, send: Send<Action>,
+  ) async {
+    do {
+      try await modelLibrary.install(asset)
+    } catch {
+      await send(.settingsWindow(.models(.assetDownloadFailed(error.localizedDescription))))
+      return
+    }
+    if preparingCleanup {
+      await cleanup.prepareLocal()
+    }
+  }
+
+  /// A factory profile's cleanup key is only ever written by this app, so the moments it can
+  /// appear or the profile can change are the moments it is read.
+  private func checkCleanupKey(_ state: inout State) {
+    let profile = state.settings.activeProfile
+    var missing: CredentialProvider?
+    if !profile.isCustom, let slot = profile.endpointLeg?.credential {
+      do {
+        missing = try keychain.read(slot) == nil ? slot.provider : nil
+      } catch {
+        // An unreadable Keychain is a cleanup failure each dictation reports on its own.
+        settingsLogger.error(
+          "Cleanup key unreadable: \(error.localizedDescription, privacy: .public)",
+        )
+      }
+    }
+    state.$health.withLock { $0.missingCleanupKey = missing }
+  }
+
+  /// A refused key reads invalid from the dictation that was refused until one that cleans.
+  private func noteKeyVerdict(_ resolution: CleanupResolution, state: inout State) {
+    guard case let .attempted(_, attempt) = resolution,
+          let slot = state.settings.activeProfile.endpointLeg?.credential
+    else {
+      return
+    }
+    switch attempt {
+    case .cleaned:
+      state.$health.withLock { _ = $0.rejectedKeys.remove(slot) }
+    case let .failed(_, _, rejectsKey) where rejectsKey:
+      state.$health.withLock { _ = $0.rejectedKeys.insert(slot) }
+    case .failed,
+         .skipped:
+      break
+    }
+  }
+
+  private func needsCleanupModel(_ state: State) -> Bool {
+    state.settings.activeProfile.cleanup == .local && !modelLibrary.isInstalled(.s1Mini)
+  }
+
+  /// Whatever holds an asset open lets go of it before its files go. An engine then reads as
+  /// missing, and the active profile is Degraded until the ordinary repair downloads it again.
+  private func deleteAsset(_ asset: ModelAsset, _: inout State) -> Effect<Action> {
+    let engines = SpeechEngine.allCases.filter { $0.assets.contains(asset) }
+    return .run { send in
+      for engine in engines {
+        await asrEngine.unload(engine)
+        await send(.engineReadinessUpdated(engine, .modelMissing))
+      }
+      if asset == .s1Mini {
+        await cleanup.unloadLocal()
+      }
+      do {
+        try await modelLibrary.delete(asset)
+      } catch {
+        await send(.settingsWindow(.models(.assetDeletionFailed(error.localizedDescription))))
+      }
     }
   }
 
@@ -803,8 +991,11 @@ private let performanceLogger = Logger(
     let recordsConsent = !modelDownloadConsent.isConsented()
     let acknowledgesConsent =
       state.onboarding.isPresented && state.onboarding.isRecordingModelDownloadConsent
+    let engine = state.health.engine
     let installsModel = state.health.engineReadiness.isInstallable
-    guard recordsConsent || acknowledgesConsent || installsModel else {
+    // A profile's cleanup model is part of its setup, so it downloads beside the engine's.
+    let installsCleanup = needsCleanupModel(state)
+    guard recordsConsent || acknowledgesConsent || installsModel || installsCleanup else {
       return .none
     }
     if installsModel {
@@ -822,23 +1013,29 @@ private let performanceLogger = Logger(
       if acknowledgesConsent {
         await send(.modelDownloadConsentRecorded)
       }
-      guard installsModel else {
-        return
-      }
-      for await readiness in asrEngine.installAndPrepare() {
-        await send(.engineReadinessUpdated(readiness))
+      await withTaskGroup(of: Void.self) { group in
+        if installsModel {
+          group.addTask {
+            for await readiness in asrEngine.installAndPrepare(engine) {
+              await send(.engineReadinessUpdated(engine, readiness))
+            }
+          }
+        }
+        if installsCleanup {
+          group.addTask { await install(.s1Mini, preparingCleanup: true, send: send) }
+        }
       }
     }
   }
 
-  private func startupEffect() -> Effect<Action> {
+  private func startupEffect(_ engine: SpeechEngine) -> Effect<Action> {
     .run { send in
       let onboardingCompleted = onboardingCompletion.isCompleted()
       let modelDownloadConsented = modelDownloadConsent.isConsented()
       let hasAccessibilityPermission = accessibilityPermission.hasPermission()
       let microphoneStatus = microphonePermission.status()
 
-      var readinessIterator = asrEngine.prepareInstalled().makeAsyncIterator()
+      var readinessIterator = asrEngine.prepareInstalled(engine).makeAsyncIterator()
       let engineReadiness = await readinessIterator.next() ?? .modelMissing
       await send(
         .startupResolved(
@@ -854,7 +1051,7 @@ private let performanceLogger = Logger(
         ),
       )
       while let readiness = await readinessIterator.next() {
-        await send(.engineReadinessUpdated(readiness))
+        await send(.engineReadinessUpdated(engine, readiness))
       }
     }
   }
@@ -898,20 +1095,25 @@ private let performanceLogger = Logger(
     }
   }
 
-  private func logEngineReadiness(_ readiness: EngineReadiness) {
+  private func logEngineReadiness(_ readiness: EngineReadiness, _ engine: SpeechEngine) {
+    let name = engine.shortName
     switch readiness {
     case .modelMissing:
-      engineLogger.error("Pinned speech models are missing")
+      engineLogger.error("\(name, privacy: .public): pinned models are missing")
     case let .downloading(fraction):
-      engineLogger.notice("Pinned model download \(fraction * 100, format: .fixed(precision: 1))%")
+      engineLogger.notice(
+        "\(name, privacy: .public): pinned model download \(fraction * 100, format: .fixed(precision: 1))%",
+      )
     case .compiling:
-      engineLogger.notice("Compiling pinned Core ML models")
+      engineLogger.notice("\(name, privacy: .public): compiling pinned Core ML models")
     case .prewarming:
-      engineLogger.notice("Prewarming resident speech engine")
+      engineLogger.notice("\(name, privacy: .public): prewarming")
+    case .credentialMissing:
+      engineLogger.error("\(name, privacy: .public): no usable key")
     case .ready:
-      engineLogger.notice("Resident speech engine ready")
+      engineLogger.notice("\(name, privacy: .public): ready")
     case let .failed(message):
-      engineLogger.error("Speech engine setup failed: \(message, privacy: .public)")
+      engineLogger.error("\(name, privacy: .public): setup failed: \(message, privacy: .public)")
     }
   }
 

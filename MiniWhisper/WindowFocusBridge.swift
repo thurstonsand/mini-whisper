@@ -72,15 +72,34 @@ private struct WindowKeyMonitor: NSViewRepresentable {
 /// object. A window-scoped monitor gives a page that opens unfocused somewhere to put the very
 /// first Tab. Modified Tab passes through untouched, and a page that declines returns `false`.
 struct WindowTabKeys: View {
-  let onTab: () -> Bool
+  /// Whether Shift was held, so the cycle can walk backward.
+  let onTab: (_ backward: Bool) -> Bool
 
   var body: some View {
     WindowKeyMonitor { event in
       let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
       return event.keyCode == UInt16(kVK_Tab)
         && modifiers.subtracting([.shift, .capsLock]).isEmpty
-        && onTab()
+        && onTab(modifiers.contains(.shift))
     }
+  }
+}
+
+// MARK: - FunctionKey
+
+/// The characters AppKit reports for keys that have no letter. Spelling them from AppKit's own
+/// constants keeps the grammar's arrows readable where its letters already are.
+enum FunctionKey {
+  static let upArrow = character(NSUpArrowFunctionKey)
+  static let downArrow = character(NSDownArrowFunctionKey)
+  static let leftArrow = character(NSLeftArrowFunctionKey)
+  static let rightArrow = character(NSRightArrowFunctionKey)
+  static let forwardDelete = character(NSDeleteFunctionKey)
+
+  /// Every one of these constants is in the Unicode private-use area AppKit reserves for them, so
+  /// the scalar always exists.
+  static func character(_ key: Int) -> String {
+    String(UnicodeScalar(UInt32(key))!)
   }
 }
 

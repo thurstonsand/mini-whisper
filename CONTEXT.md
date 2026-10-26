@@ -12,16 +12,17 @@
 - The activate cue plays once per interaction, at its onset — a double-tap or tap-then-hold never replays it.
 - Silence rejection: preprocessing that keeps silence and near-silence from reaching the engine, so empty recordings never produce hallucinated text.
 - The gate: the silence-rejection implementation — a 500 ms duration floor, then one whole-utterance Silero VAD classification at release; accepted audio passes to the engine unchanged.
-- Engine: an implementation of the transcription protocol in `ASREngine` (pinned FluidAudio + Parakeet TDT v2 for MVP; whisper.cpp Medium.en is the recorded fallback, not shipped).
+- Engine: an implementation of the transcription protocol in `ASREngine`, chosen by the active profile: Parakeet TDT v2 through pinned FluidAudio on this Mac, or ElevenLabs Scribe v2 hosted. The gate runs locally before either. whisper.cpp Medium.en is the recorded fallback, not shipped.
 - The pill: the bottom-center HUD panel that owns all dictation-time state (recording, latch, transcribing, polishing, transient notices). Success is its disappearance.
-- Degraded: a failure state — missing Accessibility, blocked microphone, a dead event tap, or an uninstalled/failed model. Shown in the menu bar and settings pane.
-- Onboarding: the app's only modal flow, run once — welcome, sequential permissions, activation-shortcut choice, model download/compile/prewarm, and one real try-it dictation; the welcome button records bandwidth consent and starts a durable background download that resumes across relaunches.
+- Degraded: a failure state — missing Accessibility, blocked microphone, a dead event tap, an uninstalled/failed model, a hosted engine without its key, or a factory profile without its cleanup key. Shown in the menu bar and settings pane.
+- Onboarding: the app's only modal flow, run once — welcome with the profile choice, the profile's keys, sequential permissions, activation-shortcut choice, model download/compile/prewarm, and one real try-it dictation; the welcome button records bandwidth consent and starts a durable background download of every model the profile needs, resumed across relaunches.
 - Channel: one of the three apps this project builds — dev, nightly, release. Each is its own bundle identifier, its own name in System Settings, and its own application support directory, so grants and state never cross.
 - Settings file: `settings.json` in the running channel's application support directory. Every setting is backed by that file.
-- The settings window: the app's only non-modal window, and its one home for everything that is not a dictation: configurable settings, history, dictionary, cleanup.
+- The settings window: the app's only non-modal window, and its one home for everything that is not a dictation: configurable settings, history, dictionary, profiles, and models.
 - The dictionary: the user's custom vocabulary.
 - Boost: recognition-time vocabulary biasing via a CTC helper model.
 - Field context: the text around the insertion point of the focused field.
-- Cleanup pass: the optional post-transcription LLM pass, talking to a configurable OpenAI-compatible endpoint.
-- Profile: a named dictation stack — engine, vocabulary strategy, cleanup model and key, prompt — exactly one active. Factory profiles are compiled in and user-overridable by delta; Custom is the fully open one, and its cleanup is optional. A profile missing its key, model, or download is needs-setup, and dictation falls back to raw until it is ready.
+- Cleanup pass: the optional post-transcription LLM pass, talking to an OpenAI-compatible endpoint or, for Offline, running S1-mini on this Mac.
+- Asset: one pinned model in the model library — the gate, Parakeet TDT v2, or S1-mini — downloaded, validated, and deleted on its own. Profiles share assets; nothing is deleted implicitly.
+- Profile: a named dictation stack — engine, vocabulary strategy, cleanup model and key, prompt — exactly one active. Factory profiles are compiled in and user-overridable by delta; Custom is the fully open one, and its cleanup is optional. A profile whose cleanup leg is missing its model or download, or Custom missing its key, is needs-setup, and dictation falls back to raw until it is ready; a factory profile missing its cleanup key is Degraded, and so is a profile whose engine is missing its model or key, because there is nothing raw to deliver.
 - The allowlist: A list of permitted software/libraries.

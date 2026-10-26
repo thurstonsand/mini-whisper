@@ -163,6 +163,14 @@ final class MenuUITests: MiniWhisperUITestCase, SurfaceTagged {
           isEnabled: true, isActionable: true,
         ),
         contract(
+          .staticText, "miniwhisper.about.s1-mini-attribution", "Offline cleanup attribution",
+          "S1-mini by Superwhisper, licensed under the Apache License 2.0; llama.cpp, licensed under the MIT License",
+        ),
+        contract(
+          .link, "miniwhisper.about.s1-mini-link", "Open the S1-mini model page",
+          isEnabled: true, isActionable: true,
+        ),
+        contract(
           .button, "miniwhisper.about.close", "Close About \(appName)", isEnabled: true,
           isActionable: true,
         ),

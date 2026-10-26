@@ -10,17 +10,30 @@ struct SettingsPopUpButton<Value: Equatable>: NSViewRepresentable {
   struct Option: Equatable {
     // MARK: Lifecycle
 
-    init(value: Value, title: String, isSecondary: Bool = false) {
+    init(
+      value: Value, title: String, isSecondary: Bool = false, symbol: String? = nil,
+      status: Status? = nil,
+    ) {
       self.value = value
       self.title = title
       self.isSecondary = isSecondary
+      self.symbol = symbol
+      self.status = status
     }
 
     // MARK: Internal
 
+    /// A few words after the title, in the menu and in the collapsed control alike.
+    struct Status: Equatable {
+      let text: String
+      let isProblem: Bool
+    }
+
     let value: Value
     let title: String
     let isSecondary: Bool
+    let symbol: String?
+    let status: Status?
   }
 
   @MainActor final class Coordinator: NSObject {
@@ -90,6 +103,36 @@ struct SettingsPopUpButton<Value: Equatable>: NSViewRepresentable {
           ) : nil
       if item.attributedTitle != wanted {
         item.attributedTitle = wanted
+      }
+    }
+    for (index, option) in options.enumerated() where option.symbol != nil || option.status != nil {
+      guard let item = button.item(at: index) else {
+        continue
+      }
+      let font = button.font ?? .systemFont(ofSize: NSFont.systemFontSize)
+      let title = NSMutableAttributedString()
+      // Inline rather than the item's image: the cell pins an image to the far edge, away from a
+      // right-aligned title.
+      if let symbol = option.symbol,
+         let image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil)?
+         .withSymbolConfiguration(.init(pointSize: font.pointSize, weight: .regular))
+      {
+        let attachment = NSTextAttachment()
+        attachment.image = image
+        title.append(NSAttributedString(attachment: attachment))
+        title.append(NSAttributedString(string: " ", attributes: [.font: font]))
+      }
+      title.append(NSAttributedString(string: option.title, attributes: [.font: font]))
+      if let status = option.status {
+        title.append(NSAttributedString(
+          string: "  \(status.text)", attributes: [
+            .font: font,
+            .foregroundColor: status.isProblem ? NSColor.systemOrange : .secondaryLabelColor,
+          ],
+        ))
+      }
+      if item.attributedTitle != title {
+        item.attributedTitle = title
       }
     }
     // Only a click opens a pop-up button, so Return on this row arrives as a changed count.

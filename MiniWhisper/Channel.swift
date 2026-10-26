@@ -41,6 +41,7 @@ enum Channel {
 
   static let settingsFile = supportDirectory.appending(path: "settings.json")
   static let dictionaryFile = supportDirectory.appending(path: "dictionary.json")
+  static let modelListingsFile = supportDirectory.appending(path: "model-listings.json")
   static let historyDirectory = supportDirectory.appending(
     path: "History", directoryHint: .isDirectory,
   )
@@ -50,7 +51,7 @@ enum Channel {
   )
   static let speechModel = SpeechModel.parakeetV2
   static let engineRoot = supportDirectory.appending(
-    path: "Engine/\(speechModel.artifactName)", directoryHint: .isDirectory,
+    path: "Engine/pinned-v1", directoryHint: .isDirectory,
   )
   static let onboardingMarker = supportDirectory.appending(path: "onboarding-completed")
   static let modelDownloadConsentMarker = supportDirectory.appending(
@@ -74,5 +75,13 @@ extension SharedKey where Self == FileStorageKey<DictionaryContents> {
     fileStorage(
       Channel.dictionaryFile, decode: DictionaryCoding.decode, encode: DictionaryCoding.encode,
     )
+  }
+}
+
+extension SharedKey where Self == FileStorageKey<[String: [String]]> {
+  /// What each endpoint last listed, keyed by its address. A cache, not a setting: losing it
+  /// costs one refetch.
+  static var modelListings: Self {
+    fileStorage(Channel.modelListingsFile)
   }
 }

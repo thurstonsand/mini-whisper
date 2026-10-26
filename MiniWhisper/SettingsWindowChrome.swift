@@ -22,24 +22,6 @@ struct WindowKeyActions {
   var reveal: ((Bool) -> Void)?
 }
 
-// MARK: - FunctionKey
-
-/// The characters AppKit reports for keys that have no letter. Spelling them from AppKit's own
-/// constants keeps the grammar's arrows readable where its letters already are.
-private enum FunctionKey {
-  static let upArrow = character(NSUpArrowFunctionKey)
-  static let downArrow = character(NSDownArrowFunctionKey)
-  static let leftArrow = character(NSLeftArrowFunctionKey)
-  static let rightArrow = character(NSRightArrowFunctionKey)
-  static let forwardDelete = character(NSDeleteFunctionKey)
-
-  /// Every one of these constants is in the Unicode private-use area AppKit reserves for them, so
-  /// the scalar always exists.
-  static func character(_ key: Int) -> String {
-    String(UnicodeScalar(UInt32(key))!)
-  }
-}
-
 // MARK: - WindowKeys
 
 private struct WindowKeys: ViewModifier {
@@ -253,7 +235,7 @@ extension View {
 
   /// Apply to the scrolling container itself; every row it holds must carry `.id(cursor)`.
   func keyboardCursorScroll(
-    store: StoreOf<SettingsWindowFeature>, cursor: (some Hashable)?,
+    store: StoreOf<SettingsWindowFeature>, cursor: some Hashable?,
   ) -> some View {
     modifier(KeyboardCursorScroll(store: store, cursor: cursor))
   }

@@ -71,7 +71,7 @@ private struct EngineStatusRow: View {
   var body: some View {
     LabeledContent("Speech engine") {
       SemanticText(
-        store.settingsPane.health.engineReadiness.statusText,
+        store.settingsPane.health.engineStatusText,
         identifier: AccessibilityID.settingsEngineStatus, label: "Speech engine",
       )
       .foregroundStyle(.secondary)
@@ -533,7 +533,11 @@ private struct ShortcutMoreMenu: View {
         }
       }
     } label: {
-      Label("More", systemImage: "ellipsis").labelStyle(.iconOnly)
+      // The menu button reports its image's own description, which for this symbol is "More";
+      // SwiftUI's label never reaches it, so the image is built already named.
+      Image(nsImage: NSImage(
+        systemSymbolName: "ellipsis", accessibilityDescription: "Shortcut actions",
+      )!)
     }
     .menuStyle(.borderlessButton)
     .menuIndicator(.hidden)

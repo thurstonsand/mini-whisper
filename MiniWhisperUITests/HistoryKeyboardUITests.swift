@@ -96,9 +96,7 @@ final class HistoryKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
       Law("The sidebar walks destinations and the cursor survives the trip") { app in
         try require(self.awaitGrey(app, id: thirdID), "The cursor is not on the third row")
         app.typeText("hj")
-        let placeholder = app.descendants(matching: .any)["miniwhisper.settings.placeholder"]
-        try require(placeholder.awaitExistence(timeout: 2))
-        XCTAssertTrue(placeholder.label.hasPrefix("Model"))
+        try require(app.buttons["miniwhisper.dictionary.add"].awaitExistence(timeout: 2))
 
         app.typeText("k")
         try require(self.historyRow(app, id: firstID).awaitExistence(timeout: 2))

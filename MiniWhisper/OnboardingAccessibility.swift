@@ -1,3 +1,4 @@
+import AppSettings
 import ASREngine
 
 /// Onboarding's accessibility contract is a lookup table, not a view: which identifier a step or a
@@ -6,6 +7,8 @@ import ASREngine
 enum OnboardingAccessibility {
   static func railIdentifier(_ step: OnboardingStep) -> String {
     switch step {
+    case .keys:
+      AccessibilityID.onboardingRailKeys
     case .permissions:
       AccessibilityID.onboardingRailPermissions
     case .shortcut:
@@ -19,7 +22,8 @@ enum OnboardingAccessibility {
   }
 
   static func railValue(
-    step: OnboardingStep, readiness: EngineReadiness, isComplete: Bool, isCurrent: Bool,
+    step: OnboardingStep, engine: SpeechEngine, readiness: EngineReadiness, isComplete: Bool,
+    isCurrent: Bool,
   ) -> String {
     if isComplete {
       return "Complete"
@@ -30,7 +34,7 @@ enum OnboardingAccessibility {
     }
     switch readiness {
     case let .downloading(fraction):
-      return "\(position); Downloading Parakeet v2 \(Int(fraction * 100))%"
+      return "\(position); Downloading \(engine.name) \(Int(fraction * 100))%"
     case .compiling:
       return "\(position); Compiling"
     case .prewarming:
@@ -41,6 +45,8 @@ enum OnboardingAccessibility {
       return "Complete"
     case .failed:
       return "\(position); Setup failed"
+    case .credentialMissing:
+      return "\(position); Needs a key"
     }
   }
 

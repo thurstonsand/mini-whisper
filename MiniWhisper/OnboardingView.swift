@@ -1,3 +1,4 @@
+import AppSettings
 import ASREngine
 import ComposableArchitecture
 import HotkeyListener
@@ -32,6 +33,10 @@ enum OnboardingCopy {
 /// keyboard path is whichever of these it lists in `tabCycle`.
 enum OnboardingFocus: Hashable {
   case welcomeAction
+  case keyField(CredentialSlot)
+  case useCustom
+  case keysSkip
+  case keysContinue
   case permissionsAction
   case shortcutKeycap
   case shortcutContinue
@@ -68,6 +73,7 @@ struct OnboardingView: View {
     .frame(width: 720, height: 500)
     .background(.background)
     .background { WindowTabKeys(onTab: handleTab) }
+    .task { await store.send(.task).finish() }
     .onExitCommand {
       guard store.isRecordingShortcut else {
         return
@@ -83,14 +89,17 @@ struct OnboardingView: View {
   /// page's other control is waiting for. Focus of a view that goes away goes away with it.
   @FocusState private var focus: OnboardingFocus?
 
-  /// A page's whole rendered keyboard path, in order. A 1-cycle parks on its only stop; a 2-cycle
-  /// is its own reverse; and an empty cycle declines the key back to the system. Shortcut recording
-  /// is the exception because it owns the keyboard outright.
+  /// A page's whole rendered keyboard path, in order: Tab walks it forward and Shift-Tab back,
+  /// wrapping at either end. A 1-cycle parks on its only stop; a 2-cycle is its own reverse; and an
+  /// empty cycle declines the key back to the system. Shortcut recording is the exception because
+  /// it owns the keyboard outright.
   private var tabCycle: [OnboardingFocus] {
     guard !store.isShowingWelcome else {
       return [.welcomeAction]
     }
     return switch store.visibleStep {
+    case .keys:
+      store.missingKeys.map(OnboardingFocus.keyField) + [.useCustom, .keysSkip, .keysContinue]
     case .permissions:
       store.activePermission == nil ? [] : [.permissionsAction]
     case .shortcut:
@@ -107,11 +116,13 @@ struct OnboardingView: View {
   }
 
   private var tryItIsLive: Bool {
-    store.visibleStep == .tryIt && store.step == .tryIt
+    store.visibleStep == .tryIt && store.canTryDictation
   }
 
   @ViewBuilder private var stepContent: some View {
     switch store.visibleStep {
+    case .keys:
+      OnboardingKeysPage(store: store, focus: $focus)
     case .permissions:
       OnboardingPermissionsPage(store: store, focus: $focus)
     case .shortcut:
@@ -140,6 +151,8 @@ struct OnboardingView: View {
       HStack {
         if store.canSkip {
           skipButton
+        } else if store.visibleStep == .keys {
+          keysSkipButton
         }
         Spacer()
         footerButtons
@@ -148,19 +161,7 @@ struct OnboardingView: View {
   }
 
   private var skipButton: some View {
-    Button("Skip") { store.send(.skip) }
-      .buttonStyle(.plain)
-      .foregroundStyle(.secondary)
-      .focused($focus, equals: .tryItSkip)
-      // The system effect fills a plain button with a solid accent capsule that swallows its
-      // label, so the ring is drawn here — from focus state and nothing else.
-      .focusEffectDisabled()
-      .overlay {
-        RoundedRectangle(cornerRadius: 5)
-          .strokeBorder(Color(nsColor: .keyboardFocusIndicatorColor), lineWidth: 2)
-          .padding(-4)
-          .opacity(focus == .tryItSkip ? 1 : 0)
-      }
+    secondaryButton("Skip", focus: .tryItSkip) { store.send(.skip) }
       .disabled(store.isMarkingCompletion)
       .accessibilityIdentifier(AccessibilityID.onboardingTryItSkip)
       .accessibilityLabel("Skip test dictation")
@@ -170,8 +171,21 @@ struct OnboardingView: View {
       )
   }
 
+  /// Possible, not advised: the profile stays Degraded and does not dictate until a key is added.
+  private var keysSkipButton: some View {
+    secondaryButton("Skip for Now", focus: .keysSkip) { store.send(.keysSkipped) }
+      .accessibilityIdentifier(AccessibilityID.onboardingKeysSkip)
+  }
+
   @ViewBuilder private var footerButtons: some View {
     switch store.visibleStep {
+    case .keys:
+      Button(store.isCheckingKeys ? "Checking…" : "Continue") { store.send(.keysContinueTapped) }
+        .buttonStyle(.borderedProminent)
+        .focused($focus, equals: .keysContinue)
+        .disabled(!store.canContinueFromKeys)
+        .keyboardShortcut(.defaultAction)
+        .accessibilityIdentifier(AccessibilityID.onboardingKeysContinue)
     case .permissions:
       SemanticText(
         "Continue after granting both",
@@ -203,14 +217,15 @@ struct OnboardingView: View {
           .accessibilityIdentifier(AccessibilityID.onboardingModelContinue)
       }
     case .tryIt:
-      if store.step == .tryIt {
+      // A skipped key leaves nothing to speak into; the card says why and Skip is the way on.
+      if store.canTryDictation {
         SemanticText(
           "Speak to complete…", identifier: AccessibilityID.onboardingTryItGuidance,
           label: "Try it guidance",
         )
         .font(.system(size: 12))
         .foregroundStyle(.secondary)
-      } else if store.step != .ready {
+      } else if store.step != .ready, store.step != .tryIt {
         SemanticText(
           "Complete the earlier steps to try a dictation",
           identifier: AccessibilityID.onboardingTryItGuidance, label: "Try it guidance",
@@ -228,12 +243,36 @@ struct OnboardingView: View {
     }
   }
 
-  private func handleTab() -> Bool {
+  /// The quiet way past a page, beside its primary action.
+  private func secondaryButton(
+    _ title: String, focus target: OnboardingFocus, action: @escaping () -> Void,
+  ) -> some View {
+    Button(title, action: action)
+      .buttonStyle(.plain)
+      .foregroundStyle(.secondary)
+      .focused($focus, equals: target)
+      // The system effect fills a plain button with a solid accent capsule that swallows its
+      // label, so the ring is drawn here — from focus state and nothing else.
+      .focusEffectDisabled()
+      .overlay {
+        RoundedRectangle(cornerRadius: 5)
+          .strokeBorder(Color(nsColor: .keyboardFocusIndicatorColor), lineWidth: 2)
+          .padding(-4)
+          .opacity(focus == target ? 1 : 0)
+      }
+  }
+
+  private func handleTab(backward: Bool) -> Bool {
     let cycle = tabCycle
     guard !cycle.isEmpty else {
       return false
     }
-    focus = focus == cycle.first ? cycle.last : cycle.first
+    guard let focus, let index = cycle.firstIndex(of: focus) else {
+      focus = cycle.first
+      return true
+    }
+    let step = backward ? cycle.count - 1 : 1
+    self.focus = cycle[(index + step) % cycle.count]
     return true
   }
 }

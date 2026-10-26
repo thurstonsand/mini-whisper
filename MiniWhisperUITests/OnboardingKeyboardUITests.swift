@@ -12,11 +12,10 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
     // page promises. The Return consequences differ, so each page carries its own.
     let pages: [(scene: String, identifier: String,
                  pressReturn: @MainActor (XCUIApplication, XCUIElement) -> Void)] = [
+      // The default profile's key is not stored yet, so its page is the first one past welcome.
       ("onboarding-welcome", "miniwhisper.onboarding.download-model", { app, _ in
         app.typeKey(.return, modifierFlags: [])
-        XCTAssertTrue(
-          app.groups["miniwhisper.onboarding.permissions"].awaitExistence(timeout: 2),
-        )
+        XCTAssertTrue(app.groups["miniwhisper.onboarding.keys"].awaitExistence(timeout: 2))
       }),
       (
         "onboarding-permissions-microphone",

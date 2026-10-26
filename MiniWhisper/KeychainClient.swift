@@ -1,24 +1,19 @@
+import AppSettings
 import ComposableArchitecture
 import Foundation
 import Security
 
-// MARK: - KeychainAccount
-
-/// Every secret MiniWhisper keeps, named once. The service is the running channel, so the three
-/// channels can never read each other's credentials any more than they can share a TCC grant.
-enum KeychainAccount: String {
-  case cleanupAPIKey = "cleanup-api-key"
-}
-
 // MARK: - KeychainClient
 
-/// The app's only non-JSON persistence: generic-password items in the Data Protection Keychain.
-/// Existence is answered by reading rather than by a marker in settings, so the file and the
-/// keychain cannot disagree about whether a key is there.
+/// The app's only non-JSON persistence: generic-password items in the Data Protection Keychain,
+/// one per credential slot. The service is the running channel, so the three channels can never
+/// read each other's credentials any more than they can share a TCC grant. Existence is answered
+/// by reading rather than by a marker in settings, so the file and the keychain cannot disagree
+/// about whether a key is there.
 @DependencyClient struct KeychainClient {
-  var store: @Sendable (String, KeychainAccount) throws -> Void
-  var read: @Sendable (KeychainAccount) throws -> String?
-  var delete: @Sendable (KeychainAccount) throws -> Void
+  var store: @Sendable (String, CredentialSlot) throws -> Void
+  var read: @Sendable (CredentialSlot) throws -> String?
+  var delete: @Sendable (CredentialSlot) throws -> Void
 }
 
 // MARK: DependencyKey
@@ -27,10 +22,18 @@ extension KeychainClient: DependencyKey {
   static let liveValue: Self = {
     let keychain = KeychainStore(service: Channel.bundleIdentifier)
     return Self(
-      store: { secret, account in try keychain.store(secret, account: account) },
-      read: { account in try keychain.read(account) },
-      delete: { account in try keychain.delete(account) },
+      store: { secret, slot in try keychain.store(secret, slot: slot) },
+      read: { slot in try keychain.read(slot) },
+      delete: { slot in try keychain.delete(slot) },
     )
+  }()
+
+  /// An empty Keychain, as a fresh one is. Writes stay unimplemented: a test that stores a key
+  /// has to say so.
+  static let testValue: Self = {
+    var keychain = Self()
+    keychain.read = { _ in nil }
+    return keychain
   }()
 }
 
@@ -76,20 +79,20 @@ struct KeychainStore {
 
   /// An update-then-add rather than delete-then-add, so a failed write leaves the previous key
   /// intact instead of leaving the user with no key at all.
-  func store(_ secret: String, account: KeychainAccount) throws {
+  func store(_ secret: String, slot: CredentialSlot) throws {
     let secretData = Data(secret.utf8)
     let updates = [kSecValueData as String: secretData] as CFDictionary
-    let updated = SecItemUpdate(query(for: account) as CFDictionary, updates)
+    let updated = SecItemUpdate(query(for: slot) as CFDictionary, updates)
     switch updated {
     case errSecSuccess:
       return
     case errSecItemNotFound:
-      var item = query(for: account)
+      var item = query(for: slot)
       item[kSecValueData as String] = secretData
       item[kSecAttrAccessible as String] = kSecAttrAccessibleWhenUnlocked
       let added = SecItemAdd(item as CFDictionary, nil)
       if added == errSecDuplicateItem {
-        let retried = SecItemUpdate(query(for: account) as CFDictionary, updates)
+        let retried = SecItemUpdate(query(for: slot) as CFDictionary, updates)
         guard retried == errSecSuccess else {
           throw KeychainError(operation: .store, status: retried)
         }
@@ -103,8 +106,8 @@ struct KeychainStore {
     }
   }
 
-  func read(_ account: KeychainAccount) throws -> String? {
-    var item = query(for: account)
+  func read(_ slot: CredentialSlot) throws -> String? {
+    var item = query(for: slot)
     item[kSecReturnData as String] = true
     item[kSecMatchLimit as String] = kSecMatchLimitOne
     var result: CFTypeRef?
@@ -122,8 +125,8 @@ struct KeychainStore {
     }
   }
 
-  func delete(_ account: KeychainAccount) throws {
-    let status = SecItemDelete(query(for: account) as CFDictionary)
+  func delete(_ slot: CredentialSlot) throws {
+    let status = SecItemDelete(query(for: slot) as CFDictionary)
     guard status == errSecSuccess || status == errSecItemNotFound else {
       throw KeychainError(operation: .delete, status: status)
     }
@@ -133,12 +136,12 @@ struct KeychainStore {
 
   private let service: String
 
-  private func query(for account: KeychainAccount) -> [String: Any] {
+  private func query(for slot: CredentialSlot) -> [String: Any] {
     [
       kSecClass as String: kSecClassGenericPassword,
       kSecUseDataProtectionKeychain as String: true,
       kSecAttrService as String: service,
-      kSecAttrAccount as String: account.rawValue,
+      kSecAttrAccount as String: slot.account,
     ]
   }
 }

@@ -80,7 +80,11 @@ import TranscriptCleanup
       .cleanupResolved(
         1,
         .attempted(
-          smokeConfiguration(deadURL, timeout: 5), .failed(reason: "unreachable", seconds: 0),
+          smokeConfiguration(deadURL, timeout: 5), .failed(
+            reason: "unreachable",
+            seconds: 0,
+            rejectsKey: false,
+          ),
         ),
       ),
       timeout: .seconds(10),
@@ -141,21 +145,21 @@ import TranscriptCleanup
       delivery: nil, audio: AudioMetadata(durationSeconds: 1, byteCount: 64044),
     )
     var settings = MiniWhisperSettings.defaults
-    settings.cleanup = CleanupSettings(
-      enabled: true, endpoint: endpoint.baseURL, model: "mock-small", timeout: 10,
-      additionalInstructions: "",
+    settings.profiles.active = .custom
+    settings.profiles.custom = CustomProfileSettings(
+      cleanupEnabled: true, endpoint: endpoint.baseURL, model: "mock-small",
+      boostsVocabulary: true,
     )
     let state = HistoryFeature.State(
       log: Shared(value: HistoryLog(entries: [entry])), retention: Shared(value: .defaults),
-      dictionary: Shared(value: .empty), improveRecognition: Shared(value: true),
-      cleanup: Shared(value: settings.cleanup),
+      dictionary: Shared(value: .empty), settings: Shared(value: settings),
     )
     let store = TestStore(initialState: state) { HistoryFeature() } withDependencies: {
       $0.cleanup = .liveValue
       $0.date.now = Date(timeIntervalSince1970: 300)
       $0.historyClient.loadAudio = { _ in CanonicalRecording(samples: [0.25]) }
-      $0.asrEngine.identity = { "test-engine@rerun" }
-      $0.asrEngine.submit = { _, _ in
+      $0.asrEngine.identity = { _ in "test-engine@rerun" }
+      $0.asrEngine.submit = { _, _, _ in
         .transcript("um so run swift test dash dash filter cleanup comma then uh report back")
       }
       $0.keychain.read = { _ in "sk-smoke" }
@@ -208,10 +212,11 @@ import TranscriptCleanup
   }
 }
 
+@MainActor
 private extension TestStoreOf<AppFeature> {
   /// Drains the actions a detached tail produces — delivery, then archive — which arrive off the
   /// generation the store is still answering for.
-  @MainActor func settleSkippedTail() async {
+  func settleSkippedTail() async {
     for _ in 0 ..< 8 where state.history.entries.isEmpty {
       await skipReceivedActions(strict: false)
       await Task.yield()
@@ -237,10 +242,11 @@ private let smokeContext = FocusedTextContext(
 ) -> TestStoreOf<AppFeature> {
   var settings = MiniWhisperSettings.defaults
   settings.retention.audio = .never
-  settings.cleanup = CleanupSettings(
-    enabled: true, endpoint: endpoint, model: "mock-small", timeout: timeout,
-    additionalInstructions: "",
+  settings.profiles.active = .custom
+  settings.profiles.custom = CustomProfileSettings(
+    cleanupEnabled: true, endpoint: endpoint, model: "mock-small", boostsVocabulary: true,
   )
+  settings.setCleanupTimeout(timeout)
   var state = AppFeature.State(
     history: Shared(value: HistoryLog()), settings: Shared(value: settings),
   )
@@ -249,6 +255,7 @@ private let smokeContext = FocusedTextContext(
   state.pendingDictation = AppFeature.PendingDictation(
     generation: 1, recording: CanonicalRecording(samples: [0.25]),
     createdAt: Date(timeIntervalSince1970: 100), engine: "test-engine@revision", original: nil,
+    cleanupTarget: settings.cleanupTarget,
   )
   let store = TestStore(initialState: state) {
     AppFeature()

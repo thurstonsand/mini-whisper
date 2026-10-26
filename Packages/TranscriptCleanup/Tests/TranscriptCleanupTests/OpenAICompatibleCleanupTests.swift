@@ -153,10 +153,22 @@ struct OpenAICompatibleCleanupTests {
     ))
     #expect(await client(session: session, timeout: 600).verify() == .verified)
 
-    let entry = try #require(log.entries.first)
+    let entry = try #require(log.entries.last)
     #expect(entry.url.absoluteString == "https://gateway.example/v1/chat/completions")
     // A person is waiting on Save, so verify keeps its own short budget.
     #expect(entry.headers["Authorization"] == "Bearer sk-test")
+  }
+
+  @Test func `an endpoint without a key is asked without an Authorization header`() async {
+    let (session, log) = StubURLProtocol.session(reply: .response(
+      status: 200,
+      body: completion("ready"),
+    ))
+    #expect(await client(session: session, apiKey: nil).verify() == .verified)
+    _ = await client(session: session, apiKey: nil).listModels()
+
+    #expect(log.entries.count == 3)
+    #expect(log.entries.allSatisfy { $0.headers["Authorization"] == nil })
   }
 
   @Test func `verify grades the round trip, not the model's answer`() async {
@@ -176,17 +188,88 @@ struct OpenAICompatibleCleanupTests {
     )
   }
 
+  @Test func `verify proves a listed model for free when listing needs the key`() async {
+    let (session, log) = StubURLProtocol.session { request in
+      switch (request.url!.path(), request.value(forHTTPHeaderField: "Authorization")) {
+      case ("/v1/models", "Bearer sk-test"):
+        .response(status: 200, body: Self.models(["gateway-large", "gateway-small"]))
+      case ("/v1/models", nil):
+        .response(status: 401, body: "")
+      default:
+        .response(status: 500, body: "")
+      }
+    }
+    #expect(await client(session: session).verify() == .verified)
+    #expect(log.entries.allSatisfy { $0.url.path() == "/v1/models" })
+  }
+
+  @Test func `a list anyone can read proves the model but not the key`() async {
+    let (session, _) = StubURLProtocol.session { request in
+      request.url!.path() == "/v1/models"
+        ? .response(status: 200, body: Self.models(["gateway-small"]))
+        : .response(status: 401, body: #"{"error": {"message": "invalid api key"}}"#)
+    }
+    #expect(
+      await client(session: session).verify()
+        == .failed(.httpStatus(code: 401, message: "invalid api key")),
+    )
+  }
+
+  @Test func `a model missing from the list may still answer, so the completion decides`() async {
+    let ready = completion("ready")
+    let (session, log) = StubURLProtocol.session { request in
+      request.url!.path() == "/v1/models"
+        ? .response(status: 200, body: Self.models(["gateway-small:latest"]))
+        : .response(status: 200, body: ready)
+    }
+    #expect(await client(session: session, apiKey: nil).verify() == .verified)
+    #expect(log.entries.last?.url.path() == "/v1/chat/completions")
+  }
+
+  @Test func `an endpoint that takes no key is proven by its list alone`() async {
+    let (session, log) = StubURLProtocol.session { request in
+      request.url!.path() == "/v1/models"
+        ? .response(status: 200, body: Self.models(["gateway-small"]))
+        : .response(status: 500, body: "")
+    }
+    #expect(await client(session: session, apiKey: nil).verify() == .verified)
+    #expect(log.entries.count == 1)
+  }
+
+  @Test func `an unreachable list fails verify without waiting on a completion`() async {
+    let (session, log) = StubURLProtocol.session(reply: .failure(.cannotConnectToHost))
+    guard case .failed(.unreachable) = await client(session: session).verify() else {
+      Issue.record("expected an unreachable failure")
+      return
+    }
+    #expect(log.entries.count == 1)
+  }
+
+  @Test func `Google's bad key is a 400 in an array, and still a refused key`() async {
+    let body = #"[{"error": {"code": 400, "message": "Please pass a valid API key", "status": "INVALID_ARGUMENT"}}]"#
+    let (session, _) = StubURLProtocol.session(reply: .response(status: 400, body: body))
+    let outcome = await client(session: session).verify()
+
+    #expect(outcome == .failed(.httpStatus(code: 400, message: "Please pass a valid API key")))
+    guard case let .failed(failure) = outcome else {
+      return
+    }
+    #expect(failure.rejectsKey)
+    #expect(!CleanupFailure.httpStatus(code: 400, message: "temperature out of range").rejectsKey)
+  }
+
   @Test func `model listing reads the catalogue`() async throws {
-    let body = #"{"data": [{"id": "gateway-small"}, {"id": "gateway-large"}]}"#
+    let body = #"{"data": [{"id": "gateway-small"}, {"id": "models/gemini-3.8-flash"}]}"#
     let (session, log) = StubURLProtocol.session(reply: .response(status: 200, body: body))
     #expect(await client(session: session).listModels() == .models([
       "gateway-small",
-      "gateway-large",
+      "gemini-3.8-flash",
     ]))
 
     let entry = try #require(log.entries.first)
     #expect(entry.url.absoluteString == "https://gateway.example/v1/models")
     #expect(entry.method == "GET")
+    #expect(entry.headers["anthropic-version"] == "2023-06-01")
   }
 
   @Test func `a gateway that does not browse is unavailable, not broken`() async {
@@ -221,12 +304,19 @@ struct OpenAICompatibleCleanupTests {
     transcript: "run the tests", focusedTextContext: nil, vocabulary: [], targetBundleID: nil,
   )
 
-  private func client(session: URLSession, timeout: TimeInterval = 10) -> OpenAICompatibleCleanup {
+  private static func models(_ ids: [String]) -> String {
+    let payload = ["data": ids.map { ["id": $0] }]
+    return String(decoding: try! JSONSerialization.data(withJSONObject: payload), as: UTF8.self)
+  }
+
+  private func client(
+    session: URLSession, timeout: TimeInterval = 10, apiKey: String? = "sk-test",
+  ) -> OpenAICompatibleCleanup {
     OpenAICompatibleCleanup(
       configuration: CleanupConfiguration(
         endpoint: URL(string: "https://gateway.example/v1")!, model: "gateway-small",
         timeout: timeout, additionalInstructions: "",
-      ), apiKey: "sk-test", session: session,
+      ), apiKey: apiKey, session: session,
     )
   }
 

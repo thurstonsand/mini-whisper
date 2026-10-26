@@ -1,5 +1,5 @@
 ---
-status: open
+status: closed
 type: prototype
 blocked-by: []
 claimed: 2b
@@ -26,3 +26,7 @@ Output: runnable variants of both, screenshotted light and dark, with the tradeo
 - **The cards page shows every profile, not just the ones v1 ships** (user, 2026-10-21). Comparing the whole lineup is what cards are for; at five the hero drops its glyph and the cards sit as three over a centered two.
 - **Downloads are independent of the profile choice** (user, 2026-10-21). Switching to a profile with a different model set while a download is running does not cancel it: the old download finishes, and the new profile asks for its own download the normal way, as a profile missing its download always does. Neither blocks the other. What makes that safe is cleanup afterwards: the pane's Downloaded models section lists every model with its size, the profiles that use it, and a Delete button, and a model the active profile does not use now says `not in use` (`pane-b-leftover`).
 - Open: which welcome variant (leaning cards), and which pane picker.
+
+## Resolution
+
+The user chose cards in both places (decided 2026-10-21): the pane two across, the welcome page three over two with every profile on it. Built as [Profiles](../../../designs/04-profiles.md) phases 1 and 5. The mock-up stays in `spikes/profiles-mockup` as the record of the alternatives.

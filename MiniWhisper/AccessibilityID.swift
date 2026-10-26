@@ -1,5 +1,6 @@
 import AppSettings
 import Foundation
+import ModelLibrary
 
 private extension String {
   var accessibilitySlug: String {
@@ -64,10 +65,9 @@ enum AccessibilityID {
   static let settingsSidebar = "miniwhisper.settings.sidebar"
   static let settingsSidebarSettings = "miniwhisper.settings.sidebar.settings"
   static let settingsSidebarHistory = "miniwhisper.settings.sidebar.history"
-  static let settingsSidebarModel = "miniwhisper.settings.sidebar.model"
   static let settingsSidebarDictionary = "miniwhisper.settings.sidebar.dictionary"
-  static let settingsSidebarCleanup = "miniwhisper.settings.sidebar.cleanup"
-  static let settingsPlaceholder = "miniwhisper.settings.placeholder"
+  static let settingsSidebarProfiles = "miniwhisper.settings.sidebar.profiles"
+  static let settingsSidebarModels = "miniwhisper.settings.sidebar.models"
   static let settingsShortcutRow = "miniwhisper.settings.shortcut.activate"
   static let settingsShortcutRowState = "miniwhisper.settings.shortcut.activate.state"
   static let settingsPasteLastShortcutRow = "miniwhisper.settings.shortcut.paste-last"
@@ -95,27 +95,26 @@ enum AccessibilityID {
   static let historyCaption = "miniwhisper.history.caption"
   static let historyStorage = "miniwhisper.history.storage"
   static let historyStoragePopover = "miniwhisper.history.storage.popover"
-  static let dictionaryImproveRecognition = "miniwhisper.dictionary.improve-recognition"
-  static let dictionaryImproveRecognitionInfo = "miniwhisper.dictionary.improve-recognition.info"
-  static let dictionaryImproveRecognitionPopover =
-    "miniwhisper.dictionary.improve-recognition.popover"
-  static let cleanupEnabled = "miniwhisper.cleanup.enabled"
-  static let cleanupEnabledRing = "miniwhisper.cleanup.enabled.ring"
-  static let cleanupTimeout = "miniwhisper.cleanup.timeout"
-  static let cleanupEndpoint = "miniwhisper.cleanup.endpoint"
-  static let cleanupKeyRow = "miniwhisper.cleanup.key"
-  static let cleanupKeyField = "miniwhisper.cleanup.key.field"
-  static let cleanupKeyStored = "miniwhisper.cleanup.key.stored"
-  static let cleanupKeyReplace = "miniwhisper.cleanup.key.replace"
-  static let cleanupModelRow = "miniwhisper.cleanup.model.row"
-  static let cleanupModel = "miniwhisper.cleanup.model"
-  static let cleanupModelListing = "miniwhisper.cleanup.model.listing"
-  static let cleanupLoadModels = "miniwhisper.cleanup.model.load"
-  static let cleanupCustomModel = "miniwhisper.cleanup.model.custom"
-  static let cleanupSave = "miniwhisper.cleanup.save"
-  static let cleanupSaveResult = "miniwhisper.cleanup.save.result"
-  static let cleanupInstructions = "miniwhisper.cleanup.instructions"
-  static let cleanupEditing = "miniwhisper.cleanup.editing"
+  static let profilesPicker = "miniwhisper.profiles.picker"
+  static let profilesEngine = "miniwhisper.profiles.engine"
+  static let profilesLocalCleanup = "miniwhisper.profiles.local-cleanup"
+  static let profilesEnabled = "miniwhisper.profiles.enabled"
+  static let profilesEnabledRing = "miniwhisper.profiles.enabled.ring"
+  static let profilesBoostsVocabulary = "miniwhisper.profiles.boosts-vocabulary"
+  static let profilesBoostWarning = "miniwhisper.profiles.boosts-vocabulary.warning"
+  static let profilesTimeout = "miniwhisper.profiles.timeout"
+  static let profilesModel = "miniwhisper.profiles.model"
+  static let profilesModelListing = "miniwhisper.profiles.model.listing"
+  static let profilesLoadModels = "miniwhisper.profiles.model.load"
+  static let profilesCustomModel = "miniwhisper.profiles.model.custom"
+  static let profilesSetUp = "miniwhisper.profiles.set-up"
+  static let profilesCancel = "miniwhisper.profiles.cancel"
+  static let profilesSave = "miniwhisper.profiles.save"
+  static let profilesChecking = "miniwhisper.profiles.checking"
+  static let profilesFailure = "miniwhisper.profiles.failure"
+  static let profilesInstructions = "miniwhisper.profiles.instructions"
+  static let profilesEditing = "miniwhisper.profiles.editing"
+  static let modelsFailure = "miniwhisper.models.failure"
   static let dictionaryAdd = "miniwhisper.dictionary.add"
   static let dictionaryText = "miniwhisper.dictionary.text"
   static let dictionaryMisspelling = "miniwhisper.dictionary.misspelling"
@@ -130,6 +129,8 @@ enum AccessibilityID {
   static let aboutModelLink = "miniwhisper.about.model-link"
   static let aboutFluidAudioAttribution = "miniwhisper.about.fluid-audio-attribution"
   static let aboutFluidAudioLink = "miniwhisper.about.fluid-audio-link"
+  static let aboutS1MiniAttribution = "miniwhisper.about.s1-mini-attribution"
+  static let aboutS1MiniLink = "miniwhisper.about.s1-mini-link"
   static let aboutClose = "miniwhisper.about.close"
 
   static let onboardingWindow = "miniwhisper.onboarding.window"
@@ -143,10 +144,18 @@ enum AccessibilityID {
   static let onboardingRail = "miniwhisper.onboarding.rail"
   static let onboardingRailBrand = "miniwhisper.onboarding.rail.brand"
   static let onboardingRailTagline = "miniwhisper.onboarding.rail.tagline"
+  static let onboardingRailKeys = "miniwhisper.onboarding.rail.keys"
   static let onboardingRailPermissions = "miniwhisper.onboarding.rail.permissions"
   static let onboardingRailShortcut = "miniwhisper.onboarding.rail.shortcut"
   static let onboardingRailModel = "miniwhisper.onboarding.rail.model"
   static let onboardingRailTryIt = "miniwhisper.onboarding.rail.try-it"
+
+  static let onboardingKeys = "miniwhisper.onboarding.keys"
+  static let onboardingKeysTitle = "miniwhisper.onboarding.keys.title"
+  static let onboardingKeysSummary = "miniwhisper.onboarding.keys.summary"
+  static let onboardingKeysUseCustom = "miniwhisper.onboarding.keys.use-custom"
+  static let onboardingKeysContinue = "miniwhisper.onboarding.keys.continue"
+  static let onboardingKeysSkip = "miniwhisper.onboarding.keys.skip"
 
   static let onboardingPermissions = "miniwhisper.onboarding.permissions"
   static let onboardingPermissionsTitle = "miniwhisper.onboarding.permissions.title"
@@ -209,12 +218,72 @@ enum AccessibilityID {
 
   static let settingsEngineStatus = "miniwhisper.settings.engine-status"
 
+  static func onboardingKeyField(_ provider: CredentialProvider) -> String {
+    "miniwhisper.onboarding.keys.\(provider.rawValue)"
+  }
+
+  static func onboardingKeyLink(_ provider: CredentialProvider) -> String {
+    "miniwhisper.onboarding.keys.\(provider.rawValue).link"
+  }
+
+  static func onboardingModelPart(_ asset: ModelAsset) -> String {
+    "miniwhisper.onboarding.model.part.\(asset.rawValue)"
+  }
+
   static func menuRepair(_ degradation: Degradation) -> String {
     "miniwhisper.menu.repair.\(degradation.rawValue)"
   }
 
-  static func cleanupRowState(_ row: CleanupFeature.Row) -> String {
-    "miniwhisper.cleanup.row.\(row).state"
+  static func profilesRowState(_ row: ProfilesFeature.Row) -> String {
+    "miniwhisper.profiles.row.\(row).state"
+  }
+
+  /// A field's resting value, Edit button, reset icon, or text field in edit mode, by kind.
+  static func profilesValue(_ field: ProfilesFeature.Field) -> String {
+    "miniwhisper.profiles.\(field).value"
+  }
+
+  static func profilesEdit(_ field: ProfilesFeature.Field) -> String {
+    "miniwhisper.profiles.\(field).edit"
+  }
+
+  static func profilesReset(_ field: ProfilesFeature.Field) -> String {
+    "miniwhisper.profiles.\(field).reset"
+  }
+
+  static func profilesField(_ field: ProfilesFeature.Field) -> String {
+    "miniwhisper.profiles.\(field).field"
+  }
+
+  static func modelsCard(_ id: ProfileID) -> String {
+    "miniwhisper.models.card.\(id.rawValue)"
+  }
+
+  static func modelsComponent(_ component: ModelsFeature.Component) -> String {
+    switch component {
+    case let .asset(asset):
+      "miniwhisper.models.component.\(asset.rawValue)"
+    case .scribe:
+      "miniwhisper.models.component.scribe"
+    case let .endpoint(id):
+      "miniwhisper.models.component.endpoint.\(id.rawValue)"
+    }
+  }
+
+  static func modelsAssetState(_ asset: ModelAsset) -> String {
+    "miniwhisper.models.asset.\(asset.rawValue).state"
+  }
+
+  static func modelsAssetDownload(_ asset: ModelAsset) -> String {
+    "miniwhisper.models.asset.\(asset.rawValue).download"
+  }
+
+  static func modelsAssetDelete(_ asset: ModelAsset) -> String {
+    "miniwhisper.models.asset.\(asset.rawValue).delete"
+  }
+
+  static func profilesCard(_ id: ProfileID) -> String {
+    "miniwhisper.profiles.card.\(id.rawValue)"
   }
 
   static func settingsRepairRow(_ degradation: Degradation) -> String {

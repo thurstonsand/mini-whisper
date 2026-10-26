@@ -1,5 +1,6 @@
 @testable import ASREngine
 import Foundation
+import ModelLibrary
 import Testing
 
 // MARK: - RealAssetVocabularyBoostTests
@@ -9,12 +10,13 @@ import Testing
 /// than no test. Whether the boost *improved* the transcript is a human judgement, so both
 /// transcripts are attached as comments; whether the pipeline still runs is asserted.
 struct RealAssetVocabularyBoostTests {
-  // MARK: Internal
-
   @Test(.enabled(if: RealAssetFixture.isAvailable))
   func `installed sidecar transcribes with the boost off and on`() async throws {
     let fixture = try #require(RealAssetFixture.resolve())
-    let engine = LocalASREngine(modelRoot: fixture.modelRoot, speechModel: .parakeetV2)
+    let engine = LocalASREngine(
+      library: ModelLibrary(root: fixture.modelRoot),
+      speechModel: .parakeetV2,
+    )
     var finalReadiness = EngineReadiness.modelMissing
     for await readiness in engine.prepareInstalled() {
       finalReadiness = readiness
@@ -50,33 +52,33 @@ struct RealAssetVocabularyBoostTests {
     #expect(!unboosted.isEmpty)
     #expect(!boosted.isEmpty)
   }
+}
 
-  // MARK: Private
+// MARK: - pcm16Samples
 
-  private func pcm16Samples(from url: URL) throws -> [Float] {
-    let data = try Data(contentsOf: url)
-    let marker = Data("data".utf8)
-    guard let markerRange = data.range(of: marker) else {
-      throw AudioFixtureError.missingDataChunk
-    }
-    let sizeStart = markerRange.upperBound
-    let sampleStart = sizeStart + 4
-    guard data.count >= sampleStart else {
-      throw AudioFixtureError.missingDataChunk
-    }
-    let byteCount = Int(
-      UInt32(data[sizeStart])
-        | UInt32(data[sizeStart + 1]) << 8
-        | UInt32(data[sizeStart + 2]) << 16
-        | UInt32(data[sizeStart + 3]) << 24,
-    )
-    guard data.count >= sampleStart + byteCount else {
-      throw AudioFixtureError.missingDataChunk
-    }
-    return stride(from: sampleStart, to: sampleStart + byteCount, by: 2).map { offset in
-      let bits = UInt16(data[offset]) | UInt16(data[offset + 1]) << 8
-      return Float(Int16(bitPattern: bits)) / Float(Int16.max)
-    }
+func pcm16Samples(from url: URL) throws -> [Float] {
+  let data = try Data(contentsOf: url)
+  let marker = Data("data".utf8)
+  guard let markerRange = data.range(of: marker) else {
+    throw AudioFixtureError.missingDataChunk
+  }
+  let sizeStart = markerRange.upperBound
+  let sampleStart = sizeStart + 4
+  guard data.count >= sampleStart else {
+    throw AudioFixtureError.missingDataChunk
+  }
+  let byteCount = Int(
+    UInt32(data[sizeStart])
+      | UInt32(data[sizeStart + 1]) << 8
+      | UInt32(data[sizeStart + 2]) << 16
+      | UInt32(data[sizeStart + 3]) << 24,
+  )
+  guard data.count >= sampleStart + byteCount else {
+    throw AudioFixtureError.missingDataChunk
+  }
+  return stride(from: sampleStart, to: sampleStart + byteCount, by: 2).map { offset in
+    let bits = UInt16(data[offset]) | UInt16(data[offset + 1]) << 8
+    return Float(Int16(bitPattern: bits)) / Float(Int16.max)
   }
 }
 

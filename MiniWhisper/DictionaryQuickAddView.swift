@@ -282,7 +282,7 @@ final class DictionaryQuickAddView: NSView, NSTextFieldDelegate {
   var refuses: () -> String? = { nil }
   var submit: (String, String) -> Void = { _, _ in }
 
-  var improvesRecognition = true {
+  var usesVocabulary = true {
     didSet { render() }
   }
 
@@ -501,7 +501,7 @@ final class DictionaryQuickAddView: NSView, NSTextFieldDelegate {
     correctionButton.isEnabled = stage == .word
     misspellingField.isHidden = !isCorrection
     actionRow.isHidden = isCollapsed
-    recognitionOffMarker.isHidden = improvesRecognition
+    recognitionOffMarker.isHidden = usesVocabulary
 
     let wordLabel = isCorrection ? DictionaryFieldCopy.correction : DictionaryFieldCopy.word
     wordField.placeholderString = wordLabel

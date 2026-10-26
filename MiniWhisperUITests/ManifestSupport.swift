@@ -172,7 +172,8 @@ struct AccessibilityContract {
 
 let menuKnownIdentifiers: Set<String> = [
   "miniwhisper.menu.status", "miniwhisper.menu.repair.accessibility",
-  "miniwhisper.menu.repair.microphone", "miniwhisper.menu.copy-last-transcript",
+  "miniwhisper.menu.repair.microphone", "miniwhisper.menu.repair.model-missing",
+  "miniwhisper.menu.copy-last-transcript",
   "miniwhisper.menu.quick-add", "miniwhisper.menu.quick-add.header",
   "miniwhisper.menu.quick-add.word", "miniwhisper.menu.quick-add.disclosure",
   "miniwhisper.menu.quick-add.misspelling", "miniwhisper.menu.quick-add.submit",

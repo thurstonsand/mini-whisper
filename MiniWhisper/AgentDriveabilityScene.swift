@@ -5,6 +5,7 @@ import ComposableArchitecture
 import Foundation
 import History
 import HotkeyListener
+import ModelLibrary
 import SpeechDictionary
 import TranscriptCleanup
 
@@ -20,6 +21,9 @@ enum PresentedWindow: Equatable {
     case menuHealthy = "menu-healthy"
     case menuDegraded = "menu-degraded"
     case onboardingWelcome = "onboarding-welcome"
+    case onboardingWelcomeOffline = "onboarding-welcome-offline"
+    case onboardingKeys = "onboarding-keys"
+    case onboardingKeysAccurate = "onboarding-keys-accurate"
     case onboardingPermissionsMicrophone = "onboarding-permissions-microphone"
     case onboardingPermissionsAccessibility = "onboarding-permissions-accessibility"
     case onboardingPermissionsAccessibilitySettings =
@@ -27,19 +31,30 @@ enum PresentedWindow: Equatable {
     case onboardingShortcut = "onboarding-shortcut"
     case onboardingModel = "onboarding-model"
     case onboardingModelActionable = "onboarding-model-actionable"
+    case onboardingModelOffline = "onboarding-model-offline"
     case onboardingTryIt = "onboarding-try-it"
+    case onboardingTryItKeySkipped = "onboarding-try-it-key-skipped"
     case onboardingReady = "onboarding-ready"
     case settings
     case settingsShortcutsKeyboard = "settings-shortcuts-keyboard"
     case settingsMicrophoneUnavailable = "settings-microphone-unavailable"
     case settingsSoundsNoAudio = "settings-sounds-no-audio"
     case settingsDegraded = "settings-degraded"
+    case settingsKeyMissing = "settings-key-missing"
     case settingsHistory = "settings-history"
     case settingsDictionary = "settings-dictionary"
     case settingsDictionaryUnreadable = "settings-dictionary-unreadable"
-    case settingsCleanup = "settings-cleanup"
-    case settingsCleanupKeyboard = "settings-cleanup-keyboard"
-    case settingsCleanupUnconfigured = "settings-cleanup-unconfigured"
+    case settingsProfiles = "settings-profiles"
+    case settingsProfilesKeyboard = "settings-profiles-keyboard"
+    case settingsProfilesUnconfigured = "settings-profiles-unconfigured"
+    case settingsProfilesFactory = "settings-profiles-factory"
+    case settingsProfilesOverridden = "settings-profiles-overridden"
+    case settingsProfilesDownloading = "settings-profiles-downloading"
+    case settingsProfilesAccurate = "settings-profiles-accurate"
+    case settingsProfilesOffline = "settings-profiles-offline"
+    case settingsProfilesRejected = "settings-profiles-rejected"
+    case settingsModels = "settings-models"
+    case settingsModelsStates = "settings-models-states"
     case about
     case pillRecording = "pill-recording"
     case pillTranscribing = "pill-transcribing"
@@ -66,18 +81,28 @@ enum PresentedWindow: Equatable {
         .settings(.settings, initialFocus: .detail)
       case .settingsMicrophoneUnavailable,
            .settingsSoundsNoAudio,
-           .settingsDegraded:
+           .settingsDegraded,
+           .settingsKeyMissing:
         .settings(.settings, initialFocus: nil)
       case .settingsHistory:
         .settings(.history, initialFocus: nil)
       case .settingsDictionary,
            .settingsDictionaryUnreadable:
         .settings(.dictionary, initialFocus: nil)
-      case .settingsCleanup,
-           .settingsCleanupUnconfigured:
-        .settings(.cleanup, initialFocus: nil)
-      case .settingsCleanupKeyboard:
-        .settings(.cleanup, initialFocus: .detail)
+      case .settingsProfiles,
+           .settingsProfilesUnconfigured,
+           .settingsProfilesFactory,
+           .settingsProfilesOverridden,
+           .settingsProfilesDownloading,
+           .settingsProfilesAccurate,
+           .settingsProfilesOffline,
+           .settingsProfilesRejected:
+        .settings(.profiles, initialFocus: nil)
+      case .settingsModels,
+           .settingsModelsStates:
+        .settings(.models, initialFocus: nil)
+      case .settingsProfilesKeyboard:
+        .settings(.profiles, initialFocus: .detail)
       case .about:
         .about
       default:
@@ -89,10 +114,73 @@ enum PresentedWindow: Equatable {
       self == .pillRecording ? .pill(.levelUpdated(0.67)) : nil
     }
 
-    /// What the scene's Keychain already holds. A pane that has a key and a pane that does not
-    /// are different screens, and only the Keychain can say which one this is.
-    var seededCleanupKey: String? {
-      self == .settingsCleanup || self == .settingsCleanupKeyboard ? "sk-agent-000000000000" : nil
+    /// What the scene's Keychain already holds, per slot. A pane that has a key and a pane that
+    /// does not are different screens, and only the Keychain can say which one this is.
+    var seededKeys: [CredentialSlot: String] {
+      let custom = CredentialSlot(profile: .custom, provider: .endpoint)
+      let haiku = CredentialSlot(profile: .haiku, provider: .anthropic)
+      switch self {
+      case .settingsProfiles,
+           .settingsProfilesKeyboard:
+        return [custom: "sk-agent-000000000000", haiku: "sk-ant-agent-scene"]
+      case .settingsProfilesOverridden,
+           .settingsProfilesDownloading,
+           .settingsModels,
+           .settingsModelsStates:
+        return [haiku: "sk-ant-agent-scene"]
+      // The scene's endpoint refuses this key, the way a revoked one is refused.
+      case .settingsProfilesRejected:
+        return [haiku: "sk-rejected-scene"]
+      case .settingsProfilesAccurate:
+        return [CredentialSlot(profile: .accurate, provider: .google): "AIzaSyAgentScene"]
+      // Past the key page, the default profile's key is in the Keychain the scene answers for.
+      case .onboardingPermissionsMicrophone,
+           .onboardingPermissionsAccessibility,
+           .onboardingPermissionsAccessibilitySettings,
+           .onboardingShortcut,
+           .onboardingModel,
+           .onboardingModelActionable,
+           .onboardingTryIt,
+           .onboardingReady:
+        return [haiku: "sk-ant-agent-scene"]
+      default:
+        return [:]
+      }
+    }
+
+    /// What the scene's model library holds. Most scenes have everything installed; a first run
+    /// has nothing, and the downloading scenes are partway through.
+    var seededAssets: [ModelAsset: AssetState] {
+      switch self {
+      case .onboardingWelcome,
+           .onboardingWelcomeOffline:
+        return Dictionary(uniqueKeysWithValues: ModelAsset.allCases.map { ($0, .missing) })
+      case .onboardingModelOffline:
+        return [
+          .gate: .installed(bytes: 3),
+          .parakeet: .downloading(0.42),
+          .s1Mini: .downloading(0.18),
+        ]
+      default:
+        break
+      }
+      var assets = Dictionary(
+        uniqueKeysWithValues: ModelAsset.allCases.map {
+          ($0, AssetState.installed(bytes: $0.pinnedBytes))
+        },
+      )
+      if self == .settingsProfilesDownloading {
+        assets[.parakeet] = .downloading(0.42)
+      }
+      if self == .settingsModelsStates {
+        assets[.parakeet] = .downloading(0.42)
+        assets[.s1Mini] = .failed("The scene’s download failed.")
+      }
+      // Offline chosen before its cleanup model is on disk: the picker and the row both say so.
+      if self == .settingsProfilesOffline {
+        assets[.s1Mini] = .missing
+      }
+      return assets
     }
 
     var initialState: AppFeature.State {
@@ -118,11 +206,21 @@ enum PresentedWindow: Equatable {
           $0.micStatus = .denied
           $0.accessibilityGranted = false
         }
-      case .onboardingWelcome:
+      case .onboardingWelcome,
+           .onboardingWelcomeOffline:
         state.onboardingCompleted = false
         present(&state.onboarding,
-                permissions: permissions(), readiness: .ready, hasConsent: false,
+                permissions: permissions(), readiness: .modelMissing, hasConsent: false,
                 isShowingWelcome: true)
+        state.onboarding.storedKeys = []
+      // Consent given and the download running behind the page; the key is what stands between
+      // the user and the rest of the rail.
+      case .onboardingKeys,
+           .onboardingKeysAccurate:
+        state.onboardingCompleted = false
+        present(&state.onboarding,
+                permissions: permissions(), readiness: .downloading(0.42))
+        state.onboarding.storedKeys = []
       case .onboardingPermissionsMicrophone:
         state.onboardingCompleted = false
         present(&state.onboarding,
@@ -155,6 +253,23 @@ enum PresentedWindow: Equatable {
         // A real failure arrives through the readiness stream, which also posts the message the
         // footer shows — and clearing it is how a retry announces itself.
         state.onboarding.failureMessage = "Model setup failed"
+      case .onboardingModelOffline:
+        state.onboardingCompleted = false
+        present(&state.onboarding,
+                permissions: permissions(microphone: .granted, accessibility: true),
+                readiness: .downloading(0.42), selectedStep: .model, hasCompletedShortcut: true)
+      // The key was skipped on its page: the rail went on, and nothing can dictate.
+      case .onboardingTryItKeySkipped:
+        state.onboardingCompleted = false
+        present(&state.onboarding,
+                permissions: permissions(microphone: .granted, accessibility: true),
+                readiness: .ready, selectedStep: .tryIt, hasCompletedShortcut: true)
+        state.onboarding.storedKeys = []
+        state.onboarding.hasSkippedKeys = true
+        state.$health.withLock { $0.missingCleanupKey = .anthropic }
+      case .settingsKeyMissing:
+        state.settingsWindow.settingsPane.launchAtLoginRegistered = true
+        state.$health.withLock { $0.missingCleanupKey = .anthropic }
       case .onboardingTryIt:
         state.onboardingCompleted = false
         present(&state.onboarding,
@@ -184,10 +299,29 @@ enum PresentedWindow: Equatable {
         break
       case .settingsShortcutsKeyboard:
         state.settingsWindow.interaction.mode = .keyboard
-      case .settingsCleanup,
-           .settingsCleanupUnconfigured:
+      case .settingsProfiles,
+           .settingsProfilesUnconfigured,
+           .settingsProfilesFactory,
+           .settingsProfilesOverridden,
+           .settingsProfilesOffline:
         break
-      case .settingsCleanupKeyboard:
+      case .settingsModels:
+        break
+      case .settingsProfilesDownloading,
+           .settingsModelsStates:
+        state.$health.withLock { $0.engineReadiness = .downloading(0.42) }
+      // The last dictation's cleanup was refused with this key.
+      case .settingsProfilesRejected:
+        state.$health.withLock {
+          _ = $0.rejectedKeys.insert(CredentialSlot(profile: .haiku, provider: .anthropic))
+        }
+      // Most accurate with only its Google key: the engine is installed and cannot hear yet.
+      case .settingsProfilesAccurate:
+        state.$health.withLock {
+          $0.engine = .scribe
+          $0.engineReadiness = .credentialMissing
+        }
+      case .settingsProfilesKeyboard:
         state.settingsWindow.interaction.mode = .keyboard
       case .pillRecording:
         state.pill.presentation = .recording(
@@ -240,17 +374,44 @@ enum PresentedWindow: Equatable {
         )
       case .settingsSoundsNoAudio:
         settings.sounds.cancel = nil
-      case .settingsCleanup,
-           .settingsCleanupKeyboard:
-        settings.cleanup = CleanupSettings(
-          enabled: true, endpoint: URL(string: "https://gateway.example/v1"),
-          model: "gpt-oss-120b", timeout: 10,
-          additionalInstructions: "Keep my terminology. Never expand contractions.",
+      case .settingsProfiles,
+           .settingsProfilesKeyboard:
+        settings.profiles.active = .custom
+        settings.profiles.custom = CustomProfileSettings(
+          cleanupEnabled: true, endpoint: URL(string: "https://gateway.example/v1"),
+          model: "gpt-oss-120b", boostsVocabulary: false,
         )
+        settings.additionalInstructions = "Keep my terminology. Never expand contractions."
         return settings
-      case .settingsCleanupUnconfigured:
-        settings.cleanup = CleanupSettings(
-          enabled: true, endpoint: nil, model: nil, timeout: 10, additionalInstructions: "",
+      case .settingsProfilesUnconfigured:
+        settings.profiles.active = .custom
+        return settings
+      case .settingsProfilesFactory,
+           .settingsProfilesDownloading,
+           .settingsProfilesRejected,
+           .settingsModels:
+        return settings
+      case .settingsProfilesAccurate:
+        settings.profiles.active = .accurate
+        return settings
+      case .settingsProfilesOffline,
+           .settingsModelsStates,
+           .onboardingWelcomeOffline,
+           .onboardingModelOffline:
+        settings.profiles.active = .offline
+        return settings
+      case .onboardingKeysAccurate:
+        settings.profiles.active = .accurate
+        return settings
+      // The dictionary pane's scene runs a profile that never reads the vocabulary, so both of
+      // its emphases and Quick Add's marker are on screen without a toggle to reach them.
+      case .settingsDictionary:
+        settings.profiles.active = .custom
+        settings.profiles.custom.boostsVocabulary = false
+        return settings
+      case .settingsProfilesOverridden:
+        settings.profiles.setEndpoint(
+          URL(string: "https://aig.thurstons.house/v1")!, for: .haiku,
         )
         return settings
       default:
@@ -407,6 +568,8 @@ enum PresentedWindow: Equatable {
       requestedPermissions: Set<OnboardingPermission> = [],
     ) {
       state.isPresented = true
+      // A scene's user has already given the profile its keys; the key scenes take them back.
+      state.storedKeys = Set(state.profile.credentials)
       state.snapshot = OnboardingSnapshot(
         permissions: permissions, hasModelDownloadConsent: hasConsent, isCompleted: isCompleted,
       )

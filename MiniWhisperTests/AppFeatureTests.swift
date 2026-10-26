@@ -39,7 +39,7 @@ import Testing
         return recording
       }
       $0.audioCapture.currentInputDeviceName = { _ in "Test Microphone" }
-      $0.asrEngine.submit = { _, _ in .noSpeech }
+      $0.asrEngine.submit = { _, _, _ in .noSpeech }
       $0.contextCapture.prewarmFrontmostApp = {}
       $0.date.now = Date(timeIntervalSince1970: 1000)
       $0.continuousClock = clock
@@ -451,7 +451,7 @@ import Testing
       AppFeature()
     } withDependencies: {
       $0.audioCapture.prepare = { _ in }
-      $0.asrEngine.prepareInstalled = {
+      $0.asrEngine.prepareInstalled = { _ in
         AsyncStream { continuation in
           continuation.yield(.compiling)
           continuation.yield(.ready)
@@ -482,7 +482,7 @@ import Testing
         $0.engineReadiness = .ready
       }
     }
-    await store.receive(.engineReadinessUpdated(.ready))
+    await store.receive(.engineReadinessUpdated(.parakeet, .ready))
     #expect(!store.state.onboarding.isPresented)
     await store.finish()
   }
@@ -492,7 +492,7 @@ import Testing
       AppFeature()
     } withDependencies: {
       $0.audioCapture.prepare = { _ in }
-      $0.asrEngine.prepareInstalled = {
+      $0.asrEngine.prepareInstalled = { _ in
         AsyncStream { continuation in
           continuation.yield(.compiling)
           continuation.yield(.ready)
@@ -506,6 +506,7 @@ import Testing
       $0.modelDownloadConsent.isConsented = { false }
       $0.continuousClock = TestClock()
       $0.date.now = Date(timeIntervalSince1970: 1000)
+      $0.keychain.read = { _ in "sk-ant-test" }
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
     let permissions = OnboardingPermissionStatuses(
@@ -525,9 +526,10 @@ import Testing
       $0.onboarding.isPresented = true
       $0.onboarding.snapshot = snapshot
       $0.onboarding.isShowingWelcome = true
+      $0.onboarding.storedKeys = [CredentialSlot(profile: .haiku, provider: .anthropic)]
     }
     await store
-      .receive(.engineReadinessUpdated(.ready)) {
+      .receive(.engineReadinessUpdated(.parakeet, .ready)) {
         $0.$health.withLock { $0.engineReadiness = .ready }
       }
     #expect(store.state.onboarding.step == .permissions)
@@ -565,7 +567,8 @@ import Testing
       $0.continuousClock = TestClock()
       $0.hotkeyListener.events = { _ in hotkeyEvents }
       $0.modelDownloadConsent.markConsented = { consents.increment() }
-      $0.asrEngine.installAndPrepare = { AsyncStream { $0.finish() } }
+      $0.asrEngine.installAndPrepare = { _ in AsyncStream { $0.finish() } }
+      $0.keychain.read = { _ in "sk-ant-test" }
     }
     let snapshot = OnboardingSnapshot(
       permissions: OnboardingPermissionStatuses(
@@ -586,6 +589,7 @@ import Testing
       $0.onboarding.isPresented = true
       $0.onboarding.snapshot = snapshot
       $0.onboarding.isShowingWelcome = true
+      $0.onboarding.storedKeys = [CredentialSlot(profile: .haiku, provider: .anthropic)]
     }
     await store.send(.onboarding(.downloadModel)) {
       $0.onboarding.isRecordingModelDownloadConsent = true
@@ -841,10 +845,10 @@ import Testing
       $0.sounds.play = { cue in await sounds.record(cue) }
     }
 
-    await store.send(.engineReadinessUpdated(.failed("first failure"))) {
+    await store.send(.engineReadinessUpdated(.parakeet, .failed("first failure"))) {
       $0.$health.withLock { $0.engineReadiness = .failed("first failure") }
     }
-    await store.send(.engineReadinessUpdated(.failed("second failure"))) {
+    await store.send(.engineReadinessUpdated(.parakeet, .failed("second failure"))) {
       $0.$health.withLock { $0.engineReadiness = .failed("second failure") }
     }
     await store.finish()
@@ -1020,8 +1024,8 @@ import Testing
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
-      $0.asrEngine.identity = { "parakeet-tdt-0.6b-v2" }
-      $0.asrEngine.submit = { _, _ in .transcript("recoverable words") }
+      $0.asrEngine.identity = { _ in "parakeet-tdt-0.6b-v2" }
+      $0.asrEngine.submit = { _, _, _ in .transcript("recoverable words") }
       $0.audioCapture.stop = { id in
         #expect(id == sessionID)
         return recording
@@ -1054,6 +1058,7 @@ import Testing
       $0.pendingDictation = AppFeature.PendingDictation(
         generation: 1, recording: recording, createdAt: Date(timeIntervalSince1970: 31),
         engine: "parakeet-tdt-0.6b-v2", original: nil,
+        cleanupTarget: MiniWhisperSettings.defaults.cleanupTarget,
       )
     }
     await store.receive(.pill(.transcribingStarted)) { $0.pill.presentation = .transcribing }
@@ -1227,7 +1232,7 @@ import Testing
       }
       $0.audioCapture.cancel = { _ in }
       $0.audioCapture.currentInputDeviceName = { _ in "Test Microphone" }
-      $0.asrEngine.prepareForActivation = { AsyncStream { $0.finish() } }
+      $0.asrEngine.prepareForActivation = { _ in AsyncStream { $0.finish() } }
       $0.continuousClock = TestClock()
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
@@ -1605,7 +1610,7 @@ import Testing
       AppFeature()
     } withDependencies: {
       $0.audioCapture.currentInputDeviceName = { _ in "Microphone" }
-      $0.asrEngine.prepareForActivation = { AsyncStream { $0.finish() } }
+      $0.asrEngine.prepareForActivation = { _ in AsyncStream { $0.finish() } }
       $0.contextCapture.prewarmFrontmostApp = { await prewarms.record() }
       $0.sounds.play = { cue in await sounds.record(cue) }
     }
@@ -1670,12 +1675,13 @@ import Testing
         return recording
       }
       $0.audioCapture.currentInputDeviceName = { _ in "Microphone" }
-      $0.asrEngine.identity = { "test-engine" }
-      $0.asrEngine.prepareForActivation = { AsyncStream { $0.finish() } }
-      $0.asrEngine.submit = { submitted, dictionary in
+      $0.asrEngine.identity = { _ in "test-engine" }
+      $0.asrEngine.prepareForActivation = { _ in AsyncStream { $0.finish() } }
+      $0.asrEngine.submit = { _, submitted, dictionary in
         #expect(submitted == recording)
         #expect(dictionary.vocabulary == ["TCA"])
-        #expect(dictionary.boostsVocabulary)
+        // The default profile stages vocabulary in the cleanup prompt, not in recognition.
+        #expect(!dictionary.boostsVocabulary)
         #expect(dictionary.corrections.map(\.misspelling) == ["mini whisper"])
         #expect(dictionary.corrections.map(\.text) == ["MiniWhisper"])
         return .transcript("continuous capture")

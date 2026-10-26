@@ -334,7 +334,7 @@ import TranscriptCleanup
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
-      $0.asrEngine.prepareForActivation = { AsyncStream { _ in } }
+      $0.asrEngine.prepareForActivation = { _ in AsyncStream { _ in } }
       $0.audioCapture.currentInputDeviceName = { _ in "Test Microphone" }
       $0.audioCapture.start = { _ in
         AudioCaptureSession(
@@ -398,7 +398,7 @@ import TranscriptCleanup
       settings: Shared(value: MiniWhisperSettings(
         bindings: .defaults, microphone: .systemDefault, sounds: .defaults,
         retention: RetentionPolicy(transcripts: .forever, audio: .oneDay),
-        improveRecognition: true, cleanup: .defaults,
+        profiles: .defaults, cleanupTimeout: 10, additionalInstructions: "",
       )),
     )
     let store = TestStore(initialState: state) {

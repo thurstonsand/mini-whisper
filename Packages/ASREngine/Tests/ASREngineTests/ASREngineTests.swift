@@ -1,6 +1,6 @@
 @testable import ASREngine
-import CryptoKit
 import Foundation
+import ModelLibrary
 import Testing
 
 // MARK: - EngineLifecycleTests
@@ -15,40 +15,43 @@ struct EngineLifecycleTests {
     #expect(!EngineReadiness.failed("failure").isSetupInProgress)
   }
 
-  @Test func `model revisions are immutable code pins`() {
-    for model in SpeechModel.catalogue {
-      #expect(model.revision.count == 40)
-      #expect(!model.revision.contains("main"))
-    }
-    #expect(PinnedModelStore.vadRevision.count == 40)
-    #expect(PinnedModelStore.ctcRevision.count == 40)
-    #expect(!PinnedModelStore.vadRevision.contains("main"))
-    #expect(!PinnedModelStore.ctcRevision.contains("main"))
-  }
-
-  @Test func `missing and corrupt provenance remain distinct`() throws {
-    let root = FileManager.default.temporaryDirectory.appending(
-      path: UUID().uuidString, directoryHint: .isDirectory,
-    )
-    defer { try? FileManager.default.removeItem(at: root) }
-    let store = PinnedModelStore(root: root, speechModel: .parakeetV2)
-
-    #expect(throws: ASREngineError.modelMissing) { try store.validateInstalledArtifact() }
-    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
-    try Data("not json".utf8).write(to: root.appending(path: "provenance.json"))
-    #expect(throws: ASREngineError.self) { try store.validateInstalledArtifact() }
-  }
-
   @Test func `missing install emits model missing before finishing`() async {
     let root = FileManager.default.temporaryDirectory.appending(
       path: UUID().uuidString, directoryHint: .isDirectory,
     )
     let engine = LocalASREngine(
-      gateConfiguration: .calibrated, modelStore: PinnedModelStore(
-        root: root,
-        speechModel: .parakeetV2,
-      ),
+      library: ModelLibrary(root: root), speechModel: .parakeetV2,
     )
+    var readiness: [EngineReadiness] = []
+
+    for await update in engine.prepareInstalled() {
+      readiness.append(update)
+    }
+
+    #expect(readiness == [.modelMissing])
+  }
+
+  @Test func `every catalogue model is an immutable code pin`() {
+    for model in SpeechModel.catalogue {
+      #expect(model.repository.revision.count == 40)
+      #expect(!model.repository.revision.contains("main"))
+    }
+  }
+
+  /// A candidate lives outside the assets, so its absence is its own error; it still reads as a
+  /// model to download rather than a failure.
+  @Test func `a candidate not yet installed reads missing`() async throws {
+    let root = FileManager.default.temporaryDirectory.appending(
+      path: UUID().uuidString, directoryHint: .isDirectory,
+    )
+    defer { try? FileManager.default.removeItem(at: root) }
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+    let gate = PinnedRepository.sileroVAD
+    try Data(
+      #"{"repositories":[{"repository":"\#(gate.repository)","revision":"\#(gate.revision)","files":[]}]}"#
+        .utf8,
+    ).write(to: root.appending(path: "provenance.json"))
+    let engine = LocalASREngine(library: ModelLibrary(root: root), speechModel: .fluidSpeechMini)
     var readiness: [EngineReadiness] = []
 
     for await update in engine.prepareInstalled() {
@@ -61,10 +64,7 @@ struct EngineLifecycleTests {
   @Test func `four hundred ninety nine milliseconds is discarded before engine work`() async throws {
     let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
     let engine = LocalASREngine(
-      gateConfiguration: .calibrated, modelStore: PinnedModelStore(
-        root: root,
-        speechModel: .parakeetV2,
-      ),
+      library: ModelLibrary(root: root), speechModel: .parakeetV2,
     )
     let samples = Array(repeating: Float.zero, count: 7984)
 
@@ -74,10 +74,7 @@ struct EngineLifecycleTests {
   @Test func `five hundred milliseconds proceeds beyond the duration floor`() async {
     let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
     let engine = LocalASREngine(
-      gateConfiguration: .calibrated, modelStore: PinnedModelStore(
-        root: root,
-        speechModel: .parakeetV2,
-      ),
+      library: ModelLibrary(root: root), speechModel: .parakeetV2,
     )
     let samples = Array(repeating: Float.zero, count: 8000)
 
@@ -89,10 +86,7 @@ struct EngineLifecycleTests {
   @Test func `replay below the duration floor still reaches the engine`() async {
     let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
     let engine = LocalASREngine(
-      gateConfiguration: .calibrated, modelStore: PinnedModelStore(
-        root: root,
-        speechModel: .parakeetV2,
-      ),
+      library: ModelLibrary(root: root), speechModel: .parakeetV2,
     )
     let samples = Array(repeating: Float.zero, count: 7984)
 
@@ -101,73 +95,12 @@ struct EngineLifecycleTests {
     }
   }
 
-  @Test func `range responses append only when the offset and pinned size match`() {
-    #expect(
-      ResumeDecision.decide(
-        resumeOffset: 1_048_576, expectedBytes: 10_000_000, statusCode: 206,
-        contentRange: "bytes 1048576-9999999/10000000", contentLength: 8_951_424,
-      ) == .append,
-    )
-    #expect(
-      ResumeDecision.decide(
-        resumeOffset: 1_048_576, expectedBytes: 10_000_000, statusCode: 206,
-        contentRange: "bytes 0-9999999/10000000", contentLength: 10_000_000,
-      ) == .restart,
-    )
-    #expect(
-      ResumeDecision.decide(
-        resumeOffset: 1_048_576, expectedBytes: 10_000_000, statusCode: 206,
-        contentRange: "bytes 1048576-9999999/9999999", contentLength: 8_951_423,
-      ) == .restart,
-    )
-  }
-
-  @Test func `ignored or rejected ranges restart safely`() {
-    #expect(
-      ResumeDecision.decide(
-        resumeOffset: 1_048_576, expectedBytes: 10_000_000, statusCode: 200, contentRange: nil,
-        contentLength: 10_000_000,
-      ) == .overwrite,
-    )
-    #expect(
-      ResumeDecision.decide(
-        resumeOffset: 1_048_576, expectedBytes: 10_000_000, statusCode: 416, contentRange: nil,
-        contentLength: 0,
-      ) == .restart,
-    )
-    #expect(
-      ResumeDecision.decide(
-        resumeOffset: 1_048_576, expectedBytes: 10_000_000, statusCode: 403, contentRange: nil,
-        contentLength: 0,
-      ) == .restart,
-    )
-  }
-
-  @Test func `malformed content ranges are rejected`() {
-    let range = HTTPContentRange("bytes 10-19/20")
-    #expect(range?.start == 10)
-    #expect(range?.end == 19)
-    #expect(range?.total == 20)
-    #expect(HTTPContentRange("bytes 20-10/30") == nil)
-    #expect(HTTPContentRange("bytes */30") == nil)
-    #expect(HTTPContentRange("garbage") == nil)
-  }
-
-  @Test func `staging root is stable across store instances`() {
-    let root = URL(fileURLWithPath: "/tmp/MiniWhisper-test-pinned-v1")
-    #expect(PinnedModelStore(root: root, speechModel: .parakeetV2).stagingRoot == root
-      .appendingPathExtension("partial"))
-  }
-
   @Test func `concurrent setup emits failure before finishing`() async {
     let root = FileManager.default.temporaryDirectory.appending(
       path: UUID().uuidString, directoryHint: .isDirectory,
     )
     let engine = LocalASREngine(
-      gateConfiguration: .calibrated, modelStore: PinnedModelStore(
-        root: root,
-        speechModel: .parakeetV2,
-      ),
+      library: ModelLibrary(root: root), speechModel: .parakeetV2,
     )
     let (setupStarted, setupStartedContinuation) = AsyncStream<Void>.makeStream()
     let firstSetup = Task {
@@ -191,195 +124,6 @@ struct EngineLifecycleTests {
     #expect(duplicateReadiness == [.failed(ASREngineError.setupInProgress.localizedDescription)])
     firstSetup.cancel()
     await firstSetup.value
-  }
-}
-
-// MARK: - StagingReuseTests
-
-struct StagingReuseTests {
-  // MARK: Internal
-
-  @Test func `staged file survives only when it hashes to its pinned manifest OID`() throws {
-    let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
-    defer { try? FileManager.default.removeItem(at: root) }
-    let store = PinnedModelStore(root: root.appending(path: "pinned-v1"), speechModel: .parakeetV2)
-    let contents = Data("pinned weights".utf8)
-
-    let matching = try plannedFile(contents, oid: sha256(contents), in: root.appending(path: "a"))
-    #expect(try store.reusableHash(for: matching) == sha256(contents))
-    #expect(FileManager.default.fileExists(atPath: matching.destination.path))
-  }
-
-  @Test func `unprovable staged files are discarded rather than reused`() throws {
-    let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
-    defer { try? FileManager.default.removeItem(at: root) }
-    let store = PinnedModelStore(root: root.appending(path: "pinned-v1"), speechModel: .parakeetV2)
-    let contents = Data("pinned weights".utf8)
-
-    let splicedRevision = try plannedFile(
-      contents, oid: String(repeating: "a", count: 64), in: root.appending(path: "a"),
-    )
-    let wrongSize = try plannedFile(
-      contents, oid: sha256(contents), size: contents.count + 1, in: root.appending(path: "b"),
-    )
-    let withoutManifestHash = try plannedFile(contents, oid: nil, in: root.appending(path: "c"))
-
-    for planned in [splicedRevision, wrongSize, withoutManifestHash] {
-      #expect(try store.reusableHash(for: planned) == nil)
-      #expect(!FileManager.default.fileExists(atPath: planned.destination.path))
-    }
-  }
-
-  @Test func `matching pins preserve staging contents`() throws {
-    let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
-    defer { try? FileManager.default.removeItem(at: root) }
-    let store = PinnedModelStore(root: root.appending(path: "pinned-v1"), speechModel: .parakeetV2)
-    try store.prepareStagingRoot()
-    let partial = store.stagingRoot.appending(path: "weights.bin.partial")
-    try Data("half".utf8).write(to: partial)
-
-    try store.prepareStagingRoot()
-
-    #expect(FileManager.default.fileExists(atPath: partial.path))
-  }
-
-  @Test func `missing or mismatched pins discard staging contents`() throws {
-    let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
-    defer { try? FileManager.default.removeItem(at: root) }
-    let store = PinnedModelStore(root: root.appending(path: "pinned-v1"), speechModel: .parakeetV2)
-    let stale = store.stagingRoot.appending(path: "Models/old.mlmodelc/coremldata.bin")
-    try FileManager.default.createDirectory(
-      at: stale.deletingLastPathComponent(), withIntermediateDirectories: true,
-    )
-    try Data("stale".utf8).write(to: stale)
-
-    try store.prepareStagingRoot()
-
-    #expect(!FileManager.default.fileExists(atPath: stale.path))
-    try Data("wrong pins".utf8).write(to: store.stagingPinsURL, options: .atomic)
-    try FileManager.default.createDirectory(
-      at: stale.deletingLastPathComponent(), withIntermediateDirectories: true,
-    )
-    try Data("stale again".utf8).write(to: stale)
-    try store.prepareStagingRoot()
-    #expect(!FileManager.default.fileExists(atPath: stale.path))
-    #expect(FileManager.default.fileExists(atPath: store.stagingPinsURL.path))
-  }
-
-  // MARK: Private
-
-  private let specification = RepositorySpecification(
-    repository: SpeechModel.parakeetV2.repository, revision: SpeechModel.parakeetV2.revision,
-    localFolder: "parakeet-tdt-0.6b-v2", expectedDirectoryRoots: [], expectedFiles: [],
-  )
-
-  private func plannedFile(
-    _ contents: Data, oid: String?, size: Int? = nil, in root: URL,
-  ) throws -> PlannedFile {
-    let destination = root.appending(path: "weights.bin")
-    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
-    try contents.write(to: destination)
-    return PlannedFile(
-      specification: specification,
-      file: RemoteFile(
-        path: "weights.bin", type: "file", size: size ?? contents.count,
-        lfs: oid.map(RemoteFile.LFS.init),
-      ), destination: destination,
-    )
-  }
-
-  private func sha256(_ data: Data) -> String {
-    SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
-  }
-}
-
-// MARK: - InstalledArtifactValidationTests
-
-struct InstalledArtifactValidationTests {
-  // MARK: Internal
-
-  @Test func `launch validation accepts correct sizes without rehashing the corpus`() throws {
-    let store = try install(size: 5, contents: "other")
-    defer { try? FileManager.default.removeItem(at: store.root) }
-    try FileManager.default.createDirectory(
-      at: store.stagingRoot, withIntermediateDirectories: true,
-    )
-
-    try store.validateInstalledArtifact()
-
-    #expect(!FileManager.default.fileExists(atPath: store.stagingRoot.path))
-  }
-
-  /// The recognition helper is pinned like every other repository, so an artifact predating it is
-  /// not a lesser artifact to be patched — it is one that does not match the code pins, and the
-  /// ordinary download path is the whole remedy.
-  @Test func `launch validation rejects an artifact without the recognition helper`() throws {
-    let store = try install(size: 5, contents: "other", installsRecognitionHelper: false)
-    defer { try? FileManager.default.removeItem(at: store.root) }
-
-    #expect(throws: ASREngineError.self) { try store.validateInstalledArtifact() }
-  }
-
-  @Test func `launch validation rejects size mismatches`() throws {
-    let store = try install(size: 6, contents: "five!")
-    defer { try? FileManager.default.removeItem(at: store.root) }
-
-    #expect(throws: ASREngineError.self) { try store.validateInstalledArtifact() }
-  }
-
-  /// Mini's joint is published under the v2 name, and FluidAudio only loads a v3-family joint
-  /// from `JointDecisionv3.mlmodelc`, so the installed copy has to live under the local name.
-  @Test func `launch validation finds a renamed directory where the download put it`() throws {
-    let renamed = try install(
-      size: 5, contents: "joint", speechModel: .fluidSpeechMini,
-      remotePath: "JointDecision.mlmodelc/coremldata.bin",
-      installedPath: "Models/fluid-speech-mini/JointDecisionv3.mlmodelc/coremldata.bin",
-    )
-    defer { try? FileManager.default.removeItem(at: renamed.root) }
-    let unrenamed = try install(
-      size: 5, contents: "joint", speechModel: .fluidSpeechMini,
-      remotePath: "JointDecision.mlmodelc/coremldata.bin",
-      installedPath: "Models/fluid-speech-mini/JointDecision.mlmodelc/coremldata.bin",
-    )
-    defer { try? FileManager.default.removeItem(at: unrenamed.root) }
-
-    try renamed.validateInstalledArtifact()
-    #expect(throws: ASREngineError
-      .invalidArtifact("missing JointDecision.mlmodelc/coremldata.bin"))
-    {
-      try unrenamed.validateInstalledArtifact()
-    }
-  }
-
-  // MARK: Private
-
-  private func install(
-    size: Int, contents: String, installsRecognitionHelper: Bool = true,
-    speechModel: SpeechModel = .parakeetV2,
-    remotePath: String = "Encoder.mlmodelc/coremldata.bin",
-    installedPath: String = "Models/parakeet-tdt-0.6b-v2/Encoder.mlmodelc/coremldata.bin",
-  ) throws -> PinnedModelStore {
-    let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
-    let file = root.appending(path: installedPath)
-    try FileManager.default.createDirectory(
-      at: file.deletingLastPathComponent(), withIntermediateDirectories: true,
-    )
-    try Data(contents.utf8).write(to: file)
-    let recognitionHelper = installsRecognitionHelper ? """
-    ,{"repository":"\(PinnedModelStore.ctcRepository)",
-      "revision":"\(PinnedModelStore.ctcRevision)","files":[]}
-    """ : ""
-    let provenance = """
-    {"repositories":[
-      {"repository":"\(speechModel.repository)",
-       "revision":"\(speechModel.revision)",
-       "files":[{"path":"\(remotePath)","size":\(size),
-                 "sha256":"\(String(repeating: "a", count: 64))"}]},
-      {"repository":"\(PinnedModelStore.vadRepository)",
-       "revision":"\(PinnedModelStore.vadRevision)","files":[]}\(recognitionHelper)]}
-    """
-    try Data(provenance.utf8).write(to: root.appending(path: "provenance.json"))
-    return PinnedModelStore(root: root, speechModel: speechModel)
   }
 }
 

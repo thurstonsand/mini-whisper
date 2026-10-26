@@ -25,12 +25,32 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
           "Fast, accurate dictation that runs on your Mac.",
         ),
         contract(
-          .staticText, "miniwhisper.onboarding.welcome.model-info", "Model download information",
-          "Download the speech model in the background while you finish setup.",
+          .button, "miniwhisper.profiles.card.haiku", "Parakeet + Claude Haiku",
+          "Selected; Needs an Anthropic key", isEnabled: true, isActionable: true,
         ),
         contract(
-          .button, "miniwhisper.onboarding.download-model", "Download Parakeet v2", isEnabled: true,
-          isActionable: true,
+          .button, "miniwhisper.profiles.card.offline", "Offline",
+          "Not selected", isEnabled: true, isActionable: true,
+        ),
+        contract(
+          .button, "miniwhisper.profiles.card.accurate", "Most accurate",
+          "Not selected; Needs ElevenLabs and Google keys", isEnabled: true, isActionable: true,
+        ),
+        contract(
+          .button, "miniwhisper.profiles.card.cerebras", "Parakeet + Cerebras",
+          "Not selected; Needs a Cerebras key", isEnabled: true, isActionable: true,
+        ),
+        contract(
+          .button, "miniwhisper.profiles.card.custom", "Custom",
+          "Not selected", isEnabled: true, isActionable: true,
+        ),
+        contract(
+          .staticText, "miniwhisper.onboarding.welcome.model-info", "Model download information",
+          "567.2 MB downloads while you finish setup. You’ll add an Anthropic key next.",
+        ),
+        contract(
+          .button, "miniwhisper.onboarding.download-model", "Download Parakeet TDT v2",
+          isEnabled: true, isActionable: true,
         ),
       ],
     )
@@ -47,7 +67,7 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
     try assertManifest(
       in: app,
       elements: onboardingRail(
-        ["Complete", "Current", "Available; Downloading Parakeet v2 42%", "Available"],
+        ["Complete", "Current", "Available; Downloading Parakeet TDT v2 42%", "Available"],
       ) + [
         contract(.group, "miniwhisper.onboarding.shortcut", "Activation shortcut setup"),
         contract(
@@ -83,22 +103,22 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
       elements: onboardingRail([
         "Complete",
         "Complete",
-        "Current; Downloading Parakeet v2 42%",
+        "Current; Downloading Parakeet TDT v2 42%",
         "Available",
       ]) +
         [
           contract(.group, "miniwhisper.onboarding.model", "Speech model setup"),
           contract(
             .staticText, "miniwhisper.onboarding.model.title", "Model setup heading",
-            "Prepare Parakeet v2",
+            "Prepare Parakeet TDT v2",
           ),
           contract(
             .staticText, "miniwhisper.onboarding.model.summary", "Model setup information",
-            "Downloads once (~550 MB), then everything runs on this Mac.",
+            "Downloads once (568.3 MB), then runs on this Mac.",
           ),
           contract(
             .staticText, "miniwhisper.onboarding.model.status", "Model status",
-            "Downloading Parakeet v2…",
+            "Downloading Parakeet TDT v2…",
           ),
           contract(
             .progressIndicator, "miniwhisper.onboarding.model-progress", "Model download", "0.42",
@@ -167,6 +187,11 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
       contract(
         .staticText, "miniwhisper.onboarding.rail.tagline", "Application description",
         "fast and accurate dictation",
+      ),
+      // Every scene here runs the default profile with its key already stored.
+      contract(
+        .button, "miniwhisper.onboarding.rail.keys", "API Key", "Complete", isEnabled: true,
+        isActionable: true,
       ),
       contract(
         .button, "miniwhisper.onboarding.rail.permissions", "Permissions", values[0],
@@ -295,6 +320,6 @@ private enum PermissionManifest: CaseIterable {
   }
 
   var railValues: [String] {
-    ["Current", "Available", "Available; Downloading Parakeet v2 42%", "Available"]
+    ["Current", "Available", "Available; Downloading Parakeet TDT v2 42%", "Available"]
   }
 }

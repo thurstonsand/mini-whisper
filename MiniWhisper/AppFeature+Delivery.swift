@@ -1,3 +1,4 @@
+import AppSettings
 import ComposableArchitecture
 import FieldContext
 import Foundation
@@ -72,11 +73,11 @@ extension AppFeature {
   /// happening, and any activation press cancels the request and delivers the transcript as heard.
   func cleanupEffect(
     generation: Int, skipComponents: [String], transcript: String,
-    conditioning: CleanupConditioning, settings: CleanupSettings,
+    conditioning: CleanupConditioning, target: CleanupTarget,
   ) -> Effect<Action> {
     .run { send in
       let resolution = await TranscriptPipeline().resolveCleanup(
-        transcript, conditioning: conditioning, settings: settings,
+        transcript, conditioning: conditioning, target: target,
         requestStarting: { configuration in
           await send(.cleanupStarted(generation, configuration))
           await send(.pill(.polishingStarted(skipComponents: skipComponents)))

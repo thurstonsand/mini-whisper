@@ -12,8 +12,8 @@ public enum CleanupOutcome: Equatable, Sendable {
 
 // MARK: - VerificationOutcome
 
-/// The bounded round-trip behind the Cleanup pane's Save: it proves endpoint, key, and model
-/// together, and carries nothing back on success.
+/// What the Profiles pane's Save learns from `verify`: endpoint, key, and model proven together,
+/// with nothing carried back on success.
 public enum VerificationOutcome: Equatable, Sendable {
   case verified
   case cancelled
@@ -43,8 +43,23 @@ public enum CleanupFailure: Error, Equatable, LocalizedError, Sendable {
   case malformedResponse(String)
   /// A well-formed completion whose content cannot be what the speaker meant to type.
   case degenerateResponse(DegenerateResponse)
+  /// The model on this Mac could not run.
+  case localModel(String)
 
   // MARK: Public
+
+  /// Google refuses a bad key with a 400 that only its message tells apart.
+  public var rejectsKey: Bool {
+    switch self {
+    case .httpStatus(401, _),
+         .httpStatus(403, _):
+      true
+    case let .httpStatus(400, message):
+      message?.localizedCaseInsensitiveContains("API key") == true
+    default:
+      false
+    }
+  }
 
   public var errorDescription: String? {
     switch self {
@@ -59,6 +74,8 @@ public enum CleanupFailure: Error, Equatable, LocalizedError, Sendable {
       "Cleanup response was malformed: \(message)"
     case let .degenerateResponse(reason):
       "Cleanup response was unusable: \(reason.description)"
+    case let .localModel(message):
+      "Local cleanup failed: \(message)"
     }
   }
 }

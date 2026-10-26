@@ -26,6 +26,9 @@
 		60FC0006000000000000FC06 /* CleanupTestSupport in Frameworks */ = {isa = PBXBuildFile; productRef = 60FC0007000000000000FC07 /* CleanupTestSupport */; };
 		60A50001000000000000A501 /* AppSettings in Frameworks */ = {isa = PBXBuildFile; productRef = 60A50002000000000000A502 /* AppSettings */; };
 		60A50006000000000000A506 /* History in Frameworks */ = {isa = PBXBuildFile; productRef = 60A50007000000000000A507 /* History */; };
+		60AB0001000000000000AB01 /* ModelLibrary in Frameworks */ = {isa = PBXBuildFile; productRef = 60AB0002000000000000AB02 /* ModelLibrary */; };
+		60AC0001000000000000AC01 /* LocalCleanup in Frameworks */ = {isa = PBXBuildFile; productRef = 60AC0002000000000000AC02 /* LocalCleanup */; };
+		60AB0003000000000000AB03 /* ModelLibrary in Frameworks */ = {isa = PBXBuildFile; productRef = 60AB0004000000000000AB04 /* ModelLibrary */; };
 		60A50008000000000000A508 /* History in Frameworks */ = {isa = PBXBuildFile; productRef = 60A50009000000000000A509 /* History */; };
 		60A5000A000000000000A50A /* Sharing in Frameworks */ = {isa = PBXBuildFile; productRef = 60A5000B000000000000A50B /* Sharing */; };
 		60A5000C000000000000A50C /* Sharing in Frameworks */ = {isa = PBXBuildFile; productRef = 60A5000D000000000000A50D /* Sharing */; };
@@ -63,6 +66,8 @@
 		60FC0003000000000000FC03 /* FieldContext */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = FieldContext; sourceTree = "<group>"; };
 		60A50003000000000000A503 /* AppSettings */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = AppSettings; sourceTree = "<group>"; };
 		60A50005000000000000A505 /* History */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = History; sourceTree = "<group>"; };
+		60AB0005000000000000AB05 /* ModelLibrary */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = ModelLibrary; sourceTree = "<group>"; };
+		60AC0005000000000000AC05 /* LocalCleanup */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = LocalCleanup; sourceTree = "<group>"; };
 		60D10005000000000000D105 /* SpeechDictionary */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = SpeechDictionary; sourceTree = "<group>"; };
 		604379AF2EF6153500B83635 /* justfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = justfile; sourceTree = "<group>"; };
 		604379B02EF6153C00B83635 /* Bootstrap-Guide.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "Bootstrap-Guide.md"; sourceTree = "<group>"; };
@@ -123,6 +128,8 @@
 				60FC0001000000000000FC01 /* FieldContext in Frameworks */,
 				60A50001000000000000A501 /* AppSettings in Frameworks */,
 				60A50006000000000000A506 /* History in Frameworks */,
+				60AB0001000000000000AB01 /* ModelLibrary in Frameworks */,
+				60AC0001000000000000AC01 /* LocalCleanup in Frameworks */,
 				60D10001000000000000D101 /* SpeechDictionary in Frameworks */,
 				60A5000A000000000000A50A /* Sharing in Frameworks */,
 			);
@@ -142,6 +149,7 @@
 				60D10003000000000000D103 /* SpeechDictionary in Frameworks */,
 				60A5000C000000000000A50C /* Sharing in Frameworks */,
 				60A5000E000000000000A50E /* AudioCapture in Frameworks */,
+				60AB0003000000000000AB03 /* ModelLibrary in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -198,6 +206,8 @@
 				60FC0003000000000000FC03 /* FieldContext */,
 				60A50003000000000000A503 /* AppSettings */,
 				60A50005000000000000A505 /* History */,
+				60AB0005000000000000AB05 /* ModelLibrary */,
+				60AC0005000000000000AC05 /* LocalCleanup */,
 				60D10005000000000000D105 /* SpeechDictionary */,
 			);
 			path = Packages;
@@ -264,6 +274,8 @@
 				60FC0002000000000000FC02 /* FieldContext */,
 				60A50002000000000000A502 /* AppSettings */,
 				60A50007000000000000A507 /* History */,
+				60AB0002000000000000AB02 /* ModelLibrary */,
+				60AC0002000000000000AC02 /* LocalCleanup */,
 				60D10002000000000000D102 /* SpeechDictionary */,
 				60A5000B000000000000A50B /* Sharing */,
 			);
@@ -299,6 +311,7 @@
 				60D10004000000000000D104 /* SpeechDictionary */,
 				60A5000D000000000000A50D /* Sharing */,
 				60A5000F000000000000A50F /* AudioCapture */,
+				60AB0004000000000000AB04 /* ModelLibrary */,
 			);
 			productName = MiniWhisperTests;
 			productReference = 60292CE22EF603C9009AD5D1 /* MiniWhisperTests.xctest */;
@@ -1050,6 +1063,18 @@
 		60A50009000000000000A509 /* History */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = History;
+		};
+		60AB0002000000000000AB02 /* ModelLibrary */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ModelLibrary;
+		};
+		60AC0002000000000000AC02 /* LocalCleanup */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = LocalCleanup;
+		};
+		60AB0004000000000000AB04 /* ModelLibrary */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ModelLibrary;
 		};
 		60D10002000000000000D102 /* SpeechDictionary */ = {
 			isa = XCSwiftPackageProductDependency;

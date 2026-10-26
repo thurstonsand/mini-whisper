@@ -69,10 +69,11 @@ extension XCUIElement {
   }
 }
 
+@MainActor
 extension XCUIApplication {
   /// Queried by identifier rather than element type: a multiline text entry surfaces as a text
   /// view or a text field depending on how it is built, and no assertion here is about which.
-  @MainActor var tryItEditor: XCUIElement {
+  var tryItEditor: XCUIElement {
     descendants(matching: .any)["miniwhisper.onboarding.try-it.text"].firstMatch
   }
 }

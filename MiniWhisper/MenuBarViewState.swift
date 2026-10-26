@@ -6,6 +6,7 @@ struct MenuBarViewState: Equatable {
 
   let degradations: [Degradation]
   let engineReadiness: EngineReadiness
+  let engineStatusText: String
   let inputDeviceName: String?
   let canCopyLastTranscript: Bool
 
@@ -24,6 +25,6 @@ struct MenuBarViewState: Equatable {
   /// for a permission. The engine names its own troubles, since only it has progress to report;
   /// anything else that stops a dictation simply withdraws the claim and lets the rows say why.
   private var readinessText: String {
-    engineReadiness == .ready && !degradations.isEmpty ? "Not ready" : engineReadiness.statusText
+    engineReadiness == .ready && !degradations.isEmpty ? "Not ready" : engineStatusText
   }
 }

@@ -1,5 +1,5 @@
 ---
-status: open
+status: closed
 type: grilling
 blocked-by: [18]
 ---
@@ -38,3 +38,7 @@ Round 3 answered the taxonomy from measurement ([results/profiles-recommendation
 ### The factory profile moves to Haiku 5.5 (2026-10-21)
 
 The user switched the factory profile's model from `claude-haiku-4-5` to `claude-haiku-5-5`. The shipped prompt does not carry over: on the same proxy transport it falls from 16.50 to 7.40 on the frozen 25 and from 9.10 to 7.40 on the holdout, n=10 ([results/haiku-5-5](../assets/43-dictation-corpus/results/haiku-5-5/README.md)). The switch needs a tuning round under [ticket 48](48-prompt-eval-automation.md) before it ships.
+
+## Resolution
+
+Grilled together with [presets](39-recommended-cleanup-providers.md) and built as [Profiles](../../../designs/04-profiles.md). A profile is a whole dictation stack, exactly one active: engine, vocabulary strategy, cleanup leg, credentials, and the models it needs on disk. Factory profiles are compiled in and overridable by delta, with Reset to Default; Custom is the open one. Keys live in one Keychain item per slot, `profile.<id>.<provider>`, and the old single item is ignored. The model listing persists in `model-listings.json`, keyed by endpoint, and is refetched quietly when the pane opens. The Profiles pane replaces the Cleanup pane and the Model placeholder.

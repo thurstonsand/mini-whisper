@@ -46,5 +46,5 @@ import AppKit
   /// of our windows is closing.
   private static var previousApp: NSRunningApplication?
 
-  private var observer: (any NSObjectProtocol)?
+  private var observer: any NSObjectProtocol?
 }

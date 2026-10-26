@@ -42,13 +42,15 @@ Three build configurations produce three separate apps, so all three can be inst
 
 - `MiniWhisper/` — SwiftUI app target (thin shell, NSStatusItem menu, TCA features and clients)
 - `Packages/AudioCapture` — AVAudioEngine mic capture, input-device selection and observation, canonical whole-utterance accumulation, level metering
-- `Packages/ASREngine` — silence gate + transcription, vocabulary boost and corrections
+- `Packages/ASREngine` — the gate, the local (Parakeet) and hosted (Scribe) engines, vocabulary boost and corrections
+- `Packages/ModelLibrary` — pinned model assets: per-asset resumable download, validation, provenance, and deletion
+- `Packages/LocalCleanup` — S1-mini in process through the pinned llama.cpp xcframework
 - `Packages/SpeechDictionary` — the `dictionary.json` entry model and codec
 - `Packages/FieldContext` — focused-field capture payload, fallback taxonomy, and the transcript join rules
 - `Packages/TranscriptCleanup` — the OpenAI-compatible client
 - `Packages/HotkeyListener` — event pipeline routing action-bound bindings and the chord recorder
 - `Packages/History` — history log model, retention policy, and the audio vault
-- `Packages/AppSettings` — the `settings.json` model and store, aggregating settings from the feature packages
+- `Packages/AppSettings` — the `settings.json` model and store, the profile lineup, aggregating settings from the feature packages
 
 Design principle: the app target is a thin shell; business logic lives in packages. Features (`@Reducer`) orchestrate, clients (`@DependencyClient`) wrap system boundaries, pure decision logic gets plain unit tests in its package.
 

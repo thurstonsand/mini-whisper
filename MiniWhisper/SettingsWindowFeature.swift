@@ -2,6 +2,7 @@ import AppSettings
 import ComposableArchitecture
 import Foundation
 import History
+import ModelLibrary
 import SpeechDictionary
 
 // MARK: - SettingsDestination
@@ -9,9 +10,9 @@ import SpeechDictionary
 enum SettingsDestination: String, CaseIterable, Identifiable, Equatable {
   case settings = "Settings"
   case history = "History"
-  case model = "Model"
   case dictionary = "Dictionary"
-  case cleanup = "Cleanup"
+  case profiles = "Profiles"
+  case models = "Models"
 
   // MARK: Internal
 
@@ -25,12 +26,12 @@ enum SettingsDestination: String, CaseIterable, Identifiable, Equatable {
       "gearshape"
     case .history:
       "clock.arrow.circlepath"
-    case .model:
-      "waveform"
     case .dictionary:
       "character.book.closed"
-    case .cleanup:
-      "wand.and.sparkles"
+    case .profiles:
+      "person.crop.rectangle.stack"
+    case .models:
+      "internaldrive"
     }
   }
 
@@ -40,29 +41,12 @@ enum SettingsDestination: String, CaseIterable, Identifiable, Equatable {
       AccessibilityID.settingsSidebarSettings
     case .history:
       AccessibilityID.settingsSidebarHistory
-    case .model:
-      AccessibilityID.settingsSidebarModel
     case .dictionary:
       AccessibilityID.settingsSidebarDictionary
-    case .cleanup:
-      AccessibilityID.settingsSidebarCleanup
-    }
-  }
-
-  /// Only the destinations that are still unbuilt ever show one; the rest answer for
-  /// completeness, because a caption is cheaper than a switch that can go stale.
-  var placeholderCaption: String {
-    switch self {
-    case .settings:
-      "Dictation controls will appear here."
-    case .history:
-      "Your dictation history will appear here."
-    case .model:
-      "Speech model controls will appear here."
-    case .dictionary:
-      "Custom words and corrections will appear here."
-    case .cleanup:
-      "Transcript cleanup controls will appear here."
+    case .profiles:
+      AccessibilityID.settingsSidebarProfiles
+    case .models:
+      AccessibilityID.settingsSidebarModels
     }
   }
 }
@@ -111,13 +95,13 @@ struct SettingsWindowInteraction: Equatable {
     ) {
       self.selection = selection
       settingsPane = SettingsPaneFeature.State(settings: settings, health: health)
-      cleanup = CleanupFeature.State(settings: settings)
+      profiles = ProfilesFeature.State(settings: settings, health: health)
+      models = ModelsFeature.State(settings: settings, health: health)
       self.history = HistoryFeature.State(
-        log: history, retention: settings.retention, dictionary: dictionary,
-        improveRecognition: settings.improveRecognition, cleanup: settings.cleanup,
+        log: history, retention: settings.retention, dictionary: dictionary, settings: settings,
       )
       self.dictionary = DictionaryFeature.State(
-        dictionary: dictionary, improveRecognition: settings.improveRecognition,
+        dictionary: dictionary, profiles: settings.profiles,
       )
     }
 
@@ -131,7 +115,8 @@ struct SettingsWindowInteraction: Equatable {
     var settingsPane: SettingsPaneFeature.State
     var history: HistoryFeature.State
     var dictionary: DictionaryFeature.State
-    var cleanup: CleanupFeature.State
+    var profiles: ProfilesFeature.State
+    var models: ModelsFeature.State
 
     func showsHistoryKeyboardCursor(_ id: UUID) -> Bool {
       interaction.showsKeyboardCursor(history.cursorEntry?.id == id)
@@ -155,14 +140,19 @@ struct SettingsWindowInteraction: Equatable {
       )
     }
 
-    func showsCleanupBar(_ row: CleanupFeature.Row) -> Bool {
-      interaction.focus == .detail && cleanup.cursorRow == row
+    func showsProfilesBar(_ row: ProfilesFeature.Row) -> Bool {
+      interaction.focus == .detail && profiles.cursorRow == row
     }
 
-    func showsCleanupRing(_ row: CleanupFeature.Row, target: CleanupFeature.Target) -> Bool {
+    func showsProfilesRing(_ row: ProfilesFeature.Row, target: ProfilesFeature.Target) -> Bool {
       interaction.showsKeyboardCursor(
-        cleanup.cursorRow == row && cleanup.cursorTarget == target,
+        profiles.cursorRow == row && profiles.cursorTarget == target,
       )
+    }
+
+    /// A card is lit by being pointed at, so only an asset row's button wears a keyboard ring.
+    func showsModelsRing(_ asset: ModelAsset) -> Bool {
+      interaction.showsKeyboardCursor(models.cursorRow == .asset(asset))
     }
   }
 
@@ -174,14 +164,16 @@ struct SettingsWindowInteraction: Equatable {
     case settingsPane(SettingsPaneFeature.Action)
     case history(HistoryFeature.Action)
     case dictionary(DictionaryFeature.Action)
-    case cleanup(CleanupFeature.Action)
+    case profiles(ProfilesFeature.Action)
+    case models(ModelsFeature.Action)
   }
 
   var body: some ReducerOf<Self> {
     Scope(state: \.settingsPane, action: \.settingsPane) { SettingsPaneFeature() }
     Scope(state: \.history, action: \.history) { HistoryFeature() }
     Scope(state: \.dictionary, action: \.dictionary) { DictionaryFeature() }
-    Scope(state: \.cleanup, action: \.cleanup) { CleanupFeature() }
+    Scope(state: \.profiles, action: \.profiles) { ProfilesFeature() }
+    Scope(state: \.models, action: \.models) { ModelsFeature() }
 
     Reduce { state, action in
       switch action {
@@ -202,12 +194,14 @@ struct SettingsWindowInteraction: Equatable {
       case .settingsPane(.cursorHovered),
            .history(.cursorHovered),
            .dictionary(.cursorHovered),
-           .cleanup(.cursorHovered):
+           .profiles(.cursorHovered),
+           .models(.cursorHovered):
         state.interaction.focus = .detail
         return .none
-      case .cleanup,
-           .dictionary,
+      case .dictionary,
            .history,
+           .models,
+           .profiles,
            .settingsPane:
         return .none
       }

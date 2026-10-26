@@ -1,8 +1,10 @@
+import AppSettings
 import ASREngine
 import AudioCapture
 import ComposableArchitecture
 import Foundation
 import HotkeyListener
+import ModelLibrary
 import TranscriptCleanup
 
 #if DEBUG
@@ -28,7 +30,19 @@ import TranscriptCleanup
         },
       )
       dependencies.modelDownloadConsent.markConsented = {}
-      dependencies.asrEngine.installAndPrepare = { AsyncStream { $0.finish() } }
+      dependencies.asrEngine.installAndPrepare = { _ in AsyncStream { $0.finish() } }
+      dependencies.asrEngine.unload = { _ in }
+      dependencies.asrEngine.verifyKey = { _, key in
+        if key.hasPrefix("sk_rejected") {
+          throw ASREngineError.credentialRejected
+        }
+      }
+      dependencies.modelLibrary = ModelLibraryClient(
+        states: { sceneState.assetStates() },
+        delete: { sceneState.deleteAsset($0) },
+        install: { sceneState.installAsset($0) },
+        isInstalled: { sceneState.isInstalled($0) },
+      )
       dependencies.hotkeyListener.record = { AsyncStream { _ in } }
       let inputDevices = AudioInputDeviceSnapshot(
         devices: [
@@ -58,14 +72,47 @@ import TranscriptCleanup
       // The pane's key really is read, stored, and re-read; only the Keychain behind it is the
       // scene's, so a UI run cannot leave a credential on the machine.
       dependencies.keychain = KeychainClient(
-        store: { secret, _ in sceneState.cleanupKey = secret },
-        read: { _ in sceneState.cleanupKey },
-        delete: { _ in sceneState.cleanupKey = nil },
+        store: { secret, slot in sceneState.keys[slot] = secret },
+        read: { slot in sceneState.keys[slot] },
+        delete: { slot in sceneState.keys[slot] = nil },
       )
       dependencies.cleanup = CleanupClient(
         clean: { _, _, _ in .cleaned("Agent scenes never dictate.") },
-        verify: { _, _ in .verified },
-        listModels: { _, _ in .models(["gpt-oss-120b", "gpt-oss-20b"]) },
+        // Each way a Save can fail has an address, a key, or a model that provokes it, so a UI
+        // run reaches every failure by typing rather than by a seam.
+        verify: { configuration, apiKey in
+          let endpoint = configuration.endpoint
+          if endpoint.host() == "slow.example" {
+            try? await Task.sleep(for: .seconds(30))
+            return .cancelled
+          }
+          if endpoint.port == 11435 {
+            return .failed(.unreachable("Connection refused"))
+          }
+          if endpoint.host() == "needs-key.example", apiKey == nil {
+            return .failed(.httpStatus(code: 401, message: nil))
+          }
+          if apiKey?.hasPrefix("sk-rejected") == true {
+            return .failed(.httpStatus(code: 401, message: "invalid x-api-key"))
+          }
+          if configuration.model == "qwen3:32b" {
+            return .failed(.httpStatus(code: 404, message: "model 'qwen3:32b' not found"))
+          }
+          return .verified
+        },
+        listModels: { configuration, _ in
+          switch configuration.endpoint.host() {
+          case "api.anthropic.com":
+            .models(["claude-haiku-5-5", "claude-sonnet-5-5"])
+          case "generativelanguage.googleapis.com":
+            .models(["gemini-3.8-flash", "gemini-3.5-flash-lite"])
+          default:
+            .models(["gpt-oss-120b", "gpt-oss-20b"])
+          }
+        },
+        cleanLocally: { _, _ in .cleaned("Agent scenes never dictate.") },
+        prepareLocal: {},
+        unloadLocal: {},
       )
       dependencies.launchAtLogin = LaunchAtLoginClient(
         isRegistered: { sceneState.launchAtLoginRegistered },
@@ -107,7 +154,8 @@ import TranscriptCleanup
       _microphoneStatus = seeded.health.micStatus
       _accessibilityGranted = seeded.health.accessibilityGranted
       _launchAtLoginRegistered = seeded.settingsWindow.settingsPane.launchAtLoginRegistered
-      _cleanupKey = scene.seededCleanupKey
+      _keys = scene.seededKeys
+      _assets = scene.seededAssets
     }
 
     // MARK: Internal
@@ -131,9 +179,9 @@ import TranscriptCleanup
       set { lock.withLock { _launchAtLoginRegistered = newValue } }
     }
 
-    var cleanupKey: String? {
-      get { lock.withLock { _cleanupKey } }
-      set { lock.withLock { _cleanupKey = newValue } }
+    var keys: [CredentialSlot: String] {
+      get { lock.withLock { _keys } }
+      set { lock.withLock { _keys = newValue } }
     }
 
     func reseed(for scene: AgentDriveabilityScene) {
@@ -142,8 +190,35 @@ import TranscriptCleanup
         _microphoneStatus = seeded.health.micStatus
         _accessibilityGranted = seeded.health.accessibilityGranted
         _launchAtLoginRegistered = seeded.settingsWindow.settingsPane.launchAtLoginRegistered
-        _cleanupKey = scene.seededCleanupKey
+        _keys = scene.seededKeys
+        _assets = scene.seededAssets
       }
+      broadcastAssets()
+    }
+
+    func assetStates() -> AsyncStream<[ModelAsset: AssetState]> {
+      AsyncStream { continuation in
+        let assets = lock.withLock {
+          _assetObservers.append(continuation)
+          return _assets
+        }
+        continuation.yield(assets)
+      }
+    }
+
+    func deleteAsset(_ asset: ModelAsset) {
+      lock.withLock { _assets[asset] = .missing }
+      broadcastAssets()
+    }
+
+    /// Instant, so a scene never touches the network and still shows where a press lands.
+    func installAsset(_ asset: ModelAsset) {
+      lock.withLock { _assets[asset] = .installed(bytes: asset.pinnedBytes) }
+      broadcastAssets()
+    }
+
+    func isInstalled(_ asset: ModelAsset) -> Bool {
+      lock.withLock { _assets[asset]?.isInstalled == true }
     }
 
     // MARK: Private
@@ -152,6 +227,15 @@ import TranscriptCleanup
     private var _microphoneStatus: MicPermissionStatus
     private var _accessibilityGranted: Bool
     private var _launchAtLoginRegistered: Bool
-    private var _cleanupKey: String?
+    private var _keys: [CredentialSlot: String]
+    private var _assets: [ModelAsset: AssetState]
+    private var _assetObservers: [AsyncStream<[ModelAsset: AssetState]>.Continuation] = []
+
+    private func broadcastAssets() {
+      let (assets, observers) = lock.withLock { (_assets, _assetObservers) }
+      for observer in observers {
+        observer.yield(assets)
+      }
+    }
   }
 #endif

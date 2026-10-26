@@ -155,22 +155,28 @@ struct SettingsWindowView: View {
         add: { store.send(.dictionary(.addShortcutPressed)) },
         delete: { store.send(.dictionary(.cursorDeleteShortcutPressed)) },
       )
-    case .cleanup:
+    case .profiles:
       isEditingText ? WindowKeyActions() : WindowKeyActions(
         left: {
-          let ascends = store.cleanup.cursor.target == 0
-          store.send(.cleanup(.leftPressed))
+          let ascends = store.profiles.cursor.target == 0
+          store.send(.profiles(.leftPressed))
           if ascends {
             setFocus(.sidebar)
           }
         },
-        down: { store.send(.cleanup(.rowMoved(.next))) },
-        up: { store.send(.cleanup(.rowMoved(.previous))) },
-        right: { store.send(.cleanup(.rightPressed)) },
-        press: { store.send(.cleanup(.pressRequested)) },
+        down: { store.send(.profiles(.rowMoved(.next))) },
+        up: { store.send(.profiles(.rowMoved(.previous))) },
+        right: { store.send(.profiles(.rightPressed)) },
+        press: { store.send(.profiles(.pressRequested)) },
       )
-    case .model:
-      WindowKeyActions(left: { setFocus(.sidebar) })
+    case .models:
+      WindowKeyActions(
+        left: { setFocus(.sidebar) },
+        down: { store.send(.models(.rowMoved(.next))) },
+        up: { store.send(.models(.rowMoved(.previous))) },
+        right: { store.send(.models(.pressRequested)) },
+        press: { store.send(.models(.pressRequested)) },
+      )
     }
   }
 
@@ -200,9 +206,9 @@ struct SettingsWindowView: View {
 
   /// A text field owns the keys: while one is being typed in, the window claims no letters and
   /// every key falls through to the editor. Two panes have such a field — History's search and
-  /// the Cleanup pane's — and the window only ever needs to know that one of them does.
+  /// the Profiles pane's — and the window only ever needs to know that one of them does.
   private var isEditingText: Bool {
-    isHistorySearchFocused || store.cleanup.isEditingField
+    isHistorySearchFocused || store.profiles.isEditingField
   }
 
   @ViewBuilder private var detail: some View {
@@ -213,10 +219,10 @@ struct SettingsWindowView: View {
       HistoryPane(store: store, searchFocus: $isHistorySearchFocused)
     case .dictionary:
       DictionaryPane(store: store)
-    case .cleanup:
-      CleanupPane(store: store)
-    case .model:
-      SettingsPlaceholderPane(destination: store.selection)
+    case .profiles:
+      ProfilesPane(store: store)
+    case .models:
+      ModelsPane(store: store)
     }
   }
 
@@ -277,22 +283,5 @@ struct SettingsWindowView: View {
     }
     let next = min(max(current + offset, 0), destinations.count - 1)
     store.send(.selectionChanged(destinations[next]))
-  }
-}
-
-// MARK: - SettingsPlaceholderPane
-
-private struct SettingsPlaceholderPane: View {
-  let destination: SettingsDestination
-
-  var body: some View {
-    VStack(spacing: 8) {
-      Text(destination.rawValue).font(.title2)
-      Text(destination.placeholderCaption).foregroundStyle(.secondary)
-    }
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .accessibilityElement(children: .ignore)
-    .accessibilityIdentifier(AccessibilityID.settingsPlaceholder)
-    .accessibilityLabel("\(destination.rawValue). \(destination.placeholderCaption)")
   }
 }

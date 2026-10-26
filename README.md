@@ -45,6 +45,8 @@ MiniWhisper downloads and uses [NVIDIA Parakeet TDT 0.6B v2](https://huggingface
 
 Transcription is integrated through [FluidAudio](https://github.com/FluidInference/FluidAudio), licensed under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0).
 
+The Offline profile downloads and uses ["S1-mini" by "Superwhisper"](https://huggingface.co/superwhisper/s1-mini-GGUF) for cleanup, licensed under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) with an additional naming term. It is downloaded only when that profile is chosen and is not redistributed in the app bundle. It runs through [llama.cpp](https://github.com/ggml-org/llama.cpp), licensed under the [MIT License](https://github.com/ggml-org/llama.cpp/blob/master/LICENSE).
+
 ## License
 
 MiniWhisper's source code is available under the [MIT License](LICENSE).

@@ -6,6 +6,7 @@ import FieldContext
 import Foundation
 import History
 @testable import MiniWhisper
+import ModelLibrary
 import Sharing
 import Testing
 import TranscriptCleanup
@@ -65,6 +66,30 @@ import TranscriptCleanup
     )
   }
 
+  /// The engine heard the dictation under one profile, so that profile cleans it, whatever the
+  /// pane says by the time the transcript arrives.
+  @Test func `a profile switch after the recording ends leaves that dictation's cleanup alone`(
+  ) async {
+    let slots = SlotRecorder()
+    let store = cleanupStore(cleanup: .configured, switchingTo: .haiku) {
+      $0.keychain.read = { slot in
+        slots.record(slot)
+        return "sk-test"
+      }
+      $0.cleanup.clean = { _, configuration, _ in
+        #expect(configuration.endpoint == endpoint)
+        #expect(configuration.model == "gpt-oss-120b")
+        return .cleaned("--help")
+      }
+      $0.delivery.deliver = { _ in .pasted(.restored) }
+    }
+    await store.send(.transcriptionCompleted(1, .transcript("dash dash help")))
+    await store.finish()
+
+    #expect(slots.values == [CredentialSlot(profile: .custom, provider: .endpoint)])
+    #expect(store.state.history.entries.first?.original?.cleanup?.model == "gpt-oss-120b")
+  }
+
   @Test(arguments: [
     CleanupFailure.unreachable("connection refused"),
     .timedOut(10),
@@ -91,7 +116,9 @@ import TranscriptCleanup
     }
     await store.receive(
       .cleanupResolved(
-        1, .attempted(configuration, .failed(reason: failure.historyDetail, seconds: 0)),
+        1, .attempted(configuration, .failed(
+          reason: failure.historyDetail, seconds: 0, rejectsKey: failure.rejectsKey,
+        )),
       ),
     )
     await store.receive(
@@ -141,7 +168,10 @@ import TranscriptCleanup
     await store.receive(.contextCaptured(1, .available(fieldContext), ghostty))
     await store.receive(
       .cleanupResolved(
-        1, .attempted(configuration, .failed(reason: "keyUnreadable", seconds: 0)),
+        1, .attempted(
+          configuration,
+          .failed(reason: "keyUnreadable", seconds: 0, rejectsKey: false),
+        ),
       ),
     )
     await store.skipReceivedActions()
@@ -151,11 +181,30 @@ import TranscriptCleanup
     #expect(entry.original?.cleanup?.disposition == .failed("keyUnreadable"))
   }
 
+  /// Custom's key is optional, so an endpoint saved without one is asked without one.
+  @Test func `a keyless Custom endpoint is cleaned without a key`() async {
+    let sentKey = TestBox<String??>(nil)
+    let store = cleanupStore(cleanup: .keyless) {
+      $0.cleanup.clean = { _, _, apiKey in
+        sentKey.value = apiKey
+        return .cleaned("--help")
+      }
+      $0.delivery.deliver = { _ in .pasted(.restored) }
+    }
+
+    await store.send(.transcriptionCompleted(1, .transcript("dash dash help")))
+    await store.finish()
+    #expect(sentKey.value == .some(nil))
+  }
+
+  /// A factory profile's key is never optional: without one there is nothing to run.
   @Test(arguments: [CleanupConfigurationCase.disabled, .unconfigured, .keyless])
   func `cleanup that cannot run is a pass-through, not a phase`(
     _ configuration: CleanupConfigurationCase,
   ) async throws {
-    let store = cleanupStore(cleanup: configuration) {
+    let store = cleanupStore(
+      cleanup: configuration, active: configuration == .keyless ? .haiku : .custom,
+    ) {
       $0.cleanup.clean = { _, _, _ in
         Issue.record("An incomplete cleanup configuration must never send a request")
         return .cancelled
@@ -183,6 +232,37 @@ import TranscriptCleanup
     #expect(store.state.pill.presentation == nil)
     let entry = try #require(store.state.history.entries.first)
     #expect(entry.original?.cleanup == nil)
+  }
+
+  /// Offline cleans on this Mac with no key at all, so what gates it is S1-mini being on disk:
+  /// without it the dictation delivers raw, exactly as a missing key would.
+  @Test(arguments: [true, false])
+  func `offline cleans locally only once its model is on disk`(installed: Bool) async throws {
+    let store = cleanupStore(cleanup: .configured, active: .offline) {
+      $0.keychain.read = { _ in
+        Issue.record("Offline cleanup never reads a key")
+        return nil
+      }
+      $0.modelLibrary.isInstalled = { $0 == .s1Mini ? installed : true }
+      $0.cleanup.clean = { _, _, _ in
+        Issue.record("Offline cleanup never leaves the Mac")
+        return .cancelled
+      }
+      $0.cleanup.cleanLocally = { transcript, timeout in
+        #expect(timeout == MiniWhisperSettings.defaults.cleanupTimeout)
+        #expect(installed, "A missing model must never be asked to clean")
+        #expect(transcript == "dash dash help")
+        return .cleaned("--help")
+      }
+      $0.delivery.deliver = { _ in .pasted(.restored) }
+    }
+
+    await store.send(.transcriptionCompleted(1, .transcript("dash dash help")))
+    await store.finish()
+
+    let entry = try #require(store.state.history.entries.first)
+    #expect(entry.delivery?.text == (installed ? "--help" : "dash dash help"))
+    #expect(entry.original?.cleanup?.model == (installed ? "s1-mini" : nil))
   }
 
   /// Paste-last and Copy Last Transcript recover what was delivered, and after a cleaned
@@ -238,8 +318,7 @@ private actor DeliveredTexts {
 
 // MARK: - CleanupConfigurationCase
 
-/// The three ways a cleanup pass has nothing to run: the toggle is off, the pane was never
-/// finished, and the key is absent from the Keychain.
+/// How cleanup is set up: ready, off, never finished, or with nothing in the Keychain.
 enum CleanupConfigurationCase {
   case configured
   case disabled
@@ -261,16 +340,16 @@ private let fieldContext = FocusedTextContext(
 )
 
 @MainActor private func cleanupStore(
-  cleanup configurationCase: CleanupConfigurationCase,
-  _ dependencies: (inout DependencyValues) -> Void,
+  cleanup configurationCase: CleanupConfigurationCase, active: ProfileID = .custom,
+  switchingTo laterProfile: ProfileID? = nil, _ dependencies: (inout DependencyValues) -> Void,
 ) -> TestStoreOf<AppFeature> {
   var settings = MiniWhisperSettings.defaults
   settings.retention.audio = .never
-  settings.cleanup = CleanupSettings(
-    enabled: configurationCase != .disabled,
+  settings.profiles.active = active
+  settings.profiles.custom = CustomProfileSettings(
+    cleanupEnabled: configurationCase != .disabled,
     endpoint: configurationCase == .unconfigured ? nil : endpoint,
-    model: configurationCase == .unconfigured ? nil : "gpt-oss-120b",
-    timeout: 10, additionalInstructions: "",
+    model: configurationCase == .unconfigured ? nil : "gpt-oss-120b", boostsVocabulary: true,
   )
   var state = AppFeature.State(
     history: Shared(value: HistoryLog()), settings: Shared(value: settings),
@@ -280,7 +359,12 @@ private let fieldContext = FocusedTextContext(
   state.pendingDictation = AppFeature.PendingDictation(
     generation: 1, recording: CanonicalRecording(samples: [0.25]),
     createdAt: Date(timeIntervalSince1970: 100), engine: "test-engine@revision", original: nil,
+    cleanupTarget: settings.cleanupTarget,
   )
+  // The pane moving on after the recording ended, before the transcript arrives.
+  if let laterProfile {
+    state.$settings.withLock { $0.profiles.active = laterProfile }
+  }
   let store = TestStore(initialState: state) {
     AppFeature()
   } withDependencies: {
@@ -296,4 +380,23 @@ private let fieldContext = FocusedTextContext(
   }
   store.exhaustivity = .off(showSkippedAssertions: false)
   return store
+}
+
+// MARK: - SlotRecorder
+
+private final class SlotRecorder: @unchecked Sendable {
+  // MARK: Internal
+
+  var values: [CredentialSlot] {
+    lock.withLock { stored }
+  }
+
+  func record(_ slot: CredentialSlot) {
+    lock.withLock { stored.append(slot) }
+  }
+
+  // MARK: Private
+
+  private let lock = NSLock()
+  private var stored: [CredentialSlot] = []
 }

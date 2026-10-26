@@ -1,5 +1,5 @@
 ---
-status: open
+status: closed
 type: research
 blocked-by: [18]
 ---
@@ -27,3 +27,7 @@ Runtime and quality spike run at [`spikes/s1-mini-cleanup/`](../../../spikes/s1-
 **Corpus round 2:** Parakeet + s1-mini scores 12/27 stage-3 exact at 107 ms end-to-end — 63% of gemini's accuracy at 4% of its latency, fully offline. Every failure is structural (no prompt surface: spell-out 0/3, identifier/context 0/3, no dictionary), not quality: it holds all the invariants and ordinary spoken punctuation. The tier framing is confirmed by measurement.
 
 **Round 2 addendum:** Parakeet+s1-mini (12/27 @ 107 ms) beats superwhisper's own recommended offline stack, Cohere Transcribe+s1-mini (9/27 @ 172 ms), on both axes — the engine gap is ASR damage, not cleanup. The offline tier's best pairing is our incumbent engine plus their model.
+
+## Resolution
+
+Built as the [Offline profile](../../../designs/04-profiles.md)'s cleanup leg. `Packages/LocalCleanup` runs the pinned `superwhisper/s1-mini-GGUF` Q4_K_M in process through llama.cpp's xcframework (`b11801`, checksummed binary target), greedy decoding, with the model card's verbatim prompt. It is transcript-in, text-out: no DICTIONARY block, field context, or additional instructions, so Offline keeps the recognition sidecar. On the dev install it loads in about 3 s and cleans in 150–300 ms. An empty result is degenerate and delivers raw. Attribution names "S1-mini" by "Superwhisper" in About and ships its LICENSE and NOTICE beside llama.cpp's MIT license.

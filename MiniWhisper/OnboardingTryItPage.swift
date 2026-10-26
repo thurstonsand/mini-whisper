@@ -1,3 +1,4 @@
+import AppSettings
 import ComposableArchitecture
 import SwiftUI
 
@@ -37,6 +38,8 @@ struct OnboardingTryItPage: View {
 
   @ViewBuilder private var cardContent: some View {
     switch store.step {
+    case .keys:
+      unavailable("Add your keys to try a dictation.", symbol: "key")
     case .permissions:
       unavailable(
         "Grant both permissions and wait for the speech model to try it.", symbol: "lock.shield",
@@ -48,6 +51,11 @@ struct OnboardingTryItPage: View {
       )
     case .model:
       unavailable("Wait for the speech model to finish before trying a dictation.", symbol: "cpu")
+    case .tryIt where !store.missingKeys.isEmpty:
+      unavailable(
+        "\(store.profile.name) can’t dictate until it has \(OnboardingFeature.State.keysPhrase(store.missingKeys)). Add it in Settings → Profiles.",
+        symbol: "key",
+      )
     case .tryIt:
       editor
       if let hotkey = store.hotkeys.first {

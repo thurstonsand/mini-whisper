@@ -27,7 +27,7 @@ import SwiftUI
     window.setAccessibilityLabel("About \(Channel.name)")
     window.setAccessibilityTitle("About \(Channel.name)")
     window.contentView = NSHostingView(rootView: AboutView { [weak self] in self?.window?.close() })
-    window.setContentSize(NSSize(width: 480, height: 440))
+    window.setContentSize(NSSize(width: 480, height: 540))
     window.center()
     window.delegate = self
     self.window = window
@@ -117,6 +117,25 @@ private struct AboutView: View {
         .accessibilityLabel(
           "Open the FluidAudio project page",
         )
+
+        Divider().padding(.vertical, 5).accessibilityHidden(true)
+
+        // The S1-mini license requires this exact name and capitalization wherever it ships.
+        Text(
+          "Offline cleanup uses “S1-mini” by “Superwhisper”, licensed under the Apache License 2.0, run with llama.cpp under the MIT License.",
+        )
+        .fixedSize(horizontal: false, vertical: true)
+        .accessibilityIdentifier(AccessibilityID.aboutS1MiniAttribution)
+        .accessibilityLabel("Offline cleanup attribution")
+        .accessibilityValue(
+          "S1-mini by Superwhisper, licensed under the Apache License 2.0; llama.cpp, licensed under the MIT License",
+        )
+        Link(
+          "S1-mini on Hugging Face",
+          destination: URL(string: "https://huggingface.co/superwhisper/s1-mini-GGUF")!,
+        )
+        .accessibilityIdentifier(AccessibilityID.aboutS1MiniLink)
+        .accessibilityLabel("Open the S1-mini model page")
       }
       .font(.system(size: 12))
       .padding(.top, 28)
@@ -135,7 +154,7 @@ private struct AboutView: View {
     .accessibilityLabel("About \(Channel.name)")
     .padding(.horizontal, 42)
     .padding(.vertical, 32)
-    .frame(width: 480, height: 440)
+    .frame(width: 480, height: 540)
     .background(.background)
   }
 }

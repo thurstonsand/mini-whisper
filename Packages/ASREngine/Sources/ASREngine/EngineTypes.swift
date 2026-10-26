@@ -69,6 +69,8 @@ public enum EngineReadiness: Equatable, Sendable {
   case downloading(Double)
   case compiling
   case prewarming
+  /// Installed and loaded, but a hosted engine without its key cannot hear anything.
+  case credentialMissing
   case ready
   case failed(String)
 }
@@ -76,24 +78,24 @@ public enum EngineReadiness: Equatable, Sendable {
 // MARK: - ASREngineError
 
 public enum ASREngineError: Error, Equatable, LocalizedError, Sendable {
-  case modelMissing
-  case invalidArtifact(String)
-  case invalidDownload(String)
   case setupInProgress
+  case credentialMissing
+  case credentialRejected
+  case hostedFailure(Int, String)
   case notReady
 
   // MARK: Public
 
   public var errorDescription: String? {
     switch self {
-    case .modelMissing:
-      "Pinned speech models are not installed"
-    case let .invalidArtifact(message):
-      "Invalid pinned model artifact: \(message)"
-    case let .invalidDownload(message):
-      "Pinned model download failed: \(message)"
     case .setupInProgress:
       "Speech engine setup is already in progress"
+    case .credentialMissing:
+      "The speech service needs a key"
+    case .credentialRejected:
+      "The speech service rejected the key"
+    case let .hostedFailure(status, message):
+      "The speech service answered HTTP \(status): \(message)"
     case .notReady:
       "Speech engine is not ready"
     }
@@ -142,6 +144,7 @@ public extension EngineReadiness {
          .prewarming:
       true
     case .modelMissing,
+         .credentialMissing,
          .ready,
          .failed:
       false
