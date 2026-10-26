@@ -60,7 +60,7 @@ jobs:
       matrix:
         include:
           - name: darwin-arm64
-            runner: macos-26
+            runner: xcode-27
     name: Build (${{ matrix.name }})
     needs: resolve
     runs-on: ${{ matrix.runner }}

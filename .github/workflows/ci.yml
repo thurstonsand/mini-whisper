@@ -9,7 +9,7 @@ permissions:
 jobs:
   checks:
     name: Lint and test
-    runs-on: macos-26
+    runs-on: xcode-27
     env:
       CODE_SIGNING_ALLOWED: "NO"
       # xcodebuild hands only TEST_RUNNER_-prefixed variables to the test host, minus the prefix.

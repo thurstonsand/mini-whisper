@@ -1,6 +1,4 @@
-# The Swift of the Xcode CI builds with (.github/workflows, macos-26). Newer settings let the
-# formatter write syntax that compiler rejects, so raise it with CI's Xcode, not swift.org.
---swiftversion 6.3
+--swiftversion 6.4.1
 --indent 2
 --maxwidth 100
 
