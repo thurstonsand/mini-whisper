@@ -2,6 +2,31 @@
 
 # Release notes
 
+## 0.3.0
+
+MiniWhisper now cleans up what you say, learns your words, keeps a history of every dictation, and lets you choose the whole dictation stack as a profile.
+
+### Added
+
+- Profiles: Parakeet + Claude Haiku, Parakeet + Cerebras, Offline, Most accurate (ElevenLabs Scribe v2 with Gemini), and Custom for any OpenAI-compatible endpoint. Exactly one is active, and factory profiles can be overridden field by field.
+- The cleanup pass: an LLM pass that fixes punctuation, spoken formatting, and spelled-out words before delivery, with an on-device S1-mini model for Offline.
+- A Models library where each model downloads, resumes, and deletes on its own.
+- Keys and endpoints are checked before they are stored, for free, and a rejected key reads "Invalid key".
+- The dictionary: vocabulary and corrections, a settings pane, and Add to Dictionary in the menu. Taught words also boost recognition itself.
+- History of every dictation, with search, copy, playback, re-transcription, and retention settings.
+- A settings window: activation and paste-last shortcuts, microphone selection, per-cue sounds, and launch at login.
+- Paste-last (⌥⌘V) re-delivers the last transcript wherever the cursor now is.
+- Onboarding asks for the profile and the activation shortcut.
+
+### Changed
+
+- Dev, nightly, and release builds are separate apps with their own permissions, settings, and keys, so the nightly cask can be installed beside the release.
+- With nothing focused to type into, delivery is withheld and the clipboard is left alone; the pill offers paste-last instead.
+
+### Fixed
+
+- A double-tap or tap-then-hold no longer plays the activate cue twice.
+
 ## 0.2.0
 
 MiniWhisper now adapts delivered transcripts to the text around the insertion point and asks for one fewer macOS permission.
