@@ -39,6 +39,7 @@ quiet = true
 [tasks.build]
 description = "Build the app"
 run = """
+set -o pipefail
 xcodebuild -scheme $SCHEME \
     -destination "$DEST" \
     -derivedDataPath $DERIVED_DATA \
@@ -50,6 +51,7 @@ xcodebuild -scheme $SCHEME \
 [tasks."build:quick"]
 description = "Build without strict checks (faster iteration)"
 run = """
+set -o pipefail
 xcodebuild -scheme $SCHEME \
     -destination "$DEST" \
     -derivedDataPath $DERIVED_DATA \
@@ -75,6 +77,7 @@ depends = ["reset dev", "mw"]
 [tasks.test]
 description = "Run app unit tests (UI tests live in test:ui)"
 run = """
+set -o pipefail
 xcodebuild -scheme $SCHEME \
     -destination "$DEST" \
     -derivedDataPath $DERIVED_DATA \
