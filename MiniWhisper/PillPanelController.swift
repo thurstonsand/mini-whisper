@@ -50,7 +50,7 @@ private let performanceLogger = Logger(
 
   private let store: StoreOf<PillFeature>
   private let panel: NonactivatingPillPanel
-  private var screenParametersObserver: any NSObjectProtocol?
+  private var screenParametersObserver: (any NSObjectProtocol)?
   private var lastVisibility: Bool?
 
   private func observeStore() {

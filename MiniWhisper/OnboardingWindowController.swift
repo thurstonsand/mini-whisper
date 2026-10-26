@@ -43,7 +43,7 @@ import SwiftUI
 
   private let store: StoreOf<OnboardingFeature>
   private let window: NSWindow
-  private var activationObserver: any NSObjectProtocol?
+  private var activationObserver: (any NSObjectProtocol)?
   private var renderedVisibility: Bool?
   private var renderedPermissions: OnboardingPermissionStatuses?
 
