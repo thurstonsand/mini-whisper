@@ -1,0 +1,184 @@
+#!/bin/bash
+# Screenshot every variant and state, light and dark, by launching the mock-up once per screen. The
+# process prints its CGWindowID and `screencapture -l` takes that, so a capture never depends on
+# which window happens to be frontmost.
+#
+#   ./spikes/profiles-pane-mockup/capture [output-dir] [name-filter]   # "" for the default dir
+#
+# The filter is a grep pattern over shot names, for re-shooting one screen while iterating.
+set -euo pipefail
+
+cd "$(dirname "$0")/../.."
+out="${1:-}"
+out="${out:-spikes/profiles-pane-mockup/evidence}"
+filter="${2:-.}"
+mkdir -p "$out" .build
+
+swiftc -O -framework AppKit -framework SwiftUI \
+  spikes/profiles-pane-mockup/ProfilesPaneMockup.swift -o .build/profiles-pane-mockup
+
+# Round one shoots light and dark; round two shoots dark only.
+appearances="light dark"
+
+shoot() {
+  local name="$1"
+  shift
+  grep -qE "$filter" <<<"$name" || return 0
+  for appearance in $appearances; do
+    pkill -x profiles-pane-mockup 2>/dev/null || true
+    sleep 0.8
+    .build/profiles-pane-mockup "$@" "$appearance" >/tmp/profiles-pane-mockup-wid 2>/dev/null &
+    disown
+    sleep 3.5
+    # An attached sheet is part of the parent's capture, so the chooser needs nothing special.
+    screencapture -o -l "$(cat /tmp/profiles-pane-mockup-wid)" "$out/$name-$appearance.png"
+    echo "$out/$name-$appearance.png"
+  done
+}
+
+for v in a b c d; do
+  # The default: Haiku active, its key stored, every model installed.
+  shoot "pane-$v-default" "$v"
+  shoot "pane-$v-tall" "$v" tall
+  # The states every variant has to carry.
+  shoot "pane-$v-accurate-nokey" "$v" accurate-nokey
+  shoot "pane-$v-offline-nos1" "$v" offline-nos1
+  shoot "pane-$v-models-notinuse" "$v" models
+  shoot "pane-$v-models-notinuse-tall" "$v" models tall
+done
+
+# Browsing a profile that is not running, where a variant separates the two.
+shoot pane-b-browse b browse
+shoot pane-b-browse-tall b browse tall
+shoot pane-c-browse c browse
+
+# Extra states.
+shoot pane-a-downloading a downloading
+shoot pane-a-custom-tall a custom tall
+shoot pane-a-overridden a overridden
+shoot pane-d-downloading d downloading
+shoot pane-d-accurate-nokey-tall d accurate-nokey tall
+
+# Round two: the revised D, then one set per question. `./capture "" '^r2-'` re-shoots only these.
+appearances="dark"
+shoot r2-d-revised r2
+shoot r2-d-revised-tall r2 tall
+shoot r2-d-overridden r2 overridden2 h=900
+shoot r2-d-accurate-nokey r2 accurate-nokey
+
+# 2. Downloads: Most accurate active, Parakeet and S1-mini still on disk.
+shoot r2-downloads-1 r2 downloads=1
+shoot r2-downloads-2 r2 downloads=2
+shoot r2-downloads-3 r2 downloads=3
+
+# 3. Profile-specific vs global settings.
+shoot r2-scope-1 r2 scope=1 h=920
+shoot r2-scope-2-settings r2 scope=2 settings h=920
+shoot r2-scope-2-profiles r2 scope=2 h=920
+shoot r2-scope-3 r2 scope=3 h=920
+shoot r2-scope-4 r2 scope=4 h=920
+
+# 4. Custom against an endpoint that needs no key (Ollama on localhost).
+shoot r2-key-1 r2 key=1 h=920
+shoot r2-key-2 r2 key=2 h=920
+shoot r2-key-3 r2 key=3 h=920
+shoot r2-key-4 r2 key=4 h=920
+shoot r2-key-4-required r2 key=4 key-required h=920
+
+# Round three. An open menu is a window of its own, and `screencapture -l` can't photograph a menu.
+# `r3-menu` photographs the settings window by CGWindowID, then only the menu's own rectangle of the
+# screen, laid over the window at its real offset; nothing outside the menu can get in.
+cat >/tmp/profiles-pane-mockup-menu.swift <<'SWIFT'
+import AppKit
+// Prints "x,y,w,h dx dy" (screen points; offset in pixels) for each window above layer 0 that
+// belongs to the parent's process.
+let parent = CGWindowID(CommandLine.arguments[1])!
+let all = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as! [[String: Any]]
+func bounds(_ w: [String: Any]) -> CGRect {
+  CGRect(dictionaryRepresentation: w[kCGWindowBounds as String] as! CFDictionary)!
+}
+guard let host = all.first(where: { $0[kCGWindowNumber as String] as? CGWindowID == parent }) else { exit(0) }
+let pid = host[kCGWindowOwnerPID as String] as! pid_t
+let scale = NSScreen.main?.backingScaleFactor ?? 2
+for w in all where w[kCGWindowOwnerPID as String] as? pid_t == pid && (w[kCGWindowLayer as String] as? Int ?? 0) > 0 {
+  let b = bounds(w), p = bounds(host)
+  print("\(Int(b.minX)),\(Int(b.minY)),\(Int(b.width)),\(Int(b.height))",
+        Int((b.minX - p.minX) * scale), Int((b.minY - p.minY) * scale))
+}
+SWIFT
+swiftc -O /tmp/profiles-pane-mockup-menu.swift -o .build/profiles-pane-mockup-menu
+
+shoot_menu() {
+  local name="$1"
+  shift
+  grep -qE "$filter" <<<"$name" || return 0
+  pkill -x profiles-pane-mockup 2>/dev/null || true
+  sleep 0.8
+  .build/profiles-pane-mockup "$@" dark >/tmp/profiles-pane-mockup-wid 2>/dev/null &
+  disown
+  sleep 3.5
+  local wid
+  wid="$(cat /tmp/profiles-pane-mockup-wid)"
+  screencapture -o -l "$wid" "$out/$name-dark.png"
+  .build/profiles-pane-mockup-menu "$wid" | while read -r rect dx dy; do
+    screencapture -x -o -R"$rect" /tmp/profiles-pane-mockup-menu.png
+    # A menu may hang past the window's edge, as it does on screen; widen the canvas to keep it.
+    local mw mh ww wh
+    read -r mw mh < <(magick identify -format '%w %h' /tmp/profiles-pane-mockup-menu.png 2>/dev/null)
+    read -r ww wh < <(magick identify -format '%w %h' "$out/$name-dark.png" 2>/dev/null)
+    magick "$out/$name-dark.png" -background none -gravity northwest \
+      -extent "$((ww > dx + mw ? ww : dx + mw + 24))x$wh" /tmp/profiles-pane-mockup-menu.png \
+      -geometry "+$dx+$dy" -composite "$out/$name-dark.png" 2>/dev/null || true
+  done || true
+  rm -f /tmp/profiles-pane-mockup-menu.png
+  echo "$out/$name-dark.png"
+}
+
+shoot r3-haiku r3 h=860
+shoot r3-offline r3 shot=offline h=860
+shoot r3-custom-off r3 shot=custom-off h=860
+shoot_menu r3-menu r3 shot=menu
+shoot r3-model-locked r3 shot=model-locked h=860
+shoot r3-model-locked-both r3 shot=model-locked-both h=860
+shoot r3-verify-1-draft r3 verify=draft h=900
+shoot r3-verify-2-verifying r3 verify=verifying h=900
+shoot r3-verify-3-needs-key r3 verify=needs-key h=900
+shoot r3-verify-4-unknown-model r3 verify=unknown-model h=900
+shoot r3-verify-5-verified r3 verify=verified h=900
+shoot r3-verify-5b-verified-flash r3 verify=flash h=900
+shoot r3-verify-6-override-draft r3 shot=override-draft h=900
+
+# The other designer's Models page.
+shoot r3-models-a r3 models=a
+shoot r3-models-a-states r3 models=a states
+shoot r3-models-b r3 models=b
+shoot r3-models-c r3 models=c
+
+# Round four: per-field reset icons, the boost warning, no privacy line.
+shoot r4-haiku r4 h=860
+shoot r4-model-overridden r4 shot=model-locked h=860
+shoot r4-both-overridden r4 shot=model-locked-both h=860
+shoot r4-custom-boost-warning r4 verify=verified shot=custom-boost h=860
+shoot r4-custom-boost-off r4 verify=verified shot=custom-boost-off h=860
+
+# Round five: inline edit mode; only a verified configuration is ever stored.
+shoot r5-custom-not-set-up r5 r5shot=custom-new h=860
+shoot r5-custom-editing r5 r5shot=custom-edit h=860
+shoot r5-checking r5 r5shot=checking h=860
+shoot r5-fail-unreachable r5 r5shot=fail-unreachable h=860
+shoot r5-fail-needs-key r5 r5shot=fail-needs-key h=860
+shoot r5-fail-unknown-model r5 r5shot=fail-unknown-model h=860
+shoot r5-custom-verified r5 r5shot=custom-verified h=860
+shoot r5-haiku-editing-model r5 r5shot=haiku-edit-model h=860
+shoot r5-haiku-key-rejected r5 r5shot=haiku-revoked h=860
+shoot r5-sheet-comparison r5 r5shot=sheet h=860
+
+# Round six: four Models page concepts from another designer.
+shoot r6-blocks r3 concept=blocks
+shoot r6-blocks-states r3 concept=blocks states
+shoot r6-transit r3 concept=transit
+shoot r6-transit-states r3 concept=transit states
+shoot r6-facts r3 concept=facts
+shoot r6-patchbay r3 concept=patchbay
+
+pkill -x profiles-pane-mockup 2>/dev/null || true
