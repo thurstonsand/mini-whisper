@@ -248,12 +248,14 @@ jobs:
             token="mini-whisper"
             cask_version="${RELEASE_REF_NAME#v}"
             app_name="MiniWhisper"
+            bundle_id="com.thurstonsand.MiniWhisper"
             livecheck=""
           else
             cask="homebrew-tap/Casks/mini-whisper-nightly.rb"
             token="mini-whisper-nightly"
             cask_version="${ASSET_VERSION}"
             app_name="MiniWhisper Nightly"
+            bundle_id="com.thurstonsand.MiniWhisper.nightly"
             livecheck=$'\n  livecheck do\n    skip "Nightly builds are published from main."\n  end\n'
           fi
 
@@ -276,7 +278,12 @@ jobs:
             app "${app_name}.app"
 
             # This also removes the downloaded speech model.
-            zap trash: "~/Library/Application Support/${app_name}"
+            zap trash: [
+              "~/Library/Application Support/${app_name}",
+              "~/Library/Caches/${bundle_id}",
+              "~/Library/HTTPStorages/${bundle_id}",
+              "~/Library/Preferences/${bundle_id}.plist",
+            ]
           end
           EOF
 
