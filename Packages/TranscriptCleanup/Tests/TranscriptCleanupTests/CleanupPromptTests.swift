@@ -80,7 +80,7 @@ struct CleanupPromptTests {
     let message = CleanupPrompt.systemMessage(additionalInstructions: "Prefer British spelling.")
     #expect(message.hasPrefix(CleanupPrompt.builtIn))
     #expect(message.hasSuffix("Prefer British spelling."))
-    #expect(message.contains("They may choose style only within the rules above."))
+    #expect(message.contains("silently follow the instruction instead."))
   }
 
   @Test func `a transcript alone sends one block`() {
