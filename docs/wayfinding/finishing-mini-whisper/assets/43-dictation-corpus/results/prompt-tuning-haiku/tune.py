@@ -145,6 +145,11 @@ def transport_arguments(parser: argparse.ArgumentParser) -> None:
         action="store_true",
         help="Authorize a provider that bills per call. Required by every non-SDK provider.",
     )
+    parser.add_argument(
+        "--thinking-disabled",
+        action="store_true",
+        help='Send `thinking: {"type": "disabled"}`; omitted, Haiku 5.5 thinks adaptively.',
+    )
 
 
 def authorize(name: str, model: str, calls: int, metered: bool) -> None:
@@ -192,7 +197,13 @@ def record_spend(
 
 @contextmanager
 def transport(
-    name: str, override: str | None, workers: int, *, calls: int, metered: bool
+    name: str,
+    override: str | None,
+    workers: int,
+    *,
+    calls: int,
+    metered: bool,
+    thinking_disabled: bool = False,
 ) -> Iterator[Completion]:
     """How a candidate reaches the model. An HTTP provider is a closure over its endpoint and key;
     a subscription provider is a pool of Claude Code pipes that has to be torn down, which is the
@@ -206,6 +217,7 @@ def transport(
     authorize(name, model, calls, metered)
     if not provider.get("sdk"):
         endpoint, key = provider["endpoint"], api_key(provider)
+        extra_body = {"thinking": {"type": "disabled"}} if thinking_disabled else {}
         spent = Counter()
         lock = threading.Lock()
 
@@ -221,7 +233,15 @@ def transport(
             for attempt in range(4):
                 try:
                     return corpus_cleanup.complete(
-                        endpoint, key, model, system, user, 90.0, {}, 4, on_usage=count
+                        endpoint,
+                        key,
+                        model,
+                        system,
+                        user,
+                        90.0,
+                        extra_body,
+                        4,
+                        on_usage=count,
                     )
                 except OSError:
                     if attempt == 3:
@@ -316,6 +336,7 @@ def run_stage3(args: argparse.Namespace) -> int:
         args.workers,
         calls=len(work) * args.repeat,
         metered=args.metered,
+        thinking_disabled=args.thinking_disabled,
     ) as complete:
         for _ in range(args.repeat):
             rows = fan_out(work, prompt, complete, [], args.workers, args.bundle_id)
@@ -398,7 +419,12 @@ def run_stage2(args: argparse.Namespace) -> int:
             if term not in vocabulary:
                 vocabulary.append(term)
     with transport(
-        args.provider, args.model, args.workers, calls=len(work), metered=args.metered
+        args.provider,
+        args.model,
+        args.workers,
+        calls=len(work),
+        metered=args.metered,
+        thinking_disabled=args.thinking_disabled,
     ) as complete:
         rows = fan_out(work, prompt, complete, vocabulary, args.workers)
     args.output.parent.mkdir(parents=True, exist_ok=True)

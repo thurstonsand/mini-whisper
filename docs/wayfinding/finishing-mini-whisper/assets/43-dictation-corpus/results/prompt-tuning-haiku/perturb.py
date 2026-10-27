@@ -786,6 +786,7 @@ def main() -> int:
         args.workers,
         calls=len(variants) * args.repeat * len(args.prompt),
         metered=args.metered,
+        thinking_disabled=args.thinking_disabled,
     ) as complete:
         instructions = corpus_cleanup.instruction_text(args.additional_instructions)
         for path in args.prompt:

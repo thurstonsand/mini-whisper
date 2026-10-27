@@ -55,6 +55,7 @@ def main() -> int:
         args.workers,
         calls=(1 + len(units)) * per_candidate,
         metered=args.metered,
+        thinking_disabled=args.thinking_disabled,
     ) as complete:
         table = ablate(args, prompt, units, complete, stage3, stage2, vocabulary)
     (args.out / "ablation.json").write_text(
