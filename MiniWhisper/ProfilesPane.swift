@@ -1,3 +1,4 @@
+import AppKit
 import AppSettings
 import ComposableArchitecture
 import ModelLibrary
@@ -712,7 +713,19 @@ private struct ProfilesTextField: View {
       "", text: $text, prompt: Text(prompt), axis: reservedLines == nil ? .horizontal : .vertical,
     )
     if let reservedLines {
-      field.lineLimit(reservedLines, reservesSpace: true)
+      field
+        .lineLimit(reservedLines, reservesSpace: true)
+        // Return still ends the edit. ⇧↩ asks the field editor itself for a literal newline, so
+        // it lands at the caret like any typed character rather than being spliced into `text`.
+        .onKeyPress(.return, phases: .down) { press in
+          guard press.modifiers == .shift else {
+            return .ignored
+          }
+          NSApp.sendAction(
+            #selector(NSResponder.insertNewlineIgnoringFieldEditor(_:)), to: nil, from: nil,
+          )
+          return .handled
+        }
     } else {
       field
     }

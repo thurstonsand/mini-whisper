@@ -171,6 +171,18 @@ final class ProfilesUITests: MiniWhisperUITestCase, SurfaceTagged {
         XCTAssertTrue(app.switches["miniwhisper.profiles.enabled"].awaitNonExistence())
         XCTAssertTrue(app.switches["miniwhisper.profiles.boosts-vocabulary"].awaitNonExistence())
       },
+
+      Law("Shift-Return breaks a line in the instructions at the caret") { app in
+        let instructions = app.textFields["miniwhisper.profiles.instructions"]
+        try require(instructions.awaitHittable(timeout: 2))
+        instructions.click()
+        instructions.typeKey(.upArrow, modifierFlags: .command)
+        instructions.typeText("Be brief.")
+        instructions.typeKey(.return, modifierFlags: .shift)
+        self.assertValue(
+          "Be brief.\nKeep my terminology. Never expand contractions.", of: instructions,
+        )
+      },
     ])
   }
 
