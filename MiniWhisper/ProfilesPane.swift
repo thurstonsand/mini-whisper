@@ -611,8 +611,11 @@ private struct InstructionsRow: View {
 
   var body: some View {
     // A growing text field rather than a `TextEditor`: only a real prompt sits exactly where the
-    // cursor does, and `TextEditor` has none.
-    LabeledContent("Additional instructions") {
+    // cursor does, and `TextEditor` has none. Stacked rather than a `LabeledContent`, which sizes
+    // the field to its text and right-aligns it, so every keystroke resized the box until the
+    // first wrap flipped the row into this layout anyway.
+    VStack(alignment: .leading) {
+      Text("Additional instructions")
       ProfilesTextField(
         value: store.profiles.instructions, prompt: "",
         identifier: AccessibilityID.profilesInstructions, label: "Additional instructions",
@@ -625,6 +628,7 @@ private struct InstructionsRow: View {
         onChange: { store.send(.profiles(.instructionsEdited($0))) },
         onFocusChange: { store.send(.profiles(.fieldFocusChanged(.instructions, $0))) },
       )
+      .multilineTextAlignment(.leading)
     }
     .modifier(ProfilesFormRow(store: store, row: .instructions))
   }
