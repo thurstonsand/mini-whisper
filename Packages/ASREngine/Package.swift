@@ -12,7 +12,7 @@ let package = Package(
     .package(path: "../ModelLibrary"),
     .package(
       url: "https://github.com/FluidInference/FluidAudio.git",
-      exact: "0.17.5",
+      exact: "0.18.0",
       traits: [],
     ),
   ],
