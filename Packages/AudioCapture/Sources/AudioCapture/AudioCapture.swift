@@ -101,13 +101,24 @@ public struct AudioLevel: Equatable, Sendable {
     let rootMeanSquare = sqrt(sumSquares / Float(sampleCount))
     let decibels = max(-60, 20 * log10(max(rootMeanSquare, Float.leastNonzeroMagnitude)))
     self.decibels = decibels
-    normalizedPower = min(max((decibels + 60) / 60, 0), 1)
+    let windowed = (decibels - Self.meterFloorDecibels)
+      / (Self.meterCeilingDecibels - Self.meterFloorDecibels)
+    normalizedPower = pow(min(max(windowed, 0), 1), Self.meterCurve)
   }
 
   // MARK: Public
 
   public let decibels: Float
   public let normalizedPower: Float
+
+  // MARK: Private
+
+  /// Calibrated from 100 ms RMS windows, Handy-style (cjpais/Handy 76b44d8): built-in mic room
+  /// tone p95 was -50 dBFS, a low-gain Shure's speech median -42, built-in speech median -25. The
+  /// floor keeps room tone dark on both; the x^0.7 curve (VoiceInk, Handy) lifts quiet speech.
+  private static let meterFloorDecibels: Float = -50
+  private static let meterCeilingDecibels: Float = -20
+  private static let meterCurve: Float = 0.7
 }
 
 // MARK: - AudioCaptureEvent

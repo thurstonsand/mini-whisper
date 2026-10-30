@@ -290,6 +290,14 @@ struct AudioLevelTests {
     #expect(fullScale.decibels == 0)
     #expect(fullScale.normalizedPower == 1)
   }
+
+  @Test func `room tone stays dark while a quiet mic's speech still moves the meter`() {
+    let roomTone = AudioLevel(samples: [Float](repeating: 0.0025, count: 1600)) // -52 dBFS
+    let quietSpeech = AudioLevel(samples: [Float](repeating: 0.0079, count: 1600)) // -42 dBFS
+
+    #expect(roomTone.normalizedPower == 0)
+    #expect(quietSpeech.normalizedPower > 0.35)
+  }
 }
 
 private func makeBuffer(
