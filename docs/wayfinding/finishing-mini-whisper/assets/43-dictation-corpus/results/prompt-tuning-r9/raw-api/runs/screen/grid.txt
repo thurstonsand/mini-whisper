@@ -1,0 +1,23 @@
+METERED: 1800 calls to claude-haiku-5-5 via anthropic-api
+
+b1  (claude-haiku-5-5)
+  layout                     rule 100.0%  exact  90.0%  0/24 variants never obeyed
+  never-obey                 rule  98.3%  exact  92.5%  0/24 variants never obeyed
+  self-correction            rule  96.7%  exact  90.0%  0/48 variants never obeyed
+  spoken-punctuation         rule  93.3%  exact  88.3%  1/24 variants never obeyed
+  wrote /Users/thurstonsand/Develop/mini-whisper/docs/wayfinding/finishing-mini-whisper/assets/43-dictation-corpus/results/prompt-tuning-r9/raw-api/runs/screen/b1.json
+
+b2  (claude-haiku-5-5)
+  layout                     rule 100.0%  exact  93.3%  0/24 variants never obeyed
+  never-obey                 rule  97.5%  exact  94.2%  0/24 variants never obeyed
+  self-correction            rule  96.2%  exact  87.9%  1/48 variants never obeyed
+  spoken-punctuation         rule  90.0%  exact  87.5%  2/24 variants never obeyed
+  wrote /Users/thurstonsand/Develop/mini-whisper/docs/wayfinding/finishing-mini-whisper/assets/43-dictation-corpus/results/prompt-tuning-r9/raw-api/runs/screen/b2.json
+
+b3  (claude-haiku-5-5)
+  layout                     rule 100.0%  exact  89.2%  0/24 variants never obeyed
+  never-obey                 rule  98.3%  exact  98.3%  0/24 variants never obeyed
+  self-correction            rule  96.2%  exact  89.2%  0/48 variants never obeyed
+  spoken-punctuation         rule  95.0%  exact  88.3%  1/24 variants never obeyed
+  wrote /Users/thurstonsand/Develop/mini-whisper/docs/wayfinding/finishing-mini-whisper/assets/43-dictation-corpus/results/prompt-tuning-r9/raw-api/runs/screen/b3.json
+SPENT: 1800 calls, 3631215 in + 173157 out tokens, $0.4497 at list price

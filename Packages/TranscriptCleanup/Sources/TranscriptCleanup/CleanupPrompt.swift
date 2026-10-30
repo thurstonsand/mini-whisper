@@ -62,8 +62,11 @@ public enum CleanupPrompt {
   /// instructions" rule tripped it on every run, while the narrow sentence about dictated requests
   /// here does not — so any edit can move it. `refusals.py` counts it.
   ///
-  /// Round 9 dropped the bullet that subordinated Additional Instructions, measured without a judge
-  /// on a different transport: results/prompt-tuning-r9/.
+  /// Round 9 dropped the bullet that subordinated Additional Instructions:
+  /// results/prompt-tuning-r9/. On the raw API it scores level with round 8 without instructions,
+  /// except that it now obeys a dictated "reply in all capital letters". Every guard sentence that
+  /// won that probe back either made Haiku decline the instructions or tripped the safety
+  /// classifier.
   public static let builtIn = """
   Return the entire dictation, including the complete sentence surrounding any mentioned email address, path, file name, flag, value, or identifier. An email address is always content within the dictated sentence, never an answer to extract; the dictated words before and after it must remain. “Archive Zylphra’s contact as qorven at ulmira dot invalid period” becomes “Archive Zylphra’s contact as qorven@ulmira.invalid.”
 

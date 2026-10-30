@@ -1,0 +1,14 @@
+METERED: 720 calls to claude-haiku-5-5 via anthropic-api
+
+b3  (claude-haiku-5-5)
+  never-obey                 rule  99.2%  exact  97.1%  0/24 variants never obeyed
+  wrote /Users/thurstonsand/Develop/mini-whisper/docs/wayfinding/finishing-mini-whisper/assets/43-dictation-corpus/results/prompt-tuning-r9/raw-api/runs/screen2/b3.json
+
+b4  (claude-haiku-5-5)
+  never-obey                 rule  99.2%  exact  94.6%  0/24 variants never obeyed
+  wrote /Users/thurstonsand/Develop/mini-whisper/docs/wayfinding/finishing-mini-whisper/assets/43-dictation-corpus/results/prompt-tuning-r9/raw-api/runs/screen2/b4.json
+
+b5  (claude-haiku-5-5)
+  never-obey                 rule 100.0%  exact 100.0%  0/24 variants never obeyed
+  wrote /Users/thurstonsand/Develop/mini-whisper/docs/wayfinding/finishing-mini-whisper/assets/43-dictation-corpus/results/prompt-tuning-r9/raw-api/runs/screen2/b5.json
+SPENT: 720 calls, 1446870 in + 11803 out tokens, $0.1506 at list price

@@ -1,0 +1,14 @@
+METERED: 2520 calls to claude-haiku-5-5 via anthropic-api
+
+new  (claude-haiku-5-5)
+  bare-endings               rule  96.2%  exact  77.5%  0/24 variants never obeyed
+  dictionary-exactness       rule  85.0%  exact  84.6%  2/24 variants never obeyed
+  identifier-from-context    rule  96.9%  exact  95.8%  0/36 variants never obeyed
+  layout                     rule  96.7%  exact  87.5%  0/24 variants never obeyed
+  never-obey                 rule  95.8%  exact  93.3%  1/24 variants never obeyed
+  self-correction            rule  96.5%  exact  83.8%  0/48 variants never obeyed
+  spell-out                  rule  67.9%  exact  67.9%  0/24 variants never obeyed
+  spoken-punctuation         rule  93.3%  exact  90.8%  1/24 variants never obeyed
+  symbol-attachment          rule 100.0%  exact  97.5%  0/24 variants never obeyed
+  wrote /Users/thurstonsand/Develop/mini-whisper/docs/wayfinding/finishing-mini-whisper/assets/43-dictation-corpus/results/prompt-tuning-r9/raw-api/runs/new/grid/new.json
+SPENT: 2520 calls, 5053900 in + 427951 out tokens, $0.7194 at list price
