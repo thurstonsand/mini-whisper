@@ -1247,7 +1247,7 @@ import Testing
     #expect(store.state.pendingDictation?.capture == nil)
   }
 
-  @Test func `unavailable context pastes blind and says so`() async {
+  @Test func `unavailable context pastes blind without a notice`() async {
     let sounds = SoundRecorder()
     let clock = TestClock()
     var state = AppFeature.State()
@@ -1283,11 +1283,7 @@ import Testing
         1, deliveryResult("delivered text", .pasted(.restored)),
       ),
     )
-    await store.receive(.pill(.fieldContextUnavailable)) {
-      $0.pill.noticeGeneration = 1
-      $0.pill.presentation = .notice(.fieldContextUnavailable)
-    }
-    await store.send(.pill(.dismiss)) { $0.pill.presentation = nil }
+    await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
     #expect(await sounds.recorded == ["Pop"])
   }

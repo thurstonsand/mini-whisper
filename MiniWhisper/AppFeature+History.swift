@@ -40,14 +40,10 @@ extension AppFeature {
       capture?.focusedTextContext
     }
 
-    /// What the pill owes the user once this dictation's paste lands, beyond the paste itself. A
-    /// cleanup that could not run is the more specific degradation, so it outranks the
-    /// missing-context notice when one dictation managed both.
+    /// What the pill owes the user once this dictation's paste lands, beyond the paste itself.
     var deliveredNotice: PillFeature.Action {
       if case .failed = cleanupRecord?.disposition {
         .cleanupUnavailable
-      } else if case .unavailable = capture {
-        .fieldContextUnavailable
       } else {
         .dismiss
       }

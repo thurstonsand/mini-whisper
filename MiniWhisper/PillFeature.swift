@@ -33,7 +33,6 @@ import ComposableArchitecture
         case copiedToClipboard
         case noReceiver(pasteShortcut: String?)
         case cancelledSavedToHistory
-        case fieldContextUnavailable
         case cleanupUnavailable
         case speechModelUnavailable(String)
         case dictionarySaveFailed
@@ -73,12 +72,6 @@ import ComposableArchitecture
             Content(
               text: "Cancelled — saved to History", phase: "Cancelled and saved to History",
               isSubdued: false, duration: .seconds(3),
-            )
-          case .fieldContextUnavailable:
-            Content(
-              text: "Pasted — could not collect surrounding context",
-              phase: "Pasted without field context", isSubdued: true,
-              duration: .milliseconds(1500),
             )
           case .cleanupUnavailable:
             Content(
@@ -127,7 +120,6 @@ import ComposableArchitecture
     case copiedToClipboard
     case noReceiver(pasteShortcut: String?)
     case cancelledSavedToHistory
-    case fieldContextUnavailable
     case cleanupUnavailable
     case speechModelUnavailable(String)
     case dictionarySaveFailed
@@ -219,14 +211,6 @@ import ComposableArchitecture
         return showNotice(.noReceiver(pasteShortcut: pasteShortcut), state: &state)
       case .cancelledSavedToHistory:
         return showNotice(.cancelledSavedToHistory, state: &state)
-      case .fieldContextUnavailable:
-        switch state.presentation {
-        case .notice(.copiedToClipboard),
-             .notice(.noReceiver):
-          return .none
-        default:
-          return showNotice(.fieldContextUnavailable, state: &state)
-        }
       case .cleanupUnavailable:
         return showNotice(.cleanupUnavailable, state: &state)
       case let .speechModelUnavailable(status):

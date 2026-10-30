@@ -147,7 +147,7 @@ import TranscriptCleanup
     #expect(content.isSubdued)
     #expect(
       content.duration
-        == PillFeature.State.Presentation.Notice.fieldContextUnavailable.content.duration,
+        == PillFeature.State.Presentation.Notice.noSpeechDetected.content.duration,
     )
   }
 
