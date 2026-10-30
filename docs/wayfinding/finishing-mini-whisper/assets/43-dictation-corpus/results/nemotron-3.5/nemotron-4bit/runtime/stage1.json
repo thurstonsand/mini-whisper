@@ -1,0 +1,11 @@
+{
+  "identity": "nativ-community/Nemotron-3.5-Transcribe-30B-A4B-EA-4bit@c47153ca2ce4024d43e216b81e6db4f67b886545",
+  "loadSeconds": 10.213562749995617,
+  "peakResidentBytes": 4362027008,
+  "peakMetalBytes": 20297057160,
+  "modelBytes": 19275913575,
+  "prompt": "Audio transcription. Language: as spoken. Wording: verbatim, including fillers and repetitions. Formatting: punctuation and capitalization. Output: transcript only.",
+  "maxTokens": 1024,
+  "temperature": 0,
+  "processScope": "one resident model across all six stages; first recording used for excluded warmup"
+}

@@ -2,6 +2,8 @@
 
 One microphone (built-in), one voice, every run on the same recordings. Each subdirectory is one run with its own README (conditions, versions, per-entry detail); this file is the rollup. **The full engine × cleanup matrix lives in [e2e-combos/](e2e-combos/README.md)** — that is the single table comparing everything at once. The per-profile answer, from these numbers alone, is [profiles-recommendation.md](profiles-recommendation.md).
 
+The [Nemotron 3.5 comparison](nemotron-3.5/) adds the full MLX 4-bit model, Core ML Lite, and a resident Whisper large-v3-turbo rerun. Parakeet remains the short-dictation choice; Lite loses short-speech accuracy and latency. With identical vocabulary lists, full Nemotron recovers 25/28 terms versus prompted Whisper's 22/28, but Whisper wins the holdout 10/10 versus 9/10 and uses roughly one-twelfth the weight storage. These are ASR-only results, not an updated cleanup matrix.
+
 ## Engines (stage 1: WER + latency)
 
 | engine                               | WER       | median      | run                                                         |

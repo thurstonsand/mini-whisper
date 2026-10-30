@@ -1,0 +1,10 @@
+{
+  "identity": "whisper-large-v3-turbo; SHA256 1fc70f774d38eb169993ac391eea357ef47c88757ef72ee5943879b7e8e2bc69",
+  "runtime": "whisper.cpp v1.9.1 f049fff95a089aa9969deb009cdd4892b3e74916",
+  "loadSeconds": 0.412397,
+  "peakResidentBytes": 1999159296,
+  "modelBytes": 1624555275,
+  "prompt": "",
+  "configuration": "Metal, flash attention, 4 threads, beam 5, best-of 5, English, no timestamps, no previous-clip context; remaining decoding defaults",
+  "processScope": "One resident model per stage with excluded warmup; timing includes recognition through text retrieval, excludes WAV decoding and model load"
+}

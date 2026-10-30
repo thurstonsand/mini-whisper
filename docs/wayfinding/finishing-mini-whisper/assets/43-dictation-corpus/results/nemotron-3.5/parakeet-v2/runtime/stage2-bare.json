@@ -1,0 +1,9 @@
+{
+  "engine" : "parakeet-v2",
+  "entries" : 24,
+  "identity" : "FluidInference\/parakeet-tdt-0.6b-v2-coreml@ee09c569f73759e6d44c9bd16766f477b2b36d39",
+  "loadSeconds" : 0.289200334,
+  "modelBytes" : 464413247,
+  "peakResidentBytes" : 110477312,
+  "stage" : "stage2-dictionary.jsonl"
+}

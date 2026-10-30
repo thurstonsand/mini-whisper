@@ -1,0 +1,9 @@
+{
+  "identity": "FluidInference/nemotron-3.5-transcribe-lite-coreml@fe237a37e9042b9de88827fcdbdae2efc4fd4bba",
+  "loadSeconds": 7.8096426670090295,
+  "peakResidentBytes": 2736586752,
+  "modelBytes": 1364143478,
+  "computeUnits": "CPU_AND_GPU",
+  "configuration": "fp16 w48 encoder and CTC head; upstream NumPy frontend and greedy decoding; no diarizer",
+  "processScope": "One resident model across six stages; synthetic and real warmups excluded"
+}

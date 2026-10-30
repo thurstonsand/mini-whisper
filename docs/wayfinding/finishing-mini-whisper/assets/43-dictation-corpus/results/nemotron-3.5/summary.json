@@ -1,0 +1,54 @@
+{
+  "parakeet-v2": {
+    "recordings": 112,
+    "shortErrors": 7,
+    "shortWords": 327,
+    "shortWer": 0.021406727828746176,
+    "longformWer": 0.0811,
+    "shortMedianMs": 39.5,
+    "longformMedianMs": 108.95
+  },
+  "whisper-turbo": {
+    "recordings": 112,
+    "shortErrors": 9,
+    "shortWords": 327,
+    "shortWer": 0.027522935779816515,
+    "longformWer": 0.1023,
+    "shortMedianMs": 454.56,
+    "longformMedianMs": 1298.79
+  },
+  "nemotron-4bit": {
+    "recordings": 112,
+    "shortErrors": 12,
+    "shortWords": 327,
+    "shortWer": 0.03669724770642202,
+    "longformWer": 0.0582,
+    "shortMedianMs": 363.66716702468693,
+    "longformMedianMs": 1956.300353995175
+  },
+  "nemotron-lite": {
+    "recordings": 112,
+    "shortErrors": 31,
+    "shortWords": 327,
+    "shortWer": 0.09480122324159021,
+    "longformWer": 0.0653,
+    "shortMedianMs": 172.53033301676624,
+    "longformMedianMs": 181.13508299575187
+  },
+  "whisper-turbo-context": {
+    "recordings": 39,
+    "wantsHit": 22,
+    "wantsTotal": 28,
+    "trapsBitten": 0,
+    "trapsTotal": 14,
+    "medianMs": 468.6
+  },
+  "nemotron-context": {
+    "recordings": 39,
+    "wantsHit": 25,
+    "wantsTotal": 28,
+    "trapsBitten": 0,
+    "trapsTotal": 14,
+    "medianMs": 402.30900002643466
+  }
+}
