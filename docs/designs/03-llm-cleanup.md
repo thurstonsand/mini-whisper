@@ -32,7 +32,7 @@ Four research passes ground this design: the [model benchmark](../wayfinding/fin
 
 **The user surface.** The Cleanup pane as mocked in ticket 16: master toggle ("Clean up transcripts", footer: transcripts are sent to this endpoint, audio never leaves the Mac), endpoint address, the API-key state machine (blank → typed → stored-as-prefix-plus-dots; Save is what stores), model picker with best-effort `/v1/models` discovery falling through to Custom, Save as a bounded completion to the entered model, additional instructions appended to the built-in prompt, and a "Give up after" preset picker (5 / 10 / 20 / 30 s, default 10) beside the master toggle, its shared footer carrying both the privacy promise and the fallback promise ("If cleanup fails or runs past the limit, the transcript is delivered as heard") — the pane is mocked complete in `spikes/settings-mockup` (`.build/settings-mockup cleanup`). During a dictation, decided on real pixels in the [pill mock spike](../../spikes/cleanup-pill-mockup/): "Transcribing…" (blue dot) holds through the engine leg, then flips to "Polishing…" with a purple dot the moment the LLM request starts; at 3 s of cleanup the skip affordance reveals as a keycap chip — `Polishing… [⌥ Opt →] to skip`, the chord rendered in the same keycap vocabulary as Settings and onboarding, derived from the live first activation binding; on failure or timeout, a subdued transient notice: "Cleanup unavailable — pasted as heard". In History, the entry's text is the cleaned text; a hold-to-reveal affordance on the row shows the raw transcript.
 
-**The interruption grammar.** One rule: any activation press while cleanup is in flight resolves it as a skip first. Tap = skip, deliver raw. Hold = skip, deliver raw, and start the new recording. Escape = the existing cancel law (archive to history, no delivery). No new meanings, no modes.
+**The interruption grammar.** One rule: any activation press while cleanup is in flight resolves it as a skip first. Tap = skip, deliver raw. Hold = skip, deliver raw, and start the new recording. (Amended by [05](05-sticky-delivery.md): a hold or latch now detaches the polishing dictation instead, and only a lone tap skips.) Escape = the existing cancel law (archive to history, no delivery). No new meanings, no modes.
 
 **The package boundary.** `Packages/TranscriptCleanup` (today an empty stub) owns the client:
 
@@ -53,7 +53,7 @@ Cleaned text delivers once, or raw does. Revising already-delivered text means e
 
 ### 2. Best-effort with one escape hatch and one backstop
 
-Cleanup can never fail a dictation: any error, timeout, or garbage response delivers the raw transcript with a pill notice. The skip chord is the attended escape (visible from 3 s); the configurable timeout (default 10 s) is the unattended backstop — a long-forgotten dictation must not deliver into a context captured minutes ago. The pane toggle covers prolonged outage.
+Cleanup can never fail a dictation: any error, timeout, or garbage response delivers the raw transcript with a pill notice. The skip chord is the attended escape (visible from 3 s); the configurable timeout (default 10 s) is the unattended backstop. (Amended by [05](05-sticky-delivery.md): a dictation now delivers to the target it started in, so a forgotten one arriving late is the point rather than the hazard; the timeout still bounds how long cleanup can hold it.) The pane toggle covers prolonged outage.
 
 ### 3. The activation key resolves pending cleanup
 

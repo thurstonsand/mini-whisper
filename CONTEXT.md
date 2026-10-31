@@ -4,7 +4,10 @@
 - Activate: start the actual process that leads to dictation; triggered by pressing any configured binding
 - Record: the act of recording audio
 - Transcribe: STT
-- Delivery: placing the transcript where the user was typing.
+- Delivery: placing the transcript where the user was typing when the dictation started.
+- Target: where a dictation delivers, captured at the press that starts it — the frontmost app, its focused window and element, and the tmux pane when that element hosts one. Delivery writes to it even after the user has moved on.
+- Submit: the binding that drives the same gestures as Activate and sends Return after delivery.
+- Detach: a press while a dictation polishes moves it to the background, where its cleanup and delivery continue, so the next dictation can start; a lone tap skips it instead.
 - Dictation: one full pass through the vertical — activate, record, transcribe, deliver.
 - Hold: hold the keybind to record, release to transcribe. A press shorter than 200 ms is a tap, not a hold.
 - Latch: double-tap the keybind to keep recording without holding; a single tap ends it and transcribes. One capture runs continuously from the first press — the taps never stop it. A lone tap records through the 300 ms double-tap window, then discards wordlessly.
