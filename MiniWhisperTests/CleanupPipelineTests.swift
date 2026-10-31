@@ -25,7 +25,7 @@ import TranscriptCleanup
         #expect(apiKey == "sk-test")
         return .cleaned("--help")
       }
-      $0.delivery.deliver = { text in
+      $0.delivery.deliver = { text, _, _ in
         #expect(text == "--help")
         return .pasted(.restored)
       }
@@ -33,7 +33,7 @@ import TranscriptCleanup
     }
 
     await store.send(.transcriptionCompleted(1, .transcript("dash dash help")))
-    await store.receive(.contextCaptured(1, .available(fieldContext), ghostty))
+    await store.receive(.contextCaptured(1, .available(fieldContext), .inApp(ghostty)))
     await store.receive(.pill(.polishingStarted(skipComponents: skipChord))) {
       $0.pill.presentation = .polishing(
         PillFeature.State.Presentation.Polishing(skipComponents: skipChord),
@@ -81,7 +81,7 @@ import TranscriptCleanup
         #expect(configuration.model == "gpt-oss-120b")
         return .cleaned("--help")
       }
-      $0.delivery.deliver = { _ in .pasted(.restored) }
+      $0.delivery.deliver = { _, _, _ in .pasted(.restored) }
     }
     await store.send(.transcriptionCompleted(1, .transcript("dash dash help")))
     await store.finish()
@@ -101,14 +101,14 @@ import TranscriptCleanup
   ) async throws {
     let store = cleanupStore(cleanup: .configured) {
       $0.cleanup.clean = { _, _, _ in .failed(failure) }
-      $0.delivery.deliver = { text in
+      $0.delivery.deliver = { text, _, _ in
         #expect(text == "dash dash help")
         return .pasted(.restored)
       }
     }
 
     await store.send(.transcriptionCompleted(1, .transcript("dash dash help")))
-    await store.receive(.contextCaptured(1, .available(fieldContext), ghostty))
+    await store.receive(.contextCaptured(1, .available(fieldContext), .inApp(ghostty)))
     await store.receive(.pill(.polishingStarted(skipComponents: skipChord))) {
       $0.pill.presentation = .polishing(
         PillFeature.State.Presentation.Polishing(skipComponents: skipChord),
@@ -158,14 +158,14 @@ import TranscriptCleanup
         Issue.record("A key that cannot be read must never reach the endpoint")
         return .cancelled
       }
-      $0.delivery.deliver = { text in
+      $0.delivery.deliver = { text, _, _ in
         #expect(text == "dash dash help")
         return .pasted(.restored)
       }
     }
 
     await store.send(.transcriptionCompleted(1, .transcript("dash dash help")))
-    await store.receive(.contextCaptured(1, .available(fieldContext), ghostty))
+    await store.receive(.contextCaptured(1, .available(fieldContext), .inApp(ghostty)))
     await store.receive(
       .cleanupResolved(
         1, .attempted(
@@ -189,7 +189,7 @@ import TranscriptCleanup
         sentKey.value = apiKey
         return .cleaned("--help")
       }
-      $0.delivery.deliver = { _ in .pasted(.restored) }
+      $0.delivery.deliver = { _, _, _ in .pasted(.restored) }
     }
 
     await store.send(.transcriptionCompleted(1, .transcript("dash dash help")))
@@ -209,14 +209,14 @@ import TranscriptCleanup
         Issue.record("An incomplete cleanup configuration must never send a request")
         return .cancelled
       }
-      $0.delivery.deliver = { text in
+      $0.delivery.deliver = { text, _, _ in
         #expect(text == "dash dash help")
         return .pasted(.restored)
       }
     }
 
     await store.send(.transcriptionCompleted(1, .transcript("dash dash help")))
-    await store.receive(.contextCaptured(1, .available(fieldContext), ghostty))
+    await store.receive(.contextCaptured(1, .available(fieldContext), .inApp(ghostty)))
     await store.receive(.cleanupResolved(1, .passedThrough))
     await store.receive(
       .deliveryCompleted(
@@ -254,7 +254,7 @@ import TranscriptCleanup
         #expect(transcript == "dash dash help")
         return .cleaned("--help")
       }
-      $0.delivery.deliver = { _ in .pasted(.restored) }
+      $0.delivery.deliver = { _, _, _ in .pasted(.restored) }
     }
 
     await store.send(.transcriptionCompleted(1, .transcript("dash dash help")))
@@ -271,7 +271,7 @@ import TranscriptCleanup
     let delivered = DeliveredTexts()
     let store = cleanupStore(cleanup: .configured) {
       $0.cleanup.clean = { _, _, _ in .cleaned("--help") }
-      $0.delivery.deliver = { text in
+      $0.delivery.deliver = { text, _, _ in
         await delivered.record(text)
         return .pasted(.restored)
       }
@@ -292,7 +292,7 @@ import TranscriptCleanup
 
   @Test func `a resolution from a superseded dictation delivers nothing`() async {
     let store = cleanupStore(cleanup: .configured) {
-      $0.delivery.deliver = { _ in
+      $0.delivery.deliver = { _, _, _ in
         Issue.record("A superseded dictation must not deliver into the new one's field")
         return .pasted(.restored)
       }
@@ -373,9 +373,7 @@ private let fieldContext = FocusedTextContext(
     $0.date.now = Date(timeIntervalSince1970: 200)
     $0.uuid = .incrementing
     $0.keychain.read = { _ in configurationCase == .keyless ? nil : "sk-test" }
-    $0.workspace.frontmostApplication = {
-      WorkspaceApplication(bundleID: ghostty.bundleID, name: ghostty.name)
-    }
+    $0.deliveryTarget.capture = { .inApp(ghostty) }
     dependencies(&$0)
   }
   store.exhaustivity = .off(showSkippedAssertions: false)

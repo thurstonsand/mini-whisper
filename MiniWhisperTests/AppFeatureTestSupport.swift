@@ -3,6 +3,7 @@ import ASREngine
 import AudioCapture
 import FieldContext
 import Foundation
+import History
 import HotkeyListener
 @testable import MiniWhisper
 
@@ -45,29 +46,14 @@ actor StringRecorder {
   }
 }
 
-// MARK: - CaptureSequence
+// MARK: - TargetRecorder
 
-/// Hands back a scripted sequence of captures so a test can tell the release-time warm-up read
-/// apart from the authoritative read taken at delivery.
-actor CaptureSequence {
-  // MARK: Lifecycle
+actor TargetRecorder {
+  private(set) var targets: [DeliveryTarget] = []
 
-  init(captures: [ContextCapture]) {
-    remaining = captures
+  func record(_ target: DeliveryTarget) {
+    targets.append(target)
   }
-
-  // MARK: Internal
-
-  private(set) var taken = 0
-
-  func next() -> ContextCapture {
-    taken += 1
-    return remaining.isEmpty ? .unavailable(.noFocusedElement) : remaining.removeFirst()
-  }
-
-  // MARK: Private
-
-  private var remaining: [ContextCapture]
 }
 
 // MARK: - PrewarmCounter
@@ -110,4 +96,12 @@ extension AppHealth {
   static let healthy = AppHealth(
     hotkeyTap: .active, micStatus: .granted, accessibilityGranted: true, engineReadiness: .ready,
   )
+}
+
+extension DeliveryTarget {
+  /// A GUI target in `app` with nothing but its identity: enough for History and the prompt,
+  /// and for tests whose delivery is stubbed.
+  static func inApp(_ app: TargetApp) -> DeliveryTarget {
+    DeliveryTarget(app: app, processID: 1, window: nil, element: nil, pane: nil)
+  }
 }

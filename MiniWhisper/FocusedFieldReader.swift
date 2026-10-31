@@ -2,24 +2,53 @@ import AppKit
 import ApplicationServices
 import FieldContext
 import Foundation
+import History
 import OSLog
 
 // MARK: - FocusedFieldReader
 
-/// Resolves the frontmost application's focused text element and reads a bounded window around
-/// its selection.
+/// Finds the frontmost application's focused window and text element at the press, and reads a
+/// bounded window around that element's selection at delivery.
 enum FocusedFieldReader {
   // MARK: Internal
 
-  static func capture(source: ContextCaptureSource) -> ContextCapture {
+  static func target() -> DeliveryTarget {
+    let frontmost = NSWorkspace.shared.frontmostApplication
+    return Session(deadline: ContinuousClock.now + captureBudget).locate(frontmost: frontmost)
+  }
+
+  /// The end of a process's focus chain, which is what a target's element is compared against.
+  static func focusedElement(of processID: pid_t) -> AXUIElement? {
+    let application = AXUIElementCreateApplication(processID)
+    let session = Session(deadline: ContinuousClock.now + captureBudget)
+    return session.deepestFocusedElement(of: application)
+  }
+
+  /// Whether `element` is `ancestor` or sits inside it. A press that beat a Chromium wake
+  /// captured the web area; once the tree is awake, focus reports the field within it.
+  static func isElement(_ element: AXUIElement, within ancestor: AXUIElement) -> Bool {
+    var current = element
+    for _ in 0 ..< maximumAncestorDepth {
+      if CFEqual(current, ancestor) {
+        return true
+      }
+      AXUIElementSetMessagingTimeout(current, messagingTimeout)
+      guard case let .success(parent) = AXRead.element(current, kAXParentAttribute) else {
+        return false
+      }
+      current = parent
+    }
+    return false
+  }
+
+  static func capture(_ target: DeliveryTarget) -> ContextCapture {
     let clock = ContinuousClock()
     let started = clock.now
-    let frontmost = NSWorkspace.shared.frontmostApplication
-    let capture = Session(deadline: started + captureBudget).read(frontmost: frontmost)
+    let capture = Session(deadline: started + captureBudget).read(target)
     let duration = started.duration(to: clock.now).components
     let elapsed = Double(duration.seconds) * 1000 + Double(duration.attoseconds) / 1e15
     contextLogger.info(
-      "Context capture source=\(source.rawValue, privacy: .public) \(capture.logDescription, privacy: .public) pid=\(frontmost?.processIdentifier ?? -1) elapsed=\(elapsed, format: .fixed(precision: 3))ms",
+      "Context capture \(capture.logDescription, privacy: .public) pid=\(target.processID ?? -1) elapsed=\(elapsed, format: .fixed(precision: 3))ms",
     )
     return capture
   }
@@ -31,35 +60,80 @@ enum FocusedFieldReader {
 
     let deadline: ContinuousClock.Instant
 
-    func read(frontmost: NSRunningApplication?) -> ContextCapture {
+    /// The first message to the target's process happens here, at the press, so its connection
+    /// cost is paid while the user is still speaking and every read at delivery is warm.
+    func locate(frontmost: NSRunningApplication?) -> DeliveryTarget {
+      guard AXIsProcessTrusted(), let frontmost else {
+        return .none
+      }
+      let application = AXUIElementCreateApplication(frontmost.processIdentifier)
+      var target = DeliveryTarget(
+        app: frontmost.bundleIdentifier.map {
+          TargetApp(bundleID: $0, name: frontmost.localizedName)
+        },
+        processID: frontmost.processIdentifier, window: nil, element: nil, pane: nil,
+      )
+      guard arm(application, cap: firstContactTimeout, for: .focusedElement) == nil else {
+        return target
+      }
+      if case let .success(window) = AXRead.element(application, kAXFocusedWindowAttribute) {
+        target.window = AXElement(raw: window)
+      }
+      target.element = deepestFocusedElement(of: application).map(AXElement.init(raw:))
+      return target
+    }
+
+    /// The element at the end of the focus chain. Chromium answers the focused-element question
+    /// with its web area; the field the user is typing in is a focused descendant of it, and that
+    /// field, not the web area, is what tells one field of a page from another.
+    func deepestFocusedElement(of application: AXUIElement) -> AXUIElement? {
+      guard case var .success(element) = AXRead.element(
+        application, kAXFocusedUIElementAttribute,
+      ) else {
+        return nil
+      }
+      for _ in 0 ..< maximumFocusDepth {
+        guard case let .success(child?) = focusedChild(of: element) else {
+          break
+        }
+        element = child
+      }
+      return element
+    }
+
+    func read(_ target: DeliveryTarget) -> ContextCapture {
       guard AXIsProcessTrusted() else {
         return .unavailable(.accessibilityPermissionMissing)
       }
-      guard let frontmost else {
+      guard let processID = target.processID else {
         return .unavailable(.noFocusedElement)
       }
-
-      let bundleID = frontmost.bundleIdentifier
+      let bundleID = target.app?.bundleID
       guard !TerminalBundleIDs.contains(bundleID) else {
         return .unavailable(.gridSemantics(bundleID: bundleID))
       }
 
-      let application = AXUIElementCreateApplication(frontmost.processIdentifier)
-      if let blocked = arm(application, cap: firstContactTimeout, for: .focusedElement) {
-        return .unavailable(blocked)
-      }
-
+      // A press that beat a Chromium wake captured only the web area; walking down from it now,
+      // with the tree awake, still finds the field inside it.
       let focused: AXUIElement
-      switch AXRead.element(application, kAXFocusedUIElementAttribute) {
-      case let .success(element):
-        focused = element
-      case let .failure(failure):
-        return .unavailable(classify(failure, .focusedElement, downgrade: .noFocusedElement))
+      if let element = target.element {
+        focused = element.raw
+      } else {
+        let application = AXUIElementCreateApplication(processID)
+        if let blocked = arm(application, cap: firstContactTimeout, for: .focusedElement) {
+          return .unavailable(blocked)
+        }
+        switch AXRead.element(application, kAXFocusedUIElementAttribute) {
+        case let .success(element):
+          focused = element
+        case let .failure(failure):
+          return .unavailable(classify(failure, .focusedElement, downgrade: .noFocusedElement))
+        }
       }
 
       switch resolveTextTarget(focused) {
-      case let .success(target):
-        return readSlices(from: target)
+      case let .success(text):
+        return readSlices(from: text)
       case let .failure(reason):
         return .unavailable(reason)
       }
@@ -302,6 +376,7 @@ enum FocusedFieldReader {
   private static let firstContactTimeout: Float = 0.040
   private static let captureBudget = Duration.milliseconds(60)
   private static let maximumFocusDepth = 16
+  private static let maximumAncestorDepth = 32
   private static let maximumChildWidth = 64
 }
 

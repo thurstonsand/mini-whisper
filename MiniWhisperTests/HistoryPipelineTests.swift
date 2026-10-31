@@ -33,7 +33,7 @@ import TranscriptCleanup
     } withDependencies: {
       $0.contextCapture.capture = { _ in captured }
       $0.date.now = transcribedAt
-      $0.delivery.deliver = { text in
+      $0.delivery.deliver = { text, _, _ in
         #expect(text == " Dictated text")
         return .pasted(.restored)
       }
@@ -43,9 +43,7 @@ import TranscriptCleanup
         return metadata
       }
       $0.uuid = .constant(id)
-      $0.workspace.frontmostApplication = {
-        WorkspaceApplication(bundleID: targetApp.bundleID, name: targetApp.name)
-      }
+      $0.deliveryTarget.capture = { .inApp(targetApp) }
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
 
@@ -57,9 +55,9 @@ import TranscriptCleanup
         text: "dictated text", engine: "test-engine@revision", transcribedAt: transcribedAt,
       )
     }
-    await store.receive(.contextCaptured(1, captured, targetApp)) {
+    await store.receive(.contextCaptured(1, captured, .inApp(targetApp))) {
       $0.pendingDictation?.capture = captured
-      $0.pendingDictation?.targetApp = targetApp
+      $0.pendingDictation?.target = .inApp(targetApp)
     }
     await store.receive(
       .deliveryCompleted(
@@ -472,11 +470,11 @@ import TranscriptCleanup
       AppFeature()
     } withDependencies: {
       $0.contextCapture.capture = { _ in .available(historyContext(before: "")) }
-      $0.delivery.deliver = { text in
+      $0.delivery.deliver = { text, _, _ in
         await delivered.record(text)
         return .pasted(.restored)
       }
-      $0.workspace.frontmostApplication = { nil }
+      $0.deliveryTarget.capture = { .none }
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
 

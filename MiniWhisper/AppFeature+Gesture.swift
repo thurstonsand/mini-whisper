@@ -84,6 +84,7 @@ extension AppFeature {
       state.transcriptionGeneration += 1
       state.dictationWasCancelled = false
       state.pendingDictation = nil
+      state.activationTarget = nil
       state.dictationInFlight = true
       if state.historyMaintenance == .running {
         state.historyMaintenance = .waiting
@@ -98,11 +99,12 @@ extension AppFeature {
           ),
         ),
         .merge(
-          .cancel(id: CancelID.transcription), .cancel(id: CancelID.capture),
+          .cancel(id: CancelID.transcription),
           replaced.map { .cancel(id: CancelID.cleanup($0)) } ?? .none,
           replaced.map { .cancel(id: CancelID.delivery($0)) } ?? .none,
           .cancel(id: CancelID.recoveryDelivery), .cancel(id: CancelID.historyMaintenance),
           .send(.recording(.startRecording)),
+          captureTargetEffect(generation: state.transcriptionGeneration),
           // The machine emits this exactly once per interaction, so the onset cue needs no
           // suppression flag: one interaction, one sound, at the moment the user acted.
           playSound(state.settings.sounds.activate),
@@ -117,12 +119,7 @@ extension AppFeature {
       )
     case .stopAndTranscribe:
       performanceLogger.notice("benchmark recording-release-received")
-      // A throwaway read that runs beside transcription purely to warm the target: the first
-      // Accessibility call into a process costs 8-30 ms, every later one a fraction of a
-      // millisecond. Its result is deliberately discarded — by the time the transcript arrives
-      // the user may have typed, moved the caret, or switched windows, so only the read taken at
-      // delivery is trustworthy enough to join against.
-      return .merge(.send(.recording(.stopAndRetain)), warmUpCaptureEffect())
+      return .send(.recording(.stopAndRetain))
     case .latchEngaged:
       return .send(.pill(.latchEngaged))
     case .discardRecording:
@@ -133,8 +130,8 @@ extension AppFeature {
       state.pendingDictation = nil
       state.dictationInFlight = false
       return .merge(
-        .cancel(id: CancelID.transcription), .cancel(id: CancelID.capture),
-        .cancel(id: CancelID.cleanup(generation)), .cancel(id: CancelID.delivery(generation)),
+        .cancel(id: CancelID.transcription), .cancel(id: CancelID.cleanup(generation)),
+        .cancel(id: CancelID.delivery(generation)),
         .send(.recording(.cancelRecording)),
         .send(.pill(.dismiss)),
       )
@@ -177,23 +174,19 @@ extension AppFeature {
   /// can take the pill and the generation while that tail finishes on its own.
   private func skipPendingCleanup(_ state: inout State) -> Effect<Action> {
     guard var dictation = state.pendingDictation, let configuration = dictation.cleanup,
-          let capture = dictation.capture, let transcript = dictation.original?.text,
-          !dictation.isFinishing
+          let transcript = dictation.original?.text, dictation.readyText == nil
     else {
       return .none
     }
     dictation.cleanupRecord = CleanupRecord(
       .attempted(configuration, .skipped(seconds: dictation.elapsedCleanup(now))),
     )
-    dictation.isDelivering = true
+    dictation.readyText = transcript
     state.pendingDictation = nil
     state.backgroundDictations[dictation.generation] = dictation
     gestureLogger.notice("Cleanup skipped; delivering the transcript as heard")
     return .merge(
-      .cancel(id: CancelID.cleanup(dictation.generation)),
-      deliverEffect(
-        dictation.generation, text: transcript, capture: capture, targetApp: dictation.targetApp,
-      ),
+      .cancel(id: CancelID.cleanup(dictation.generation)), deliverReadyDictations(&state),
     )
   }
 }

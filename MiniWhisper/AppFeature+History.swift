@@ -25,21 +25,29 @@ extension AppFeature {
     /// engine's vocabulary was — so a profile switch mid-dictation cannot give one dictation two
     /// profiles' stacks.
     var cleanupTarget: CleanupTarget?
-    /// The focused field as it was immediately before the paste — one snapshot, which conditions
+    /// Where this dictation delivers, captured at the press that started it.
+    var target: DeliveryTarget?
+    /// The target's field as it was once the transcript arrived — one snapshot, which conditions
     /// the cleanup prompt and then adjusts the joined text.
     var capture: ContextCapture?
-    var targetApp: TargetApp?
+    var isCapturingContext = false
     /// The configuration a request actually went out with, so a pane edit mid-flight cannot
     /// rewrite history — and so that a non-nil value means a request is genuinely in flight.
     var cleanup: CleanupConfiguration?
     var cleanupStartedAt: Date?
     var cleanupRecord: CleanupRecord?
-    /// The text is on its way to the target, so a cleanup answering late has nothing to change.
+    /// The text this dictation delivers, settled once cleanup resolves or is skipped; a cleanup
+    /// answering after that has nothing to change.
+    var readyText: String?
     var isDelivering = false
     var isFinishing = false
 
     var fieldContext: FocusedTextContext? {
       capture?.focusedTextContext
+    }
+
+    var targetApp: TargetApp? {
+      target?.app
     }
 
     /// What the pill owes the user once this dictation's paste lands, beyond the paste itself.
@@ -256,6 +264,8 @@ extension ClipboardRestoration {
       "clipboardChanged"
     case .failed:
       "clipboardRestoreFailed"
+    case .untouched:
+      "pane"
     }
   }
 }
@@ -269,6 +279,12 @@ extension DeliveryFallback {
       "secureInput"
     case .eventCreationFailed:
       "eventCreationFailed"
+    case .targetGone:
+      "targetGone"
+    case .targetChanged:
+      "targetChanged"
+    case .targetUnreachable:
+      "targetUnreachable"
     }
   }
 }

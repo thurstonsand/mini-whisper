@@ -20,7 +20,7 @@ import TranscriptCleanup
   ) async throws {
     let delivered = StringRecorder()
     let store = skipStore {
-      $0.delivery.deliver = { text in
+      $0.delivery.deliver = { text, _, _ in
         await delivered.record(text)
         return .pasted(.restored)
       }
@@ -48,7 +48,7 @@ import TranscriptCleanup
     let clock = TestClock()
     let store = skipStore {
       $0.continuousClock = clock
-      $0.delivery.deliver = { text in
+      $0.delivery.deliver = { text, _, _ in
         await delivered.record(text)
         return .pasted(.restored)
       }
@@ -73,7 +73,7 @@ import TranscriptCleanup
 
   @Test func `escape while polishing archives the transcript and delivers nothing`() async throws {
     let store = skipStore {
-      $0.delivery.deliver = { _ in
+      $0.delivery.deliver = { _, _, _ in
         Issue.record("Escape revokes delivery, during cleanup as everywhere else")
         return .pasted(.restored)
       }
@@ -119,7 +119,7 @@ import TranscriptCleanup
   @Test func `a cleanup that answers after the skip cannot deliver twice`() async {
     let deliveries = PrewarmCounter()
     let store = skipStore {
-      $0.delivery.deliver = { _ in
+      $0.delivery.deliver = { _, _, _ in
         await deliveries.record()
         return .pasted(.restored)
       }
@@ -153,6 +153,7 @@ private func skippedTail(_ generation: Int, _ text: String) -> AppFeature.Pendin
     ),
   )
   dictation.capture = .unavailable(.noFocusedElement)
+  dictation.target = .inApp(TargetApp(bundleID: "com.example.Editor", name: "Editor"))
   dictation.cleanup = skipConfiguration
   dictation.cleanupRecord = CleanupRecord(.attempted(skipConfiguration, .skipped(seconds: 2)))
   dictation.isDelivering = true
@@ -207,6 +208,7 @@ private func pasted(_ text: String) -> AppFeature.DeliveryResult {
     ),
   )
   pending.capture = capture
+  pending.target = .inApp(TargetApp(bundleID: "com.example.Editor", name: "Editor"))
   pending.cleanup = settings.cleanupTarget?.configuration
   pending.cleanupStartedAt = Date(timeIntervalSince1970: 198)
   state.pendingDictation = pending

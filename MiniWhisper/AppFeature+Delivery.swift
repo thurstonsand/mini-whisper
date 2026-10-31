@@ -17,18 +17,26 @@ extension AppFeature {
     case failed(String)
   }
 
-  /// The capture happens as late as it can, because it is the only moment whose answer is still
-  /// true: during transcription the user can type, move the caret, or switch windows without ever
-  /// leaving the application. It is a best-effort snapshot of the frontmost field rather than a
-  /// guarantee — nothing stops a third application from taking the front before the synthetic ⌘V.
-  func captureContextEffect(generation: Int) -> Effect<Action> {
+  /// The press is the only moment that names where the user meant the words to go, so the target
+  /// is captured beside it — before the user has had a chance to look anywhere else.
+  func captureTargetEffect(generation: Int) -> Effect<Action> {
+    .run { send in await send(.targetCaptured(generation, deliveryTarget.capture())) }
+  }
+
+  /// The field's text is read as late as it can be, because it is the one fact the user keeps
+  /// changing: during transcription they can type or move the caret. It is read from the target,
+  /// so it is the field the dictation will land in, wherever the user is now. A target that has
+  /// not arrived by the time the transcript has is captured here instead.
+  func captureContextEffect(generation: Int, target: DeliveryTarget?) -> Effect<Action> {
     .run { send in
-      let (capture, targetApp) = await captureFrontmostField()
-      // A newer dictation has already claimed the field; this paste would land in it.
-      guard !Task.isCancelled else {
-        return
-      }
-      await send(.contextCaptured(generation, capture, targetApp))
+      let target =
+        if let target {
+          target
+        } else {
+          await deliveryTarget.capture()
+        }
+      let capture = await contextCapture.capture(target)
+      await send(.contextCaptured(generation, capture, target))
     }.cancellable(id: CancelID.delivery(generation), cancelInFlight: true)
   }
 
@@ -36,11 +44,14 @@ extension AppFeature {
   /// delivered once, so it captures and pastes in one effect rather than walking the legs.
   func recoveryDeliveryEffect(transcript: String) -> Effect<Action> {
     .run { send in
-      let (capture, targetApp) = await captureFrontmostField()
+      let target = await deliveryTarget.capture()
+      let capture = await contextCapture.capture(target)
       guard !Task.isCancelled else {
         return
       }
-      await deliver(transcript, capture: capture, targetApp: targetApp, to: nil, send: send)
+      await deliver(
+        transcript, capture: capture, target: target, submits: false, to: nil, send: send,
+      )
     }.cancellable(id: CancelID.recoveryDelivery, cancelInFlight: true)
   }
 
@@ -65,29 +76,54 @@ extension AppFeature {
     }.cancellable(id: CancelID.cleanup(generation), cancelInFlight: true)
   }
 
-  func deliverEffect(
-    _ generation: Int, text: String, capture: ContextCapture, targetApp: TargetApp?,
-  ) -> Effect<Action> {
-    .run { send in
-      await deliver(text, capture: capture, targetApp: targetApp, to: generation, send: send)
-    }.cancellable(id: CancelID.delivery(generation), cancelInFlight: true)
+  /// Starts every delivery whose turn has come. A dictation waits while an earlier one bound for
+  /// the same target has not landed, so one target hears its dictations in the order they were
+  /// spoken; and only one GUI delivery runs at a time, because each borrows the clipboard and may
+  /// borrow focus.
+  func deliverReadyDictations(_ state: inout State) -> Effect<Action> {
+    let dictations = (Array(state.backgroundDictations.values) + [state.pendingDictation])
+      .compactMap(\.self)
+      .sorted { $0.generation < $1.generation }
+    var guiDeliveryRunning = dictations.contains {
+      $0.isDelivering && !$0.isFinishing && $0.target?.pane == nil
+    }
+    var effects: [Effect<Action>] = []
+    for (index, dictation) in dictations.enumerated() {
+      guard let text = dictation.readyText, !dictation.isDelivering,
+            let capture = dictation.capture, let target = dictation.target
+      else {
+        continue
+      }
+      let waitsOnEarlier = dictations[..<index].contains { earlier in
+        !earlier.isFinishing && earlier.target?.isSameDestination(as: target) == true
+      }
+      guard !waitsOnEarlier, target.pane != nil || !guiDeliveryRunning else {
+        continue
+      }
+      if target.pane == nil {
+        guiDeliveryRunning = true
+      }
+      var started = dictation
+      started.isDelivering = true
+      state.updateDictation(started)
+      effects.append(
+        .run { send in
+          await deliver(
+            text, capture: capture, target: target, submits: false, to: dictation.generation,
+            send: send,
+          )
+        }.cancellable(id: CancelID.delivery(dictation.generation), cancelInFlight: true),
+      )
+    }
+    return .merge(effects)
   }
 
   // MARK: Private
 
-  private func captureFrontmostField() async -> (ContextCapture, TargetApp?) {
-    async let targetApplication = workspace.frontmostApplication()
-    let capture = await contextCapture.capture(.delivery)
-    let targetApp = await targetApplication.map {
-      TargetApp(bundleID: $0.bundleID, name: $0.name)
-    }
-    return (capture, targetApp)
-  }
-
   /// A dictation answers to its generation; a recovery answers to nobody.
   private func deliver(
-    _ text: String, capture: ContextCapture, targetApp: TargetApp?, to generation: Int?,
-    send: Send<Action>,
+    _ text: String, capture: ContextCapture, target: DeliveryTarget, submits: Bool,
+    to generation: Int?, send: Send<Action>,
   ) async {
     let adjusted = capture.adjusted(text)
     guard !Task.isCancelled else {
@@ -98,19 +134,19 @@ extension AppFeature {
       if let noReceiver = capture.noReceiverReason {
         attempt = .delivered(.noReceiver(noReceiver))
       } else {
-        attempt = try await .delivered(delivery.deliver(adjusted))
+        attempt = try await .delivered(delivery.deliver(adjusted, target, submits))
       }
     } catch {
       attempt = .failed(error.localizedDescription)
     }
     switch attempt {
     case let .delivered(outcome):
-      let result = DeliveryResult(text: adjusted, targetApp: targetApp, outcome: outcome)
+      let result = DeliveryResult(text: adjusted, targetApp: target.app, outcome: outcome)
       await send(
         generation.map { .deliveryCompleted($0, result) } ?? .recoveryDeliveryCompleted(result),
       )
     case let .failed(message):
-      let failure = DeliveryFailure(text: adjusted, targetApp: targetApp, message: message)
+      let failure = DeliveryFailure(text: adjusted, targetApp: target.app, message: message)
       await send(
         generation.map { .deliveryFailed($0, failure) } ?? .recoveryDeliveryFailed(failure),
       )

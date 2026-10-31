@@ -24,7 +24,7 @@ import TranscriptCleanup
     defer { endpoint.stop() }
     let delivered = StringRecorder()
     let store = smokeStore(endpoint: endpoint.baseURL, timeout: 5) {
-      $0.delivery.deliver = { text in
+      $0.delivery.deliver = { text, _, _ in
         await delivered.record(text)
         return .pasted(.restored)
       }
@@ -69,7 +69,7 @@ import TranscriptCleanup
     endpoint.stop()
     let delivered = StringRecorder()
     let store = smokeStore(endpoint: deadURL, timeout: 5) {
-      $0.delivery.deliver = { text in
+      $0.delivery.deliver = { text, _, _ in
         await delivered.record(text)
         return .pasted(.restored)
       }
@@ -106,7 +106,7 @@ import TranscriptCleanup
     let delivered = StringRecorder()
     // A timeout far past the test: what ends this wait is the user, not the backstop.
     let store = smokeStore(endpoint: endpoint.slowBaseURL, timeout: 60) {
-      $0.delivery.deliver = { text in
+      $0.delivery.deliver = { text, _, _ in
         await delivered.record(text)
         return .pasted(.restored)
       }
@@ -190,7 +190,7 @@ import TranscriptCleanup
     let endpoint = MockEndpoint.start()
     defer { endpoint.stop() }
     let store = smokeStore(endpoint: endpoint.slowBaseURL, timeout: 60) {
-      $0.delivery.deliver = { _ in
+      $0.delivery.deliver = { _, _, _ in
         Issue.record("Escape revokes delivery, during cleanup as everywhere else")
         return .pasted(.restored)
       }
@@ -273,9 +273,8 @@ private let smokeContext = FocusedTextContext(
     $0.date.now = Date(timeIntervalSince1970: 200)
     $0.keychain.read = { _ in "sk-smoke" }
     $0.uuid = .incrementing
-    $0.workspace.frontmostApplication = {
-      WorkspaceApplication(bundleID: "com.apple.Terminal", name: "Terminal")
-    }
+    $0.deliveryTarget
+      .capture = { .inApp(TargetApp(bundleID: "com.apple.Terminal", name: "Terminal")) }
     dependencies(&$0)
   }
   store.exhaustivity = .off(showSkippedAssertions: false)

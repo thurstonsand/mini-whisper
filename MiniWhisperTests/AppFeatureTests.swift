@@ -883,7 +883,7 @@ import Testing
       $0.date.now = Date(timeIntervalSince1970: 200)
       $0.uuid = .incrementing
       $0.contextCapture.capture = { _ in captured }
-      $0.delivery.deliver = { transcript in
+      $0.delivery.deliver = { transcript, _, _ in
         #expect(transcript == " Delivered text")
         return .pasted(.restored)
       }
@@ -896,7 +896,7 @@ import Testing
     ) {
       $0.lastTranscript = "delivered text"
     }
-    await store.receive(.contextCaptured(1, captured, nil)) {
+    await store.receive(.contextCaptured(1, captured, .none)) {
       $0.pendingDictation?.capture = captured
     }
     await store.receive(.cleanupResolved(1, .passedThrough))
@@ -908,94 +908,6 @@ import Testing
     await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
     #expect(await sounds.recorded == ["Pop"])
-  }
-
-  @Test func `release warms the field but delivery joins against A fresh read`() async {
-    let captures = CaptureSequence(captures: [
-      // What the release-time read saw, before the user kept typing during transcription.
-      .available(context(before: "we were still typing")),
-      .available(context(before: "We were still typing.")),
-    ])
-    var state = AppFeature.State()
-    state.awaitingTranscript(generation: 1)
-    state.$health.withLock { $0 = .healthy }
-    state.onboardingCompleted = true
-    let store = TestStore(initialState: state) {
-      AppFeature()
-    } withDependencies: {
-      $0.date.now = Date(timeIntervalSince1970: 200)
-      $0.uuid = .incrementing
-      $0.contextCapture.capture = { _ in await captures.next() }
-      // Only the delivery-time read can produce this joined text.
-      $0.delivery.deliver = { transcript in
-        #expect(transcript == " Delivered text")
-        return .pasted(.restored)
-      }
-    }
-    store.exhaustivity = .off(showSkippedAssertions: false)
-
-    await store.send(.hotkeyListenerEvent(.gesture(.stopAndTranscribe)))
-    await store.send(
-      .transcriptionCompleted(1, .transcript("delivered text")),
-    )
-    await store.receive(.contextCaptured(
-      1,
-      .available(context(before: "We were still typing.")),
-      nil,
-    )) {
-      $0.pendingDictation?.capture = .available(context(before: "We were still typing."))
-    }
-    await store.receive(
-      .deliveryCompleted(
-        1, deliveryResult(" Delivered text", .pasted(.restored)),
-      ),
-    )
-    await store.finish()
-    // One warm-up read at release, one authoritative read at delivery.
-    #expect(await captures.taken == 2)
-  }
-
-  @Test func `a second release replaces the warm up without delivering twice`() async {
-    let deliveries = PrewarmCounter()
-    let captures = CaptureSequence(captures: [
-      .unavailable(.noFocusedElement), .unavailable(.noFocusedElement),
-      .available(context(before: "Field text.")),
-    ])
-    var state = AppFeature.State()
-    state.awaitingTranscript(generation: 1)
-    state.$health.withLock { $0 = .healthy }
-    state.onboardingCompleted = true
-    let store = TestStore(initialState: state) {
-      AppFeature()
-    } withDependencies: {
-      $0.date.now = Date(timeIntervalSince1970: 200)
-      $0.uuid = .incrementing
-      $0.contextCapture.capture = { _ in await captures.next() }
-      $0.delivery.deliver = { _ in
-        await deliveries.record()
-        return .pasted(.restored)
-      }
-    }
-    store.exhaustivity = .off(showSkippedAssertions: false)
-
-    // A key that bounces on release must not turn one dictation into two pastes.
-    await store.send(.hotkeyListenerEvent(.gesture(.stopAndTranscribe)))
-    await store.send(.hotkeyListenerEvent(.gesture(.stopAndTranscribe)))
-    await store.send(
-      .transcriptionCompleted(1, .transcript("delivered text")),
-    )
-    await store.receive(.contextCaptured(
-      1,
-      .available(context(before: "Field text.")),
-      nil,
-    ))
-    await store.receive(
-      .deliveryCompleted(
-        1, deliveryResult(" Delivered text", .pasted(.restored)),
-      ),
-    )
-    await store.finish()
-    #expect(await deliveries.count == 1)
   }
 
   @Test func `cancel and archive saves transcript without delivery`() async throws {
@@ -1036,7 +948,7 @@ import Testing
       }
       $0.continuousClock = clock
       $0.date.now = Date(timeIntervalSince1970: 31)
-      $0.delivery.deliver = { _ in
+      $0.delivery.deliver = { _, _, _ in
         Issue.record("Cancelled dictation must not attempt delivery")
         return .pasted(.restored)
       }
@@ -1131,7 +1043,7 @@ import Testing
         for await _ in gate {}
         return .unavailable(.noFocusedElement)
       }
-      $0.delivery.deliver = { _ in
+      $0.delivery.deliver = { _, _, _ in
         await deliveries.record()
         return .pasted(.restored)
       }
@@ -1163,7 +1075,7 @@ import Testing
         for await _ in gate {}
         return .unavailable(.noFocusedElement)
       }
-      $0.delivery.deliver = { _ in
+      $0.delivery.deliver = { _, _, _ in
         await deliveries.record()
         return .pasted(.restored)
       }
@@ -1191,7 +1103,7 @@ import Testing
         for await _ in gate {}
         return .unavailable(.noFocusedElement)
       }
-      $0.delivery.deliver = { _ in
+      $0.delivery.deliver = { _, _, _ in
         await deliveries.record()
         return .pasted(.restored)
       }
@@ -1221,7 +1133,7 @@ import Testing
         return .unavailable(.noFocusedElement)
       }
       $0.contextCapture.prewarmFrontmostApp = {}
-      $0.delivery.deliver = { _ in
+      $0.delivery.deliver = { _, _, _ in
         await deliveries.record()
         return .pasted(.restored)
       }
@@ -1260,7 +1172,7 @@ import Testing
       $0.date.now = Date(timeIntervalSince1970: 200)
       $0.uuid = .incrementing
       $0.contextCapture.capture = { _ in unavailable }
-      $0.delivery.deliver = { transcript in
+      $0.delivery.deliver = { transcript, _, _ in
         #expect(transcript == "delivered text")
         return .pasted(.restored)
       }
@@ -1274,7 +1186,7 @@ import Testing
     ) {
       $0.lastTranscript = "delivered text"
     }
-    await store.receive(.contextCaptured(1, unavailable, nil)) {
+    await store.receive(.contextCaptured(1, unavailable, .none)) {
       $0.pendingDictation?.capture = unavailable
     }
     await store.receive(.cleanupResolved(1, .passedThrough))
@@ -1307,7 +1219,7 @@ import Testing
       $0.delivery.copy = { _ in
         Issue.record("A delivery with no receiver must not change the clipboard")
       }
-      $0.delivery.deliver = { _ in
+      $0.delivery.deliver = { _, _, _ in
         Issue.record("A delivery with no receiver must not synthesize paste")
         return .pasted(.restored)
       }
@@ -1317,7 +1229,7 @@ import Testing
     await store.send(.transcriptionCompleted(1, .transcript("copy me"))) {
       $0.lastTranscript = "copy me"
     }
-    await store.receive(.contextCaptured(1, .unavailable(reason), nil)) {
+    await store.receive(.contextCaptured(1, .unavailable(reason), .none)) {
       $0.pendingDictation?.capture = .unavailable(reason)
     }
     await store.receive(.cleanupResolved(1, .passedThrough))
@@ -1368,7 +1280,7 @@ import Testing
       $0.delivery.copy = { _ in
         Issue.record("A delivery with no receiver must not change the clipboard")
       }
-      $0.delivery.deliver = { _ in
+      $0.delivery.deliver = { _, _, _ in
         Issue.record("A delivery with no receiver must not synthesize paste")
         return .pasted(.restored)
       }
@@ -1410,7 +1322,7 @@ import Testing
     state.lastTranscript = "memory text"
     let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
       $0.contextCapture.capture = { _ in .available(context(before: "Finished.")) }
-      $0.delivery.deliver = { transcript in
+      $0.delivery.deliver = { transcript, _, _ in
         await deliveries.record(transcript)
         return .pasted(.restored)
       }
@@ -1438,7 +1350,7 @@ import Testing
       $0.delivery.copy = { _ in
         Issue.record("Recovery with no receiver must not change the clipboard")
       }
-      $0.delivery.deliver = { _ in
+      $0.delivery.deliver = { _, _, _ in
         Issue.record("Recovery with no receiver must not synthesize paste")
         return .pasted(.restored)
       }
@@ -1480,7 +1392,7 @@ import Testing
     let state = AppFeature.State(history: Shared(value: HistoryLog(entries: [historyEntry])))
     let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
       $0.contextCapture.capture = { _ in .unavailable(.noTextRange(role: "AXTextArea")) }
-      $0.delivery.deliver = { transcript in
+      $0.delivery.deliver = { transcript, _, _ in
         await deliveries.record(transcript)
         return .pasted(.restored)
       }
@@ -1517,7 +1429,7 @@ import Testing
     state.lastTranscript = "do not deliver"
     state.dictationInFlight = true
     let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
-      $0.delivery.deliver = { transcript in
+      $0.delivery.deliver = { transcript, _, _ in
         await deliveries.record(transcript)
         return .pasted(.restored)
       }
@@ -1566,7 +1478,7 @@ import Testing
       $0.date.now = Date(timeIntervalSince1970: 200)
       $0.uuid = .incrementing
       $0.contextCapture.capture = { _ in .unavailable(.accessibilityPermissionMissing) }
-      $0.delivery.deliver = { _ in .copied(.accessibilityPermissionMissing) }
+      $0.delivery.deliver = { _, _, _ in .copied(.accessibilityPermissionMissing) }
       $0.sounds.play = { cue in await sounds.record(cue) }
       $0.continuousClock = clock
     }
@@ -1578,7 +1490,7 @@ import Testing
       $0.lastTranscript = "copy me"
     }
     await store.receive(
-      .contextCaptured(3, .unavailable(.accessibilityPermissionMissing), nil),
+      .contextCaptured(3, .unavailable(.accessibilityPermissionMissing), .none),
     ) {
       $0.pendingDictation?.capture = .unavailable(.accessibilityPermissionMissing)
     }
@@ -1627,6 +1539,9 @@ import Testing
       )
     }
     await store.receive(.recording(.startRecording))
+    await store.receive(.targetCaptured(1, .none)) {
+      $0.activationTarget = AppFeature.ActivationTarget(generation: 1, target: .none)
+    }
     await store.send(.recording(.delegate(.discarded))) { $0.dictationInFlight = false }
     await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
@@ -1688,7 +1603,7 @@ import Testing
       $0.contextCapture.prewarmFrontmostApp = {}
       $0.continuousClock = clock
       $0.date.now = Date(timeIntervalSince1970: 40)
-      $0.delivery.deliver = { _ in .pasted(.restored) }
+      $0.delivery.deliver = { _, _, _ in .pasted(.restored) }
       $0.sounds.play = { name in await sounds.record(name) }
       $0.uuid = .constant(historyID)
     }
@@ -1828,7 +1743,7 @@ import Testing
       $0.date.now = Date(timeIntervalSince1970: 200)
       $0.uuid = .incrementing
       $0.contextCapture.capture = { _ in .unavailable(.noTextRange(role: "AXTextArea")) }
-      $0.delivery.deliver = { _ in throw DeliveryError.pasteboardWriteFailed }
+      $0.delivery.deliver = { _, _, _ in throw DeliveryError.pasteboardWriteFailed }
       $0.sounds.play = { cue in await sounds.record(cue) }
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
@@ -1840,7 +1755,7 @@ import Testing
       $0.lastTranscript = "undeliverable"
     }
     await store.receive(
-      .contextCaptured(5, .unavailable(.noTextRange(role: "AXTextArea")), nil),
+      .contextCaptured(5, .unavailable(.noTextRange(role: "AXTextArea")), .none),
     ) {
       $0.pendingDictation?.capture = .unavailable(.noTextRange(role: "AXTextArea"))
     }
