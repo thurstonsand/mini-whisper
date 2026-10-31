@@ -13,10 +13,11 @@ import TranscriptCleanup
 
 // MARK: - CleanupSkipTests
 
-/// The interruption grammar: one rule, that any activation press resolves a pending cleanup as a
-/// skip, plus Escape keeping the meaning it has everywhere else.
+/// The interruption grammar: a press while polishing detaches the dictation, which keeps its
+/// cleanup and delivers itself; a lone tap skips it instead; and Escape cancels it only where the
+/// user still is.
 @MainActor struct CleanupSkipTests {
-  @Test func `a hold while polishing delivers as heard and starts the next recording`(
+  @Test func `a hold while polishing detaches the dictation and starts the next recording`(
   ) async throws {
     let delivered = StringRecorder()
     let store = skipStore {
@@ -27,20 +28,30 @@ import TranscriptCleanup
     }
 
     await store.send(.hotkeyListenerEvent(.gestureInput(.activation(at: .zero))))
-    await store.receive(.hotkeyListenerEvent(.gesture(.skipCleanupAndRecord)))
+    await store.receive(.hotkeyListenerEvent(.gesture(.detachAndRecord)))
     await store.skipReceivedActions()
-    await store.skipInFlightEffects()
-
-    // An empty field is the start of a sentence, so the join capitalises what it pastes.
-    #expect(await delivered.values == ["Deliver me as heard"])
+    #expect(await delivered.values.isEmpty)
     #expect(store.state.gestureMachine.phase == .holding(startedAt: .zero))
     #expect(store.state.transcriptionGeneration == 2)
     #expect(store.state.dictationInFlight)
     #expect(store.state.recording.phase != .idle)
+
+    // The detached dictation's cleanup answers while the next one is still recording.
+    await store.send(
+      .cleanupResolved(
+        1, .attempted(skipConfiguration, .cleaned("deliver me as heard.", seconds: 4)),
+      ),
+    )
+    await store.skipReceivedActions()
+    await store.skipInFlightEffects()
+
+    // An empty field is the start of a sentence, so the join capitalises what it pastes.
+    #expect(await delivered.values == ["Deliver me as heard."])
     let entry = try #require(store.state.history.entries.first)
-    #expect(entry.delivery?.text == "Deliver me as heard")
-    #expect(entry.original?.cleanup?.disposition == .skipped)
-    #expect(entry.original?.cleanup?.model == "gpt-oss-120b")
+    #expect(entry.delivery?.text == "Deliver me as heard.")
+    #expect(entry.original?.cleanup?.disposition == .cleaned("deliver me as heard."))
+    #expect(store.state.lastTranscript == "deliver me as heard.")
+    #expect(store.state.recording.phase != .idle)
   }
 
   @Test func `a tap while polishing skips without leaving a recording behind`() async throws {
@@ -73,6 +84,7 @@ import TranscriptCleanup
 
   @Test func `escape while polishing archives the transcript and delivers nothing`() async throws {
     let store = skipStore {
+      $0.deliveryTarget.isCurrent = { $0 == editor }
       $0.delivery.deliver = { _, _, _ in
         Issue.record("Escape revokes delivery, during cleanup as everywhere else")
         return .pasted(.restored)
@@ -81,6 +93,7 @@ import TranscriptCleanup
 
     await store.send(.hotkeyListenerEvent(.gestureInput(.escape)))
     await store.receive(.hotkeyListenerEvent(.gesture(.cancelAndArchive)))
+    await store.receive(.escapeJudged(1, atTarget: true))
     await store.receive(.pill(.cancelledSavedToHistory)) {
       $0.pill.noticeGeneration = 1
       $0.pill.presentation = .notice(.cancelledSavedToHistory)
@@ -94,6 +107,66 @@ import TranscriptCleanup
     #expect(entry.original?.text == "deliver me as heard")
     // Escape resolved the wait rather than failing it; nothing about the endpoint went wrong.
     #expect(entry.original?.cleanup?.disposition == .skipped)
+  }
+
+  @Test func `escape somewhere else leaves the dictation polishing and skippable`() async throws {
+    let delivered = StringRecorder()
+    let clock = TestClock()
+    let store = skipStore {
+      $0.continuousClock = clock
+      // The user is interrupting an agent in another app, not this dictation.
+      $0.deliveryTarget.isCurrent = { _ in false }
+      $0.delivery.deliver = { text, _, _ in
+        await delivered.record(text)
+        return .pasted(.restored)
+      }
+    }
+
+    await store.send(.hotkeyListenerEvent(.gestureInput(.escape)))
+    await store.receive(.hotkeyListenerEvent(.gesture(.cancelAndArchive)))
+    await store.receive(.escapeJudged(1, atTarget: false))
+    #expect(store.state.pill.presentation != .notice(.cancelledSavedToHistory))
+
+    // The key still means skip for the dictation the Escape was not meant for.
+    await store.send(.hotkeyListenerEvent(.gestureInput(.activation(at: .zero))))
+    await store.send(.hotkeyListenerEvent(.gestureInput(.release(at: .milliseconds(80)))))
+    await clock.advance(by: .milliseconds(300))
+    await store.skipReceivedActions()
+    await store.skipInFlightEffects()
+
+    #expect(await delivered.values == ["Deliver me as heard"])
+    let entry = try #require(store.state.history.entries.first)
+    #expect(entry.original?.cleanup?.disposition == .skipped)
+  }
+
+  @Test func `a press that cannot record leaves the polishing dictation in the pill`() async {
+    let delivered = StringRecorder()
+    let clock = TestClock()
+    let store = skipStore {
+      $0.continuousClock = clock
+      $0.delivery.deliver = { text, _, _ in
+        await delivered.record(text)
+        return .pasted(.restored)
+      }
+    }
+    await store.send(.engineReadinessUpdated(store.state.health.engine, .failed("model failure")))
+
+    // Refused, then a tap's worth of release and silence: nothing it would have meant happens.
+    await store.send(.hotkeyListenerEvent(.gestureInput(.activation(at: .zero))))
+    await store.send(.hotkeyListenerEvent(.gestureInput(.release(at: .milliseconds(80)))))
+    await clock.advance(by: .milliseconds(300))
+    #expect(store.state.pendingDictation?.generation == 1)
+    #expect(store.state.backgroundDictations.isEmpty)
+    #expect(store.state.gestureMachine.phase == .cleanupPending)
+
+    await store.send(
+      .cleanupResolved(
+        1, .attempted(skipConfiguration, .cleaned("deliver me as heard.", seconds: 4)),
+      ),
+    )
+    await store.finish()
+    #expect(await delivered.values == ["Deliver me as heard."])
+    #expect(store.state.lastTranscript == "deliver me as heard.")
   }
 
   /// Two tails in flight at once used to share one slot in state, which meant the second one's
@@ -118,7 +191,9 @@ import TranscriptCleanup
 
   @Test func `a cleanup that answers after the skip cannot deliver twice`() async {
     let deliveries = PrewarmCounter()
+    let clock = TestClock()
     let store = skipStore {
+      $0.continuousClock = clock
       $0.delivery.deliver = { _, _, _ in
         await deliveries.record()
         return .pasted(.restored)
@@ -126,6 +201,8 @@ import TranscriptCleanup
     }
 
     await store.send(.hotkeyListenerEvent(.gestureInput(.activation(at: .zero))))
+    await store.send(.hotkeyListenerEvent(.gestureInput(.release(at: .milliseconds(80)))))
+    await clock.advance(by: .milliseconds(300))
     await store.skipReceivedActions()
     // The endpoint's answer arrives late, for a dictation nothing is waiting on any more.
     await store.send(
@@ -138,6 +215,8 @@ import TranscriptCleanup
     #expect(await deliveries.count == 1)
   }
 }
+
+private let editor = DeliveryTarget.inApp(TargetApp(bundleID: "com.example.Editor", name: "Editor"))
 
 private let skipConfiguration = CleanupConfiguration(
   endpoint: URL(string: "https://gateway.example/v1")!, model: "gpt-oss-120b", timeout: 10,
@@ -153,7 +232,7 @@ private func skippedTail(_ generation: Int, _ text: String) -> AppFeature.Pendin
     ),
   )
   dictation.capture = .unavailable(.noFocusedElement)
-  dictation.target = .inApp(TargetApp(bundleID: "com.example.Editor", name: "Editor"))
+  dictation.target = editor
   dictation.cleanup = skipConfiguration
   dictation.cleanupRecord = CleanupRecord(.attempted(skipConfiguration, .skipped(seconds: 2)))
   dictation.isDelivering = true
@@ -208,10 +287,11 @@ private func pasted(_ text: String) -> AppFeature.DeliveryResult {
     ),
   )
   pending.capture = capture
-  pending.target = .inApp(TargetApp(bundleID: "com.example.Editor", name: "Editor"))
+  pending.target = editor
   pending.cleanup = settings.cleanupTarget?.configuration
   pending.cleanupStartedAt = Date(timeIntervalSince1970: 198)
   state.pendingDictation = pending
+  state.lastTranscript = "deliver me as heard"
   // The machine is waiting on the endpoint, exactly as the cleanup effect left it.
   _ = state.gestureMachine.receive(.cleanupStarted)
   let store = TestStore(initialState: state) {

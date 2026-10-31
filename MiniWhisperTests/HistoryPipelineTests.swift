@@ -315,7 +315,7 @@ import TranscriptCleanup
     #expect(await writes.isEmpty)
   }
 
-  @Test func `new dictation lets stale persistence clean up its audio`() async throws {
+  @Test func `a new dictation lets a finishing one still reach History`() async throws {
     let id = try #require(UUID(uuidString: "00000000-0000-0000-0000-000000000006"))
     let recording = CanonicalRecording(samples: [0.25])
     let (writeGate, openWriteGate) = AsyncStream.makeStream(of: Void.self)
@@ -354,11 +354,13 @@ import TranscriptCleanup
         1, AppFeature.DeliveryResult(text: "first", targetApp: nil, outcome: .pasted(.restored)),
       ),
     )
+    // The press arrives while the first dictation's audio is still being written.
     await store
       .send(.hotkeyListenerEvent(.gesture(.startRecording))) {
         $0.transcriptionGeneration = 2
         $0.pendingDictation = nil
       }
+    #expect(store.state.backgroundDictations[1]?.isFinishing == true)
     openWriteGate.finish()
     let entry = HistoryEntry(
       id: id, createdAt: Date(timeIntervalSince1970: 100), targetApp: nil,
@@ -371,8 +373,9 @@ import TranscriptCleanup
     )
     await store.receive(.historyEntryPrepared(1, entry))
     await store.skipInFlightEffects()
-    #expect(store.state.history.entries.isEmpty)
-    #expect(await maintenance.deletedIDs == [id])
+    #expect(store.state.history.entries == [entry])
+    #expect(store.state.backgroundDictations.isEmpty)
+    #expect(await maintenance.deletedIDs.isEmpty)
   }
 
   @Test func `launch maintenance reconciles and applies current retention`() async throws {

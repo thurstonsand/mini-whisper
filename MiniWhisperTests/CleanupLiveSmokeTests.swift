@@ -100,16 +100,24 @@ import TranscriptCleanup
     #expect(store.state.pill.presentation == .notice(.cleanupUnavailable))
   }
 
-  @Test func `a press against an endpoint that never answers delivers as heard`() async throws {
+  @Test func `a tap against an endpoint that never answers delivers as heard`() async throws {
     let endpoint = MockEndpoint.start()
     defer { endpoint.stop() }
     let delivered = StringRecorder()
     // A timeout far past the test: what ends this wait is the user, not the backstop.
+    let (captureEvents, _) = AsyncStream.makeStream(of: AudioCaptureEvent.self)
     let store = smokeStore(endpoint: endpoint.slowBaseURL, timeout: 60) {
       $0.delivery.deliver = { text, _, _ in
         await delivered.record(text)
         return .pasted(.restored)
       }
+      // The press that skips opens a recording as every press does, and the tap discards it.
+      $0.audioCapture.start = { _ in
+        AudioCaptureSession(id: UUID(), inputDeviceName: "Test Microphone", events: captureEvents)
+      }
+      $0.audioCapture.cancel = { _ in }
+      $0.asrEngine.prepareForActivation = { _ in AsyncStream { $0.finish() } }
+      $0.contextCapture.prewarmFrontmostApp = {}
     }
 
     await store.send(.transcriptionCompleted(1, .transcript("deliver me as heard")))
@@ -119,6 +127,8 @@ import TranscriptCleanup
     #expect(store.state.gestureMachine.phase == .cleanupPending)
 
     await store.send(.hotkeyListenerEvent(.gestureInput(.activation(at: .zero))))
+    await store.send(.hotkeyListenerEvent(.gestureInput(.release(at: .milliseconds(80)))))
+    await store.send(.hotkeyListenerEvent(.gestureInput(.deadlineElapsed)))
     // The skipped tail answers to nothing in the store, so it is followed by what it leaves
     // behind: the paste, then the entry.
     await store.settleSkippedTail()
@@ -250,6 +260,8 @@ private let smokeContext = FocusedTextContext(
   var state = AppFeature.State(
     history: Shared(value: HistoryLog()), settings: Shared(value: settings),
   )
+  state.onboardingCompleted = true
+  state.$health.withLock { $0 = .healthy }
   state.transcriptionGeneration = 1
   state.pill.presentation = .transcribing
   state.pendingDictation = AppFeature.PendingDictation(
@@ -275,6 +287,7 @@ private let smokeContext = FocusedTextContext(
     $0.uuid = .incrementing
     $0.deliveryTarget
       .capture = { .inApp(TargetApp(bundleID: "com.apple.Terminal", name: "Terminal")) }
+    $0.deliveryTarget.isCurrent = { _ in true }
     dependencies(&$0)
   }
   store.exhaustivity = .off(showSkippedAssertions: false)

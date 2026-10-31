@@ -53,15 +53,23 @@ struct DeliveryTarget: Equatable {
 @DependencyClient struct DeliveryTargetClient {
   /// The target in front of the user right now.
   var capture: @Sendable () async -> DeliveryTarget = { .none }
+  /// Whether the user is at this target right now, judged as delivery judges it.
+  var isCurrent: @Sendable (DeliveryTarget) async -> Bool = { _ in false }
 }
 
 // MARK: DependencyKey
 
 extension DeliveryTargetClient: DependencyKey {
-  static let testValue = Self(capture: { .none })
+  static let testValue = Self(capture: { .none }, isCurrent: { _ in false })
 
   static let liveValue = Self(
     capture: { await captureLive() },
+    isCurrent: { target in
+      guard target.pane == nil else {
+        return await captureLive().isSameDestination(as: target)
+      }
+      return await MainActor.run { FocusSpot.user()?.holds(target) ?? false }
+    },
   )
 
   private static func captureLive() async -> DeliveryTarget {

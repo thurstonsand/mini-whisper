@@ -55,32 +55,13 @@ extension AppFeature {
     gestureLogger.notice("\(event.rawValue, privacy: .public)")
     switch event {
     case .startRecording:
-      guard state.canBeginDictation else {
-        gestureLogger.notice("Dictation ignored until setup reaches its try-it step")
-        return .none
-      }
-      // A cached read of state the engine already reported, so refusing costs the hot path a
-      // comparison rather than a round trip to an actor that is busy or absent.
-      let readiness = state.health.engineReadiness
-      guard readiness == .ready else {
-        let status = state.health.engineStatusText
-        gestureLogger.notice("Dictation refused: \(status, privacy: .public)")
-        return .merge(
-          .send(.pill(.speechModelUnavailable(status))),
-          playSound(state.settings.sounds.error),
-        )
-      }
-      if let provider = state.health.missingCleanupKey {
-        let status = "Needs \(provider.keyPhrase)"
-        gestureLogger.notice("Dictation refused: \(status, privacy: .public)")
-        return .merge(
-          .send(.pill(.speechModelUnavailable(status))),
-          playSound(state.settings.sounds.error),
-        )
+      if let refusal = refuseDictation(&state) {
+        return refusal
       }
       performanceLogger.notice("benchmark app-activation-received")
-      // Only the dictation in the pill gives way; one already in the background keeps its legs.
-      let replaced = state.pendingDictation?.generation
+      // A dictation with words is never dropped by the next one: it steps into the background
+      // and finishes there. Only one still transcribing gives way, as the press means try again.
+      let replaced = detachPendingDictation(&state)
       state.transcriptionGeneration += 1
       state.dictationWasCancelled = false
       state.pendingDictation = nil
@@ -135,26 +116,36 @@ extension AppFeature {
         .send(.recording(.cancelRecording)),
         .send(.pill(.dismiss)),
       )
-    case .skipCleanupAndRecord:
-      // Two meanings, one press, in this order: the transcript waiting on the endpoint is let go
-      // as heard, and only then does the next dictation take the field.
-      let skipped = skipPendingCleanup(&state)
-      return .merge(skipped, performGesture(.startRecording, state: &state))
+    case .detachAndRecord:
+      // The polishing dictation keeps its cleanup and delivers itself; the press only decides,
+      // once it is over, whether a lone tap means skip. A press that cannot record detaches
+      // nothing, and the dictation stays in the pill.
+      if let refusal = refuseDictation(&state) {
+        return refusal
+      }
+      let detached = state.pendingDictation?.generation
+      _ = detachPendingDictation(&state)
+      state.detachedByPress = detached
+      return performGesture(.startRecording, state: &state)
+    case .skipCleanup:
+      let discarded = performGesture(.discardRecording, state: &state)
+      guard let generation = state.detachedByPress else {
+        return discarded
+      }
+      state.detachedByPress = nil
+      return .merge(discarded, skipCleanup(generation, &state))
     case .cancelAndArchive:
-      // Escape during cleanup: the request is abandoned and nothing is delivered, but the words
-      // are still the user's and still reach History.
-      if var dictation = state.pendingDictation, let configuration = dictation.cleanup {
-        dictation.cleanupRecord = CleanupRecord(
-          .attempted(configuration, .skipped(seconds: dictation.elapsedCleanup(now))),
-        )
-        state.pendingDictation = dictation
-        state.dictationWasCancelled = true
-        return .merge(
-          .cancel(id: CancelID.cleanup(dictation.generation)),
-          .cancel(id: CancelID.delivery(dictation.generation)),
-          .send(.pill(.cancelledSavedToHistory)), playSound(state.settings.sounds.cancel),
-          finishDictation(&state, delivery: nil),
-        )
+      // Escape during cleanup cancels only where the user still is: the same key is how a
+      // terminal agent is interrupted, and the dictation may be bound for one far away.
+      if let dictation = state.pendingDictation, dictation.cleanup != nil,
+         dictation.readyText == nil
+      {
+        guard let target = dictation.target else {
+          return cancelPolishing(&state)
+        }
+        return .run { [generation = dictation.generation] send in
+          await send(.escapeJudged(generation, atTarget: deliveryTarget.isCurrent(target)))
+        }
       }
       // Escape revokes delivery, not the user's words. The retained capture still runs through
       // transcription so a successful result can be recovered from History.
@@ -167,13 +158,73 @@ extension AppFeature {
     }
   }
 
+  /// Escape during cleanup: the request is abandoned and nothing is delivered, but the words are
+  /// still the user's and still reach History.
+  func cancelPolishing(_ state: inout State) -> Effect<Action> {
+    guard var dictation = state.pendingDictation, let configuration = dictation.cleanup,
+          dictation.readyText == nil
+    else {
+      return .none
+    }
+    dictation.cleanupRecord = CleanupRecord(
+      .attempted(configuration, .skipped(seconds: dictation.elapsedCleanup(now))),
+    )
+    state.pendingDictation = dictation
+    state.dictationWasCancelled = true
+    return .merge(
+      .cancel(id: CancelID.cleanup(dictation.generation)),
+      .cancel(id: CancelID.delivery(dictation.generation)),
+      .send(.hotkeyListenerEvent(.gestureInput(.cleanupEnded))),
+      .send(.pill(.cancelledSavedToHistory)), playSound(state.settings.sounds.cancel),
+      finishDictation(&state, delivery: nil),
+    )
+  }
+
   // MARK: Private
 
-  /// Lets go of the cleanup a press just resolved: the request is cancelled, and the dictation
-  /// steps aside into `backgroundDictations` — still owed a paste and an entry — so the next one
-  /// can take the pill and the generation while that tail finishes on its own.
-  private func skipPendingCleanup(_ state: inout State) -> Effect<Action> {
-    guard var dictation = state.pendingDictation, let configuration = dictation.cleanup,
+  /// Why a press cannot start a recording, said to the user, with the machine told to stand
+  /// down so the rest of the press acts on nothing; nil when it can.
+  private func refuseDictation(_ state: inout State) -> Effect<Action>? {
+    guard state.canBeginDictation else {
+      gestureLogger.notice("Dictation ignored until setup reaches its try-it step")
+      return receiveGestureInput(.refused, state: &state)
+    }
+    // A cached read of state the engine already reported, so refusing costs the hot path a
+    // comparison rather than a round trip to an actor that is busy or absent.
+    let status: String
+    if state.health.engineReadiness != .ready {
+      status = state.health.engineStatusText
+    } else if let provider = state.health.missingCleanupKey {
+      status = "Needs \(provider.keyPhrase)"
+    } else {
+      return nil
+    }
+    gestureLogger.notice("Dictation refused: \(status, privacy: .public)")
+    return .merge(
+      receiveGestureInput(.refused, state: &state), .send(.pill(.speechModelUnavailable(status))),
+      playSound(state.settings.sounds.error),
+    )
+  }
+
+  /// Moves the dictation in the pill into the background if it has words to deliver, and
+  /// answers the generation of one that had none and so must be cancelled instead.
+  private func detachPendingDictation(_ state: inout State) -> Int? {
+    guard let dictation = state.pendingDictation else {
+      return nil
+    }
+    state.pendingDictation = nil
+    guard dictation.original != nil else {
+      return dictation.generation
+    }
+    state.backgroundDictations[dictation.generation] = dictation
+    gestureLogger.notice("Dictation \(dictation.generation) detached")
+    return nil
+  }
+
+  /// Lets go of a detached dictation's cleanup: the request is cancelled and the transcript
+  /// delivers as heard.
+  private func skipCleanup(_ generation: Int, _ state: inout State) -> Effect<Action> {
+    guard var dictation = state.dictation(generation), let configuration = dictation.cleanup,
           let transcript = dictation.original?.text, dictation.readyText == nil
     else {
       return .none
@@ -182,11 +233,8 @@ extension AppFeature {
       .attempted(configuration, .skipped(seconds: dictation.elapsedCleanup(now))),
     )
     dictation.readyText = transcript
-    state.pendingDictation = nil
-    state.backgroundDictations[dictation.generation] = dictation
+    state.updateDictation(dictation)
     gestureLogger.notice("Cleanup skipped; delivering the transcript as heard")
-    return .merge(
-      .cancel(id: CancelID.cleanup(dictation.generation)), deliverReadyDictations(&state),
-    )
+    return .merge(.cancel(id: CancelID.cleanup(generation)), deliverReadyDictations(&state))
   }
 }

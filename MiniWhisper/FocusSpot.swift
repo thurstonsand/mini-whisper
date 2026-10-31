@@ -49,6 +49,11 @@ import History
     )
   }
 
+  /// Where the user is: their spot, even while a round trip has focus elsewhere.
+  static func user() -> FocusSpot? {
+    displaced ?? current()
+  }
+
   static func current() -> FocusSpot? {
     guard let frontmost = NSWorkspace.shared.frontmostApplication else {
       return nil

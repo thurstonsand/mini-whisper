@@ -56,6 +56,9 @@ public enum GestureInput: Equatable, Sendable {
   /// the one wait the activation key can resolve, so the machine has to know it is running.
   case cleanupStarted
   case cleanupEnded
+  /// The app turned down the recording a press asked for: the engine is not ready, a key is
+  /// missing, or setup has not reached its try-it step.
+  case refused
 
   // MARK: Public
 

@@ -101,7 +101,7 @@ extension AppHealth {
 extension DeliveryTarget {
   /// A GUI target in `app` with nothing but its identity: enough for History and the prompt,
   /// and for tests whose delivery is stubbed.
-  static func inApp(_ app: TargetApp) -> DeliveryTarget {
-    DeliveryTarget(app: app, processID: 1, window: nil, element: nil, pane: nil)
+  static func inApp(_ app: TargetApp, processID: pid_t = 1) -> DeliveryTarget {
+    DeliveryTarget(app: app, processID: processID, window: nil, element: nil, pane: nil)
   }
 }

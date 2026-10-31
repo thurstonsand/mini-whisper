@@ -101,6 +101,8 @@ private let performanceLogger = Logger(
     /// it is still owed a paste and an entry, and waits here under the generation it was until it
     /// has both.
     var backgroundDictations: [Int: PendingDictation] = [:]
+    /// The dictation the press now in progress detached, which a lone tap skips.
+    var detachedByPress: Int?
     var dictationInFlight = false
     var historyMaintenance = HistoryMaintenanceState.idle
     @Shared var history: HistoryLog
@@ -156,6 +158,7 @@ private let performanceLogger = Logger(
     case hotkeyListenerFailed(String)
     case hotkeyListenerFinished
     case gestureDeadlineElapsed(Int)
+    case escapeJudged(Int, atTarget: Bool)
     case menuWillOpen
     case repairRequested(Degradation)
     case copyLastTranscript
@@ -407,6 +410,15 @@ private let performanceLogger = Logger(
         return receiveGestureInput(.deadlineElapsed, state: &state)
       case let .hotkeyListenerEvent(.gesture(event)):
         return performGesture(event, state: &state)
+      case let .escapeJudged(generation, atTarget):
+        guard state.isForeground(generation) else {
+          return .none
+        }
+        guard atTarget else {
+          gestureLogger.notice("Escape away from the dictation's target leaves it polishing")
+          return .none
+        }
+        return cancelPolishing(&state)
       // A tap the app deliberately stood down — to record a shortcut, or because none is bound —
       // reports its own ending. Only a tap that was wanted can be said to have been lost.
       case let .hotkeyListenerFailed(error):
@@ -709,14 +721,14 @@ private let performanceLogger = Logger(
         let text = record?.cleanedText ?? transcript
         dictation.readyText = text
         state.updateDictation(dictation)
+        // Paste-last and Copy Last Transcript recover what was delivered, so the rewrite
+        // replaces the transcript they answer with, unless a newer dictation has taken its place.
+        if record?.cleanedText != nil, state.lastTranscript == transcript {
+          state.lastTranscript = text
+        }
         let delivery = deliverReadyDictations(&state)
         guard state.isForeground(generation) else {
           return delivery
-        }
-        // Paste-last and Copy Last Transcript recover what was delivered, so the rewrite
-        // replaces the transcript they answer with the moment it becomes the delivered text.
-        if record?.cleanedText != nil {
-          state.lastTranscript = text
         }
         return .merge(
           // Only a wait that started has an end to announce.
@@ -730,10 +742,16 @@ private let performanceLogger = Logger(
           deliveryLogger.notice(
             "Background dictation delivered: \(delivery.method.rawValue, privacy: .public)",
           )
+          // The pill and the cues belong to the dictation in flight; a background one only
+          // speaks up when nothing else is using them, and the microphone is not open.
+          let feedback =
+            state.dictationInFlight
+              ? .none
+              : backgroundFeedback(result.outcome, dictation: state.dictation(generation), state)
           let history = finishDictation(
             generation, &state, targetApp: result.targetApp, delivery: delivery,
           )
-          return .merge(history, deliverReadyDictations(&state))
+          return .merge(feedback, history, deliverReadyDictations(&state))
         }
         switch result.outcome {
         case let .pasted(restoration):
@@ -1124,6 +1142,26 @@ private let performanceLogger = Logger(
       )
     case .targetUnreachable:
       deliveryLogger.error("The target could not be focused; transcript kept on clipboard")
+    }
+  }
+
+  private func backgroundFeedback(
+    _ outcome: DeliveryOutcome, dictation: PendingDictation?, _ state: State,
+  ) -> Effect<Action> {
+    switch outcome {
+    case .pasted:
+      let notice = dictation?.deliveredNotice ?? .dismiss
+      return .merge(
+        notice == .dismiss ? .none : .send(.pill(notice)),
+        playSound(state.settings.sounds.complete),
+      )
+    case .copied:
+      return .merge(.send(.pill(.copiedToClipboard)), playSound(state.settings.sounds.error))
+    case .noReceiver:
+      return .merge(
+        .send(.pill(noReceiverNotice(settings: state.settings.bindings))),
+        playSound(state.settings.sounds.error),
+      )
     }
   }
 

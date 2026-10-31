@@ -16,6 +16,7 @@ struct HotkeyGestureMachineTests {
     assertCell(idle, .monitoringInterrupted, nil, .blockedUntilRelease)
     assertCell(idle, .cleanupStarted, nil, .cleanupPending)
     assertCell(idle, .cleanupEnded, nil, .idle)
+    assertCell(idle, .refused, nil, .idle)
   }
 
   @Test func `holding input table`() {
@@ -40,6 +41,7 @@ struct HotkeyGestureMachineTests {
     // A press has already taken the key's meaning; a late cleanup notice cannot take it back.
     assertCell(holding, .cleanupStarted, nil, .holding(startedAt: .zero))
     assertCell(holding, .cleanupEnded, nil, .holding(startedAt: .zero))
+    assertCell(holding, .refused, nil, .blockedUntilRelease)
   }
 
   @Test func `provisional input table`() {
@@ -131,33 +133,72 @@ struct HotkeyGestureMachineTests {
 
   @Test func `cleanup pending input table`() {
     assertCell(
-      cleanupPending, .activation(at: .seconds(1)), .skipCleanupAndRecord,
+      cleanupPending, .activation(at: .seconds(1)), .detachAndRecord,
       .holding(startedAt: .seconds(1)),
     )
     assertCell(cleanupPending, .release(at: .seconds(1)), nil, .cleanupPending)
     assertCell(cleanupPending, .conflict(at: .seconds(1)), nil, .cleanupPending)
     assertCell(cleanupPending, .mouseDown(at: .seconds(1)), nil, .cleanupPending)
-    assertCell(cleanupPending, .escape, .cancelAndArchive, .blockedUntilRelease)
+    // Only the app can tell whether Escape was meant for the polishing dictation; until it
+    // reports the wait over, the key still means skip.
+    assertCell(cleanupPending, .escape, .cancelAndArchive, .cleanupPending)
     assertCell(cleanupPending, .deadlineElapsed, nil, .cleanupPending)
     assertCell(cleanupPending, .monitoringInterrupted, nil, .blockedUntilRelease)
     assertCell(cleanupPending, .cleanupStarted, nil, .cleanupPending)
     assertCell(cleanupPending, .cleanupEnded, nil, .idle)
   }
 
-  @Test func `a skip leaves the press behaving exactly as it would have from idle`() {
+  @Test func `a lone tap while polishing skips the cleanup it detached`() {
     var machine = cleanupPending()
-    #expect(machine.receive(.activation(at: .seconds(1))) == .skipCleanupAndRecord)
-    // A tap: the recording the press started goes on to discard itself, wordlessly.
+    #expect(machine.receive(.activation(at: .seconds(1))) == .detachAndRecord)
     #expect(machine.receive(.release(at: .seconds(1) + .milliseconds(100))) == nil)
-    #expect(machine.receive(.deadlineElapsed) == .discardRecording)
+    #expect(machine.receive(.deadlineElapsed) == .skipCleanup)
     #expect(machine.phase == .idle)
   }
 
-  @Test func `a hold that skipped keeps recording until it is released`() {
+  @Test func `a refused press while polishing gives the key back to the cleanup`() {
     var machine = cleanupPending()
-    #expect(machine.receive(.activation(at: .seconds(1))) == .skipCleanupAndRecord)
+    #expect(machine.receive(.activation(at: .seconds(1))) == .detachAndRecord)
+    #expect(machine.receive(.refused) == nil)
+    #expect(machine.phase == .cleanupPending)
+    #expect(machine.receive(.release(at: .seconds(1) + .milliseconds(80))) == nil)
+    #expect(machine.receive(.conflict(at: .seconds(1) + .milliseconds(120))) == nil)
+
+    #expect(machine.receive(.activation(at: .seconds(3))) == .detachAndRecord)
+    #expect(machine.receive(.release(at: .seconds(3) + .milliseconds(80))) == nil)
+    #expect(machine.receive(.deadlineElapsed) == .skipCleanup)
+  }
+
+  @Test func `a hold that detached keeps recording until it is released`() {
+    var machine = cleanupPending()
+    #expect(machine.receive(.activation(at: .seconds(1))) == .detachAndRecord)
     #expect(machine.receive(.release(at: .seconds(2))) == .stopAndTranscribe)
     #expect(machine.phase == .idle)
+  }
+
+  @Test func `a double tap while polishing latches rather than skips`() {
+    var machine = cleanupPending()
+    #expect(machine.receive(.activation(at: .seconds(1))) == .detachAndRecord)
+    #expect(machine.receive(.release(at: .seconds(1) + .milliseconds(80))) == nil)
+    #expect(machine.receive(.activation(at: .seconds(1) + .milliseconds(200))) == nil)
+    #expect(machine.receive(.release(at: .seconds(1) + .milliseconds(280))) == .latchEngaged)
+    #expect(machine.receive(.activation(at: .seconds(3))) == .stopAndTranscribe)
+  }
+
+  @Test func `a misfire while polishing leaves the detached cleanup running`() {
+    var machine = cleanupPending()
+    #expect(machine.receive(.activation(at: .seconds(1))) == .detachAndRecord)
+    #expect(machine.receive(.release(at: .seconds(1) + .milliseconds(80))) == nil)
+    #expect(machine.receive(.conflict(at: .seconds(1) + .milliseconds(120))) == .discardRecording)
+  }
+
+  @Test func `a tap after a detach is an ordinary tap again`() {
+    var machine = cleanupPending()
+    _ = machine.receive(.activation(at: .seconds(1)))
+    _ = machine.receive(.release(at: .seconds(2)))
+    #expect(machine.receive(.activation(at: .seconds(3))) == .startRecording)
+    #expect(machine.receive(.release(at: .seconds(3) + .milliseconds(80))) == nil)
+    #expect(machine.receive(.deadlineElapsed) == .discardRecording)
   }
 
   @Test func `tap at two hundred milliseconds is A hold`() {

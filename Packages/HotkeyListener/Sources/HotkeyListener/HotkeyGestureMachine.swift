@@ -6,10 +6,13 @@ public enum GestureEvent: String, Equatable, Sendable {
   case latchEngaged
   case discardRecording
   case cancelAndArchive
-  /// One press, both meanings: the pending cleanup is abandoned and its transcript delivers as
-  /// heard, and the press goes on to start a recording exactly as it would have from idle. A tap
-  /// discards that recording on its own, which is what makes tap-to-skip need no case of its own.
-  case skipCleanupAndRecord
+  /// A press while cleanup is pending: the polishing dictation steps into the background, its
+  /// cleanup still running, and the press goes on to start a recording exactly as it would have
+  /// from idle.
+  case detachAndRecord
+  /// The press that detached a dictation turned out to be a lone tap: its recording is discarded,
+  /// and the dictation it detached is delivered as heard.
+  case skipCleanup
 }
 
 // MARK: - HotkeyGestureMachine
@@ -62,6 +65,8 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
 
   public private(set) var phase = Phase.idle
   public let timing: Timing
+  /// The press now in progress began while cleanup was pending, so a lone tap means skip.
+  public private(set) var pressDetachedCleanup = false
 
   /// Provisional is the only phase silence can resolve, so it is the only one that owes its owner
   /// a `deadlineElapsed` after `timing.doubleTapWindow`. The machine keeps no clock of its own.
@@ -87,6 +92,8 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
       beginCleanup()
     case .cleanupEnded:
       endCleanup()
+    case .refused:
+      refuse()
     case let .activation(time):
       activate(at: time)
     case let .release(time):
@@ -104,11 +111,12 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
     switch phase {
     case .idle:
       phase = .holding(startedAt: time)
+      pressDetachedCleanup = false
       return .startRecording
     case let .provisional(releasedAt):
       guard time - releasedAt < timing.doubleTapWindow else {
         phase = .blockedUntilRelease
-        return .discardRecording
+        return lonelyTap()
       }
       phase = .secondPress(startedAt: time)
       return nil
@@ -117,7 +125,8 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
       return .stopAndTranscribe
     case .cleanupPending:
       phase = .holding(startedAt: time)
-      return .skipCleanupAndRecord
+      pressDetachedCleanup = true
+      return .detachAndRecord
     case .holding,
          .secondPress,
          .blockedUntilRelease:
@@ -182,8 +191,11 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
 
   private mutating func escape() -> GestureEvent? {
     switch phase {
-    case .cleanupPending,
-         .holding,
+    // The app judges whether Escape was meant for the polishing dictation, and reports an end to
+    // the wait only if it was; one meant for something else leaves the key's meaning in place.
+    case .cleanupPending:
+      return .cancelAndArchive
+    case .holding,
          .secondPress,
          .latched:
       phase = .blockedUntilRelease
@@ -224,7 +236,14 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
       return nil
     }
     phase = .idle
-    return .discardRecording
+    return lonelyTap()
+  }
+
+  /// A tap that no second press followed. Only silence or a too-late press makes one; a foreign
+  /// key or an Escape is a misfire, which leaves a detached dictation polishing.
+  private mutating func lonelyTap() -> GestureEvent {
+    defer { pressDetachedCleanup = false }
+    return pressDetachedCleanup ? .skipCleanup : .discardRecording
   }
 
   /// Only an idle machine can start waiting on cleanup: a press that already began the next
@@ -240,6 +259,18 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
     if phase == .cleanupPending {
       phase = .idle
     }
+    return nil
+  }
+
+  /// The app would not start the recording this press asked for, so the rest of the press means
+  /// nothing. One that would have detached a polishing dictation detached nothing, and the wait
+  /// it interrupted resumes.
+  private mutating func refuse() -> GestureEvent? {
+    guard case .holding = phase else {
+      return nil
+    }
+    phase = pressDetachedCleanup ? .cleanupPending : .blockedUntilRelease
+    pressDetachedCleanup = false
     return nil
   }
 
