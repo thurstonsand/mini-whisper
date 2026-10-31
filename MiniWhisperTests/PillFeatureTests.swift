@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import History
 @testable import MiniWhisper
 import Testing
 
@@ -84,7 +85,7 @@ import Testing
     )
     let store = TestStore(initialState: state) { PillFeature() }
 
-    await store.send(.transcribingStarted) { $0.presentation = .transcribing }
+    await store.send(.transcribingStarted(target: nil)) { $0.presentation = .transcribing }
   }
 
   @Test func `no speech notice fades and dismisses after its delay`() async {
@@ -276,5 +277,33 @@ import Testing
     let store = TestStore(initialState: state) { PillFeature() }
 
     await store.send(.dismiss) { $0.presentation = nil }
+  }
+
+  /// Staying in the field is the ordinary case and changes nothing; the destination appears only
+  /// once the user has gone elsewhere, and follows the dictation from engine to cleanup.
+  @Test func `the destination is named only while the user is away from it`() async {
+    let clock = TestClock()
+    let isAtTarget = TestBox(true)
+    var target = DeliveryTarget.inApp(TargetApp(bundleID: "com.google.Chrome", name: "Chrome"))
+    target.title = "Pull request #42"
+    let store = TestStore(initialState: PillFeature.State()) { PillFeature() } withDependencies: {
+      $0.continuousClock = clock
+      $0.deliveryTarget.isCurrent = { _ in isAtTarget.value }
+    }
+
+    await store.send(.transcribingStarted(target: target)) { $0.presentation = .transcribing }
+    isAtTarget.value = false
+    await clock.advance(by: .milliseconds(500))
+    await store.receive(.destinationUpdated("Chrome · Pull request #42")) {
+      $0.destination = "Chrome · Pull request #42"
+    }
+    await store.send(.polishingStarted(skipComponents: [])) {
+      $0.presentation = .polishing(PillFeature.State.Presentation.Polishing(skipComponents: []))
+    }
+    isAtTarget.value = true
+    await clock.advance(by: .milliseconds(500))
+    await store.receive(.destinationUpdated(nil)) { $0.destination = nil }
+    await store.send(.dismiss) { $0.presentation = nil }
+    await clock.advance(by: .seconds(5))
   }
 }

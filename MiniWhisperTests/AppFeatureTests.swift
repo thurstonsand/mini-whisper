@@ -86,7 +86,10 @@ import Testing
       $0.recording.phase = .idle
     }
     await store.receive(.recording(.delegate(.completed(recording))))
-    await store.receive(.pill(.transcribingStarted)) { $0.pill.presentation = .transcribing }
+    await store
+      .receive(.pill(.transcribingStarted(target: DeliveryTarget.none))) {
+        $0.pill.presentation = .transcribing
+      }
     await store.receive(.transcriptionCompleted(1, .noSpeech))
     await store.receive(.pill(.noSpeechDetected)) {
       $0.pill.noticeGeneration = 1
@@ -973,7 +976,10 @@ import Testing
         cleanupTarget: MiniWhisperSettings.defaults.cleanupTarget,
       )
     }
-    await store.receive(.pill(.transcribingStarted)) { $0.pill.presentation = .transcribing }
+    await store
+      .receive(.pill(.transcribingStarted(target: nil))) {
+        $0.pill.presentation = .transcribing
+      }
     await store.receive(.transcriptionCompleted(1, .transcript("recoverable words"))) {
       $0.lastTranscript = "recoverable words"
       $0.pendingDictation?.original = History.Transcription(
@@ -1685,7 +1691,10 @@ import Testing
       $0.recording.latestLevel = 0
     }
     await store.receive(.recording(.delegate(.completed(recording))))
-    await store.receive(.pill(.transcribingStarted)) { $0.pill.presentation = .transcribing }
+    await store
+      .receive(.pill(.transcribingStarted(target: DeliveryTarget.none))) {
+        $0.pill.presentation = .transcribing
+      }
     await store.receive(.transcriptionCompleted(1, .transcript("continuous capture"))) {
       $0.lastTranscript = "continuous capture"
       $0.pendingDictation?.original = History.Transcription(

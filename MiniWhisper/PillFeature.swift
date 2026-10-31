@@ -100,6 +100,9 @@ import ComposableArchitecture
     }
 
     var presentation: Presentation?
+    /// Where the dictation now transcribing or polishing will land, named only while the user is
+    /// somewhere else: staying put is the ordinary case, and the pill says nothing new about it.
+    var destination: String?
     var isFadingOut = false
     var bounceCount = 0
     var isLatchBouncePending = false
@@ -112,7 +115,8 @@ import ComposableArchitecture
     case recordingStarted(inputDeviceName: String)
     case levelUpdated(Float)
     case latchEngaged
-    case transcribingStarted
+    case transcribingStarted(target: DeliveryTarget?)
+    case destinationUpdated(String?)
     case polishingStarted(skipComponents: [String])
     case skipAffordanceRevealed
     case noSpeechDetected
@@ -130,6 +134,7 @@ import ComposableArchitecture
   }
 
   @Dependency(\.continuousClock) var clock
+  @Dependency(\.deliveryTarget) var deliveryTarget
 
   var body: some ReducerOf<Self> {
     Reduce { state, action in
@@ -138,9 +143,10 @@ import ComposableArchitecture
         state.presentation = .recording(
           State.Presentation.Recording(inputDeviceName: inputDeviceName, level: 0, isLive: false),
         )
+        state.destination = nil
         state.isFadingOut = false
         state.accessibilityLevel = 0
-        return cancelPresentationTimers()
+        return .merge(cancelPresentationTimers(), .cancel(id: CancelID.destination))
       case let .recordingStarted(inputDeviceName):
         state.presentation = .recording(
           State.Presentation.Recording(inputDeviceName: inputDeviceName, level: 0, isLive: true),
@@ -170,11 +176,39 @@ import ComposableArchitecture
           state.isLatchBouncePending = true
         }
         return .none
-      case .transcribingStarted:
+      case let .transcribingStarted(target):
         state.presentation = .transcribing
+        state.destination = nil
         state.isFadingOut = false
         state.isLatchBouncePending = false
-        return cancelPresentationTimers()
+        guard let target, let destination = target.destination else {
+          return .merge(cancelPresentationTimers(), .cancel(id: CancelID.destination))
+        }
+        return .merge(
+          cancelPresentationTimers(),
+          .run { send in
+            var shown: String?
+            while true {
+              let next = await deliveryTarget.isCurrent(target) ? nil : destination
+              if next != shown {
+                shown = next
+                await send(.destinationUpdated(next))
+              }
+              try await clock.sleep(for: .milliseconds(500))
+            }
+          }.cancellable(id: CancelID.destination, cancelInFlight: true),
+        )
+      case let .destinationUpdated(destination):
+        switch state.presentation {
+        case .polishing,
+             .transcribing:
+          state.destination = destination
+        case .notice,
+             .recording,
+             nil:
+          break
+        }
+        return .none
       case let .polishingStarted(skipComponents):
         state.presentation = .polishing(
           State.Presentation.Polishing(skipComponents: skipComponents),
@@ -220,9 +254,10 @@ import ComposableArchitecture
       case .dismiss,
            .cancel:
         state.presentation = nil
+        state.destination = nil
         state.isFadingOut = false
         state.isLatchBouncePending = false
-        return cancelPresentationTimers()
+        return .merge(cancelPresentationTimers(), .cancel(id: CancelID.destination))
       case let .noticeDisplayElapsed(generation):
         guard generation == state.noticeGeneration, case .notice = state.presentation else {
           return .none
@@ -248,6 +283,7 @@ import ComposableArchitecture
   private enum CancelID {
     case notice
     case polishing
+    case destination
   }
 
   private static func accessibilityPercentageBucket(_ level: Float) -> Int {
@@ -266,11 +302,13 @@ import ComposableArchitecture
     state.noticeGeneration += 1
     let generation = state.noticeGeneration
     state.presentation = .notice(notice)
+    state.destination = nil
     state.isFadingOut = false
     state.isLatchBouncePending = false
     let duration = notice.content.duration
     return .merge(
       .cancel(id: CancelID.polishing),
+      .cancel(id: CancelID.destination),
       .run { send in
         try await clock.sleep(for: duration)
         await send(.noticeDisplayElapsed(generation))

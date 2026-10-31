@@ -222,6 +222,7 @@ enum AccessibilityID {
   static let pillAudioLevel = "miniwhisper.pill.audio-level"
   static let pillNotice = "miniwhisper.pill.notice"
   static let pillSkipAffordance = "miniwhisper.pill.skip-affordance"
+  static let pillDestination = "miniwhisper.pill.destination"
 
   static let settingsEngineStatus = "miniwhisper.settings.engine-status"
 

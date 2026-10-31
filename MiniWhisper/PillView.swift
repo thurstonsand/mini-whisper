@@ -33,6 +33,7 @@ struct PillView: View {
     .frame(width: 420, height: 76)
     .animation(.easeOut(duration: 0.16), value: presentationKind)
     .animation(.easeIn(duration: 0.18), value: store.isFadingOut)
+    .animation(.easeOut(duration: 0.16), value: store.destination)
     .task(id: store.bounceCount) {
       guard store.bounceCount > 0 else {
         return
@@ -72,6 +73,29 @@ struct PillView: View {
     }
   }
 
+  @ViewBuilder private var destination: some View {
+    if let destination = store.destination {
+      Image(systemName: "arrow.right")
+        .font(.system(size: 11, weight: .semibold))
+        .foregroundStyle(.secondary)
+        .accessibilityHidden(true)
+      let label = SemanticText(
+        destination, identifier: AccessibilityID.pillDestination, label: "Delivers to",
+      )
+      .font(.system(size: 13, weight: .medium))
+      .lineLimit(1)
+      .truncationMode(.tail)
+      .foregroundStyle(.secondary)
+      // The phase and the skip chip keep their full width; the destination takes what is left,
+      // and no more than a glance's worth of it when the pill has room to spare.
+      ViewThatFits(in: .horizontal) {
+        label.frame(maxWidth: 170, alignment: .leading).fixedSize()
+        label
+      }
+      .layoutPriority(-1)
+    }
+  }
+
   @ViewBuilder private func content(for presentation: PillFeature.State.Presentation) -> some View {
     switch presentation {
     case let .recording(recording):
@@ -106,6 +130,7 @@ struct PillView: View {
         )
         .font(.system(size: 13, weight: .medium))
         .foregroundStyle(.primary)
+        destination
       }
     case let .polishing(polishing):
       HStack(spacing: 9) {
@@ -127,6 +152,7 @@ struct PillView: View {
           .font(.system(size: 13, weight: .medium))
           .foregroundStyle(.secondary)
         }
+        destination
       }
     case let .notice(notice):
       SemanticText(

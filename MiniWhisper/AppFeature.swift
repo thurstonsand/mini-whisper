@@ -564,7 +564,7 @@ private let performanceLogger = Logger(
           boostsVocabulary: state.settings.activeProfile.boostsVocabulary,
         )
         return .concatenate(
-          .send(.pill(.transcribingStarted)),
+          .send(.pill(.transcribingStarted(target: state.pendingDictation?.target))),
           .run { send in
             performanceLogger.notice("benchmark transcription-started")
             do {

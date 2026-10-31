@@ -71,6 +71,7 @@ import Testing
     } withDependencies: {
       $0.date.now = Date(timeIntervalSince1970: 200)
       $0.uuid = .incrementing
+      $0.continuousClock = TestClock()
       $0.asrEngine.submit = { _, _, _ in .transcript("Ship it") }
       $0.contextCapture
         .capture = { _ in .unavailable(.gridSemantics(bundleID: "com.mitchellh.ghostty")) }
@@ -89,6 +90,16 @@ import Testing
 
     #expect(await submitted.values == ["Ship it submits=true"])
     #expect(!store.state.recordingSubmits)
+  }
+
+  @Test func `a destination is named by its session, or by its window without the app twice`() {
+    var browser = DeliveryTarget.inApp(TargetApp(bundleID: "com.google.Chrome", name: "Chrome"))
+    browser.title = "Pull request #42 - Chrome"
+    var pane = agentPane
+    pane.title = "~/Develop"
+
+    #expect(browser.destination == "Chrome · Pull request #42")
+    #expect(pane.destination == "Ghostty · agents")
   }
 
   @Test func `a later dictation to the same pane waits for the earlier one`() async {

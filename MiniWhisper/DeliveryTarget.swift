@@ -47,6 +47,22 @@ struct DeliveryTarget: Equatable {
     pane == nil && terminal == nil
   }
 
+  /// What the pill calls this destination once the user has looked away from it.
+  var destination: String? {
+    guard let name = app?.name ?? app?.bundleID else {
+      return nil
+    }
+    // Browsers end their window titles with their own name, which the label already leads with.
+    var detail = pane?.session ?? title ?? ""
+    for separator in [" - ", " — "] where detail.hasSuffix(separator + name) {
+      detail.removeLast(separator.count + name.count)
+    }
+    guard !detail.isEmpty, detail != name else {
+      return name
+    }
+    return "\(name) · \(detail)"
+  }
+
   /// Whether two targets are one destination. A pane is its server and id, a terminal its id;
   /// anything else is the focused element of one process.
   func isSameDestination(as other: DeliveryTarget) -> Bool {
