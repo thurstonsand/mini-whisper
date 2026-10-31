@@ -83,23 +83,7 @@ public struct AudioLevel: Equatable, Sendable {
     self.normalizedPower = normalizedPower
   }
 
-  init(samples: [Float]) {
-    self.init(
-      sumSquares: samples.reduce(Float.zero) { $0 + $1 * $1 }, sampleCount: samples.count,
-    )
-  }
-
-  /// The settings meter accumulates as it walks the buffer rather than materialising a sample
-  /// array, but it must land on the same number dictation would, or the two would disagree about
-  /// loudness.
-  init(sumSquares: Float, sampleCount: Int) {
-    guard sampleCount > 0 else {
-      decibels = -60
-      normalizedPower = 0
-      return
-    }
-    let rootMeanSquare = sqrt(sumSquares / Float(sampleCount))
-    let decibels = max(-60, 20 * log10(max(rootMeanSquare, Float.leastNonzeroMagnitude)))
+  init(decibels: Float) {
     self.decibels = decibels
     let windowed = (decibels - Self.meterFloorDecibels)
       / (Self.meterCeilingDecibels - Self.meterFloorDecibels)
@@ -119,6 +103,28 @@ public struct AudioLevel: Equatable, Sendable {
   private static let meterFloorDecibels: Float = -50
   private static let meterCeilingDecibels: Float = -20
   private static let meterCurve: Float = 0.7
+}
+
+// MARK: - LevelMeter
+
+/// Dictation and the settings pane each own one, so both meters share the same ballistics. It
+/// rises instantly and falls at OBS's default "Fast" peak decay (40 dB / 1.7 s), which holds the
+/// bars up between syllables instead of letting them flicker back to the floor.
+struct LevelMeter {
+  // MARK: Internal
+
+  mutating func level(sumSquares: Float, sampleCount: Int, seconds: Double) -> AudioLevel {
+    let rootMeanSquare = sampleCount > 0 ? sqrt(sumSquares / Float(sampleCount)) : 0
+    let decibels = max(-60, 20 * log10(max(rootMeanSquare, Float.leastNonzeroMagnitude)))
+    heldDecibels = max(decibels, heldDecibels - Self.fallDecibelsPerSecond * Float(seconds))
+    return AudioLevel(decibels: heldDecibels)
+  }
+
+  // MARK: Private
+
+  private static let fallDecibelsPerSecond: Float = 40 / 1.7
+
+  private var heldDecibels: Float = -60
 }
 
 // MARK: - AudioCaptureEvent

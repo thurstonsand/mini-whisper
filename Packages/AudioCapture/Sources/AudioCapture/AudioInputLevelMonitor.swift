@@ -120,6 +120,8 @@ private final class AudioInputLevelMonitorSession: @unchecked Sendable {
   private var configurationObserver: (any NSObjectProtocol)?
   private var isActive = true
   private var throttle = AudioInputLevelThrottle()
+  /// Touched only from the tap block, which the engine calls serially.
+  private var meter = LevelMeter()
 
   private func finish() {
     stateLock.withLock { isActive = false }
@@ -127,11 +129,14 @@ private final class AudioInputLevelMonitorSession: @unchecked Sendable {
   }
 
   private func publish(_ buffer: AVAudioPCMBuffer) {
+    guard let level = level(from: buffer) else {
+      return
+    }
     let now = DispatchTime.now().uptimeNanoseconds
     let shouldPublish = stateLock.withLock {
       isActive && throttle.shouldPublish(now: now)
     }
-    guard shouldPublish, let level = level(from: buffer) else {
+    guard shouldPublish else {
       return
     }
     continuation.yield(level)
@@ -157,6 +162,9 @@ private final class AudioInputLevelMonitorSession: @unchecked Sendable {
         }
       }
     }
-    return AudioLevel(sumSquares: sumSquares, sampleCount: frameCount * channelCount)
+    return meter.level(
+      sumSquares: sumSquares, sampleCount: frameCount * channelCount,
+      seconds: Double(frameCount) / buffer.format.sampleRate,
+    )
   }
 }

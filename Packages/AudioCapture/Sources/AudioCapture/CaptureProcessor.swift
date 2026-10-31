@@ -49,7 +49,10 @@ final class CaptureProcessor: @unchecked Sendable {
         let samples = try converter.convert(inputBuffer.buffer)
         accumulator.append(samples)
         if !samples.isEmpty {
-          continuation.yield(.level(AudioLevel(samples: samples)))
+          continuation.yield(.level(meter.level(
+            sumSquares: samples.reduce(Float.zero) { $0 + $1 * $1 }, sampleCount: samples.count,
+            seconds: Double(samples.count) / CanonicalRecording.sampleRate,
+          )))
         }
       } catch let error as AudioCaptureError { failFromWorker(error) } catch {
         failFromWorker(.conversionFailed(error.localizedDescription))
@@ -112,6 +115,7 @@ final class CaptureProcessor: @unchecked Sendable {
   private let worker = DispatchQueue(label: "MiniWhisper Audio Capture Processor")
 
   private var accumulator = SampleAccumulator()
+  private var meter = LevelMeter()
   private var failure: AudioCaptureError?
   private var pendingFailure: AudioCaptureError?
   private var isAcceptingInput = true

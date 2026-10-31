@@ -272,18 +272,11 @@ struct AudioInputLevelThrottleTests {
 // MARK: - AudioLevelTests
 
 struct AudioLevelTests {
-  @Test func `the meter's running sum lands where the sample array would`() {
-    let samples: [Float] = [0.1, -0.4, 1, 0.25]
-    let sumSquares = samples.reduce(Float.zero) { $0 + $1 * $1 }
-
-    let accumulated = AudioLevel(sumSquares: sumSquares, sampleCount: samples.count)
-
-    #expect(accumulated == AudioLevel(samples: samples))
-  }
-
   @Test func `silence and full scale have canonical bounds`() {
-    let silence = AudioLevel(samples: [0, 0, 0])
-    let fullScale = AudioLevel(samples: [1, 1, 1])
+    var silenceMeter = LevelMeter()
+    var fullScaleMeter = LevelMeter()
+    let silence = silenceMeter.level(amplitude: 0)
+    let fullScale = fullScaleMeter.level(amplitude: 1)
 
     #expect(silence.decibels == -60)
     #expect(silence.normalizedPower == 0)
@@ -292,11 +285,37 @@ struct AudioLevelTests {
   }
 
   @Test func `room tone stays dark while a quiet mic's speech still moves the meter`() {
-    let roomTone = AudioLevel(samples: [Float](repeating: 0.0025, count: 1600)) // -52 dBFS
-    let quietSpeech = AudioLevel(samples: [Float](repeating: 0.0079, count: 1600)) // -42 dBFS
+    var roomToneMeter = LevelMeter()
+    var quietSpeechMeter = LevelMeter()
+    let roomTone = roomToneMeter.level(amplitude: 0.0025) // -52 dBFS
+    let quietSpeech = quietSpeechMeter.level(amplitude: 0.0079) // -42 dBFS
 
     #expect(roomTone.normalizedPower == 0)
     #expect(quietSpeech.normalizedPower > 0.35)
+  }
+
+  @Test func `the meter rises instantly and falls at 40 dB per 1.7 seconds`() {
+    var meter = LevelMeter()
+
+    let loud = meter.level(amplitude: 0.1) // -20 dBFS
+    let briefPause = meter.level(amplitude: 0, seconds: 0.1)
+    let longPause = meter.level(amplitude: 0, seconds: 1)
+    let quietWord = meter.level(amplitude: 0.0079) // -42.05 dBFS
+
+    #expect(abs(loud.decibels - -20) < 0.01)
+    #expect(abs(briefPause.decibels - -22.35) < 0.01)
+    #expect(abs(longPause.decibels - -45.88) < 0.01)
+    #expect(abs(quietWord.decibels - -42.05) < 0.01)
+  }
+}
+
+private extension LevelMeter {
+  mutating func level(amplitude: Float, seconds: Double = 0.1) -> AudioLevel {
+    let sampleCount = Int(seconds * 16000)
+    return level(
+      sumSquares: amplitude * amplitude * Float(sampleCount), sampleCount: sampleCount,
+      seconds: seconds,
+    )
   }
 }
 
