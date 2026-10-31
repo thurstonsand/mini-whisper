@@ -4,6 +4,7 @@ import Carbon
 import ComposableArchitecture
 import CoreGraphics
 import Foundation
+import HotkeyListener
 
 // MARK: - ClipboardRestoration
 
@@ -148,7 +149,11 @@ extension DependencyValues {
     commandDown.flags = .maskCommand
     vDown.flags = .maskCommand
     vUp.flags = .maskCommand
-    return [commandDown, vDown, vUp, commandUp]
+    let events = [commandDown, vDown, vUp, commandUp]
+    for event in events {
+      event.setIntegerValueField(.eventSourceUserData, value: HotkeyListener.syntheticEventMarker)
+    }
+    return events
   }
 }
 

@@ -70,6 +70,11 @@ public enum HotkeyListenerError: Error, Equatable, Sendable { case eventTapCreat
 // MARK: - HotkeyListener
 
 public enum HotkeyListener {
+  /// Stamped into `eventSourceUserData` on every event the app synthesizes. The app's own paste
+  /// and Return pass through its own tap, where an unmarked one reads as a foreign key and can
+  /// discard a recording that has only just started.
+  public static let syntheticEventMarker: Int64 = 0x4D57_4B45
+
   /// Starts listening without raising a permission dialog. A missing grant is reported as
   /// `.accessibilityPermissionMissing` so the caller can send the user to System Settings.
   public static func events<Action: Equatable & Sendable>(
@@ -152,6 +157,11 @@ private final class EventTapSession<Action: Equatable & Sendable>: @unchecked Se
   private func receive(type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
     if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
       interrupt(reason: type == .tapDisabledByTimeout ? .timeout : .userInput, reenable: true)
+      return Unmanaged.passUnretained(event)
+    }
+
+    guard event.getIntegerValueField(.eventSourceUserData) != HotkeyListener.syntheticEventMarker
+    else {
       return Unmanaged.passUnretained(event)
     }
 
