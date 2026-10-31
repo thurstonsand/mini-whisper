@@ -20,6 +20,7 @@ enum FocusedFieldReader {
   /// The end of a process's focus chain, which is what a target's element is compared against.
   static func focusedElement(of processID: pid_t) -> AXUIElement? {
     let application = AXUIElementCreateApplication(processID)
+    AXUIElementSetMessagingTimeout(application, firstContactTimeout)
     let session = Session(deadline: ContinuousClock.now + captureBudget)
     return session.deepestFocusedElement(of: application)
   }
@@ -39,6 +40,34 @@ enum FocusedFieldReader {
       current = parent
     }
     return false
+  }
+
+  /// The selected tabs in a window's own chrome: a tab group's selected radio button, or a
+  /// selected tab button wherever the window keeps it — Safari's tab bar is no tab group. A page's
+  /// content is left alone: its tabs are the page's business, and walking it is the expensive
+  /// part of the tree.
+  static func selectedTabs(in window: AXUIElement) -> [AXUIElement] {
+    var selected: [AXUIElement] = []
+    var pending = [(element: window, depth: 0, inTabGroup: false)]
+    var visited = 0
+    while !pending.isEmpty, visited < maximumTabSearch {
+      let (element, depth, inTabGroup) = pending.removeFirst()
+      visited += 1
+      AXUIElementSetMessagingTimeout(element, messagingTimeout)
+      let role = try? AXRead.string(element, kAXRoleAttribute).get()
+      if role == kAXRadioButtonRole {
+        let isTab = inTabGroup || (try? AXRead.string(element, kAXSubroleAttribute).get()) ==
+          "AXTabButton"
+        if isTab, (try? AXRead.count(element, kAXValueAttribute).get()) == 1 {
+          selected.append(element)
+        }
+      } else if role != "AXWebArea", depth < maximumTabDepth {
+        let children = (try? AXRead.value(element, kAXChildrenAttribute).get()) as? [AXUIElement]
+          ?? []
+        pending += children.map { ($0, depth + 1, role == kAXTabGroupRole) }
+      }
+    }
+    return selected
   }
 
   static func capture(_ target: DeliveryTarget) -> ContextCapture {
@@ -76,10 +105,15 @@ enum FocusedFieldReader {
       guard arm(application, cap: firstContactTimeout, for: .focusedElement) == nil else {
         return target
       }
-      if case let .success(window) = AXRead.element(application, kAXFocusedWindowAttribute) {
-        target.window = AXElement(raw: window)
-      }
+      // The window read pays for first contact with a cold process; the tab walk comes last,
+      // because it would spend the budget the focus chain needs.
+      let window = try? AXRead.element(application, kAXFocusedWindowAttribute).get()
       target.element = deepestFocusedElement(of: application).map(AXElement.init(raw:))
+      if let window {
+        target.window = AXElement(raw: window)
+        target.title = try? AXRead.string(window, kAXTitleAttribute).get()
+        target.tabs = FocusedFieldReader.selectedTabs(in: window).map(AXElement.init(raw:))
+      }
       return target
     }
 
@@ -378,6 +412,8 @@ enum FocusedFieldReader {
   private static let maximumFocusDepth = 16
   private static let maximumAncestorDepth = 32
   private static let maximumChildWidth = 64
+  private static let maximumTabSearch = 200
+  private static let maximumTabDepth = 8
 }
 
 // MARK: - AXRead

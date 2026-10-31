@@ -9,9 +9,9 @@ struct TmuxListingTests {
   @Test func `only the focused client of the terminal's own clients names a pane`() {
     let output = """
     on
-    66307 attached,UTF-8 %0 66314 zsh
-    66503 attached,focused,UTF-8 %1 66508 tmux
-    70000 attached,focused,UTF-8 %4 70001 nvim
+    66307 attached,UTF-8 %0 66314 one zsh
+    66503 attached,focused,UTF-8 %1 66508 two tmux
+    70000 attached,focused,UTF-8 %4 70001 three nvim
     """
 
     let clients = TmuxListing.focusedClients(in: output, among: [66307, 66503])
@@ -20,6 +20,7 @@ struct TmuxListingTests {
       processID: 66503,
       paneID: "%1",
       panePID: 66508,
+      session: "two",
       command: "tmux",
     )])
   }
@@ -27,19 +28,22 @@ struct TmuxListingTests {
   @Test func `a server without focus events proves nothing about focus`() {
     let output = """
     off
-    66307 attached,focused,UTF-8 %0 66314 zsh
+    66307 attached,focused,UTF-8 %0 66314 one zsh
     """
 
     #expect(TmuxListing.focusedClients(in: output, among: [66307]).isEmpty)
   }
 
-  @Test func `a command with a space survives as one field`() {
-    let output = """
+  @Test func `a session and a command with spaces survive as one field each`() {
+    // `rename-session` accepts a colon even though `new-session` does not.
+    let output = #"""
     on
-    9 attached,focused,UTF-8 %12 10 Claude Code
-    """
+    9 attached,focused,UTF-8 %12 10 my\ a:gent\$ Claude\ Code:\ v2
+    """#
 
-    #expect(TmuxListing.focusedClients(in: output, among: [9]).first?.command == "Claude Code")
+    let client = TmuxListing.focusedClients(in: output, among: [9]).first
+    #expect(client?.session == "my a:gent$")
+    #expect(client?.command == "Claude Code: v2")
   }
 
   @Test func `a pane's state reads back its process and command`() {

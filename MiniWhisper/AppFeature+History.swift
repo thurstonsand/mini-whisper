@@ -267,7 +267,7 @@ extension ClipboardRestoration {
     case .failed:
       "clipboardRestoreFailed"
     case .untouched:
-      "pane"
+      "untouched"
     }
   }
 }
@@ -287,6 +287,12 @@ extension DeliveryFallback {
       "targetChanged"
     case .targetUnreachable:
       "targetUnreachable"
+    case .targetInUse:
+      "targetInUse"
+    case .interrupted:
+      "interrupted"
+    case .unconfirmed:
+      "unconfirmed"
     }
   }
 }

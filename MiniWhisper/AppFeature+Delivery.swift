@@ -78,14 +78,14 @@ extension AppFeature {
 
   /// Starts every delivery whose turn has come. A dictation waits while an earlier one bound for
   /// the same target has not landed, so one target hears its dictations in the order they were
-  /// spoken; and only one GUI delivery runs at a time, because each borrows the clipboard and may
-  /// borrow focus.
+  /// spoken; and only one GUI delivery runs at a time, because each borrows the clipboard or the
+  /// target app's focus.
   func deliverReadyDictations(_ state: inout State) -> Effect<Action> {
     let dictations = (Array(state.backgroundDictations.values) + [state.pendingDictation])
       .compactMap(\.self)
       .sorted { $0.generation < $1.generation }
     var guiDeliveryRunning = dictations.contains {
-      $0.isDelivering && !$0.isFinishing && $0.target?.pane == nil
+      $0.isDelivering && !$0.isFinishing && $0.target?.isGUI != false
     }
     var effects: [Effect<Action>] = []
     for (index, dictation) in dictations.enumerated() {
@@ -97,10 +97,10 @@ extension AppFeature {
       let waitsOnEarlier = dictations[..<index].contains { earlier in
         !earlier.isFinishing && earlier.target?.isSameDestination(as: target) == true
       }
-      guard !waitsOnEarlier, target.pane != nil || !guiDeliveryRunning else {
+      guard !waitsOnEarlier, !target.isGUI || !guiDeliveryRunning else {
         continue
       }
-      if target.pane == nil {
+      if target.isGUI {
         guiDeliveryRunning = true
       }
       var started = dictation

@@ -12,7 +12,8 @@ enum ClipboardRestoration: Equatable {
   case restored
   case skipped
   case failed
-  /// The delivery never touched the clipboard: it was written into a pane.
+  /// The delivery never touched the clipboard: it was written into a pane, a terminal, or a
+  /// field the user had looked away from.
   case untouched
 }
 
@@ -26,8 +27,14 @@ enum DeliveryFallback: Equatable {
   case targetGone
   /// The pane's foreground command changed under a submit.
   case targetChanged
-  /// The target could not be given focus back.
+  /// The target could not be given its app's focus back, or would not take the text.
   case targetUnreachable
+  /// The user is in the target app, away from the field, and their focus is not moved.
+  case targetInUse
+  /// The user came back to the target while it was being typed into.
+  case interrupted
+  /// The field changed in a way the write does not explain, so whether it landed is unknown.
+  case unconfirmed
 }
 
 // MARK: - NoReceiverReason
@@ -63,19 +70,32 @@ enum DeliveryError: Error, Equatable { case pasteboardWriteFailed }
 extension DeliveryClient: DependencyKey {
   static let liveValue = Self(
     deliver: { text, target, submits in
-      guard let pane = target.pane else {
+      let fallback: DeliveryFallback
+      if let pane = target.pane {
+        switch TmuxPanes.deliver(text, submit: submits, to: pane) {
+        case .delivered:
+          return .pasted(.untouched)
+        case .gone:
+          fallback = .targetGone
+        case .changed:
+          fallback = .targetChanged
+        }
+      } else if let terminal = target.terminal {
+        switch GhosttyTerminals.deliver(text, submit: submits, to: terminal) {
+        case .delivered:
+          return .pasted(.untouched)
+        case .gone:
+          fallback = .targetGone
+        case .changed:
+          fallback = .targetChanged
+        case .refused:
+          fallback = .targetUnreachable
+        }
+      } else {
         return try await TranscriptDelivery.deliver(text, to: target, submits: submits)
       }
-      switch TmuxPanes.deliver(text, submit: submits, to: pane) {
-      case .delivered:
-        return .pasted(.untouched)
-      case .gone:
-        try await TranscriptDelivery.copy(text)
-        return .copied(.targetGone)
-      case .changed:
-        try await TranscriptDelivery.copy(text)
-        return .copied(.targetChanged)
-      }
+      try await TranscriptDelivery.copy(text)
+      return .copied(fallback)
     },
     copy: { transcript in try await TranscriptDelivery.copy(transcript) },
   )
@@ -102,45 +122,53 @@ extension DependencyValues {
     return pasteboard.changeCount
   }
 
-  /// A GUI target takes a paste where it has focus. One that lost focus gets it back for the
-  /// paste and gives it up again: whatever the user is in now is put back as it was. A target that
-  /// cannot be focused, or verified as focused, keeps the transcript on the clipboard instead.
+  /// A GUI target the user is still in takes a paste, the way a person would paste. One they have
+  /// looked away from is delivered in the background, leaving their focus where it is; anything
+  /// that cannot be delivered for sure keeps the transcript on the clipboard instead.
   static func deliver(
     _ transcript: String, to target: DeliveryTarget, submits: Bool,
   ) async throws -> DeliveryOutcome {
-    let pasteboard = NSPasteboard.general
-    let snapshot = snapshot(pasteboard)
-    let transcriptChangeCount = try copy(transcript)
-
-    guard !IsSecureEventInputEnabled() else {
-      return .copied(.secureInput)
-    }
     guard AXIsProcessTrusted() else {
+      try copy(transcript)
       return .copied(.accessibilityPermissionMissing)
     }
-    guard let paste = keyEvents(virtualKey: vKey, flags: .maskCommand),
-          let submit = keyEvents(virtualKey: returnKey, flags: [])
-    else {
-      return .copied(.eventCreationFailed)
+    guard !IsSecureEventInputEnabled() else {
+      try copy(transcript)
+      return .copied(.secureInput)
     }
     guard let processID = target.processID,
           let application = NSRunningApplication(processIdentifier: processID),
           !application.isTerminated
     else {
+      try copy(transcript)
       return .copied(.targetGone)
     }
-
-    let previous = FocusSpot.current()
-    let needsRoundTrip = previous.map { !$0.holds(target) } ?? true
-    if needsRoundTrip {
-      FocusSpot.displaced = previous
-      guard await FocusSpot(target: target).bring(verifying: true) else {
-        _ = await previous?.bring(verifying: false)
-        FocusSpot.displaced = nil
-        return .copied(.targetUnreachable)
+    guard FocusSpot.frontmost()?.holds(target) == true else {
+      let fallback: DeliveryFallback
+      switch await BackgroundDelivery.deliver(transcript, to: target, submits: submits) {
+      case .delivered:
+        return .pasted(.untouched)
+      case .targetInUse:
+        fallback = .targetInUse
+      case .unreachable:
+        fallback = .targetUnreachable
+      case .interrupted:
+        fallback = .interrupted
+      case .unconfirmed:
+        fallback = .unconfirmed
       }
+      try copy(transcript)
+      return .copied(fallback)
     }
-    defer { FocusSpot.displaced = nil }
+
+    let pasteboard = NSPasteboard.general
+    let snapshot = snapshot(pasteboard)
+    let transcriptChangeCount = try copy(transcript)
+    guard let paste = keyEvents(virtualKey: vKey, flags: .maskCommand),
+          let submit = keyEvents(virtualKey: returnKey, flags: [])
+    else {
+      return .copied(.eventCreationFailed)
+    }
 
     try await post(paste)
     if submits {
@@ -148,13 +176,6 @@ extension DependencyValues {
       try await Task.sleep(for: submitDelay)
       try await post(submit)
     }
-    if needsRoundTrip, let previous {
-      // The events are queued to the target; handing focus away before they drain could
-      // deliver them to whatever takes it.
-      try await Task.sleep(for: roundTripSettle)
-      _ = await previous.bring(verifying: false)
-    }
-
     try await Task.sleep(for: clipboardRestoreDelay)
     guard pasteboard.changeCount == transcriptChangeCount else {
       return .pasted(.skipped)
@@ -172,7 +193,6 @@ extension DependencyValues {
   private static let clipboardRestoreDelay = Duration.milliseconds(250)
   private static let keyEventDelay = Duration.milliseconds(10)
   private static let submitDelay = Duration.milliseconds(50)
-  private static let roundTripSettle = Duration.milliseconds(150)
   private static let vKey: CGKeyCode = 0x09
   private static let returnKey: CGKeyCode = 0x24
   private static let commandKey: CGKeyCode = 0x37

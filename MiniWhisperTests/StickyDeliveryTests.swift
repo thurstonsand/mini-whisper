@@ -125,7 +125,7 @@ private func paneTarget(_ paneID: String) -> DeliveryTarget {
     window: nil, element: nil,
     pane: TmuxPane(
       executable: "/opt/homebrew/bin/tmux", socket: "/private/tmp/tmux-501/swb", paneID: paneID,
-      panePID: 900, command: "pi",
+      panePID: 900, session: "agents", command: "pi",
     ),
   )
 }

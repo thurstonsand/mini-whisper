@@ -11,6 +11,8 @@ struct TmuxPane: Equatable {
   var socket: String
   var paneID: String
   var panePID: pid_t
+  /// The pane's session, which is the name a person knows the agent in it by.
+  var session: String
   var command: String
 }
 
@@ -122,7 +124,7 @@ enum TmuxPanes {
     return resolve(under: hit.client.panePID, depth: depth + 1, visited: &visited)
       ?? TmuxPane(
         executable: hit.executable, socket: hit.socket, paneID: hit.client.paneID,
-        panePID: hit.client.panePID, command: hit.client.command,
+        panePID: hit.client.panePID, session: hit.client.session, command: hit.client.command,
       )
   }
 

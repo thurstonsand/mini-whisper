@@ -21,10 +21,10 @@ struct AXElement: Equatable, @unchecked Sendable {
 
 // MARK: - DeliveryTarget
 
-/// Where a dictation delivers, captured at the press that starts it. A pane, when there is one,
-/// is the whole answer; the app, window, and element are what a GUI delivery has to bring back.
-/// The element is the end of the focus chain, and the field's text is read from it only at
-/// delivery.
+/// Where a dictation delivers, captured at the press that starts it. A pane or a Ghostty terminal,
+/// when there is one, is the whole answer; otherwise the app's window, the tabs selected in it,
+/// and the focused element are what a delivery has to find again inside that app. The element is
+/// the end of the focus chain, and the field's text is read from it only at delivery.
 struct DeliveryTarget: Equatable {
   /// Nothing was frontmost, or Accessibility is not granted, so there was nothing to capture.
   static let none = DeliveryTarget(app: nil, processID: nil, window: nil, element: nil, pane: nil)
@@ -32,16 +32,33 @@ struct DeliveryTarget: Equatable {
   var app: TargetApp?
   var processID: pid_t?
   var window: AXElement?
+  /// The tabs selected in the window, which a browser needs pressed again before an element in
+  /// one of them can take focus.
+  var tabs: [AXElement] = []
   var element: AXElement?
+  /// The window's title, which is how a person tells one destination in an app from another.
+  var title: String?
   var pane: TmuxPane?
+  var terminal: GhosttyTerminal?
 
-  /// Whether two targets are one destination. A pane is its server and id; anything else is the
-  /// focused element of one process.
+  /// Whether delivery goes through the app's own windows: everything but a pane or a Ghostty
+  /// terminal, which are written to out of band.
+  var isGUI: Bool {
+    pane == nil && terminal == nil
+  }
+
+  /// Whether two targets are one destination. A pane is its server and id, a terminal its id;
+  /// anything else is the focused element of one process.
   func isSameDestination(as other: DeliveryTarget) -> Bool {
     if let pane, let otherPane = other.pane {
       return pane.socket == otherPane.socket && pane.paneID == otherPane.paneID
     }
-    guard pane == nil, other.pane == nil, let processID, processID == other.processID else {
+    if let terminal, let otherTerminal = other.terminal {
+      return terminal.processID == otherTerminal.processID && terminal.id == otherTerminal.id
+    }
+    guard pane == nil, other.pane == nil, terminal == nil, other.terminal == nil,
+          let processID, processID == other.processID
+    else {
       return false
     }
     return element == other.element
@@ -63,30 +80,43 @@ extension DeliveryTargetClient: DependencyKey {
   static let testValue = Self(capture: { .none }, isCurrent: { _ in false })
 
   static let liveValue = Self(
-    capture: { await captureLive() },
+    capture: {
+      let clock = ContinuousClock()
+      let started = clock.now
+      let resolved = resolve(FocusedFieldReader.target())
+      let duration = started.duration(to: clock.now).components
+      let elapsed = Double(duration.seconds) * 1000 + Double(duration.attoseconds) / 1e15
+      contextLogger.info(
+        "Target capture \(resolved.logDescription, privacy: .public) elapsed=\(elapsed, format: .fixed(precision: 1))ms",
+      )
+      return resolved
+    },
     isCurrent: { target in
-      guard target.pane == nil else {
-        return await captureLive().isSameDestination(as: target)
+      // The cheap answer first: the pill asks this twice a second, and the user is usually in
+      // another app entirely.
+      let frontmost = await MainActor.run {
+        NSWorkspace.shared.frontmostApplication?.processIdentifier
       }
-      return await MainActor.run { FocusSpot.user()?.holds(target) ?? false }
+      guard let processID = target.processID, frontmost == processID else {
+        return false
+      }
+      guard target.isGUI else {
+        return resolve(FocusedFieldReader.target()).isSameDestination(as: target)
+      }
+      return await MainActor.run { FocusSpot.focused(in: processID).holds(target) }
     },
   )
 
-  private static func captureLive() async -> DeliveryTarget {
-    let clock = ContinuousClock()
-    let started = clock.now
-    // A round trip borrows focus for a background delivery; a press then is still where the
-    // user is, not in the app the delivery brought forward.
-    var resolved = await MainActor.run { FocusSpot.displaced?.target }
-      ?? FocusedFieldReader.target()
-    if let processID = resolved.processID {
-      resolved.pane = TmuxPanes.resolve(under: processID)
+  /// A terminal surface's pane or Ghostty terminal is found behind its app's process.
+  private static func resolve(_ located: DeliveryTarget) -> DeliveryTarget {
+    var resolved = located
+    guard let processID = resolved.processID else {
+      return resolved
     }
-    let duration = started.duration(to: clock.now).components
-    let elapsed = Double(duration.seconds) * 1000 + Double(duration.attoseconds) / 1e15
-    contextLogger.info(
-      "Target capture \(resolved.logDescription, privacy: .public) elapsed=\(elapsed, format: .fixed(precision: 1))ms",
-    )
+    resolved.pane = TmuxPanes.resolve(under: processID)
+    if resolved.pane == nil, resolved.app?.bundleID == GhosttyTerminals.bundleID {
+      resolved.terminal = GhosttyTerminals.focused(in: processID)
+    }
     return resolved
   }
 }
@@ -104,6 +134,8 @@ extension DeliveryTarget {
     let route =
       if let pane {
         "pane=\(pane.paneID) socket=\(pane.socket) command=\(pane.command)"
+      } else if let terminal {
+        "ghostty-terminal=\(terminal.id) foreground=\(terminal.foregroundProcessID)"
       } else {
         "element=\(element == nil ? "none" : "captured")"
       }

@@ -4,10 +4,11 @@
 public struct TmuxClient: Equatable, Sendable {
   // MARK: Lifecycle
 
-  public init(processID: Int32, paneID: String, panePID: Int32, command: String) {
+  public init(processID: Int32, paneID: String, panePID: Int32, session: String, command: String) {
     self.processID = processID
     self.paneID = paneID
     self.panePID = panePID
+    self.session = session
     self.command = command
   }
 
@@ -18,6 +19,8 @@ public struct TmuxClient: Equatable, Sendable {
   /// position on screen, so one stays right after the client switches to another session.
   public let paneID: String
   public let panePID: Int32
+  /// The session the pane belongs to, which is how a person names the agent in it.
+  public let session: String
   /// The pane's foreground command, which is what changes when an agent exits to its shell.
   public let command: String
 }
@@ -41,12 +44,15 @@ public struct TmuxPaneState: Equatable, Sendable {
 // MARK: - TmuxListing
 
 /// The tmux commands target resolution sends, and how their answers are read. Fields are
-/// space-separated because tmux replaces control characters, tabs included, in format output; the
-/// command goes last since it is the only field that can contain a space.
+/// space-separated because tmux replaces control characters, tabs included, in format output. The
+/// session and command can contain anything, so tmux quotes them (`q:`), which backslash-escapes
+/// every space inside them.
 public enum TmuxListing {
+  // MARK: Public
+
   public static let clientsQuery = [
     "show-options", "-gv", "focus-events", ";", "list-clients", "-F",
-    "#{client_pid} #{client_flags} #{pane_id} #{pane_pid} #{pane_current_command}",
+    "#{client_pid} #{client_flags} #{pane_id} #{pane_pid} #{q:session_name} #{q:pane_current_command}",
   ]
 
   public static func paneQuery(_ paneID: String) -> [String] {
@@ -65,8 +71,8 @@ public enum TmuxListing {
     }
     lines.removeFirst()
     return lines.compactMap { line in
-      let fields = line.split(separator: " ", maxSplits: 4, omittingEmptySubsequences: false)
-      guard fields.count == 5, let processID = Int32(fields[0]), processIDs.contains(processID),
+      let fields = quotedFields(line)
+      guard fields.count == 6, let processID = Int32(fields[0]), processIDs.contains(processID),
             let panePID = Int32(fields[3])
       else {
         return nil
@@ -75,8 +81,8 @@ public enum TmuxListing {
         return nil
       }
       return TmuxClient(
-        processID: processID, paneID: String(fields[2]), panePID: panePID,
-        command: String(fields[4]),
+        processID: processID, paneID: fields[2], panePID: panePID, session: fields[4],
+        command: fields[5],
       )
     }
   }
@@ -88,5 +94,26 @@ public enum TmuxListing {
       return nil
     }
     return TmuxPaneState(panePID: panePID, command: String(fields[1]))
+  }
+
+  // MARK: Private
+
+  /// Splits on the spaces tmux left bare, and drops the backslashes it escaped the rest with.
+  private static func quotedFields(_ line: Substring) -> [String] {
+    var fields = [""]
+    var escaped = false
+    for character in line {
+      if escaped {
+        fields[fields.count - 1].append(character)
+        escaped = false
+      } else if character == "\\" {
+        escaped = true
+      } else if character == " " {
+        fields.append("")
+      } else {
+        fields[fields.count - 1].append(character)
+      }
+    }
+    return fields
   }
 }

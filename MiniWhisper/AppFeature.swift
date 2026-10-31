@@ -1125,7 +1125,7 @@ private let performanceLogger = Logger(
     case .failed:
       deliveryLogger.error("Transcript pasted; prior clipboard restore failed")
     case .untouched:
-      deliveryLogger.notice("Transcript written into its tmux pane")
+      deliveryLogger.notice("Transcript written straight into its target; clipboard untouched")
     }
   }
 
@@ -1146,7 +1146,17 @@ private let performanceLogger = Logger(
         "The target pane is running something else now; transcript kept on clipboard",
       )
     case .targetUnreachable:
-      deliveryLogger.error("The target could not be focused; transcript kept on clipboard")
+      deliveryLogger.error("The target would not take focus or text; transcript kept on clipboard")
+    case .targetInUse:
+      deliveryLogger.notice(
+        "The user is in the target app away from the field; transcript kept on clipboard",
+      )
+    case .interrupted:
+      deliveryLogger.notice(
+        "The user came back to the target mid-delivery; transcript kept on clipboard",
+      )
+    case .unconfirmed:
+      deliveryLogger.error("The field did not read back as written; transcript kept on clipboard")
     }
   }
 
