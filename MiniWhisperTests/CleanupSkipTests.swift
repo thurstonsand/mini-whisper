@@ -100,11 +100,11 @@ import TranscriptCleanup
   /// entry could be archived with the first one's delivery. Each now carries its own.
   @Test func `two skipped tails finish as themselves`() async {
     let store = skipStore(
-      skippedTails: [7: skippedTail("first"), 8: skippedTail("second")],
+      skippedTails: [7: skippedTail(7, "first"), 8: skippedTail(8, "second")],
     ) { $0.uuid = .incrementing }
 
-    await store.send(.skippedDeliveryCompleted(7, pasted("first")))
-    await store.send(.skippedDeliveryCompleted(8, pasted("second")))
+    await store.send(.deliveryCompleted(7, pasted("first")))
+    await store.send(.deliveryCompleted(8, pasted("second")))
     await store.skipReceivedActions()
     await store.finish()
 
@@ -144,9 +144,9 @@ private let skipConfiguration = CleanupConfiguration(
   additionalInstructions: "",
 )
 
-private func skippedTail(_ text: String) -> AppFeature.PendingDictation {
+private func skippedTail(_ generation: Int, _ text: String) -> AppFeature.PendingDictation {
   var dictation = AppFeature.PendingDictation(
-    generation: 1, recording: CanonicalRecording(samples: [0.25]),
+    generation: generation, recording: CanonicalRecording(samples: [0.25]),
     createdAt: Date(timeIntervalSince1970: 100), engine: "test-engine@revision",
     original: History.Transcription(
       text: text, engine: "test-engine@revision", transcribedAt: Date(timeIntervalSince1970: 150),
@@ -155,6 +155,7 @@ private func skippedTail(_ text: String) -> AppFeature.PendingDictation {
   dictation.capture = .unavailable(.noFocusedElement)
   dictation.cleanup = skipConfiguration
   dictation.cleanupRecord = CleanupRecord(.attempted(skipConfiguration, .skipped(seconds: 2)))
+  dictation.isDelivering = true
   return dictation
 }
 
@@ -191,7 +192,7 @@ private func pasted(_ text: String) -> AppFeature.DeliveryResult {
   state.$health.withLock { $0 = .healthy }
   state.transcriptionGeneration = 1
   state.dictationInFlight = true
-  state.skippedDictations = skippedTails
+  state.backgroundDictations = skippedTails
   state.pill.presentation = .polishing(
     PillFeature.State.Presentation.Polishing(skipComponents: ["⌥ Opt →"]),
   )

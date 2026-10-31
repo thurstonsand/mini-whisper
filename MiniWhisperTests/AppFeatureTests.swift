@@ -1533,7 +1533,7 @@ import Testing
   @Test func `changed clipboard skips restore without turning paste into failure`() async {
     let sounds = SoundRecorder()
     var state = AppFeature.State()
-    state.transcriptionGeneration = 2
+    state.awaitingTranscript(generation: 2)
     state.pill.presentation = .transcribing
     let store = TestStore(initialState: state) {
       AppFeature()
@@ -1545,7 +1545,10 @@ import Testing
       .deliveryCompleted(
         2, deliveryResult("", .pasted(.skipped)),
       ),
-    )
+    ) {
+      $0.pendingDictation = nil
+      $0.dictationInFlight = false
+    }
     await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
     #expect(await sounds.recorded == ["Pop"])
@@ -1788,7 +1791,7 @@ import Testing
     let sounds = SoundRecorder()
     let clock = TestClock()
     var state = AppFeature.State()
-    state.transcriptionGeneration = 4
+    state.awaitingTranscript(generation: 4)
     state.pill.presentation = .transcribing
     let store = TestStore(initialState: state) {
       AppFeature()
@@ -1801,7 +1804,10 @@ import Testing
       .deliveryCompleted(
         4, deliveryResult("", .copied(.secureInput)),
       ),
-    )
+    ) {
+      $0.pendingDictation = nil
+      $0.dictationInFlight = false
+    }
     await store.receive(.pill(.copiedToClipboard)) {
       $0.pill.noticeGeneration = 1
       $0.pill.presentation = .notice(.copiedToClipboard)
@@ -1853,7 +1859,7 @@ import Testing
     let sounds = SoundRecorder()
     var state = AppFeature.State()
     state.$settings.withLock { $0.sounds = .silent }
-    state.transcriptionGeneration = 4
+    state.awaitingTranscript(generation: 4)
     state.pill.presentation = .transcribing
     let store = TestStore(initialState: state) {
       AppFeature()
@@ -1865,7 +1871,10 @@ import Testing
       .deliveryCompleted(
         4, deliveryResult("", .pasted(.restored)),
       ),
-    )
+    ) {
+      $0.pendingDictation = nil
+      $0.dictationInFlight = false
+    }
     await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
     #expect(await sounds.recorded.isEmpty)

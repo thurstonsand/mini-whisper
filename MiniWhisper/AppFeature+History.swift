@@ -34,6 +34,8 @@ extension AppFeature {
     var cleanup: CleanupConfiguration?
     var cleanupStartedAt: Date?
     var cleanupRecord: CleanupRecord?
+    /// The text is on its way to the target, so a cleanup answering late has nothing to change.
+    var isDelivering = false
     var isFinishing = false
 
     var fieldContext: FocusedTextContext? {
@@ -67,38 +69,33 @@ extension AppFeature {
     )
   }
 
+  /// The dictation in the pill's terminal write.
   func finishDictation(
     _ state: inout State, targetApp: TargetApp? = nil, delivery: Delivery?,
   ) -> Effect<Action> {
-    guard var pending = state.pendingDictation, !pending.isFinishing else {
+    guard let generation = state.pendingDictation?.generation else {
       return .none
     }
-    guard pending.original != nil || state.storesAudio else {
-      state.pendingDictation = nil
-      state.dictationInFlight = false
+    return finishDictation(generation, &state, targetApp: targetApp, delivery: delivery)
+  }
+
+  func finishDictation(
+    _ generation: Int, _ state: inout State, targetApp: TargetApp?, delivery: Delivery?,
+  ) -> Effect<Action> {
+    guard var dictation = state.dictation(generation), !dictation.isFinishing else {
       return .none
     }
-    pending.isFinishing = true
-    state.pendingDictation = pending
-    let generation = pending.generation
+    guard dictation.original != nil || state.storesAudio else {
+      state.removeDictation(generation)
+      return .none
+    }
+    dictation.isFinishing = true
+    state.updateDictation(dictation)
     return archiveEffect(
-      pending, targetApp: targetApp, delivery: delivery, storesAudio: state.storesAudio,
+      dictation, targetApp: targetApp, delivery: delivery, storesAudio: state.storesAudio,
     ) { entry in
       entry.map { .historyEntryPrepared(generation, $0) } ?? .historyEntryAbandoned(generation)
     }
-  }
-
-  /// A skipped dictation's terminal write. It answers to no generation and holds no place in the
-  /// store beyond `skippedDictations`, so it leaves as it is archived.
-  func archiveSkippedDictation(
-    _ generation: Int, state: inout State, delivery: Delivery?,
-  ) -> Effect<Action> {
-    guard let skipped = state.skippedDictations.removeValue(forKey: generation) else {
-      return .none
-    }
-    return archiveEffect(
-      skipped, targetApp: skipped.targetApp, delivery: delivery, storesAudio: state.storesAudio,
-    ) { .skippedDictationArchived($0) }
   }
 
   /// One dictation's terminal write: the audio if it is kept, then the entry. A nil entry means
@@ -287,6 +284,40 @@ extension NoReceiverReason {
       } else {
         "nonTextElement"
       }
+    }
+  }
+}
+
+// MARK: - Finding a dictation by generation
+
+extension AppFeature.State {
+  /// A generation names one dictation for its whole life, whether it is still the one in the pill
+  /// or has stepped aside into the background; every leg finds it the same way.
+  func dictation(_ generation: Int) -> AppFeature.PendingDictation? {
+    if let pendingDictation, pendingDictation.generation == generation {
+      return pendingDictation
+    }
+    return backgroundDictations[generation]
+  }
+
+  func isForeground(_ generation: Int) -> Bool {
+    pendingDictation?.generation == generation
+  }
+
+  mutating func updateDictation(_ dictation: AppFeature.PendingDictation) {
+    if isForeground(dictation.generation) {
+      pendingDictation = dictation
+    } else {
+      backgroundDictations[dictation.generation] = dictation
+    }
+  }
+
+  mutating func removeDictation(_ generation: Int) {
+    if isForeground(generation) {
+      pendingDictation = nil
+      dictationInFlight = false
+    } else {
+      backgroundDictations[generation] = nil
     }
   }
 }

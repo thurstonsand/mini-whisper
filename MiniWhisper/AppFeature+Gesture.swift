@@ -79,6 +79,8 @@ extension AppFeature {
         )
       }
       performanceLogger.notice("benchmark app-activation-received")
+      // Only the dictation in the pill gives way; one already in the background keeps its legs.
+      let replaced = state.pendingDictation?.generation
       state.transcriptionGeneration += 1
       state.dictationWasCancelled = false
       state.pendingDictation = nil
@@ -97,8 +99,9 @@ extension AppFeature {
         ),
         .merge(
           .cancel(id: CancelID.transcription), .cancel(id: CancelID.capture),
-          .cancel(id: CancelID.cleanup), .cancel(id: CancelID.delivery),
-          .cancel(id: CancelID.historyMaintenance),
+          replaced.map { .cancel(id: CancelID.cleanup($0)) } ?? .none,
+          replaced.map { .cancel(id: CancelID.delivery($0)) } ?? .none,
+          .cancel(id: CancelID.recoveryDelivery), .cancel(id: CancelID.historyMaintenance),
           .send(.recording(.startRecording)),
           // The machine emits this exactly once per interaction, so the onset cue needs no
           // suppression flag: one interaction, one sound, at the moment the user acted.
@@ -125,12 +128,13 @@ extension AppFeature {
     case .discardRecording:
       // Totally silent: a misfire, an expired lone tap, or an interruption never happened as far
       // as the user, History, and onboarding are concerned.
+      let generation = state.transcriptionGeneration
       state.dictationWasCancelled = false
       state.pendingDictation = nil
       state.dictationInFlight = false
       return .merge(
         .cancel(id: CancelID.transcription), .cancel(id: CancelID.capture),
-        .cancel(id: CancelID.cleanup), .cancel(id: CancelID.delivery),
+        .cancel(id: CancelID.cleanup(generation)), .cancel(id: CancelID.delivery(generation)),
         .send(.recording(.cancelRecording)),
         .send(.pill(.dismiss)),
       )
@@ -149,7 +153,8 @@ extension AppFeature {
         state.pendingDictation = dictation
         state.dictationWasCancelled = true
         return .merge(
-          .cancel(id: CancelID.cleanup), .cancel(id: CancelID.delivery),
+          .cancel(id: CancelID.cleanup(dictation.generation)),
+          .cancel(id: CancelID.delivery(dictation.generation)),
           .send(.pill(.cancelledSavedToHistory)), playSound(state.settings.sounds.cancel),
           finishDictation(&state, delivery: nil),
         )
@@ -158,7 +163,8 @@ extension AppFeature {
       // transcription so a successful result can be recovered from History.
       state.dictationWasCancelled = true
       return .merge(
-        .cancel(id: CancelID.delivery), .send(.recording(.stopAndRetain)),
+        .cancel(id: CancelID.delivery(state.transcriptionGeneration)),
+        .send(.recording(.stopAndRetain)),
         playSound(state.settings.sounds.cancel),
       )
     }
@@ -167,8 +173,8 @@ extension AppFeature {
   // MARK: Private
 
   /// Lets go of the cleanup a press just resolved: the request is cancelled, and the dictation
-  /// steps aside into `skippedDictations` — still owed a paste and an entry — so the next one can
-  /// take the pill and the generation while that tail finishes on its own.
+  /// steps aside into `backgroundDictations` — still owed a paste and an entry — so the next one
+  /// can take the pill and the generation while that tail finishes on its own.
   private func skipPendingCleanup(_ state: inout State) -> Effect<Action> {
     guard var dictation = state.pendingDictation, let configuration = dictation.cleanup,
           let capture = dictation.capture, let transcript = dictation.original?.text,
@@ -179,14 +185,14 @@ extension AppFeature {
     dictation.cleanupRecord = CleanupRecord(
       .attempted(configuration, .skipped(seconds: dictation.elapsedCleanup(now))),
     )
+    dictation.isDelivering = true
     state.pendingDictation = nil
-    state.skippedDictations[dictation.generation] = dictation
+    state.backgroundDictations[dictation.generation] = dictation
     gestureLogger.notice("Cleanup skipped; delivering the transcript as heard")
     return .merge(
-      .cancel(id: CancelID.cleanup),
+      .cancel(id: CancelID.cleanup(dictation.generation)),
       deliverEffect(
-        to: .skipped(dictation.generation), text: transcript, capture: capture,
-        targetApp: dictation.targetApp,
+        dictation.generation, text: transcript, capture: capture, targetApp: dictation.targetApp,
       ),
     )
   }

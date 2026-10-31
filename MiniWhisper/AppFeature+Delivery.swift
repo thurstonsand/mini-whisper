@@ -12,30 +12,6 @@ import TranscriptCleanup
 /// it has a pill to move and an activation press to answer; a recovery walks none of them and
 /// simply pastes.
 extension AppFeature {
-  /// Where a finished paste reports. A dictation answers to the generation that owns it; a
-  /// skipped tail answers to the generation it once was, which is deliberately no longer the
-  /// current one; a recovery answers to nobody.
-  enum DeliveryDestination: Equatable {
-    case dictation(Int)
-    case recovery
-    case skipped(Int)
-
-    // MARK: Internal
-
-    /// A skipped tail gets an id of its own, so the next dictation cancelling the delivery id
-    /// cannot cut short the very paste the user asked to keep — and so two of them can finish at
-    /// once without either standing in the other's way.
-    var cancelID: CancelID {
-      switch self {
-      case .dictation,
-           .recovery:
-        .delivery
-      case let .skipped(generation):
-        .skippedDelivery(generation)
-      }
-    }
-  }
-
   enum DeliveryAttempt {
     case delivered(DeliveryOutcome)
     case failed(String)
@@ -53,7 +29,7 @@ extension AppFeature {
         return
       }
       await send(.contextCaptured(generation, capture, targetApp))
-    }.cancellable(id: CancelID.delivery, cancelInFlight: true)
+    }.cancellable(id: CancelID.delivery(generation), cancelInFlight: true)
   }
 
   /// Paste-last has no dictation behind it and nothing to polish in text that was already
@@ -64,26 +40,21 @@ extension AppFeature {
       guard !Task.isCancelled else {
         return
       }
-      await deliver(transcript, capture: capture, targetApp: targetApp, to: .recovery, send: send)
-    }.cancellable(id: CancelID.delivery, cancelInFlight: true)
+      await deliver(transcript, capture: capture, targetApp: targetApp, to: nil, send: send)
+    }.cancellable(id: CancelID.recoveryDelivery, cancelInFlight: true)
   }
 
   /// The pipeline's cleanup leg. The pill flips to Polishing only once there is a request in
   /// flight, so a configuration that turns out to be keyless never flashes a phase that is not
   /// happening, and any activation press cancels the request and delivers the transcript as heard.
   func cleanupEffect(
-    generation: Int, skipComponents: [String], transcript: String,
-    conditioning: CleanupConditioning, target: CleanupTarget,
+    generation: Int, transcript: String, conditioning: CleanupConditioning, target: CleanupTarget,
   ) -> Effect<Action> {
     .run { send in
       let resolution = await TranscriptPipeline().resolveCleanup(
         transcript, conditioning: conditioning, target: target,
         requestStarting: { configuration in
           await send(.cleanupStarted(generation, configuration))
-          await send(.pill(.polishingStarted(skipComponents: skipComponents)))
-          // The wait the activation key can resolve: the machine has to know it is happening
-          // before the request does.
-          await send(.hotkeyListenerEvent(.gestureInput(.cleanupStarted)))
         },
       )
       // A skip cancelled this request and resolved the delivery itself, so it is owed nothing.
@@ -91,16 +62,15 @@ extension AppFeature {
         return
       }
       await send(.cleanupResolved(generation, resolution))
-    }.cancellable(id: CancelID.cleanup, cancelInFlight: true)
+    }.cancellable(id: CancelID.cleanup(generation), cancelInFlight: true)
   }
 
   func deliverEffect(
-    to destination: DeliveryDestination, text: String, capture: ContextCapture,
-    targetApp: TargetApp?,
+    _ generation: Int, text: String, capture: ContextCapture, targetApp: TargetApp?,
   ) -> Effect<Action> {
     .run { send in
-      await deliver(text, capture: capture, targetApp: targetApp, to: destination, send: send)
-    }.cancellable(id: destination.cancelID, cancelInFlight: true)
+      await deliver(text, capture: capture, targetApp: targetApp, to: generation, send: send)
+    }.cancellable(id: CancelID.delivery(generation), cancelInFlight: true)
   }
 
   // MARK: Private
@@ -114,9 +84,10 @@ extension AppFeature {
     return (capture, targetApp)
   }
 
+  /// A dictation answers to its generation; a recovery answers to nobody.
   private func deliver(
-    _ text: String, capture: ContextCapture, targetApp: TargetApp?,
-    to destination: DeliveryDestination, send: Send<Action>,
+    _ text: String, capture: ContextCapture, targetApp: TargetApp?, to generation: Int?,
+    send: Send<Action>,
   ) async {
     let adjusted = capture.adjusted(text)
     guard !Task.isCancelled else {
@@ -135,24 +106,14 @@ extension AppFeature {
     switch attempt {
     case let .delivered(outcome):
       let result = DeliveryResult(text: adjusted, targetApp: targetApp, outcome: outcome)
-      switch destination {
-      case let .dictation(generation):
-        await send(.deliveryCompleted(generation, result))
-      case .recovery:
-        await send(.recoveryDeliveryCompleted(result))
-      case let .skipped(generation):
-        await send(.skippedDeliveryCompleted(generation, result))
-      }
+      await send(
+        generation.map { .deliveryCompleted($0, result) } ?? .recoveryDeliveryCompleted(result),
+      )
     case let .failed(message):
       let failure = DeliveryFailure(text: adjusted, targetApp: targetApp, message: message)
-      switch destination {
-      case let .dictation(generation):
-        await send(.deliveryFailed(generation, failure))
-      case .recovery:
-        await send(.recoveryDeliveryFailed(failure))
-      case let .skipped(generation):
-        await send(.skippedDeliveryFailed(generation, failure))
-      }
+      await send(
+        generation.map { .deliveryFailed($0, failure) } ?? .recoveryDeliveryFailed(failure),
+      )
     }
   }
 }

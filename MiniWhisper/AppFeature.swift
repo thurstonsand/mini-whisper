@@ -89,11 +89,11 @@ private let performanceLogger = Logger(
     var inputDeviceName: String?
     var lastTranscript: String?
     var pendingDictation: PendingDictation?
-    /// Dictations whose cleanup pass the user skipped. The press that skipped one handed the
-    /// pill, the generation, and the field to its successor, so it is no longer the dictation in
-    /// flight — but it is still owed a paste and an entry, and waits here under the generation it
-    /// was until it has both.
-    var skippedDictations: [Int: PendingDictation] = [:]
+    /// Dictations that stepped aside for a newer one. The press that moved one here handed the
+    /// pill and the generation to its successor, so it is no longer the dictation in flight — but
+    /// it is still owed a paste and an entry, and waits here under the generation it was until it
+    /// has both.
+    var backgroundDictations: [Int: PendingDictation] = [:]
     var dictationInFlight = false
     var historyMaintenance = HistoryMaintenanceState.idle
     @Shared var history: HistoryLog
@@ -101,6 +101,12 @@ private let performanceLogger = Logger(
     @Shared var dictionary: DictionaryContents
     @Shared var health: AppHealth
     var onboardingCompleted = false
+
+    /// History maintenance rewrites the whole log, so it waits for every dictation still owed an
+    /// entry, not only the one in the pill.
+    var hasDictationsInFlight: Bool {
+      dictationInFlight || !backgroundDictations.isEmpty
+    }
 
     var storesAudio: Bool {
       settings.retention.audio != .never
@@ -162,17 +168,14 @@ private let performanceLogger = Logger(
     case cleanupResolved(Int, CleanupResolution)
     case deliveryCompleted(Int, DeliveryResult)
     case deliveryFailed(Int, DeliveryFailure)
-    case skippedDeliveryCompleted(Int, DeliveryResult)
-    case skippedDeliveryFailed(Int, DeliveryFailure)
-    case skippedDictationArchived(HistoryEntry?)
   }
 
   enum CancelID: Hashable {
     case transcription
     case capture
-    case cleanup
-    case delivery
-    case skippedDelivery(Int)
+    case cleanup(Int)
+    case delivery(Int)
+    case recoveryDelivery
     case historyMaintenance
     case hotkeyEvents
     case gestureDeadline
@@ -293,7 +296,7 @@ private let performanceLogger = Logger(
             .historyMaintenanceFailed("History failed to load: \(error.localizedDescription)"),
           )
         }
-        guard !state.dictationInFlight else {
+        guard !state.hasDictationsInFlight else {
           state.historyMaintenance = .waiting
           return .none
         }
@@ -310,14 +313,10 @@ private let performanceLogger = Logger(
         historyLogger.error("History maintenance failed: \(message, privacy: .public)")
         return .none
       case let .historyEntryPrepared(generation, entry):
-        guard generation == state.transcriptionGeneration,
-              state.pendingDictation?.generation == generation,
-              state.pendingDictation?.isFinishing == true
-        else {
+        guard state.dictation(generation)?.isFinishing == true else {
           return entry.audio == nil ? .none : deleteHistoryAudio([entry.id])
         }
-        state.pendingDictation = nil
-        state.dictationInFlight = false
+        state.removeDictation(generation)
         if let error = state.$history.loadError {
           return .merge(
             entry.audio == nil ? .none : deleteHistoryAudio([entry.id]),
@@ -331,14 +330,10 @@ private let performanceLogger = Logger(
         state.$history.withLock { $0.entries.insert(entry, at: 0) }
         return saveHistory(state.$history)
       case let .historyEntryAbandoned(generation):
-        guard generation == state.transcriptionGeneration,
-              state.pendingDictation?.generation == generation,
-              state.pendingDictation?.isFinishing == true
-        else {
+        guard state.dictation(generation)?.isFinishing == true else {
           return .none
         }
-        state.pendingDictation = nil
-        state.dictationInFlight = false
+        state.removeDictation(generation)
         return .none
       case let .historyPersistenceFailed(message):
         historyLogger.error("History failed to persist: \(message, privacy: .public)")
@@ -629,27 +624,20 @@ private let performanceLogger = Logger(
           history,
         )
       case let .contextCaptured(generation, capture, targetApp):
-        guard generation == state.transcriptionGeneration, var pending = state.pendingDictation,
-              pending.generation == generation, let transcript = pending.original?.text
+        guard var dictation = state.dictation(generation), let transcript = dictation.original?.text
         else {
           return .none
         }
-        pending.capture = capture
-        pending.targetApp = targetApp
-        state.pendingDictation = pending
+        dictation.capture = capture
+        dictation.targetApp = targetApp
+        state.updateDictation(dictation)
         // Whether a pass is worth attempting at all. Whether one actually runs is the pipeline's
         // to decide, and it says so by starting one.
-        guard let target = pending.cleanupTarget else {
+        guard let target = dictation.cleanupTarget else {
           return .send(.cleanupResolved(generation, .passedThrough))
         }
         return cleanupEffect(
-          generation: generation,
-          skipComponents: state.settings
-            .bindings
-            .hotkeys(for: .activate)
-            .first?
-            .displayComponents ?? [],
-          transcript: transcript,
+          generation: generation, transcript: transcript,
           conditioning: CleanupConditioning(
             fieldContext: capture.focusedTextContext,
             vocabulary: state.dictionary.vocabulary.map(\.text),
@@ -658,25 +646,49 @@ private let performanceLogger = Logger(
           target: target,
         )
       case let .cleanupStarted(generation, configuration):
-        guard var pending = state.pendingDictation, pending.generation == generation else {
+        guard var dictation = state.dictation(generation) else {
           return .none
         }
-        pending.cleanup = configuration
-        pending.cleanupStartedAt = now
-        state.pendingDictation = pending
-        return .none
+        dictation.cleanup = configuration
+        dictation.cleanupStartedAt = now
+        state.updateDictation(dictation)
+        guard state.isForeground(generation) else {
+          return .none
+        }
+        return .merge(
+          .send(
+            .pill(
+              .polishingStarted(
+                skipComponents: state.settings
+                  .bindings
+                  .hotkeys(for: .activate)
+                  .first?
+                  .displayComponents ?? [],
+              ),
+            ),
+          ),
+          // The wait the activation key can resolve: the machine has to know it is happening
+          // before the request does.
+          .send(.hotkeyListenerEvent(.gestureInput(.cleanupStarted))),
+        )
       case let .cleanupResolved(generation, resolution):
-        guard generation == state.transcriptionGeneration, var pending = state.pendingDictation,
-              pending.generation == generation, let capture = pending.capture,
-              let transcript = pending.original?.text
+        guard var dictation = state.dictation(generation), !dictation.isDelivering,
+              let capture = dictation.capture, let transcript = dictation.original?.text
         else {
           return .none
         }
         let record = CleanupRecord(resolution)
         noteKeyVerdict(resolution, state: &state)
-        pending.cleanupRecord = record
-        state.pendingDictation = pending
+        dictation.cleanupRecord = record
+        dictation.isDelivering = true
+        state.updateDictation(dictation)
         let text = record?.cleanedText ?? transcript
+        let delivery = deliverEffect(
+          generation, text: text, capture: capture, targetApp: dictation.targetApp,
+        )
+        guard state.isForeground(generation) else {
+          return delivery
+        }
         // Paste-last and Copy Last Transcript recover what was delivered, so the rewrite
         // replaces the transcript they answer with the moment it becomes the delivered text.
         if record?.cleanedText != nil {
@@ -684,35 +696,19 @@ private let performanceLogger = Logger(
         }
         return .merge(
           // Only a wait that started has an end to announce.
-          pending.cleanup == nil
+          dictation.cleanup == nil
             ? .none : .send(.hotkeyListenerEvent(.gestureInput(.cleanupEnded))),
-          deliverEffect(
-            to: .dictation(generation), text: text, capture: capture, targetApp: pending.targetApp,
-          ),
+          delivery,
         )
-      case let .skippedDeliveryCompleted(generation, result):
-        let delivery = result.outcome.delivery(of: result.text)
-        deliveryLogger.notice(
-          "Skipped cleanup delivered as heard: \(delivery.method.rawValue, privacy: .public)",
-        )
-        return archiveSkippedDictation(generation, state: &state, delivery: delivery)
-      case let .skippedDeliveryFailed(generation, failure):
-        deliveryLogger.error(
-          "Skipped cleanup failed to deliver: \(failure.message, privacy: .public)",
-        )
-        return archiveSkippedDictation(generation, state: &state, delivery: nil)
-      case let .skippedDictationArchived(entry):
-        guard let entry else {
-          return .none
-        }
-        guard state.$history.loadError == nil else {
-          return entry.audio == nil ? .none : deleteHistoryAudio([entry.id])
-        }
-        state.$history.withLock { $0.entries.insert(entry, at: 0) }
-        return saveHistory(state.$history)
       case let .deliveryCompleted(generation, result):
-        guard generation == state.transcriptionGeneration else {
-          return .none
+        guard state.isForeground(generation) else {
+          let delivery = result.outcome.delivery(of: result.text)
+          deliveryLogger.notice(
+            "Background dictation delivered: \(delivery.method.rawValue, privacy: .public)",
+          )
+          return finishDictation(
+            generation, &state, targetApp: result.targetApp, delivery: delivery,
+          )
         }
         switch result.outcome {
         case let .pasted(restoration):
@@ -742,13 +738,13 @@ private let performanceLogger = Logger(
           )
         }
       case let .deliveryFailed(generation, failure):
-        guard generation == state.transcriptionGeneration else {
-          return .none
-        }
         deliveryLogger.error("Transcript delivery failed: \(failure.message, privacy: .public)")
         let history = finishDictation(
-          &state, targetApp: failure.targetApp, delivery: nil,
+          generation, &state, targetApp: failure.targetApp, delivery: nil,
         )
+        guard state.isForeground(generation) else {
+          return history
+        }
         return .merge(
           .send(.pill(.dismiss)), onboardingTryIt(.failed(failure.message), state),
           playSound(state.settings.sounds.error), history,
@@ -779,8 +775,8 @@ private let performanceLogger = Logger(
         return .none
       }
     }
-    .onChange(of: \.dictationInFlight) { wasInFlight, state in
-      guard wasInFlight, !state.dictationInFlight else {
+    .onChange(of: \.hasDictationsInFlight) { wasInFlight, state in
+      guard wasInFlight, !state.hasDictationsInFlight else {
         return .none
       }
       return startDeferredHistoryMaintenance(&state)
