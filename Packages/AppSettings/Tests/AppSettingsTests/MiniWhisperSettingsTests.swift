@@ -18,7 +18,7 @@ struct MiniWhisperSettingsTests {
       ],
     )
     let bindings = try #require(object["bindings"] as? [String: Any])
-    #expect(Set(bindings.keys) == ["activate", "pasteLastTranscript"])
+    #expect(Set(bindings.keys) == ["activate", "pasteLastTranscript", "submit"])
     #expect(try SettingsCoding.decode(data) == .defaults)
     let text = try #require(String(data: data, encoding: .utf8))
     #expect(text.hasSuffix("}\n"))
@@ -90,6 +90,7 @@ struct MiniWhisperSettingsTests {
     let settings = try MiniWhisperSettings(
       bindings: HotkeyBindingsSettings(
         activate: [Hotkey(keyCode: 0, modifiers: [.leftCommand])],
+        submit: [Hotkey(modifiers: [.rightCommand])],
         pasteLastTranscript: [
           Hotkey(keyCode: 9, modifiers: [.rightCommand]),
           Hotkey(keyCode: 8, modifiers: [.leftControl]),

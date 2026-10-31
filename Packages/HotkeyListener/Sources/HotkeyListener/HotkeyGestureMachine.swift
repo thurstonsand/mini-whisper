@@ -3,6 +3,9 @@
 public enum GestureEvent: String, Equatable, Sendable {
   case startRecording
   case stopAndTranscribe
+  /// The press that ended the recording came from a submit binding: the dictation sends Return
+  /// once it lands.
+  case stopAndSubmit
   case latchEngaged
   case discardRecording
   case cancelAndArchive
@@ -13,6 +16,9 @@ public enum GestureEvent: String, Equatable, Sendable {
   /// The press that detached a dictation turned out to be a lone tap: its recording is discarded,
   /// and the dictation it detached is delivered as heard.
   case skipCleanup
+  /// The same lone tap from a submit binding: the recording is discarded, and the dictation it
+  /// detached keeps its cleanup and sends Return once it lands.
+  case submitDetached
 }
 
 // MARK: - HotkeyGestureMachine
@@ -67,6 +73,8 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
   public let timing: Timing
   /// The press now in progress began while cleanup was pending, so a lone tap means skip.
   public private(set) var pressDetachedCleanup = false
+  /// The latest press came from a submit binding. Whichever press ends a recording decides.
+  public private(set) var pressSubmits = false
 
   /// Provisional is the only phase silence can resolve, so it is the only one that owes its owner
   /// a `deadlineElapsed` after `timing.doubleTapWindow`. The machine keeps no clock of its own.
@@ -94,8 +102,8 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
       endCleanup()
     case .refused:
       refuse()
-    case let .activation(time):
-      activate(at: time)
+    case let .activation(time, submits):
+      activate(at: time, submits: submits)
     case let .release(time):
       release(at: time)
     case let .conflict(time):
@@ -107,11 +115,12 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
 
   // MARK: Private
 
-  private mutating func activate(at time: Duration) -> GestureEvent? {
+  private mutating func activate(at time: Duration, submits: Bool) -> GestureEvent? {
     switch phase {
     case .idle:
       phase = .holding(startedAt: time)
       pressDetachedCleanup = false
+      pressSubmits = submits
       return .startRecording
     case let .provisional(releasedAt):
       guard time - releasedAt < timing.doubleTapWindow else {
@@ -119,13 +128,16 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
         return lonelyTap()
       }
       phase = .secondPress(startedAt: time)
+      pressSubmits = submits
       return nil
     case .latched:
       phase = .blockedUntilRelease
-      return .stopAndTranscribe
+      pressSubmits = submits
+      return stop()
     case .cleanupPending:
       phase = .holding(startedAt: time)
       pressDetachedCleanup = true
+      pressSubmits = submits
       return .detachAndRecord
     case .holding,
          .secondPress,
@@ -139,14 +151,14 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
     case let .holding(startedAt):
       guard time - startedAt < timing.tapMaximumDuration else {
         phase = .idle
-        return .stopAndTranscribe
+        return stop()
       }
       phase = .provisional(releasedAt: time)
       return nil
     case let .secondPress(startedAt):
       guard time - startedAt < timing.tapMaximumDuration else {
         phase = .idle
-        return .stopAndTranscribe
+        return stop()
       }
       phase = .latched
       return .latchEngaged
@@ -243,7 +255,14 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
   /// key or an Escape is a misfire, which leaves a detached dictation polishing.
   private mutating func lonelyTap() -> GestureEvent {
     defer { pressDetachedCleanup = false }
-    return pressDetachedCleanup ? .skipCleanup : .discardRecording
+    guard pressDetachedCleanup else {
+      return .discardRecording
+    }
+    return pressSubmits ? .submitDetached : .skipCleanup
+  }
+
+  private func stop() -> GestureEvent {
+    pressSubmits ? .stopAndSubmit : .stopAndTranscribe
   }
 
   /// Only an idle machine can start waiting on cleanup: a press that already began the next

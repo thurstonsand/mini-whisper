@@ -596,6 +596,17 @@ private extension HotkeyCommand {
         menuAccessibilityID: AccessibilityID.settingsShortcutMenu,
         bindingAccessibilityID: AccessibilityID.settingsShortcutBinding,
       )
+    case .submit:
+      ShortcutPresentation(
+        label: "Activate and submit",
+        rowAccessibilityID: AccessibilityID.settingsSubmitShortcutRow,
+        rowStateAccessibilityID: AccessibilityID.settingsSubmitShortcutRowState,
+        recordingAccessibilityID: AccessibilityID.settingsSubmitShortcutRecording,
+        recordingErrorAccessibilityID: AccessibilityID.settingsSubmitShortcutRecordingError,
+        setAccessibilityID: AccessibilityID.settingsSubmitShortcutSet,
+        menuAccessibilityID: AccessibilityID.settingsSubmitShortcutMenu,
+        bindingAccessibilityID: AccessibilityID.settingsSubmitShortcutBinding,
+      )
     case .pasteLastTranscript:
       ShortcutPresentation(
         label: "Paste last transcript",

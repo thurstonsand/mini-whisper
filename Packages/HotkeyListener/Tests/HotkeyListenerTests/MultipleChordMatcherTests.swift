@@ -156,6 +156,26 @@ struct MultipleChordMatcherTests {
     #expect(release.output == .gesture(.release(at: .zero)))
   }
 
+  @Test func `a submit binding's presses ask for Return and an activate binding's do not`() throws {
+    let rightCommand = try Hotkey(modifiers: [.rightCommand])
+    var matcher = MultipleChordMatcher(bindings: [
+      HotkeyBinding<TestAction>(hotkey: .testRightOption, route: .gesture),
+      HotkeyBinding<TestAction>(hotkey: rightCommand, route: .submittingGesture),
+    ])
+
+    let submit = matcher.receive(
+      transition(.modifier(.rightCommand), .down, [.modifier(.rightCommand)]),
+    )
+    let submitRelease = matcher.receive(transition(.modifier(.rightCommand), .up, []))
+    let activate = matcher.receive(
+      transition(.modifier(.rightOption), .down, [.modifier(.rightOption)]),
+    )
+
+    #expect(submit.output == .gesture(.activation(at: .zero, submits: true)))
+    #expect(submitRelease.output == .gesture(.release(at: .zero)))
+    #expect(activate.output == .gesture(.activation(at: .zero, submits: false)))
+  }
+
   @Test func `building one alternative does not conflict with another`() throws {
     let controlR = try Hotkey(keyCode: 15, modifiers: [.rightControl])
     var matcher = gestureMatcher([.testRightOption, controlR])

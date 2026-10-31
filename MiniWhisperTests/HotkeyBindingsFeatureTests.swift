@@ -208,9 +208,7 @@ import Testing
     _ command: HotkeyCommand,
   ) async throws {
     let replacement = try Hotkey(keyCode: 15, modifiers: [.rightControl])
-    let original = command == .activate
-      ? Hotkey.testRightOption : .testPasteLastTranscript
-    var state = makeState(hotkeys: [original], command: command)
+    var state = makeState(hotkeys: [.testBinding(for: command)], command: command)
     state.target = .existing(0)
     let store = TestStore(initialState: state) { HotkeyBindingsFeature() }
 
@@ -222,19 +220,19 @@ import Testing
     await store.receive(.delegate(.recordingStopped))
 
     #expect(store.state.hotkeys == [replacement])
-    let otherCommand = HotkeyCommand.allCases.first { $0 != command }
-    #expect(
-      try store.state.settings.bindings.hotkeys(for: #require(otherCommand))
-        == [command == .activate ? .testPasteLastTranscript : .testRightOption],
-    )
+    for other in HotkeyCommand.allCases where other != command {
+      #expect(
+        store.state.settings.bindings.hotkeys(for: other)
+          == MiniWhisperSettings.defaults.bindings.hotkeys(for: other),
+      )
+    }
   }
 
   @Test(arguments: HotkeyCommand.allCases)
   func `a chord owned by the other action is silently rejected`(
     _ command: HotkeyCommand,
   ) async {
-    let original = command == .activate
-      ? Hotkey.testRightOption : .testPasteLastTranscript
+    let original = Hotkey.testBinding(for: command)
     let duplicate = command == .activate
       ? Hotkey.testPasteLastTranscript : .testRightOption
     var state = makeState(hotkeys: [original], command: command)

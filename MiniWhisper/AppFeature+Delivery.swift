@@ -109,8 +109,8 @@ extension AppFeature {
       effects.append(
         .run { send in
           await deliver(
-            text, capture: capture, target: target, submits: false, to: dictation.generation,
-            send: send,
+            text, capture: capture, target: target, submits: dictation.submits,
+            to: dictation.generation, send: send,
           )
         }.cancellable(id: CancelID.delivery(dictation.generation), cancelInFlight: true),
       )

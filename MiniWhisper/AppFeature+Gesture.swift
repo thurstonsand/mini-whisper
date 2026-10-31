@@ -66,6 +66,7 @@ extension AppFeature {
       state.dictationWasCancelled = false
       state.pendingDictation = nil
       state.activationTarget = nil
+      state.recordingSubmits = false
       state.dictationInFlight = true
       if state.historyMaintenance == .running {
         state.historyMaintenance = .waiting
@@ -98,8 +99,10 @@ extension AppFeature {
           },
         ),
       )
-    case .stopAndTranscribe:
+    case .stopAndTranscribe,
+         .stopAndSubmit:
       performanceLogger.notice("benchmark recording-release-received")
+      state.recordingSubmits = event == .stopAndSubmit
       return .send(.recording(.stopAndRetain))
     case .latchEngaged:
       return .send(.pill(.latchEngaged))
@@ -134,6 +137,18 @@ extension AppFeature {
       }
       state.detachedByPress = nil
       return .merge(discarded, skipCleanup(generation, &state))
+    case .submitDetached:
+      let discarded = performGesture(.discardRecording, state: &state)
+      guard let generation = state.detachedByPress,
+            var dictation = state.dictation(generation), !dictation.isDelivering
+      else {
+        return discarded
+      }
+      state.detachedByPress = nil
+      dictation.submits = true
+      state.updateDictation(dictation)
+      gestureLogger.notice("Dictation \(generation) will submit once it lands")
+      return discarded
     case .cancelAndArchive:
       // Escape during cleanup cancels only where the user still is: the same key is how a
       // terminal agent is interrupted, and the dictation may be bound for one far away.

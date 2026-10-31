@@ -39,6 +39,8 @@ extension AppFeature {
     /// The text this dictation delivers, settled once cleanup resolves or is skipped; a cleanup
     /// answering after that has nothing to change.
     var readyText: String?
+    /// Return follows the paste: the press that ended this dictation, or a later tap, asked.
+    var submits = false
     var isDelivering = false
     var isFinishing = false
 

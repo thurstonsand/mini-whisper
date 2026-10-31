@@ -110,6 +110,13 @@ public struct MultipleChordMatcher<Action: Equatable & Sendable>: Equatable, Sen
       switch entries[index].route {
       case .gesture:
         match.input.map(HotkeyMatchOutput.gesture)
+      case .submittingGesture:
+        match.input.map { input in
+          guard case let .activation(time, _) = input else {
+            return .gesture(input)
+          }
+          return .gesture(.activation(at: time, submits: true))
+        }
       case let .action(action):
         match.input?.isActivation == true ? .action(action) : nil
       }

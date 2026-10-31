@@ -5,6 +5,7 @@ import ComposableArchitecture
 import FieldContext
 import Foundation
 import History
+import HotkeyListener
 @testable import MiniWhisper
 import Sharing
 import Testing
@@ -51,6 +52,43 @@ import Testing
     #expect(await readFrom.targets == [pressed])
     #expect(await deliveredTo.targets == [pressed])
     #expect(store.state.history.entries.first?.targetApp?.bundleID == "com.example.Editor")
+  }
+
+  @Test func `a recording ended by the submit binding delivers with Return`() async {
+    let submitted = StringRecorder()
+    var settings = MiniWhisperSettings.defaults
+    settings.retention.audio = .never
+    settings.profiles.active = .custom
+    var state = AppFeature.State(
+      history: Shared(value: HistoryLog()), settings: Shared(value: settings),
+    )
+    state.onboardingCompleted = true
+    state.$health.withLock { $0 = .healthy }
+    state.transcriptionGeneration = 1
+    state.dictationInFlight = true
+    let store = TestStore(initialState: state) {
+      AppFeature()
+    } withDependencies: {
+      $0.date.now = Date(timeIntervalSince1970: 200)
+      $0.uuid = .incrementing
+      $0.asrEngine.submit = { _, _, _ in .transcript("Ship it") }
+      $0.contextCapture
+        .capture = { _ in .unavailable(.gridSemantics(bundleID: "com.mitchellh.ghostty")) }
+      $0.delivery.deliver = { text, _, submits in
+        await submitted.record("\(text) submits=\(submits)")
+        return .pasted(.untouched)
+      }
+    }
+    store.exhaustivity = .off(showSkippedAssertions: false)
+
+    await store.send(.targetCaptured(1, agentPane))
+    await store.send(.hotkeyListenerEvent(.gesture(.stopAndSubmit)))
+    await store.send(.recording(.delegate(.completed(CanonicalRecording(samples: [0.25])))))
+    await store.skipReceivedActions()
+    await store.finish()
+
+    #expect(await submitted.values == ["Ship it submits=true"])
+    #expect(!store.state.recordingSubmits)
   }
 
   @Test func `a later dictation to the same pane waits for the earlier one`() async {

@@ -103,6 +103,8 @@ private let performanceLogger = Logger(
     var backgroundDictations: [Int: PendingDictation] = [:]
     /// The dictation the press now in progress detached, which a lone tap skips.
     var detachedByPress: Int?
+    /// The recording in progress was ended by a submit press; its dictation inherits that.
+    var recordingSubmits = false
     var dictationInFlight = false
     var historyMaintenance = HistoryMaintenanceState.idle
     @Shared var history: HistoryLog
@@ -551,6 +553,9 @@ private let performanceLogger = Logger(
           engine: asrEngine.identity(engine), original: nil,
           cleanupTarget: state.settings.cleanupTarget,
         )
+        let submits = state.recordingSubmits
+        state.pendingDictation?.submits = submits
+        state.recordingSubmits = false
         if let activation = state.activationTarget, activation.generation == generation {
           state.pendingDictation?.target = activation.target
         }

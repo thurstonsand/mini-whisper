@@ -460,7 +460,7 @@ import TranscriptCleanup
     let settingsURL = root.appending(path: "settings.json")
     let stored = try MiniWhisperSettings(
       bindings: HotkeyBindingsSettings(
-        activate: [Hotkey(keyCode: 0, modifiers: [.leftCommand])],
+        activate: [Hotkey(keyCode: 0, modifiers: [.leftCommand])], submit: [],
         pasteLastTranscript: HotkeyBindingsSettings.defaults.hotkeys(for: .pasteLastTranscript),
       ),
       microphone: .systemDefault, sounds: .silent, retention: .defaults, profiles: .defaults,
