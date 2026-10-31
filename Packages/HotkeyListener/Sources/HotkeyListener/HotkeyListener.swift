@@ -2,6 +2,7 @@ import ApplicationServices
 import CoreGraphics
 import Foundation
 import OSLog
+import Synchronization
 
 private let performanceLogger = Logger(
   subsystem: "com.thurstonsand.MiniWhisper", category: "performance",
@@ -67,6 +68,27 @@ public enum HotkeyListenerEvent<Action: Equatable & Sendable>: Equatable, Sendab
 
 public enum HotkeyListenerError: Error, Equatable, Sendable { case eventTapCreationFailed }
 
+// MARK: - SubmitKeyGate
+
+/// Whether Return ends the recording, set by the gesture machine's owner and read on the tap's
+/// thread for every key, which has to decide at once whether the field sees it.
+public final class SubmitKeyGate: Sendable {
+  // MARK: Lifecycle
+
+  public init() {}
+
+  // MARK: Public
+
+  public var isArmed: Bool {
+    get { armed.withLock { $0 } }
+    set { armed.withLock { $0 = newValue } }
+  }
+
+  // MARK: Private
+
+  private let armed = Mutex(false)
+}
+
 // MARK: - HotkeyListener
 
 public enum HotkeyListener {
@@ -78,7 +100,7 @@ public enum HotkeyListener {
   /// Starts listening without raising a permission dialog. A missing grant is reported as
   /// `.accessibilityPermissionMissing` so the caller can send the user to System Settings.
   public static func events<Action: Equatable & Sendable>(
-    bindings: [HotkeyBinding<Action>],
+    bindings: [HotkeyBinding<Action>], submitKey: SubmitKeyGate,
   ) async throws -> AsyncStream<HotkeyListenerEvent<Action>> {
     let (stream, continuation) = AsyncStream.makeStream(of: HotkeyListenerEvent<Action>.self)
     // The last-mile guard: an Accessibility grant is what lets the session tap actually receive
@@ -90,7 +112,9 @@ public enum HotkeyListener {
       return stream
     }
 
-    let session = EventTapSession(bindings: bindings, continuation: continuation)
+    let session = EventTapSession(
+      bindings: bindings, submitKey: submitKey, continuation: continuation,
+    )
     continuation.onTermination = { @Sendable _ in session.stop() }
 
     do {
@@ -109,10 +133,11 @@ private final class EventTapSession<Action: Equatable & Sendable>: @unchecked Se
   // MARK: Lifecycle
 
   init(
-    bindings: [HotkeyBinding<Action>],
+    bindings: [HotkeyBinding<Action>], submitKey: SubmitKeyGate,
     continuation: AsyncStream<HotkeyListenerEvent<Action>>.Continuation,
   ) {
     self.continuation = continuation
+    self.submitKey = submitKey
     matcher = MultipleChordMatcher(bindings: bindings)
   }
 
@@ -153,6 +178,7 @@ private final class EventTapSession<Action: Equatable & Sendable>: @unchecked Se
   private var stopWasRequested = false
   private var pressedKeys: Set<PhysicalKey> = []
   private var matcher: MultipleChordMatcher<Action>
+  private let submitKey: SubmitKeyGate
 
   private func receive(type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
     if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
@@ -174,6 +200,7 @@ private final class EventTapSession<Action: Equatable & Sendable>: @unchecked Se
     guard let transition = normalize(type: type, event: event, time: time) else {
       return Unmanaged.passUnretained(event)
     }
+    matcher.submitKeyArmed = submitKey.isArmed
     let match = matcher.receive(transition)
     switch match.output {
     case let .gesture(input),

@@ -17,6 +17,7 @@ struct HotkeyGestureMachineTests {
     assertCell(idle, .cleanupStarted, nil, .cleanupPending)
     assertCell(idle, .cleanupEnded, nil, .idle)
     assertCell(idle, .refused, nil, .idle)
+    assertCell(idle, .submitKey, nil, .idle)
   }
 
   @Test func `holding input table`() {
@@ -42,6 +43,7 @@ struct HotkeyGestureMachineTests {
     assertCell(holding, .cleanupStarted, nil, .holding(startedAt: .zero))
     assertCell(holding, .cleanupEnded, nil, .holding(startedAt: .zero))
     assertCell(holding, .refused, nil, .blockedUntilRelease)
+    assertCell(holding, .submitKey, .stopAndSubmit, .blockedUntilRelease)
   }
 
   @Test func `provisional input table`() {
@@ -73,6 +75,7 @@ struct HotkeyGestureMachineTests {
       provisional, .cleanupStarted, nil, .provisional(releasedAt: .milliseconds(100)),
     )
     assertCell(provisional, .cleanupEnded, nil, .provisional(releasedAt: .milliseconds(100)))
+    assertCell(provisional, .submitKey, nil, .provisional(releasedAt: .milliseconds(100)))
   }
 
   @Test func `second press input table`() {
@@ -101,6 +104,7 @@ struct HotkeyGestureMachineTests {
     assertCell(secondPress, .monitoringInterrupted, .cancelAndArchive, .blockedUntilRelease)
     assertCell(secondPress, .cleanupStarted, nil, .secondPress(startedAt: .milliseconds(200)))
     assertCell(secondPress, .cleanupEnded, nil, .secondPress(startedAt: .milliseconds(200)))
+    assertCell(secondPress, .submitKey, .stopAndSubmit, .blockedUntilRelease)
   }
 
   @Test func `latched input table`() {
@@ -115,6 +119,7 @@ struct HotkeyGestureMachineTests {
     assertCell(latched, .monitoringInterrupted, .cancelAndArchive, .blockedUntilRelease)
     assertCell(latched, .cleanupStarted, nil, .latched)
     assertCell(latched, .cleanupEnded, nil, .latched)
+    assertCell(latched, .submitKey, .stopAndSubmit, .idle)
   }
 
   @Test func `blocked input table`() {
@@ -129,6 +134,7 @@ struct HotkeyGestureMachineTests {
     assertCell(blocked, .monitoringInterrupted, nil, .blockedUntilRelease)
     assertCell(blocked, .cleanupStarted, nil, .blockedUntilRelease)
     assertCell(blocked, .cleanupEnded, nil, .blockedUntilRelease)
+    assertCell(blocked, .submitKey, nil, .blockedUntilRelease)
   }
 
   @Test func `cleanup pending input table`() {
@@ -146,6 +152,7 @@ struct HotkeyGestureMachineTests {
     assertCell(cleanupPending, .monitoringInterrupted, nil, .blockedUntilRelease)
     assertCell(cleanupPending, .cleanupStarted, nil, .cleanupPending)
     assertCell(cleanupPending, .cleanupEnded, nil, .idle)
+    assertCell(cleanupPending, .submitKey, nil, .cleanupPending)
   }
 
   @Test func `a lone tap while polishing skips the cleanup it detached`() {

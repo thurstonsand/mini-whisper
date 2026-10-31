@@ -21,8 +21,13 @@ extension AppFeature {
   /// arrives from the timer armed below, and nowhere else.
   func receiveGestureInput(_ input: GestureInput, state: inout State) -> Effect<Action> {
     let wasWaiting = state.gestureMachine.awaitsDeadline
+    let wasRecording = state.gestureMachine.isRecording
     let event = state.gestureMachine.receive(input)
     var effects: [Effect<Action>] = []
+    // Set here rather than from an effect: the very next key the tap sees may be the Return.
+    if state.gestureMachine.isRecording != wasRecording {
+      hotkeyListener.armSubmitKey(state.gestureMachine.isRecording)
+    }
 
     switch (wasWaiting, state.gestureMachine.awaitsDeadline) {
     case (false, true):

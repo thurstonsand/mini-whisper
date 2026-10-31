@@ -7,6 +7,8 @@ public enum PhysicalKey: Hashable, Sendable {
   // MARK: Public
 
   public static let escapeKeyCode: UInt16 = 53
+  /// Return and the keypad's Enter: during a recording, either one ends it and submits.
+  public static let submitKeys: Set<PhysicalKey> = [.keyCode(36), .keyCode(76)]
 }
 
 // MARK: - KeyPhase
@@ -51,6 +53,8 @@ public enum GestureInput: Equatable, Sendable {
   case mouseDown(at: Duration)
   case deadlineElapsed
   case escape
+  /// Return during a live recording.
+  case submitKey
   case monitoringInterrupted
   case neutral
   /// The app's own dictation lifecycle rather than anything the tap witnessed. A cleanup pass is

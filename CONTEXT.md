@@ -6,7 +6,7 @@
 - Transcribe: STT
 - Delivery: placing the transcript where the user was typing when the dictation started.
 - Target: where a dictation delivers, captured at the press that starts it — the frontmost app, its focused window and element, and the tmux pane when that element hosts one. Delivery writes to it even after the user has moved on.
-- Submit: the binding that drives the same gestures as Activate and sends Return after delivery.
+- Submit: send Return after delivery. Return pressed during a live recording ends it and submits, and is never seen by the app underneath; outside a recording Return is untouched. The optional submit binding drives the same gestures as Activate and submits the dictation it ends.
 - Detach: a press while a dictation polishes moves it to the background, where its cleanup and delivery continue, so the next dictation can start; a lone tap skips it instead.
 - Dictation: one full pass through the vertical — activate, record, transcribe, deliver.
 - Hold: hold the keybind to record, release to transcribe. A press shorter than 200 ms is a tap, not a hold.

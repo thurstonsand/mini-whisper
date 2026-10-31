@@ -76,6 +76,22 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
   /// The latest press came from a submit binding. Whichever press ends a recording decides.
   public private(set) var pressSubmits = false
 
+  /// A recording the user is still speaking into, which Return ends and submits. A tap that may
+  /// yet be discarded is not one.
+  public var isRecording: Bool {
+    switch phase {
+    case .holding,
+         .secondPress,
+         .latched:
+      true
+    case .idle,
+         .provisional,
+         .blockedUntilRelease,
+         .cleanupPending:
+      false
+    }
+  }
+
   /// Provisional is the only phase silence can resolve, so it is the only one that owes its owner
   /// a `deadlineElapsed` after `timing.doubleTapWindow`. The machine keeps no clock of its own.
   public var awaitsDeadline: Bool {
@@ -90,6 +106,8 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
     switch input {
     case .escape:
       escape()
+    case .submitKey:
+      submitKey()
     case .monitoringInterrupted:
       interrupt()
     case .deadlineElapsed:
@@ -219,6 +237,24 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
       phase = .blockedUntilRelease
       return nil
     case .blockedUntilRelease:
+      return nil
+    }
+  }
+
+  /// A held activation key still owes its release; a latch has none to wait for.
+  private mutating func submitKey() -> GestureEvent? {
+    switch phase {
+    case .holding,
+         .secondPress:
+      phase = .blockedUntilRelease
+      return .stopAndSubmit
+    case .latched:
+      phase = .idle
+      return .stopAndSubmit
+    case .idle,
+         .provisional,
+         .blockedUntilRelease,
+         .cleanupPending:
       return nil
     }
   }

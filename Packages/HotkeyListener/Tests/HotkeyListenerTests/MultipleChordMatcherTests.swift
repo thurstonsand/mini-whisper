@@ -176,6 +176,42 @@ struct MultipleChordMatcherTests {
     #expect(activate.output == .gesture(.activation(at: .zero, submits: false)))
   }
 
+  @Test func `Return ends a live recording and the field never sees any of it`() {
+    var matcher = gestureMatcher([.testRightOption])
+    _ = matcher.receive(transition(.modifier(.rightOption), .down, [.modifier(.rightOption)]))
+    matcher.submitKeyArmed = true
+
+    let held: Set<PhysicalKey> = [.modifier(.rightOption), .keyCode(36)]
+    let press = matcher.receive(transition(.keyCode(36), .down, held, time: .seconds(1)))
+    // The recording it ended disarms the key before the rest of the keystroke arrives.
+    matcher.submitKeyArmed = false
+    let repeated = matcher.receive(
+      KeyTransition(
+        key: .keyCode(36),
+        phase: .down,
+        isRepeat: true,
+        pressedAfter: held,
+        time: .seconds(1),
+      ),
+    )
+    let lift = matcher.receive(transition(.keyCode(36), .up, [.modifier(.rightOption)]))
+
+    #expect(press == RoutedChordMatch(output: .gesture(.submitKey), disposition: .suppress))
+    #expect(repeated == RoutedChordMatch(output: nil, disposition: .suppress))
+    #expect(lift == RoutedChordMatch(output: nil, disposition: .suppress))
+  }
+
+  @Test func `Return outside a recording is the field's`() {
+    var matcher = gestureMatcher([.testRightOption])
+
+    let press = matcher.receive(transition(.keyCode(36), .down, [.keyCode(36)]))
+    let lift = matcher.receive(transition(.keyCode(36), .up, []))
+
+    #expect(press.output != .gesture(.submitKey))
+    #expect(press.disposition == .passThrough)
+    #expect(lift.disposition == .passThrough)
+  }
+
   @Test func `building one alternative does not conflict with another`() throws {
     let controlR = try Hotkey(keyCode: 15, modifiers: [.rightControl])
     var matcher = gestureMatcher([.testRightOption, controlR])

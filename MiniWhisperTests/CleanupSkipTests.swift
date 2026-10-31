@@ -54,6 +54,22 @@ import TranscriptCleanup
     #expect(store.state.recording.phase != .idle)
   }
 
+  @Test func `Return belongs to MiniWhisper only while a recording is live`() async {
+    let armed = ArmingRecorder()
+    let store = skipStore {
+      $0.hotkeyListener.armSubmitKey = { armed.record($0) }
+      $0.asrEngine.submit = { _, _, _ in .noSpeech }
+    }
+
+    await store.send(.hotkeyListenerEvent(.gestureInput(.activation(at: .zero))))
+    #expect(armed.values == [true])
+    await store.send(.hotkeyListenerEvent(.gestureInput(.submitKey)))
+    await store.receive(.hotkeyListenerEvent(.gesture(.stopAndSubmit)))
+    #expect(armed.values == [true, false])
+    await store.skipReceivedActions()
+    await store.skipInFlightEffects()
+  }
+
   @Test func `a tap while polishing skips without leaving a recording behind`() async throws {
     let delivered = StringRecorder()
     let clock = TestClock()
@@ -247,6 +263,25 @@ import TranscriptCleanup
 
     #expect(await deliveries.count == 1)
   }
+}
+
+// MARK: - ArmingRecorder
+
+private final class ArmingRecorder: @unchecked Sendable {
+  // MARK: Internal
+
+  var values: [Bool] {
+    lock.withLock { stored }
+  }
+
+  func record(_ armed: Bool) {
+    lock.withLock { stored.append(armed) }
+  }
+
+  // MARK: Private
+
+  private let lock = NSLock()
+  private var stored: [Bool] = []
 }
 
 private let editor = DeliveryTarget.inApp(TargetApp(bundleID: "com.example.Editor", name: "Editor"))

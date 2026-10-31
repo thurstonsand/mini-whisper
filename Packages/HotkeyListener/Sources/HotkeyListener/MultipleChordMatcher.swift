@@ -35,7 +35,13 @@ public struct MultipleChordMatcher<Action: Equatable & Sendable>: Equatable, Sen
 
   // MARK: Public
 
+  /// A recording is live, so Return belongs to MiniWhisper rather than the field.
+  public var submitKeyArmed = false
+
   public mutating func receive(_ transition: KeyTransition) -> RoutedChordMatch<Action> {
+    if let match = submitKey(transition) {
+      return match
+    }
     if let activeIndex {
       return forward(transition, to: activeIndex)
     }
@@ -87,6 +93,27 @@ public struct MultipleChordMatcher<Action: Equatable & Sendable>: Equatable, Sen
 
   private var entries: [Entry]
   private var activeIndex: Int?
+  private var submitKeyIsDown = false
+
+  /// Ahead of every binding, so a Return pressed under a held activation key is not that key's
+  /// conflict. A Return whose press was swallowed has its repeats and release swallowed too, even
+  /// once the recording it ended has disarmed the key; the field never sees half a keystroke.
+  private mutating func submitKey(_ transition: KeyTransition) -> RoutedChordMatch<Action>? {
+    guard PhysicalKey.submitKeys.contains(transition.key) else {
+      return nil
+    }
+    if submitKeyIsDown {
+      if transition.phase == .up {
+        submitKeyIsDown = false
+      }
+      return RoutedChordMatch(output: nil, disposition: .suppress)
+    }
+    guard submitKeyArmed, transition.phase == .down, !transition.isRepeat else {
+      return nil
+    }
+    submitKeyIsDown = true
+    return RoutedChordMatch(output: .gesture(.submitKey), disposition: .suppress)
+  }
 
   private mutating func forward(
     _ transition: KeyTransition, to index: Int,
