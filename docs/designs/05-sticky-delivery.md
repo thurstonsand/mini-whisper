@@ -6,7 +6,7 @@ Accepted
 
 ## Decision Summary
 
-A dictation delivers to the **target** it started in, wherever the user is when it finishes. The target is captured at the activation press: the frontmost app, its focused window, selected tabs, and element, and, when that element is a terminal surface, the exact tmux pane, nested multiplexers included, or else the Ghostty terminal. Delivery then takes the first route that applies: a pane or a Ghostty terminal is written to out of band; a GUI target that still has focus gets today's ⌘V; one that has lost it is delivered in the background, without ever changing which app is frontmost. A **submit** binding drives the same gestures and sends Return after the paste. A press while a dictation is polishing **detaches** it rather than skipping it: its cleanup keeps running and it delivers itself, so the user can dictate to the next agent without waiting. The tradeoff is that a dictation can now arrive minutes after it was spoken, which reverses the premise of [03](03-llm-cleanup.md) Decision 2; every route verifies its target is still the one captured before it writes anything, and falls back to the clipboard when it is not.
+A dictation delivers to the **target** it started in, wherever the user is when it finishes. The target is captured at the activation press: the frontmost app, its focused window, selected tabs, and element, and, when that element is a terminal surface, the exact tmux pane, nested multiplexers included, or else the Ghostty terminal. Delivery then takes the first route that applies: a pane or a Ghostty terminal is written to out of band; a GUI target that still has focus gets today's ⌘V; one that has lost it is delivered in the background, without ever changing which app is frontmost — except an Electron app, which takes input only in front and gets a brief round trip. A **submit** binding drives the same gestures and sends Return after the paste. A press while a dictation is polishing **detaches** it rather than skipping it: its cleanup keeps running and it delivers itself, so the user can dictate to the next agent without waiting. The tradeoff is that a dictation can now arrive minutes after it was spoken, which reverses the premise of [03](03-llm-cleanup.md) Decision 2; every route verifies its target is still the one captured before it writes anything, and falls back to the clipboard when it is not.
 
 ## Problem Statement / Background
 
@@ -21,7 +21,9 @@ Probes on 2026-10-31 (tmux 3.8, Ghostty, macOS 27) settled the mechanisms:
 - A background app keeps its own focus, and `kAXFocusedAttribute` moves it without bringing the app forward. Focusing a field in a background Safari tab selects that tab; Chrome needs its captured tab `AXPress`ed first, about 10 ms.
 - `kAXSelectedTextAttribute` inserts into an unfocused Cocoa field in a background app (TextEdit, 46 ms). Web content acknowledges the same write and ignores it.
 - Keystrokes posted to a background browser's pid with `postToPid` land in its focused field while the user types into the frontmost app, with no crossover either way. Chromium takes one character per event; a line break is Shift-Return. 1969 characters took 3 s.
-- A background Electron app (VS Code) drops posted keystrokes and AX writes alike while acknowledging both, and names no focused element; the field's own `AXFocused` still answers.
+- A background Electron app (VS Code) drops posted keystrokes and AX writes alike while acknowledging both, and names no focused element. Brought forward through `kAXFrontmostAttribute`, it takes a paste, and the user's app is back in front about 640 ms after the start.
+- None of FreeFlow, Whispree, Monologue, or cua-driver delivers to a background Electron app; FreeFlow and cua-driver bring it forward.
+- A synthetic key posted to the HID tap moves the system's input counters like a real one.
 - Ghostty 1.4's scripting dictionary addresses a terminal by id from any tab or window: `input text … to terminal` pastes into it and `send key "enter"` presses Return, both answered in about 15 ms.
 - `Foundation.Process` costs ~70 ms per spawn; `posix_spawn` costs ~5 ms, which keeps a two-level resolution near 15 ms.
 
@@ -36,8 +38,7 @@ Probes on 2026-10-31 (tmux 3.8, Ghostty, macOS 27) settled the mechanisms:
 ## Non-Goals
 
 - Multiplexers other than tmux. The route is a seam; herdr, WezTerm, kitty, and Zellij each expose a focused pane and a write-to-pane command and can join it later.
-- Bringing any app forward. The user's frontmost app, window, and keyboard are never borrowed; a target that cannot be reached without them gets the clipboard.
-- Background delivery into Electron apps. They drop input while inactive, so they deliver only while the user is still in them.
+- Bringing an app forward, Electron aside. Anywhere else, the user's frontmost app, window, and keyboard are never borrowed; a target that cannot be reached without them gets the clipboard.
 - Detaching a dictation that is still transcribing. A press during transcription restarts, as today.
 
 ## Exposed Shape
@@ -50,18 +51,22 @@ Target
   window    AX focused window, and its title
   tabs      selected tabs in the window's own chrome   → pressed again before focusing
   element   AX focused element, and the deepest focused text element under it
+  address   for a field in a web page: the page's URL, the field's role, and its label
   pane      tmux binary, socket, pane id, pane pid, session, foreground command   (optional)
   terminal  Ghostty terminal id and foreground pid, when there is no pane         (optional)
 ```
 
 The pane is resolved by walking the target app's descendant processes for tmux clients, grouping them by the server each is connected to, and asking each server (`show -gv focus-events ; list-clients`) which of them is focused. Exactly one focused client, on a server with `focus-events on`, names a pane; any other answer names none, and the dictation is a GUI target. When that pane's own descendants hold a tmux client, the walk recurses into its server.
 
+**The field.** A field in a web page is the captured element only while that element is still in the page it was captured in: a chat app keeps one composer across its chats, so the element alone does not say which chat it writes to. An Electron app goes the other way and builds a new editor or composer element whenever the user leaves a document or chat and comes back; once the captured element is gone, a focused field at the same address — page URL, role, label — under the same window title is the target.
+
 **Routes.** In order:
 
 1. **Pane.** The pane still exists with the same pane pid, and — for a submit — the same foreground command. `load-buffer` into a named buffer, `paste-buffer -d -p`, then, for a submit, a raw `\r` through a second buffer. The clipboard and focus are untouched.
 2. **Ghostty terminal.** The terminal still exists and — for a submit — runs the same foreground process. `input text` to it by id, then `send key "enter"`, as raw Apple Events to the captured Ghostty's pid, so a second Ghostty can never answer. A capture never waits on the Automation consent alert: without consent there is no terminal, and the alert is raised beside the press for the next dictation.
-3. **Focused.** The target's element is the focused element of the frontmost app. Today's ⌘V, then Return for a submit.
+3. **Focused.** The target's element is the focused element of the frontmost app. A paste: the clipboard staged with `org.nspasteboard.TransientType`, so clipboard managers skip it; ⌘V on the key that types V under Command in the current layout, or in the ASCII-capable layout beside it; Return for a submit; the clipboard handed back. Focus is checked again once the clipboard is staged, right before ⌘V, since staging can wait on another app's promised data. The paste waits up to 600 ms for every key to be released, so it cannot chord with the tail of the user's own keystrokes; keys still held then are the user doing something else, and the transcript is copied instead (`keysHeld`).
 4. **Background.** The user is elsewhere. A native field takes the text through `kAXSelectedTextAttribute`, confirmed by reading the field back. Otherwise the target app's own focus is moved back to the field — selected tabs pressed, element focused — and the text is typed to its pid in chunks of 24 characters. Each chunk waits for the field's length to show it before the next goes out, and each checks first that the field still has the app's focus; a user who comes back to the field changes nothing. A chunk that changes nothing ends the typing: from the first, the app ignored the keys; later, it is unconfirmed; both copy. Only a field that grew by exactly what was typed is delivered; then Return follows for a submit, if the field still has focus, and the app's own focus is put back where it was unless the user is in the app. Anything short of that leaves the app's focus on the field, where any keys still queued belong. Terminals without a pane or a Ghostty terminal are never typed into: a typed line break is a Return there. A single-line field gets its line breaks as spaces. A user who is in the target app, but away from the field, keeps their focus and gets the clipboard.
+5. **Round trip.** An Electron target the user is not in, captured on a field rather than the web area around it. It waits for half a second with no key, click, or scroll and nothing held down, up to 10 s; a user who has gone back to the field by then gets route 3, and one elsewhere in the target app keeps their focus. Then it remembers the user's app, window, and field, starts holding their input, brings the target forward and raises its window, and puts its focus back on the field. Every key, click, and scroll from then on is held back by an event tap of its own — created after the hotkey listener's, so it sees events first — and replayed in order into the user's app once they are back; it lets go after 5 s whatever the delivery is doing. If the user acted during that, or the field would not take focus, the user is put back and the transcript copied. Otherwise the paste, as route 3, re-checked right before ⌘V; then 250 ms for the app to take it, and the user's app, window, and field are put back — unless the user has gone to a third app on their own. The user is put back even when the delivery fails or is cancelled. A user in MiniWhisper's own window gets the clipboard.
 
 A target whose pane died, or whose foreground command changed under a submit, copies to the clipboard and says so. Field context is still read late, as [03](03-llm-cleanup.md) Decision 4 has it, but from the captured element rather than whatever is frontmost.
 
@@ -93,7 +98,7 @@ With no unique focused client there is no pane. Choosing the most recently activ
 
 ### 4. Never move the user's focus
 
-A round trip that brings the target forward and hands focus back reaches every GUI app, but flashes the target over whatever the user is doing and steals their keystrokes while it runs. Every app keeps its own focus whether or not it is frontmost, and that focus can be moved without the user's. Background delivery works inside the target app only; where the app will not take input in the background, the clipboard is the honest answer.
+A round trip that brings the target forward and hands focus back reaches every GUI app, but flashes the target over whatever the user is doing and steals their keystrokes while it runs. Every app keeps its own focus whether or not it is frontmost, and that focus can be moved without the user's. Background delivery works inside the target app only. Electron is the exception that proves it: it will not take input in the background at all, so it gets the round trip, made as short and as watchful as it can be — it waits for the user to pause, holds back whatever they do while the target is in front and replays it to them afterwards, and calls the paste off if they act before it.
 
 ### 5. Typed input proves itself
 
@@ -112,8 +117,14 @@ The app's own ⌘V and Return pass through its own event tap, where an untagged 
 - **Pane closed or server gone:** copied, notice, History records `targetGone`.
 - **Agent exited back to its shell under a submit:** copied rather than run as a shell command.
 - **Target app quit:** copied.
-- **Field cannot take focus again in its app** (closed tab, editor tab switched in an Electron app): the app's focus restored, copied, `targetUnreachable`.
-- **App ignores background input** (Electron): copied, `targetUnreachable`.
+- **Same composer, another chat** (the page's URL moved on under the captured element): copied, `targetUnreachable`.
+- **Electron field rebuilt after the user left and came back** (VS Code file, T3 Code thread): found again by its address and delivered.
+- **Field cannot take focus again in its app** (closed tab, another file or chat left showing in an Electron app): copied, `targetUnreachable`. In the background the app's focus is restored; after a round trip the user is put back.
+- **Electron target captured as its web area** (the press beat the Chromium wake): copied, `targetUnreachable`, since any field in it would pass for the target.
+- **User never pauses before an Electron round trip** (10 s): copied, `interrupted`.
+- **User acts while an Electron target is brought forward,** or focus moves before ⌘V: put back, copied, `interrupted`; what they typed or clicked reaches their own app, not the target.
+- **User acts after the paste, before the hand-back:** delivered; their input is replayed into their own app.
+- **Keys held when a paste is due:** copied, `keysHeld`.
 - **User comes back to the target mid-typing:** typing carries on into the field. Moving the app's focus off the field stops it: copied, `interrupted`; what was typed stays.
 - **Typed length does not match** (an emoji in Chrome's rich-text editors, which its accessibility text omits): copied, `unconfirmed`.
 - **User in the target app, away from the field:** copied, `targetInUse`.

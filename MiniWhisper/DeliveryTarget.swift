@@ -19,6 +19,17 @@ struct AXElement: Equatable, @unchecked Sendable {
   }
 }
 
+// MARK: - FieldAddress
+
+/// A field in a web page, named by the page and the field rather than by the element itself.
+/// Electron apps build a new editor or composer element whenever the user leaves a document or
+/// chat and comes back; the new one sits at the same address.
+struct FieldAddress: Equatable {
+  var url: String
+  var role: String
+  var label: String
+}
+
 // MARK: - DeliveryTarget
 
 /// Where a dictation delivers, captured at the press that starts it. A pane or a Ghostty terminal,
@@ -36,6 +47,8 @@ struct DeliveryTarget: Equatable {
   /// one of them can take focus.
   var tabs: [AXElement] = []
   var element: AXElement?
+  /// Where the element sits in its page, when it sits in one.
+  var address: FieldAddress?
   /// The window's title, which is how a person tells one destination in an app from another.
   var title: String?
   var pane: TmuxPane?
@@ -119,7 +132,7 @@ extension DeliveryTargetClient: DependencyKey {
       guard target.isGUI else {
         return resolve(FocusedFieldReader.target()).isSameDestination(as: target)
       }
-      return await MainActor.run { FocusSpot.focused(in: processID).holds(target) }
+      return await MainActor.run { FocusSpot.focused(in: processID).finds(target) != nil }
     },
   )
 

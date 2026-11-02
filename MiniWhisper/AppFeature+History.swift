@@ -291,6 +291,8 @@ extension DeliveryFallback {
       "targetInUse"
     case .interrupted:
       "interrupted"
+    case .keysHeld:
+      "keysHeld"
     case .unconfirmed:
       "unconfirmed"
     }

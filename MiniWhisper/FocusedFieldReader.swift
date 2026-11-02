@@ -42,6 +42,30 @@ enum FocusedFieldReader {
     return false
   }
 
+  /// The page an element sits in, and what it is there; nil outside a page.
+  static func address(of element: AXUIElement) -> FieldAddress? {
+    AXUIElementSetMessagingTimeout(element, messagingTimeout)
+    guard let role = try? AXRead.string(element, kAXRoleAttribute).get() else {
+      return nil
+    }
+    let label = (try? AXRead.string(element, kAXDescriptionAttribute).get()) ?? ""
+    var current = element
+    for _ in 0 ..< maximumAncestorDepth {
+      AXUIElementSetMessagingTimeout(current, messagingTimeout)
+      if (try? AXRead.string(current, kAXRoleAttribute).get()) == "AXWebArea" {
+        guard let url = (try? AXRead.value(current, kAXURLAttribute).get()) as? URL else {
+          return nil
+        }
+        return FieldAddress(url: url.absoluteString, role: role, label: label)
+      }
+      guard case let .success(parent) = AXRead.element(current, kAXParentAttribute) else {
+        return nil
+      }
+      current = parent
+    }
+    return nil
+  }
+
   /// The selected tabs in a window's own chrome: a tab group's selected radio button, or a
   /// selected tab button wherever the window keeps it — Safari's tab bar is no tab group. A page's
   /// content is left alone: its tabs are the page's business, and walking it is the expensive
@@ -114,6 +138,7 @@ enum FocusedFieldReader {
         target.title = try? AXRead.string(window, kAXTitleAttribute).get()
         target.tabs = FocusedFieldReader.selectedTabs(in: window).map(AXElement.init(raw:))
       }
+      target.address = target.element.flatMap { FocusedFieldReader.address(of: $0.raw) }
       return target
     }
 

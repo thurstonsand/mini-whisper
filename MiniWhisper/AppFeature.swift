@@ -1153,8 +1153,10 @@ private let performanceLogger = Logger(
       )
     case .interrupted:
       deliveryLogger.notice(
-        "The user came back to the target mid-delivery; transcript kept on clipboard",
+        "The user moved focus or acted mid-delivery; transcript kept on clipboard",
       )
+    case .keysHeld:
+      deliveryLogger.notice("Keys were held when the paste was due; transcript kept on clipboard")
     case .unconfirmed:
       deliveryLogger.error("The field did not read back as written; transcript kept on clipboard")
     }

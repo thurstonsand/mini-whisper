@@ -2,9 +2,7 @@ import AppKit
 import ApplicationServices
 import Carbon
 import ComposableArchitecture
-import CoreGraphics
 import Foundation
-import HotkeyListener
 
 // MARK: - ClipboardRestoration
 
@@ -31,8 +29,11 @@ enum DeliveryFallback: Equatable {
   case targetUnreachable
   /// The user is in the target app, away from the field, and their focus is not moved.
   case targetInUse
-  /// The user came back to the target while it was being typed into.
+  /// Focus left the field while it was being typed into, or the user acted while an Electron
+  /// target was brought forward.
   case interrupted
+  /// Keys were still held when a paste was due; ⌘V would have chorded with them.
+  case keysHeld
   /// The field changed in a way the write does not explain, so whether it landed is unknown.
   case unconfirmed
 }
@@ -94,10 +95,10 @@ extension DeliveryClient: DependencyKey {
       } else {
         return try await TranscriptDelivery.deliver(text, to: target, submits: submits)
       }
-      try await TranscriptDelivery.copy(text)
+      try await ClipboardPaste.copy(text)
       return .copied(fallback)
     },
-    copy: { transcript in try await TranscriptDelivery.copy(transcript) },
+    copy: { transcript in try await ClipboardPaste.copy(transcript) },
   )
 }
 
@@ -111,40 +112,64 @@ extension DependencyValues {
 // MARK: - TranscriptDelivery
 
 @MainActor private enum TranscriptDelivery {
-  // MARK: Internal
-
-  @discardableResult static func copy(_ transcript: String) throws -> Int {
-    let pasteboard = NSPasteboard.general
-    pasteboard.clearContents()
-    guard pasteboard.setString(transcript, forType: .string) else {
-      throw DeliveryError.pasteboardWriteFailed
-    }
-    return pasteboard.changeCount
-  }
-
   /// A GUI target the user is still in takes a paste, the way a person would paste. One they have
-  /// looked away from is delivered in the background, leaving their focus where it is; anything
-  /// that cannot be delivered for sure keeps the transcript on the clipboard instead.
+  /// looked away from is delivered in the background, leaving their focus where it is — except in
+  /// Electron, which takes input only in front and so gets a round trip. Anything that cannot be
+  /// delivered for sure keeps the transcript on the clipboard instead.
   static func deliver(
     _ transcript: String, to target: DeliveryTarget, submits: Bool,
   ) async throws -> DeliveryOutcome {
     guard AXIsProcessTrusted() else {
-      try copy(transcript)
+      try ClipboardPaste.copy(transcript)
       return .copied(.accessibilityPermissionMissing)
     }
     guard !IsSecureEventInputEnabled() else {
-      try copy(transcript)
+      try ClipboardPaste.copy(transcript)
       return .copied(.secureInput)
     }
     guard let processID = target.processID,
           let application = NSRunningApplication(processIdentifier: processID),
           !application.isTerminated
     else {
-      try copy(transcript)
+      try ClipboardPaste.copy(transcript)
       return .copied(.targetGone)
     }
-    guard FocusSpot.frontmost()?.holds(target) == true else {
-      let fallback: DeliveryFallback
+
+    let fallback: DeliveryFallback
+    if let here = FocusSpot.frontmost()?.finds(target) {
+      switch try await ClipboardPaste.paste(transcript, submits: submits, ready: {
+        FocusSpot.frontmost()?.holds(here) == true
+      }) {
+      case let .pasted(restoration):
+        return .pasted(restoration)
+      case .keysHeld:
+        fallback = .keysHeld
+      case .focusMoved:
+        fallback = .interrupted
+      case .eventCreationFailed:
+        fallback = .eventCreationFailed
+      }
+    } else if ChromiumAccessibility.isElectron(application) {
+      // The user is in the app, away from the field; bringing it forward would move their focus.
+      guard NSWorkspace.shared.frontmostApplication?.processIdentifier != processID else {
+        try ClipboardPaste.copy(transcript)
+        return .copied(.targetInUse)
+      }
+      switch try await RoundTripDelivery.deliver(transcript, to: target, submits: submits) {
+      case let .delivered(restoration):
+        return .pasted(restoration)
+      case .keysHeld:
+        fallback = .keysHeld
+      case .targetInUse:
+        fallback = .targetInUse
+      case .unreachable:
+        fallback = .targetUnreachable
+      case .interrupted:
+        fallback = .interrupted
+      case .eventCreationFailed:
+        fallback = .eventCreationFailed
+      }
+    } else {
       switch await BackgroundDelivery.deliver(transcript, to: target, submits: submits) {
       case .delivered:
         return .pasted(.untouched)
@@ -157,106 +182,8 @@ extension DependencyValues {
       case .unconfirmed:
         fallback = .unconfirmed
       }
-      try copy(transcript)
-      return .copied(fallback)
     }
-
-    let pasteboard = NSPasteboard.general
-    let snapshot = snapshot(pasteboard)
-    let transcriptChangeCount = try copy(transcript)
-    guard let paste = keyEvents(virtualKey: vKey, flags: .maskCommand),
-          let submit = keyEvents(virtualKey: returnKey, flags: [])
-    else {
-      return .copied(.eventCreationFailed)
-    }
-
-    try await post(paste)
-    if submits {
-      // A paste can still be landing when the next key arrives; Return must come after it.
-      try await Task.sleep(for: submitDelay)
-      try await post(submit)
-    }
-    try await Task.sleep(for: clipboardRestoreDelay)
-    guard pasteboard.changeCount == transcriptChangeCount else {
-      return .pasted(.skipped)
-    }
-
-    pasteboard.clearContents()
-    guard snapshot.isEmpty || pasteboard.writeObjects(pasteboardItems(from: snapshot)) else {
-      return .pasted(.failed)
-    }
-    return .pasted(.restored)
+    try ClipboardPaste.copy(transcript)
+    return .copied(fallback)
   }
-
-  // MARK: Private
-
-  private static let clipboardRestoreDelay = Duration.milliseconds(250)
-  private static let keyEventDelay = Duration.milliseconds(10)
-  private static let submitDelay = Duration.milliseconds(50)
-  private static let vKey: CGKeyCode = 0x09
-  private static let returnKey: CGKeyCode = 0x24
-  private static let commandKey: CGKeyCode = 0x37
-
-  private static func snapshot(_ pasteboard: NSPasteboard) -> [[PasteboardRepresentation]] {
-    // Eager resolution preserves every available type; promised data may briefly block delivery.
-    (pasteboard.pasteboardItems ?? []).map { item in
-      item.types.compactMap { type in
-        item.data(forType: type).map { PasteboardRepresentation(type: type, data: $0) }
-      }
-    }
-  }
-
-  private static func pasteboardItems(
-    from snapshot: [[PasteboardRepresentation]],
-  ) -> [NSPasteboardItem] {
-    snapshot.map { representations in
-      let item = NSPasteboardItem()
-      for representation in representations {
-        item.setData(representation.data, forType: representation.type)
-      }
-      return item
-    }
-  }
-
-  private static func post(_ events: [CGEvent]) async throws {
-    for event in events {
-      event.post(tap: .cghidEventTap)
-      try await Task.sleep(for: keyEventDelay)
-    }
-  }
-
-  /// One key's down and up, wrapped in Command's when `flags` asks for it.
-  private static func keyEvents(virtualKey: CGKeyCode, flags: CGEventFlags) -> [CGEvent]? {
-    let source = CGEventSource(stateID: .privateState)
-    guard let keyDown = CGEvent(keyboardEventSource: source, virtualKey: virtualKey, keyDown: true),
-          let keyUp = CGEvent(keyboardEventSource: source, virtualKey: virtualKey, keyDown: false)
-    else {
-      return nil
-    }
-    keyDown.flags = flags
-    keyUp.flags = flags
-    var events = [keyDown, keyUp]
-    if flags.contains(.maskCommand) {
-      guard let commandDown = CGEvent(
-        keyboardEventSource: source, virtualKey: commandKey, keyDown: true,
-      ),
-        let commandUp = CGEvent(keyboardEventSource: source, virtualKey: commandKey, keyDown: false)
-      else {
-        return nil
-      }
-      commandDown.flags = .maskCommand
-      events = [commandDown] + events + [commandUp]
-    }
-    for event in events {
-      event.setIntegerValueField(.eventSourceUserData, value: HotkeyListener.syntheticEventMarker)
-    }
-    return events
-  }
-}
-
-// MARK: - PasteboardRepresentation
-
-private struct PasteboardRepresentation {
-  var type: NSPasteboard.PasteboardType
-  var data: Data
 }

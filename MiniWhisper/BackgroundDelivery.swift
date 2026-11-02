@@ -12,7 +12,7 @@ private let deliveryLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", c
 
 /// Delivers to a GUI target the user has looked away from, without ever changing which app is
 /// frontmost. A native text field takes the words through Accessibility, confirmed by reading the
-/// field back. Anything else — a browser, an Electron editor — has its own focus put back on the
+/// field back. Anything else, such as a browser, has its own focus put back on the
 /// field inside the app, receives the words as keystrokes posted to its process alone, and then
 /// has its focus put back where it was. The user's keyboard keeps going to the app they are in.
 @MainActor enum BackgroundDelivery {

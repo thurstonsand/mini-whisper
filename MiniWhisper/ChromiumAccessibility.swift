@@ -36,6 +36,11 @@ enum ChromiumAccessibility {
     await ledger.settle(instance, woken: woken)
   }
 
+  /// Electron takes keyboard input only while its app is active.
+  static func isElectron(_ application: NSRunningApplication) -> Bool {
+    family(of: application.bundleURL) == .electron
+  }
+
   // MARK: Private
 
   private enum Family {
