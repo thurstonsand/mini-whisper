@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Face one speech model off against the shipping one, over the whole corpus, in one command.
+"""Face speech models off against the shipping one, over the whole corpus, in one command.
 
   ./bakeoff.py run fluid-speech-mini --label fluid-speech-mini
   ./bakeoff.py compare results/fluid-speech-mini/parakeet-v2 \\
       results/fluid-speech-mini/fluid-speech-mini
 
-`run` builds `asr-replay`, then replays every corpus run below through the baseline and then the
+`run` builds `asr-replay`, then replays every corpus run below through the baseline and then each
 candidate, serially, one process per run. The baseline is rerun every time because latency moves
 between sessions far more than between engines. Each engine lands in `results/<label>/<engine>/`
 as one JSONL per run plus `runtime/<run>.json`; a missing model is downloaded by `asr-replay`
@@ -16,8 +16,9 @@ download is the one that pays Core ML's first compile. `run` finishes by printin
 script's — and leaves a dash for a run a directory does not have. A run that is present must
 cover its stage exactly, so a truncated or duplicated file fails rather than scoring flattered.
 Engines are the `id`s in `SpeechModel.catalogue`, replayed by `asr-replay` — a FluidAudio-compatible
-model is one entry there — plus the `COHERE` targets, replayed by `transcribe_cohere.py` on MLX.
-Cohere has no recognition sidecar, so its boosted runs are skipped and score as dashes.
+model is one entry there — plus the `SCRIPTED` targets: Cohere, replayed by `transcribe_cohere.py`
+on MLX, and Fluid Speech Pro's `.nemo`, replayed by `transcribe_fluid_speech.py` on NeMo. Neither
+script has a recognition sidecar, so their boosted runs are skipped and score as dashes.
 """
 
 from __future__ import annotations
@@ -58,17 +59,21 @@ SEAM = "seam"
 # Superwhisper ships Cohere Transcribe as MLX 4-bit; full precision is the upstream reference.
 # The 4-bit weights are a community conversion: quantizing upstream's at load would cost the
 # full-precision download and memory, which is not what a 4-bit deployment pays.
-COHERE = {
-    "cohere-transcribe": [
+COHERE_RUNTIME = ["--with", "mlx-audio==0.6.1", "--with", "sentencepiece==0.2.2"]
+NEMO_RUNTIME = ["--python", "3.12", "--with", "nemo_toolkit[asr]==3.0.0"]
+# Engine id → (script, its `uv` dependencies, its arguments).
+SCRIPTED = {
+    "cohere-transcribe": ("transcribe_cohere.py", COHERE_RUNTIME, [
         "--model", "CohereLabs/cohere-transcribe-03-2026",
         "--revision", "b1eacc2686a3d08ceaae5f24a88b1d519620bc09",
-    ],
-    "cohere-transcribe-4bit": [
+    ]),
+    "cohere-transcribe-4bit": ("transcribe_cohere.py", COHERE_RUNTIME, [
         "--model", "lyzgeorge/cohere-transcribe-03-2026-mlx-4bit",
         "--revision", "f2f6d89b1a300c51f48ae1ecb8523dbb58636cb0",
-    ],
+    ]),
+    "fluid-speech-pro": ("transcribe_fluid_speech.py", NEMO_RUNTIME, []),
+    "fluid-speech-pro-clean": ("transcribe_fluid_speech.py", NEMO_RUNTIME, ["--clean-mode"]),
 }  # fmt: skip
-COHERE_RUNTIME = ["--with", "mlx-audio==0.6.1", "--with", "sentencepiece==0.2.2"]
 
 
 @dataclass(frozen=True)
@@ -137,17 +142,18 @@ def replay(engine: str, out: Path) -> None:
             "--runtime",
             str(out / "runtime" / f"{name}.json"),
         ]
-        if engine in COHERE:
+        if engine in SCRIPTED:
             if boosted:
                 continue
+            script, runtime, arguments = SCRIPTED[engine]
             command = [
                 "uv",
                 "run",
                 "--no-project",
-                *COHERE_RUNTIME,
+                *runtime,
                 "python",
-                str(CORPUS / "transcribe_cohere.py"),
-                *COHERE[engine],
+                str(CORPUS / script),
+                *arguments,
                 *files,
             ]
         else:
@@ -182,7 +188,7 @@ def run(args: argparse.Namespace) -> None:
         check=True,
     )
     label_directory = CORPUS / "results" / args.label
-    engines = [args.baseline, args.engine]
+    engines = [args.baseline, *args.engines]
     for engine in engines:
         replay(engine, label_directory / engine)
     report = comparison([label_directory / engine for engine in engines])
@@ -436,7 +442,9 @@ def main() -> int:
         "run", help="replay and compare against the baseline"
     )
     run_parser.add_argument(
-        "engine", help=f"SpeechModel.catalogue id, or one of {', '.join(COHERE)}"
+        "engines",
+        nargs="+",
+        help=f"SpeechModel.catalogue ids, or any of {', '.join(SCRIPTED)}",
     )
     run_parser.add_argument("--label", required=True, help="results/<label>/")
     run_parser.add_argument("--baseline", default=BASELINE)

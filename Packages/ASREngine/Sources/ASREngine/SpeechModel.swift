@@ -31,7 +31,24 @@ public struct SpeechModel: Hashable, Sendable {
     family: .ultra, asset: nil,
   )
 
-  public static let catalogue: [SpeechModel] = [.parakeetV2, .fluidSpeechMini]
+  /// Evaluated and rejected. Fluid Speech Pro ships only as `.nemo`; this is VoiceiQ's unofficial
+  /// fp16 Core ML conversion of upstream revision 53f490b, which already names its joint
+  /// `JointDecisionv3.mlmodelc`.
+  public static let fluidSpeechPro = SpeechModel(
+    id: "fluid-speech-pro-coreml",
+    repository: PinnedRepository(
+      repository: "cyron/fluid-speech-pro-coreml",
+      revision: "ec52e16204b3d2c4c8bf60e576728fc58a825689", folder: "fluid-speech-pro",
+      expectedDirectoryRoots: [
+        "Preprocessor.mlmodelc/", "Encoder.mlmodelc/", "Decoder.mlmodelc/",
+        "JointDecisionv3.mlmodelc/",
+      ],
+      expectedFiles: ["parakeet_vocab.json"],
+    ),
+    family: .ultra, asset: nil,
+  )
+
+  public static let catalogue: [SpeechModel] = [.parakeetV2, .fluidSpeechMini, .fluidSpeechPro]
 
   public let id: String
   public let repository: PinnedRepository
