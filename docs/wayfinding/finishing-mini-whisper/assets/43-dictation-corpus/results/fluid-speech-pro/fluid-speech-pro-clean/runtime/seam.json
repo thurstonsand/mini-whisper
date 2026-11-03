@@ -1,0 +1,8 @@
+{
+  "entries": 6,
+  "identity": "FluidVoice-Labs/fluid-speech-pro@53f490b9292c5943847f635b7abfc3f123018964 clean-mode nemo-mps",
+  "loadSeconds": 11.615690040998743,
+  "modelBytes": 2627956192,
+  "peakResidentBytes": 6200328192,
+  "stage": "seam-fixtures.jsonl"
+}

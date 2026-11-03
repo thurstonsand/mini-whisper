@@ -11,6 +11,7 @@ The [Nemotron 3.5 comparison](nemotron-3.5/) adds the full MLX 4-bit model, Core
 | **ElevenLabs Scribe v2** (hosted)    | **0.98%** | 638 ms      | [elevenlabs-scribe-v2](elevenlabs-scribe-v2/)               |
 | **Parakeet TDT v2 (shipping)**       | 1.95%     | 55 ms       | [built-in](built-in/)                                       |
 | Fluid Speech Mini                    | 2.93%     | 36 ms†      | [fluid-speech-mini](fluid-speech-mini/)                     |
+| Fluid Speech Pro (Core ML)           | 2.93%     | 38 ms‡      | [fluid-speech-pro](fluid-speech-pro/)                       |
 | FluidAudio + Parakeet TDT v3         | 2.93%     | 55.4 ms     | [fluid-parakeet-v3](fluid-parakeet-v3/)                     |
 | Cohere Transcribe (mlx-audio)        | 3.41%     | 97 ms       | [cohere-transcribe](cohere-transcribe/)                     |
 | Cohere Transcribe, MLX 4-bit         | 3.41%     | 82 ms\*     | [cohere-transcribe-4bit](cohere-transcribe-4bit/)           |
@@ -25,6 +26,8 @@ Hosted latencies are network round trips measured from this machine, not provide
 \* Superwhisper's configuration on a community 4-bit conversion, against a same-session v2 at 39 ms. Quantizing costs no accuracy here, and Cohere beats v2 on long-form (6.88% vs 8.11%), but it is twice as slow per dictation, six times slower on half a minute of audio, and peaks at 1.6 GiB.
 
 † Measured against a same-session v2 rerun at 40 ms. Fluid Speech Mini is a 243 MB Parakeet v3 derivative. It loses stage 1 by two confusables, ties the holdout, matches the boost sidecar, keeps meta-speech v2 deletes, and shows no seam defects. It is 45% slower on audio past 15 s. Its wins are disk, load-time memory peak, and compile time, none of which justifies the swap.
+
+‡ Measured against a same-session v2 at 40 ms, through an unofficial fp16 Core ML conversion; FluidVoice publishes only a `.nemo`, which scores the same 2.93% under NeMo. Pro is Mini's short-dictation accuracy at 2.6× v2's disk: it wins long-form only as the `.nemo` (7.23% vs 8.11%), loses it through FluidAudio (9.17%), is 41% slower on audio past 15 s, and hits 3/18 bare dictionary terms to v2's 5. Its `.nemo` emits `<unk>` tokens, and its clean mode spells acronyms out.
 
 **Scribe v2 is the first engine to beat Parakeet on accuracy**, at half the error rate, and it wins every e2e cleanup column except s1-mini's. It costs 583 ms more per utterance, a network, and an account. Parakeet remains the only engine that is free, offline, and instant. Groq's whisper is the same weights as the local whisper at the same speed — hosting whisper buys nothing on an M4 Pro. Gemini-as-engine is the slowest by an order of magnitude and paraphrases what it hears. Voz is the fastest and the least accurate: the same Parakeet v3 weights FluidAudio runs at 2.93%, compressed onto Desert Ant's runtime, clip final words and lose another three points for a 3 ms gain.
 

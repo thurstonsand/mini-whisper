@@ -1,0 +1,9 @@
+{
+  "engine" : "fluid-speech-pro-coreml",
+  "entries" : 22,
+  "identity" : "cyron\/fluid-speech-pro-coreml@ec52e16204b3d2c4c8bf60e576728fc58a825689",
+  "loadSeconds" : 0.27977741699999997,
+  "modelBytes" : 1228362429,
+  "peakResidentBytes" : 152207360,
+  "stage" : "stage3-layout.jsonl"
+}

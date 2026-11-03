@@ -1,0 +1,128 @@
+                                      parakeet-v2                          fluid-speech-pro                     fluid-speech-pro-coreml              fluid-speech-pro-clean             
+Stage 1 WER                           1.95% (4S 0D 0I / 205)               2.93% (6S 0D 0I / 205)               2.93% (6S 0D 0I / 205)               2.44% (5S 0D 0I / 205)             
+Stage 1 holdout WER                   2.46% (3S 0D 0I / 122)               2.46% (3S 0D 0I / 122)               2.46% (3S 0D 0I / 122)               2.46% (3S 0D 0I / 122)             
+Longform WER                          8.11% (10S 9D 27I / 567)             7.23% (12S 9D 20I / 567)             9.17% (12S 9D 31I / 567)             5.64% (11S 10D 11I / 567)          
+Field cases WER (say seeded from v2)  0.38% (0S 0D 1I / 265)               1.89% (1S 1D 3I / 265)               3.77% (2S 4D 4I / 265)               6.42% (7S 3D 7I / 265)             
+Stage 3 raw vs verbatim say           12.88% (11S 26D 1I / 295)            9.83% (14S 13D 2I / 295)             9.15% (13S 12D 2I / 295)             5.42% (8S 6D 2I / 295)             
+Stage 3 holdout raw vs say            10.06% (7S 6D 3I / 159)              7.55% (10S 0D 2I / 159)              6.29% (7S 0D 3I / 159)               7.55% (4S 4D 4I / 159)             
+Stage 3 layout raw vs say             3.66% (23S 16D 1I / 1094)            3.47% (20S 17D 1I / 1094)            3.66% (22S 17D 1I / 1094)            2.83% (21S 7D 3I / 1094)           
+Stage 2 bare                          5/18 wants · 0/8 traps               3/18 wants · 0/8 traps               3/18 wants · 0/8 traps               2/18 wants · 0/8 traps             
+Stage 2 boosted                       16/18 wants · 5/8 traps              —                                    17/18 wants · 5/8 traps              —                                  
+Stage 2 holdout bare                  5/10 wants · 0/6 traps               3/10 wants · 0/6 traps               3/10 wants · 0/6 traps               4/10 wants · 0/6 traps             
+Stage 2 holdout boosted               9/10 wants · 0/6 traps               —                                    9/10 wants · 0/6 traps               —                                  
+Boost overhead (median)               +111.0 ms                            —                                    +118.8 ms                            —                                  
+Seam fixtures                         0 dup · 0 dropped · 15/1005 changed  0 dup · 0 dropped · 20/1005 changed  0 dup · 0 dropped · 23/1005 changed  0 dup · 0 dropped · 15/1005 changed
+Latency stage 1 med/p90/max           39.9 / 41.4 / 51.7 ms                75.1 / 103.8 / 184.0 ms              37.8 / 40.5 / 57.6 ms                75.3 / 84.9 / 87.0 ms              
+Latency stage 3 med/p90/max           42.0 / 47.9 / 76.1 ms                80.1 / 91.0 / 406.9 ms               42.1 / 47.4 / 103.0 ms               75.2 / 94.2 / 214.3 ms             
+Latency longform med/p90/max          109.3 / 141.0 / 147.7 ms             574.2 / 708.7 / 957.1 ms             153.6 / 215.0 / 463.4 ms             326.3 / 521.9 / 557.5 ms           
+Latency seam med/p90/max              159.8 / 207.3 / 223.7 ms             620.2 / 910.1 / 1084.9 ms            198.5 / 234.9 / 261.6 ms             644.6 / 867.1 / 1043.6 ms          
+Real-time factor, stage 1             83x                                  43x                                  87x                                  47x                                
+Real-time factor, longform            325x                                 65x                                  180x                                 103x                               
+Model on disk                         464 MB                               2518 MB                              1228 MB                              2628 MB                            
+Download                              8.2 s                                already installed                    18.1 s                               already installed                  
+First process load                    25.88 s                              12.24 s                              22.38 s                              12.66 s                            
+Warm load (median)                    0.296 s                              11.225 s                             0.280 s                              11.474 s                           
+Peak replay RSS                       968.5 MiB                            5914.1 MiB                           2374.2 MiB                           5914.6 MiB                         
+
+stage1: where the engines differ
+  harvard-01-09
+             parakeet-v2: four hours of steady work faced us
+        fluid-speech-pro: four hours of [steady → study] work faced us
+    fluid-speech-pro-coreml: four hours of [steady → study] work faced us
+    fluid-speech-pro-clean: four hours of [steady → study] work faced us
+  confusable-01
+             parakeet-v2: their car is parked over there and they're already late
+        fluid-speech-pro: [their → the] car is parked over there and they're already late
+    fluid-speech-pro-coreml: [their → the] car is parked over there and they're already late
+    fluid-speech-pro-clean: their car is parked over there and they're already late
+  confusable-03
+             parakeet-v2: he had to brake hard to avoid the break in the road
+        fluid-speech-pro: he had to [brake → break] hard to avoid the break in the road
+    fluid-speech-pro-coreml: he had to [brake → break] hard to avoid the break in the road
+    fluid-speech-pro-clean: he had to [brake → break] hard to avoid the break in the road
+  confusable-15
+             parakeet-v2: clear the cache before you count the [cash → cache]
+        fluid-speech-pro: clear the [cache → cash] before you count the cash
+    fluid-speech-pro-coreml: clear the [cache → cash] before you count the cash
+    fluid-speech-pro-clean: clear the [cache → cash] before you count the cash
+  confusable-17
+             parakeet-v2: the [colonel → kernel] debugged the kernel
+        fluid-speech-pro: the colonel debugged the [kernel → colonel]
+    fluid-speech-pro-coreml: the [colonel → kernel] debugged the kernel
+    fluid-speech-pro-clean: the [colonel → kernel] debugged the kernel
+  confusable-18
+             parakeet-v2: a weak reference won't survive the [week → weak]
+        fluid-speech-pro: a weak reference won't survive the week
+    fluid-speech-pro-coreml: a weak reference won't survive the week
+    fluid-speech-pro-clean: a weak reference won't survive the week
+
+field-cases: where the engines differ
+  field-01
+             parakeet-v2: i think one thing i notice is that i'm actually unable to disable the dictionary improved speech mm sidecar model but still pass the dictionary values through to the llm like it's either both or none and obviously i'd probably prefer it to be just to the llm i suspect this is going to happen naturally as part of the rewrite here so if so don't worry about it i just wanted to call out that i noticed that behavior in the current build
+        fluid-speech-pro: i think one thing i [notice → noticed] is that i'm actually unable to disable the dictionary improved speech [-mm] sidecar model but still pass the dictionary values through to the llm like it's either both or none and obviously i'd probably prefer it to be just to the llm i suspect this is going to happen naturally as part of the rewrite here so if so don't worry about it i just wanted to call out that i noticed that behavior in the current build
+    fluid-speech-pro-coreml: i think one thing i [notice → noticed] is that i'm actually unable to disable the dictionary improved speech [-mm] sidecar model but still pass the dictionary values through to the llm like it's either both or none and obviously i'd probably prefer it to be just to the llm i suspect this is going to happen naturally as part of the rewrite here so if so don't worry about it i just wanted to call out that i noticed that behavior in the current build
+    fluid-speech-pro-clean: i think one thing i [notice → noticed] is that i'm actually unable to disable the dictionary improved speech mm sidecar model but still pass the dictionary values through to the [llm → l l m] like it's either both or none and obviously i'd probably prefer it to be just to the [llm i → l l m] suspect this is going to happen naturally as part of the rewrite here so if so don't worry about it i just wanted to call out that i noticed that behavior in the current build
+  field-02
+             parakeet-v2: i don't know if we have a case capturing this already but i want to make sure that we do capture this i just had a transcript where i said grok with a q and i want the model to be able to replace that with g r o q i don't know if this is like the best specific example but i generally want the model to look for situations like that where i'm basically trying to spell things out to it and have it attempt to incorporate that and simplify i do want to make sure that we lean on any prior art any of the other prompts whether they do anything like this but yeah i want to try to play with that and make sure that we capture a couple examples that cover this kind of thing
+        fluid-speech-pro: i don't know if we have a case capturing this already but i want to make sure that we do capture this i just had a transcript where i said grok with a q and i want the model to be able to replace that with g r o q i don't know if this is like the best specific example but i generally want the model to look for situations like that where i'm basically trying to spell things out to it and have it attempt to incorporate that and simplify i do want to make sure that we lean on any prior art any of the other prompts whether they do anything like this but [+um] yeah i want to try to play with that and make sure that we capture a couple examples that cover this kind of thing
+    fluid-speech-pro-coreml: i don't know if we have a case capturing this already but i want to make sure that we do capture this i just had a transcript where i said grok with a q and i want [+want] the model to be able to replace that with [g r o q → groq] i don't know if this is like the best specific example but i generally want the model to look for situations like that where i'm basically trying to spell things out to it and have it attempt to incorporate that and simplify i do want to make sure that we lean on any prior art any of the other prompts whether they do anything like this but [+um] yeah i want to try to play with that and make sure that we capture a couple examples that cover this kind of thing
+    fluid-speech-pro-clean: i don't know if we have a case capturing this already but i want to make sure that we do capture this i just had a transcript where i said [grok → groc] with a q and i want the model to be able to replace that with [g r o q → groq] i don't know if this is like the best specific example but i generally want the model to look for situations like that where i'm basically trying to spell things out to it and have it attempt to incorporate that and simplify i do want to make sure that we lean on any prior art any of the other prompts whether they do anything like this but [+um] yeah i want to try to play with that and make sure that we capture a couple examples that cover this kind of thing
+  field-03
+             parakeet-v2: i also notice one of the transcription things there is mm sidecar model i'm not sure where that's coming from so i definitely want to capture that as well this is actually good [+f] field data for our prompt tuning stuff
+        fluid-speech-pro: i also notice [+uh] one of the transcription things there is mm sidecar model i'm not sure where that's coming from [+um] so i definitely want to capture that as well this is actually good field data for our prompt tuning stuff
+    fluid-speech-pro-coreml: i also notice [+uh] one of the transcription things there is mm sidecar model i'm not sure where that's coming from [+um] so i definitely want to capture that as well this is actually good field data for our prompt tuning stuff
+    fluid-speech-pro-clean: i also notice [+uh] one of the transcription things there is [mm → m m] sidecar model i'm not sure where that's coming from [+um] so i definitely want to capture that as well this is actually good field data for our prompt tuning stuff
+
+stage2-bare: where the engines differ
+  dict-01 want MiniWhisper
+             parakeet-v2: hit    MiniWhisper delivers the transcript into the frontmost app.
+        fluid-speech-pro: no     MiniWisper delivers the transcript into the front host app.
+    fluid-speech-pro-coreml: no     MiniWisper delivers the transcript into the frontmost app.
+    fluid-speech-pro-clean: no     MiniWisper delivers the transcript into the front host app.
+  dict-10 want Zigbee
+             parakeet-v2: no     The sensor bridges over Zigby to the hub.
+        fluid-speech-pro: hit    The sensor bridges over Zigbee to the hub.
+    fluid-speech-pro-coreml: hit    The sensor bridges over Zigbee to the hub.
+    fluid-speech-pro-clean: hit    The sensor bridges over Zigbee to the hub.
+  dict-12 want llama.cpp
+             parakeet-v2: hit    Run it locally with llama.cpp.
+        fluid-speech-pro: no     Run it locally with lama.cpp.
+    fluid-speech-pro-coreml: no     Run it locally with lama.cpp.
+    fluid-speech-pro-clean: no     Run it locally with lama.cpp.
+  dict-14 want Homebrew
+             parakeet-v2: hit    Install the cask through Homebrew.
+        fluid-speech-pro: no     Install the cask through homebrew.
+    fluid-speech-pro-coreml: no     Install the cask through homebrew.
+    fluid-speech-pro-clean: no     Install the cask through homebrew.
+  dict-15 want TCA
+             parakeet-v2: hit    The reducers follow TCA conventions
+        fluid-speech-pro: hit    The reducers follow TCA conventions.
+    fluid-speech-pro-coreml: hit    The reducers follow TCA conventions.
+    fluid-speech-pro-clean: no     The reducers follow T. C. A. conventions.
+
+stage2-holdout-bare: where the engines differ
+  hdict-01 want Homebrew
+             parakeet-v2: hit    Point Homebrew at the private tap before installing.
+        fluid-speech-pro: no     Point homebrew at the private tap before installing.
+    fluid-speech-pro-coreml: no     Point homebrew at the private tap before installing.
+    fluid-speech-pro-clean: no     Point homebrew at the private tap before installing.
+  hdict-02 want Zigbee
+             parakeet-v2: no     Zigby dropped off the mesh again overnight
+        fluid-speech-pro: no     Zigby dropped off the mesh again overnight.
+    fluid-speech-pro-coreml: no     Zigby dropped off the mesh again overnight.
+    fluid-speech-pro-clean: hit    Zigbee dropped off the mesh again overnight.
+  hdict-04 want MiniWhisper
+             parakeet-v2: hit    MiniWhisper prewarms the model during onboarding.
+        fluid-speech-pro: no     Mini Whisper pre-warms the model during onboarding.
+    fluid-speech-pro-coreml: no     MiniWisper pre-warms the model during onboarding.
+    fluid-speech-pro-clean: no     MiniWisper pre-warms the model during onboarding.
+  hdict-05 want SwiftUI
+             parakeet-v2: hit    The pill is playing SwiftUI over an AppKit panel.
+        fluid-speech-pro: no     The pill is playing Swift UI over an app kit panel.
+    fluid-speech-pro-coreml: no     The pill is playing Swift UI over an app kit panel.
+    fluid-speech-pro-clean: no     The pill is playing Swift UI over an app kit panel.
+  hdict-08 want llama.cpp
+             parakeet-v2: no     Serve it with llama. cpp on port eight three one seven
+        fluid-speech-pro: hit    Serve it with llama.cpp on port 8317.
+    fluid-speech-pro-coreml: hit    Serve it with llama.cpp on port 8317.
+    fluid-speech-pro-clean: hit    Serve it with llama.cpp on port eight three one seven.

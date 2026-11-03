@@ -1,0 +1,8 @@
+{
+  "entries": 3,
+  "identity": "FluidVoice-Labs/fluid-speech-pro@53f490b9292c5943847f635b7abfc3f123018964 clean-mode nemo-mps",
+  "loadSeconds": 12.026220332998491,
+  "modelBytes": 2627956192,
+  "peakResidentBytes": 6199787520,
+  "stage": "field-cases.jsonl"
+}
