@@ -10,6 +10,9 @@ import HotkeyListener
   var record: @Sendable () async throws -> AsyncStream<HotkeyRecorderEvent>
   /// Whether Return, wherever the user is typing, ends the live recording and submits it.
   var armSubmitKey: @Sendable (Bool) -> Void
+  /// Whether the user is at the target of the dictation still owed its delivery, asked of each
+  /// Return pressed after its recording; nil when no dictation is owed one.
+  var armSubmitForDictation: @Sendable ((@Sendable () -> Bool)?) -> Void
 }
 
 // MARK: DependencyKey
@@ -23,14 +26,16 @@ extension HotkeyListenerClient: DependencyKey {
       },
       record: { try await HotkeyRecorder.events() },
       armSubmitKey: { submitKey.isArmed = $0 },
+      armSubmitForDictation: { submitKey.isAtOwedTarget = $0 },
     )
   }()
 
-  /// Every recording arms and disarms the key, so tests that never look at it should not have
+  /// Every dictation arms and disarms the key, so tests that never look at it should not have
   /// to say so.
   static let testValue = {
     var client = Self()
     client.armSubmitKey = { _ in }
+    client.armSubmitForDictation = { _ in }
     return client
   }()
 }

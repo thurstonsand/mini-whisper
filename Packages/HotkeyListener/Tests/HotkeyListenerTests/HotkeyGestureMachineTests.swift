@@ -17,7 +17,7 @@ struct HotkeyGestureMachineTests {
     assertCell(idle, .cleanupStarted, nil, .cleanupPending)
     assertCell(idle, .cleanupEnded, nil, .idle)
     assertCell(idle, .refused, nil, .idle)
-    assertCell(idle, .submitKey, nil, .idle)
+    assertCell(idle, .submitKey, .submitDictation, .idle)
   }
 
   @Test func `holding input table`() {
@@ -134,7 +134,7 @@ struct HotkeyGestureMachineTests {
     assertCell(blocked, .monitoringInterrupted, nil, .blockedUntilRelease)
     assertCell(blocked, .cleanupStarted, nil, .blockedUntilRelease)
     assertCell(blocked, .cleanupEnded, nil, .blockedUntilRelease)
-    assertCell(blocked, .submitKey, nil, .blockedUntilRelease)
+    assertCell(blocked, .submitKey, .submitDictation, .blockedUntilRelease)
   }
 
   @Test func `cleanup pending input table`() {
@@ -152,7 +152,7 @@ struct HotkeyGestureMachineTests {
     assertCell(cleanupPending, .monitoringInterrupted, nil, .blockedUntilRelease)
     assertCell(cleanupPending, .cleanupStarted, nil, .cleanupPending)
     assertCell(cleanupPending, .cleanupEnded, nil, .idle)
-    assertCell(cleanupPending, .submitKey, nil, .cleanupPending)
+    assertCell(cleanupPending, .submitKey, .submitDictation, .cleanupPending)
   }
 
   @Test func `a lone tap while polishing skips the cleanup it detached`() {

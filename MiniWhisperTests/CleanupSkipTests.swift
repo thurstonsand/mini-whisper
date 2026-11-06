@@ -131,6 +131,32 @@ import TranscriptCleanup
     #expect(await delivered.values == ["Deliver me as heard. submits=true"])
   }
 
+  @Test func `Return while polishing keeps the cleanup and sends Return after it`() async {
+    let delivered = StringRecorder()
+    let store = skipStore {
+      $0.delivery.deliver = { text, _, submits in
+        await delivered.record("\(text) submits=\(submits)")
+        return .pasted(.restored)
+      }
+    }
+
+    await store.send(.hotkeyListenerEvent(.gestureInput(.submitKey)))
+    await store.receive(.hotkeyListenerEvent(.gesture(.submitDictation)))
+    await store.receive(.pill(.submitQueued)) { $0.pill.submits = true }
+    #expect(store.state.gestureMachine.phase == .cleanupPending)
+    #expect(await delivered.values.isEmpty)
+
+    await store.send(
+      .cleanupResolved(
+        1, .attempted(skipConfiguration, .cleaned("deliver me as heard.", seconds: 4)),
+      ),
+    )
+    await store.skipReceivedActions()
+    await store.finish()
+
+    #expect(await delivered.values == ["Deliver me as heard. submits=true"])
+  }
+
   @Test func `escape while polishing archives the transcript and delivers nothing`() async throws {
     let store = skipStore {
       $0.deliveryTarget.isCurrent = { $0 == editor }

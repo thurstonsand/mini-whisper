@@ -58,11 +58,11 @@ private let deliveryLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", c
       return .delivered
     }
     guard !isFrontmost(processID) else {
-      if written {
-        deliveryLogger.notice("Written into a field the user is not in; Return is theirs to press")
-        return .delivered
+      guard written else {
+        return .targetInUse
       }
-      return .targetInUse
+      await submitBesideUser(field, target: target, processID: processID)
+      return .delivered
     }
 
     let ownSpot = FocusSpot.inside(processID)
@@ -124,6 +124,41 @@ private let deliveryLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", c
 
   private static func isFrontmost(_ processID: pid_t) -> Bool {
     NSWorkspace.shared.frontmostApplication?.processIdentifier == processID
+  }
+
+  /// The words are in, but the user is in another window of the same app, and Return only goes
+  /// where the app's focus is. Once they pause, that focus is borrowed for the one key and put
+  /// back; anything they do meanwhile is held, and replayed where they were. Input that arrives
+  /// before the key goes out leaves the Return to them.
+  private static func submitBesideUser(
+    _ field: AXUIElement, target: DeliveryTarget, processID: pid_t,
+  ) async {
+    guard await RoundTripDelivery.userPaused(), isFrontmost(processID),
+          let hold = InputHold.start()
+    else {
+      deliveryLogger.notice("Written; the user kept working in the app, so Return is theirs")
+      return
+    }
+    defer { hold.release() }
+    let userSpot = FocusSpot.inside(processID)
+    raise(target.window?.raw)
+    let focused = await FocusSpot(target: target).restore()
+    if focused, !hold.isTouched, FocusSpot.focused(in: processID).holds(target) {
+      post(key: returnKey, to: processID)
+      await settle(field)
+    } else {
+      deliveryLogger.notice("Written; the field could not be borrowed for Return")
+    }
+    raise(userSpot.window)
+    _ = await userSpot.restore()
+  }
+
+  private static func raise(_ window: AXUIElement?) {
+    guard let window else {
+      return
+    }
+    AXUIElementSetMessagingTimeout(window, messagingTimeout)
+    AXUIElementPerformAction(window, kAXRaiseAction as CFString)
   }
 
   /// Inserts at the field's own selection through Accessibility, and reads the field back to

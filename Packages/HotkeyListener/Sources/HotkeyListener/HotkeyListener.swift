@@ -7,6 +7,7 @@ import Synchronization
 private let performanceLogger = Logger(
   subsystem: "com.thurstonsand.MiniWhisper", category: "performance",
 )
+private let gestureLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "gesture")
 
 // MARK: - EventTapCallbackBox
 
@@ -70,8 +71,10 @@ public enum HotkeyListenerError: Error, Equatable, Sendable { case eventTapCreat
 
 // MARK: - SubmitKeyGate
 
-/// Whether Return ends the recording, set by the gesture machine's owner and read on the tap's
-/// thread for every key, which has to decide at once whether the field sees it.
+/// Whether Return belongs to MiniWhisper, set by the gesture machine's owner and read on the tap's
+/// thread for every Return, which has to decide at once whether the field sees it. A live
+/// recording claims every Return; a dictation still owed its delivery claims only one pressed
+/// where it will land.
 public final class SubmitKeyGate: Sendable {
   // MARK: Lifecycle
 
@@ -79,14 +82,54 @@ public final class SubmitKeyGate: Sendable {
 
   // MARK: Public
 
+  /// A recording is live, so Return ends it.
   public var isArmed: Bool {
     get { armed.withLock { $0 } }
     set { armed.withLock { $0 = newValue } }
   }
 
+  /// Asked once per Return while the dictation in the pill is still owed: whether the user is at
+  /// its target.
+  public var isAtOwedTarget: (@Sendable () -> Bool)? {
+    get { owedTarget.withLock { $0 } }
+    set { owedTarget.withLock { $0 = newValue } }
+  }
+
+  /// The tap holds every key while it waits, so the owed target's check gets a deadline: a GUI
+  /// field answers in under a millisecond, a terminal in tens, but a terminal that hangs would
+  /// stall the keyboard. A Return the check cannot place in time is the field's.
+  public func claimsReturn(deadline: Duration = .milliseconds(50)) -> Bool {
+    if isArmed {
+      return true
+    }
+    guard let check = isAtOwedTarget else {
+      return false
+    }
+    let answer = CheckAnswer()
+    let answered = DispatchSemaphore(value: 0)
+    DispatchQueue.global(qos: .userInteractive).async {
+      answer.isAtTarget = check()
+      answered.signal()
+    }
+    let components = deadline.components
+    let nanoseconds = Int(components.seconds) * 1_000_000_000
+      + Int(components.attoseconds / 1_000_000_000)
+    guard answered.wait(timeout: .now() + .nanoseconds(nanoseconds)) == .success else {
+      gestureLogger.notice("Owed target check overran its deadline; Return passed through")
+      return false
+    }
+    return answer.isAtTarget
+  }
+
   // MARK: Private
 
+  /// Written once before the semaphore is signalled and read only after waiting on it.
+  private final class CheckAnswer: @unchecked Sendable {
+    var isAtTarget = false
+  }
+
   private let armed = Mutex(false)
+  private let owedTarget = Mutex<(@Sendable () -> Bool)?>(nil)
 }
 
 // MARK: - HotkeyListener
@@ -200,7 +243,9 @@ private final class EventTapSession<Action: Equatable & Sendable>: @unchecked Se
     guard let transition = normalize(type: type, event: event, time: time) else {
       return Unmanaged.passUnretained(event)
     }
-    matcher.submitKeyArmed = submitKey.isArmed
+    // Only a fresh Return press is judged: the owed target's check reads Accessibility.
+    matcher.submitKeyArmed = PhysicalKey.submitKeys.contains(transition.key)
+      && transition.phase == .down && !transition.isRepeat && submitKey.claimsReturn()
     let match = matcher.receive(transition)
     switch match.output {
     case let .gesture(input),

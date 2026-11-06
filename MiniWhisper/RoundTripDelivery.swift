@@ -90,6 +90,19 @@ import FieldContext
     return outcome
   }
 
+  /// A pause is no recent input and nothing held down: a held hotkey or a drag in progress sends
+  /// no events, but the target coming forward under it would take them.
+  static func userPaused() async -> Bool {
+    let deadline = ContinuousClock.now + pauseBudget
+    while isUserActive() {
+      guard ContinuousClock.now < deadline else {
+        return false
+      }
+      do { try await Task.sleep(for: pausePoll) } catch { return false }
+    }
+    return true
+  }
+
   // MARK: Private
 
   /// Input that ends a pause.
@@ -139,19 +152,6 @@ import FieldContext
         return false
       }
       do { try await Task.sleep(for: arrivalPoll) } catch { return false }
-    }
-    return true
-  }
-
-  /// A pause is no recent input and nothing held down: a held hotkey or a drag in progress sends
-  /// no events, but the target coming forward under it would take them.
-  private static func userPaused() async -> Bool {
-    let deadline = ContinuousClock.now + pauseBudget
-    while isUserActive() {
-      guard ContinuousClock.now < deadline else {
-        return false
-      }
-      do { try await Task.sleep(for: pausePoll) } catch { return false }
     }
     return true
   }

@@ -108,7 +108,10 @@ extension AppFeature {
          .stopAndSubmit:
       performanceLogger.notice("benchmark recording-release-received")
       state.recordingSubmits = event == .stopAndSubmit
-      return .send(.recording(.stopAndRetain))
+      return .merge(
+        .send(.recording(.stopAndRetain)),
+        state.recordingSubmits ? .send(.pill(.submitQueued)) : .none,
+      )
     case .latchEngaged:
       return .send(.pill(.latchEngaged))
     case .discardRecording:
@@ -154,6 +157,21 @@ extension AppFeature {
       state.updateDictation(dictation)
       gestureLogger.notice("Dictation \(generation) will submit once it lands")
       return discarded
+    case .submitDictation:
+      // The tap claimed this Return against the target the dictation had a moment ago; one whose
+      // delivery started in between has already pasted without it.
+      guard state.owedSubmitTarget != nil else {
+        gestureLogger.notice("Return arrived after delivery began; not submitted")
+        return .none
+      }
+      if state.pendingDictation == nil {
+        state.recordingSubmits = true
+      } else {
+        state.pendingDictation?.submits = true
+      }
+      let generation = state.transcriptionGeneration
+      gestureLogger.notice("Dictation \(generation) will submit once it lands")
+      return .send(.pill(.submitQueued))
     case .cancelAndArchive:
       // Escape during cleanup cancels only where the user still is: the same key is how a
       // terminal agent is interrupted, and the dictation may be bound for one far away.

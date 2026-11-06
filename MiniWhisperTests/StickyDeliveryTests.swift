@@ -92,6 +92,56 @@ import Testing
     #expect(!store.state.recordingSubmits)
   }
 
+  @Test func `Return once the recording is over submits only where the dictation lands`() async {
+    let submitted = StringRecorder()
+    let owedCheck = TestBox<(@Sendable () -> Bool)?>(nil)
+    let userIsAtPane = TestBox(true)
+    var settings = MiniWhisperSettings.defaults
+    settings.retention.audio = .never
+    settings.profiles.active = .custom
+    var state = AppFeature.State(
+      history: Shared(value: HistoryLog()), settings: Shared(value: settings),
+    )
+    state.onboardingCompleted = true
+    state.$health.withLock { $0 = .healthy }
+    state.transcriptionGeneration = 1
+    state.dictationInFlight = true
+    let store = TestStore(initialState: state) {
+      AppFeature()
+    } withDependencies: {
+      $0.date.now = Date(timeIntervalSince1970: 200)
+      $0.uuid = .incrementing
+      $0.continuousClock = TestClock()
+      $0.deliveryTarget.isCurrent = { $0 == agentPane && userIsAtPane.value }
+      $0.hotkeyListener.armSubmitForDictation = { owedCheck.value = $0 }
+      $0.asrEngine.submit = { _, _, _ in .transcript("Ship it") }
+      $0.contextCapture
+        .capture = { _ in .unavailable(.gridSemantics(bundleID: "com.mitchellh.ghostty")) }
+      $0.delivery.deliver = { text, _, submits in
+        await submitted.record("\(text) submits=\(submits)")
+        return .pasted(.untouched)
+      }
+    }
+    store.exhaustivity = .off(showSkippedAssertions: false)
+
+    // The release has stopped the capture; the recording has not handed over yet.
+    await store.send(.targetCaptured(1, agentPane))
+    let check = owedCheck.value
+    #expect(check?() == true)
+    userIsAtPane.value = false
+    #expect(check?() == false)
+
+    await store.send(.hotkeyListenerEvent(.gestureInput(.submitKey)))
+    await store.receive(.hotkeyListenerEvent(.gesture(.submitDictation)))
+    await store.send(.recording(.delegate(.completed(CanonicalRecording(samples: [0.25])))))
+    await store.skipReceivedActions()
+    await store.finish()
+
+    #expect(await submitted.values == ["Ship it submits=true"])
+    // Once the paste is under way, Return is the field's again.
+    #expect(owedCheck.value == nil)
+  }
+
   @Test func `a destination is named by its session, or by its window without the app twice`() {
     var browser = DeliveryTarget.inApp(TargetApp(bundleID: "com.google.Chrome", name: "Chrome"))
     browser.title = "Pull request #42 - Chrome"

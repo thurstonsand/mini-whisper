@@ -19,6 +19,9 @@ public enum GestureEvent: String, Equatable, Sendable {
   /// The same lone tap from a submit binding: the recording is discarded, and the dictation it
   /// detached keeps its cleanup and sends Return once it lands.
   case submitDetached
+  /// Return pressed once the capture was over, which only reaches the machine when the user is
+  /// at the target of the dictation still owed: it sends Return once it lands.
+  case submitDictation
 }
 
 // MARK: - HotkeyGestureMachine
@@ -88,6 +91,22 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
          .provisional,
          .blockedUntilRelease,
          .cleanupPending:
+      false
+    }
+  }
+
+  /// No capture is running or may yet start: a Return now can only be about a dictation already
+  /// spoken.
+  public var isCaptureOver: Bool {
+    switch phase {
+    case .idle,
+         .blockedUntilRelease,
+         .cleanupPending:
+      true
+    case .holding,
+         .provisional,
+         .secondPress,
+         .latched:
       false
     }
   }
@@ -241,7 +260,8 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
     }
   }
 
-  /// A held activation key still owes its release; a latch has none to wait for.
+  /// A held activation key still owes its release; a latch has none to wait for. Once the capture
+  /// is over, Return changes nothing about the key: cleanup can still be skipped.
   private mutating func submitKey() -> GestureEvent? {
     switch phase {
     case .holding,
@@ -252,9 +272,10 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
       phase = .idle
       return .stopAndSubmit
     case .idle,
-         .provisional,
          .blockedUntilRelease,
          .cleanupPending:
+      return .submitDictation
+    case .provisional:
       return nil
     }
   }

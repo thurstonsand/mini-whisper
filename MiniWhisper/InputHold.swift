@@ -11,7 +11,7 @@ private let inputHoldCallback: CGEventTapCallBack = { _, type, event, userInfo i
 
 // MARK: - InputHold
 
-/// Holds back every key, click, and scroll the user makes while an Electron target is borrowed, so
+/// Holds back every key, click, and scroll the user makes while a target is borrowed, so
 /// none of it lands there, and lets it all go, in order, once they are back where they were. Its
 /// tap is created after the hotkey listener's, so it sees events first: a hotkey pressed meanwhile
 /// is held and replayed like any other key.

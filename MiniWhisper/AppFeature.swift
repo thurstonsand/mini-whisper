@@ -119,6 +119,22 @@ private let performanceLogger = Logger(
       dictationInFlight || !backgroundDictations.isEmpty
     }
 
+    /// Where the dictation in the pill lands, from the end of its capture until its delivery
+    /// starts: the stretch in which a Return at that target asks it to submit. Before its
+    /// recording has handed over, the target is still the activation's.
+    var owedSubmitTarget: DeliveryTarget? {
+      guard dictationInFlight, gestureMachine.isCaptureOver, !dictationWasCancelled else {
+        return nil
+      }
+      guard let dictation = pendingDictation else {
+        return activationTarget?.target
+      }
+      guard !dictation.isDelivering, !dictation.isFinishing else {
+        return nil
+      }
+      return dictation.target
+    }
+
     var storesAudio: Bool {
       settings.retention.audio != .never
     }
@@ -831,6 +847,18 @@ private let performanceLogger = Logger(
            .pill:
         return .none
       }
+    }
+    .onChange(of: \.owedSubmitTarget) { _, state in
+      // Set here rather than from an effect: the very next key the tap sees may be the Return.
+      let isCurrent = deliveryTarget.isCurrent
+      let check: (@Sendable () -> Bool)? =
+        if let target = state.owedSubmitTarget {
+          { isCurrent(target) }
+        } else {
+          nil
+        }
+      hotkeyListener.armSubmitForDictation(check)
+      return Effect<Action>.none
     }
     .onChange(of: \.hasDictationsInFlight) { wasInFlight, state in
       guard wasInFlight, !state.hasDictationsInFlight else {

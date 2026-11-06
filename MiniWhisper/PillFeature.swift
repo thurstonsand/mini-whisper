@@ -103,6 +103,8 @@ import ComposableArchitecture
     /// Where the dictation now transcribing or polishing will land, named only while the user is
     /// somewhere else: staying put is the ordinary case, and the pill says nothing new about it.
     var destination: String?
+    /// The dictation in the pill sends Return once it lands.
+    var submits = false
     var isFadingOut = false
     var bounceCount = 0
     var isLatchBouncePending = false
@@ -117,6 +119,7 @@ import ComposableArchitecture
     case latchEngaged
     case transcribingStarted(target: DeliveryTarget?)
     case destinationUpdated(String?)
+    case submitQueued
     case polishingStarted(skipComponents: [String])
     case skipAffordanceRevealed
     case noSpeechDetected
@@ -144,6 +147,7 @@ import ComposableArchitecture
           State.Presentation.Recording(inputDeviceName: inputDeviceName, level: 0, isLive: false),
         )
         state.destination = nil
+        state.submits = false
         state.isFadingOut = false
         state.accessibilityLevel = 0
         return .merge(cancelPresentationTimers(), .cancel(id: CancelID.destination))
@@ -189,7 +193,7 @@ import ComposableArchitecture
           .run { send in
             var shown: String?
             while true {
-              let next = await deliveryTarget.isCurrent(target) ? nil : destination
+              let next = deliveryTarget.isCurrent(target) ? nil : destination
               if next != shown {
                 shown = next
                 await send(.destinationUpdated(next))
@@ -208,6 +212,9 @@ import ComposableArchitecture
              nil:
           break
         }
+        return .none
+      case .submitQueued:
+        state.submits = true
         return .none
       case let .polishingStarted(skipComponents):
         state.presentation = .polishing(
@@ -255,6 +262,7 @@ import ComposableArchitecture
            .cancel:
         state.presentation = nil
         state.destination = nil
+        state.submits = false
         state.isFadingOut = false
         state.isLatchBouncePending = false
         return .merge(cancelPresentationTimers(), .cancel(id: CancelID.destination))
@@ -303,6 +311,7 @@ import ComposableArchitecture
     let generation = state.noticeGeneration
     state.presentation = .notice(notice)
     state.destination = nil
+    state.submits = false
     state.isFadingOut = false
     state.isLatchBouncePending = false
     let duration = notice.content.duration

@@ -6,8 +6,9 @@ import ApplicationServices
 /// Where keyboard focus sits inside one app: its focused window, the tabs selected in it, and its
 /// focused element. Every app keeps its own, frontmost or not, and a background app's can be moved
 /// through Accessibility without bringing the app forward. Outside an Electron round trip, the app
-/// the user is in is never touched.
-@MainActor struct FocusSpot {
+/// the user is in is never touched. Reading it is free of any actor, because the event tap asks
+/// whether the user is at a target before a Return goes anywhere.
+struct FocusSpot {
   // MARK: Lifecycle
 
   init(processID: pid_t, window: AXUIElement?, tabs: [AXUIElement], element: AXUIElement?) {
@@ -96,7 +97,7 @@ import ApplicationServices
   /// pressed: a browser brings back the field a tab last had focused. Only an app that names its
   /// focused element in the background has the element focused as well — Safari names none, and
   /// a focus write into it brings it forward.
-  func restore() async -> Bool {
+  @MainActor func restore() async -> Bool {
     if let window {
       AXUIElementSetMessagingTimeout(window, Self.messagingTimeout)
       AXUIElementSetAttributeValue(window, kAXMainAttribute as CFString, kCFBooleanTrue)

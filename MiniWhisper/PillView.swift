@@ -34,6 +34,7 @@ struct PillView: View {
     .animation(.easeOut(duration: 0.16), value: presentationKind)
     .animation(.easeIn(duration: 0.18), value: store.isFadingOut)
     .animation(.easeOut(duration: 0.16), value: store.destination)
+    .animation(.easeOut(duration: 0.16), value: store.submits)
     .task(id: store.bounceCount) {
       guard store.bounceCount > 0 else {
         return
@@ -70,6 +71,16 @@ struct PillView: View {
       .notice(notice)
     case nil:
       .hidden
+    }
+  }
+
+  @ViewBuilder private var submits: some View {
+    if store.submits {
+      Image(systemName: "return")
+        .font(.system(size: 12, weight: .semibold))
+        .foregroundStyle(.secondary)
+        .accessibilityLabel("Submits after delivery")
+        .accessibilityIdentifier(AccessibilityID.pillSubmits)
     }
   }
 
@@ -130,6 +141,7 @@ struct PillView: View {
         )
         .font(.system(size: 13, weight: .medium))
         .foregroundStyle(.primary)
+        submits
         destination
       }
     case let .polishing(polishing):
@@ -141,6 +153,7 @@ struct PillView: View {
         )
         .font(.system(size: 13, weight: .medium))
         .foregroundStyle(.primary)
+        submits
         if polishing.isSkipRevealed {
           Spacer().frame(width: 2)
           HotkeyKeycaps(components: polishing.skipComponents, scale: 0.85)

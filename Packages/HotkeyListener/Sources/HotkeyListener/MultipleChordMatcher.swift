@@ -35,7 +35,8 @@ public struct MultipleChordMatcher<Action: Equatable & Sendable>: Equatable, Sen
 
   // MARK: Public
 
-  /// A recording is live, so Return belongs to MiniWhisper rather than the field.
+  /// A recording is live, or the user is at an owed dictation's target, so Return belongs to
+  /// MiniWhisper rather than the field.
   public var submitKeyArmed = false
 
   public mutating func receive(_ transition: KeyTransition) -> RoutedChordMatch<Action> {

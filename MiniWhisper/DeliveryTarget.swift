@@ -99,8 +99,9 @@ struct DeliveryTarget: Equatable {
 @DependencyClient struct DeliveryTargetClient {
   /// The target in front of the user right now.
   var capture: @Sendable () async -> DeliveryTarget = { .none }
-  /// Whether the user is at this target right now, judged as delivery judges it.
-  var isCurrent: @Sendable (DeliveryTarget) async -> Bool = { _ in false }
+  /// Whether the user is at this target right now, judged as delivery judges it. Synchronous,
+  /// because the event tap asks it about a Return before the Return goes anywhere.
+  var isCurrent: @Sendable (DeliveryTarget) -> Bool = { _ in false }
 }
 
 // MARK: DependencyKey
@@ -121,18 +122,20 @@ extension DeliveryTargetClient: DependencyKey {
       return resolved
     },
     isCurrent: { target in
-      // The cheap answer first: the pill asks this twice a second, and the user is usually in
-      // another app entirely.
-      let frontmost = await MainActor.run {
-        NSWorkspace.shared.frontmostApplication?.processIdentifier
-      }
+      // The cheap answer first: the pill asks this twice a second, the tap on every Return while
+      // a dictation is owed, and the user is usually in another app entirely.
+      let frontmost = NSWorkspace.shared.frontmostApplication?.processIdentifier
       guard let processID = target.processID, frontmost == processID else {
         return false
       }
       guard target.isGUI else {
-        return resolve(FocusedFieldReader.target()).isSameDestination(as: target)
+        // A pane or terminal is found from the process alone; its focused element is not needed.
+        let here = DeliveryTarget(
+          app: target.app, processID: processID, window: nil, element: nil, pane: nil,
+        )
+        return resolve(here).isSameDestination(as: target)
       }
-      return await MainActor.run { FocusSpot.focused(in: processID).finds(target) != nil }
+      return FocusSpot.focused(in: processID).finds(target) != nil
     },
   )
 

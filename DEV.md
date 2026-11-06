@@ -38,6 +38,8 @@ Three build configurations produce three separate apps, so all three can be inst
 
 `benchmark:live` requires microphone permission and a downloaded engine model. Quit MiniWhisper before running it. Logs at `.build/{miniwhisper-performance.log,miniwhisper-performance-app.log}`.
 
+On a Mac without a usable microphone, such as one with its lid closed, real dictations can be driven through the BlackHole 2ch loopback when it is installed (`brew install --cask blackhole-2ch`, then restart `coreaudiod`): pick BlackHole 2ch as the microphone in Settings and speak with `say -a BlackHole "…"`.
+
 ## Architecture
 
 - `MiniWhisper/` — SwiftUI app target (thin shell, NSStatusItem menu, TCA features and clients)
