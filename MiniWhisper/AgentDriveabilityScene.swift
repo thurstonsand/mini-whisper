@@ -42,7 +42,9 @@ enum PresentedWindow: Equatable {
     case settingsDegraded = "settings-degraded"
     case settingsKeyMissing = "settings-key-missing"
     case settingsHistory = "settings-history"
+    case settingsHistoryEmpty = "settings-history-empty"
     case settingsDictionary = "settings-dictionary"
+    case settingsDictionaryEmpty = "settings-dictionary-empty"
     case settingsDictionaryUnreadable = "settings-dictionary-unreadable"
     case settingsProfiles = "settings-profiles"
     case settingsProfilesKeyboard = "settings-profiles-keyboard"
@@ -57,9 +59,19 @@ enum PresentedWindow: Equatable {
     case settingsModelsStates = "settings-models-states"
     case about
     case pillRecording = "pill-recording"
+    case pillRecordingStarting = "pill-recording-starting"
     case pillTranscribing = "pill-transcribing"
+    case pillTranscribingElsewhere = "pill-transcribing-elsewhere"
+    case pillPolishing = "pill-polishing"
+    case pillPolishingSkip = "pill-polishing-skip"
     case pillNoSpeech = "pill-no-speech"
+    case pillNoTranscript = "pill-no-transcript"
     case pillCopied = "pill-copied"
+    case pillNowhereToPaste = "pill-nowhere-to-paste"
+    case pillCancelled = "pill-cancelled"
+    case pillCleanupUnavailable = "pill-cleanup-unavailable"
+    case pillModelUnavailable = "pill-model-unavailable"
+    case pillDictionarySaveFailed = "pill-dictionary-save-failed"
 
     // MARK: Internal
 
@@ -84,9 +96,11 @@ enum PresentedWindow: Equatable {
            .settingsDegraded,
            .settingsKeyMissing:
         .settings(.settings, initialFocus: nil)
-      case .settingsHistory:
+      case .settingsHistory,
+           .settingsHistoryEmpty:
         .settings(.history, initialFocus: nil)
       case .settingsDictionary,
+           .settingsDictionaryEmpty,
            .settingsDictionaryUnreadable:
         .settings(.dictionary, initialFocus: nil)
       case .settingsProfiles,
@@ -293,7 +307,9 @@ enum PresentedWindow: Equatable {
         }
         state.settingsWindow.settingsPane.launchAtLoginRegistered = true
       case .settingsHistory,
+           .settingsHistoryEmpty,
            .settingsDictionary,
+           .settingsDictionaryEmpty,
            .settingsDictionaryUnreadable,
            .about:
         break
@@ -329,12 +345,51 @@ enum PresentedWindow: Equatable {
             inputDeviceName: "Test Microphone", level: 0, isLive: true,
           ),
         )
+      case .pillRecordingStarting:
+        state.pill.presentation = .recording(
+          PillFeature.State.Presentation.Recording(
+            inputDeviceName: "Test Microphone", level: 0, isLive: false,
+          ),
+        )
       case .pillTranscribing:
         state.pill.presentation = .transcribing
+      // The user looked away mid-dictation, and Return during the recording queued a submit.
+      case .pillTranscribingElsewhere:
+        state.pill.presentation = .transcribing
+        state.pill.destination = "Ghostty · agents:2"
+        state.pill.submits = true
+      case .pillPolishing:
+        state.pill.presentation = .polishing(
+          PillFeature.State.Presentation.Polishing(skipComponents: activateComponents(state)),
+        )
+      // The widest the pill gets: a cleanup slow enough to offer its skip, bound for elsewhere.
+      case .pillPolishingSkip:
+        state.pill.presentation = .polishing(
+          PillFeature.State.Presentation.Polishing(
+            skipComponents: activateComponents(state), isSkipRevealed: true,
+          ),
+        )
+        state.pill.destination = "Safari · Pull request #482: Background delivery"
+        state.pill.submits = true
       case .pillNoSpeech:
         state.pill.presentation = .notice(.noSpeechDetected)
+      case .pillNoTranscript:
+        state.pill.presentation = .notice(.noTranscriptToPaste)
       case .pillCopied:
         state.pill.presentation = .notice(.copiedToClipboard)
+      case .pillNowhereToPaste:
+        state.pill.presentation = .notice(.noReceiver(pasteShortcut: nil))
+      case .pillCancelled:
+        state.pill.presentation = .notice(.cancelledSavedToHistory)
+      case .pillCleanupUnavailable:
+        state.pill.presentation = .notice(.cleanupUnavailable)
+      // Dictation refused while the engine is still arriving: the pill reads the same status the
+      // menu does.
+      case .pillModelUnavailable:
+        state.$health.withLock { $0.engineReadiness = .downloading(0.42) }
+        state.pill.presentation = .notice(.speechModelUnavailable(state.health.engineStatusText))
+      case .pillDictionarySaveFailed:
+        state.pill.presentation = .notice(.dictionarySaveFailed)
       }
       // An onboarding scene's permission truth is its snapshot; the app-level fields follow it, so
       // the seeded state and the seeded clients can never disagree about what has been granted.
@@ -579,6 +634,10 @@ enum PresentedWindow: Equatable {
       state.hasCompletedShortcut = hasCompletedShortcut
       state.tryItText = tryItText
       state.requestedPermissions = requestedPermissions
+    }
+
+    private func activateComponents(_ state: AppFeature.State) -> [String] {
+      state.settings.bindings.hotkeys(for: .activate).first?.displayComponents ?? []
     }
 
     private func permissions(

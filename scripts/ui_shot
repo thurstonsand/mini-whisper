@@ -1,0 +1,201 @@
+#!/bin/bash
+# Screenshots of MiniWhisper's surfaces for design review, one agent scene at a time
+# (AgentDriveabilityScene.swift), from the Debug build. No XCUITest and no keystrokes: each scene
+# launches straight into its state.
+#
+#   scripts/ui_shot scenes                        list every scene
+#   scripts/ui_shot shot SCENE [light|dark] OUT   launch, capture, quit
+#   scripts/ui_shot gallery OUTDIR                every scene in light, then in dark
+#
+# To explore, keep the app running between captures:
+#   scripts/ui_shot launch SCENE [light|dark]     quit any earlier launch, open SCENE
+#   scripts/ui_shot scene SCENE                   swap the running app to a pill or onboarding
+#                                                 scene; settings scenes need a fresh launch
+#   scripts/ui_shot capture OUT                   capture what is on screen now
+#   scripts/ui_shot scroll POINTS                 scroll the window's content under its middle
+#                                                 (negative scrolls back up), to reach the rest
+#                                                 of a pane taller than the window
+#   scripts/ui_shot quit
+#
+# pill-* scenes are captured over a fixed backdrop matching the appearance (a document in light,
+# a terminal in dark); UI_SHOT_BACKDROP=light|dark overrides it. menu-* scenes open the status
+# menu. Everything else captures the app's window.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+derived_data="${DERIVED_DATA:-.build/DerivedData}"
+app_name="MiniWhisper Dev"
+binary="$derived_data/Build/Products/Debug/$app_name.app/Contents/MacOS/$app_name"
+state=.build/ui-shot
+helper="$state/helper"
+mkdir -p "$state"
+if [ ! "$helper" -nt scripts/ui_shot.swift ]; then
+  swiftc -O scripts/ui_shot.swift -o "$helper"
+fi
+
+die() {
+  echo "ui_shot: $*" >&2
+  exit 1
+}
+
+scenes() {
+  # A raw value can wrap onto the next line, so the declaration is matched across newlines.
+  perl -0ne 'print(($2 // $1), "\n") while /^    case (\w+)(?:\s*=\s*"([a-z-]+)")?$/mg' \
+    MiniWhisper/AgentDriveabilityScene.swift | awk '!seen[$0]++'
+}
+
+running_pid() {
+  [ -f "$state/app.pid" ] && kill -0 "$(cat "$state/app.pid")" 2>/dev/null && cat "$state/app.pid"
+}
+
+# Polls the app's windows until one matches the awk condition, then prints it.
+await_window() {
+  local condition="$1"
+  local pid line
+  pid="$(running_pid)" || die "the app is not running"
+  for _ in $(seq 100); do
+    line="$("$helper" windows "$pid" | awk "$condition" | sort -k5,5nr | head -1)"
+    if [ -n "$line" ]; then
+      echo "$line"
+      return
+    fi
+    kill -0 "$pid" 2>/dev/null || die "the app exited; see $state/app.log"
+    sleep 0.1
+  done
+  die "no window matched '$condition' within 10 s"
+}
+
+kind() {
+  case "$1" in
+  pill-*) echo pill ;;
+  menu-*) echo menu ;;
+  *) echo window ;;
+  esac
+}
+
+await_scene() {
+  case "$(kind "$1")" in
+  pill)
+    await_window '$2 == 25' >/dev/null
+    sleep 0.6
+    ;;
+  menu)
+    sleep 1.5
+    ;;
+  window)
+    await_window '$2 == 0 && $5 >= 100' >/dev/null
+    sleep 1
+    ;;
+  esac
+}
+
+quit() {
+  local pid
+  if pid="$(running_pid)"; then
+    kill "$pid"
+    while kill -0 "$pid" 2>/dev/null; do sleep 0.1; done
+  fi
+  rm -f "$state/app.pid"
+}
+
+launch() {
+  local scene="$1" appearance="${2:-light}"
+  scenes | grep -qx "$scene" || die "unknown scene $scene; see scripts/ui_shot scenes"
+  [ "$appearance" = light ] || [ "$appearance" = dark ] || die "appearance is light or dark"
+  [ -x "$binary" ] || die "no Debug build at $binary; run mise run build"
+  quit
+  : >"$state/command"
+  rm -f "$state/command.result"
+  MINIWHISPER_AGENT_SCENE="$scene" MINIWHISPER_AGENT_APPEARANCE="$appearance" \
+    MINIWHISPER_AGENT_COMMAND_FILE="$PWD/$state/command" \
+    "$binary" >"$state/app.log" 2>&1 &
+  echo $! >"$state/app.pid"
+  disown
+  echo "$scene" >"$state/scene"
+  echo "$appearance" >"$state/appearance"
+  await_scene "$scene"
+}
+
+swap_scene() {
+  local scene="$1"
+  case "$(kind "$scene")-$scene" in
+  pill-* | window-onboarding-*) ;;
+  *) die "only pill and onboarding scenes swap in place; launch $scene instead" ;;
+  esac
+  running_pid >/dev/null || die "the app is not running"
+  printf '%s|scene|%s' "$(date +%s)-$RANDOM" "$scene" >"$state/command"
+  for _ in $(seq 100); do
+    [ "$(cat "$state/command.result" 2>/dev/null)" = "scene:$scene" ] && break
+    sleep 0.1
+  done
+  [ "$(cat "$state/command.result" 2>/dev/null)" = "scene:$scene" ] || die "the app did not present $scene"
+  echo "$scene" >"$state/scene"
+  await_scene "$scene"
+}
+
+capture() {
+  local out="$1"
+  local scene appearance line backdrop_pid
+  scene="$(cat "$state/scene")"
+  appearance="$(cat "$state/appearance")"
+  mkdir -p "$(dirname "$out")"
+  case "$(kind "$scene")" in
+  pill)
+    "$helper" backdrop "${UI_SHOT_BACKDROP:-$appearance}" &
+    backdrop_pid=$!
+    sleep 0.5
+    line="$(await_window '$2 == 25')"
+    read -r _ _ x y w h <<<"$line"
+    screencapture -x -R "$((x - 48)),$((y - 40)),$((w + 96)),$((h + 80))" "$out"
+    kill "$backdrop_pid"
+    wait "$backdrop_pid" 2>/dev/null || true
+    ;;
+  menu)
+    MW_APP="$app_name" scripts/capture_menu_screenshot "$out" >/dev/null
+    ;;
+  window)
+    line="$(await_window '$2 == 0 && $5 >= 100')"
+    screencapture -x -o -l "${line%% *}" "$out"
+    ;;
+  esac
+  echo "$out"
+}
+
+scroll() {
+  local line
+  line="$(await_window '$2 == 0 && $5 >= 100')"
+  read -r _ _ x y w h <<<"$line"
+  "$helper" scroll "$((x + w / 2))" "$((y + h / 2))" "$1"
+  sleep 0.5
+}
+
+gallery() {
+  local outdir="$1" n appearance scene
+  for appearance in light dark; do
+    n=0
+    for scene in $(scenes); do
+      n=$((n + 1))
+      launch "$scene" "$appearance"
+      capture "$(printf '%s/%02d-%s-%s.png' "$outdir" "$n" "$scene" "$appearance")"
+    done
+  done
+  quit
+}
+
+trap 'status=$?; [ $status -eq 0 ] || [ "${1:-}" = launch ] || [ "${1:-}" = scene ] || quit; exit $status' EXIT
+
+case "${1:-}" in
+scenes) scenes ;;
+launch) launch "${2:?scene}" "${3:-light}" ;;
+scene) swap_scene "${2:?scene}" ;;
+capture) capture "${2:?output path}" ;;
+scroll) scroll "${2:?points}" ;;
+quit) quit ;;
+shot)
+  launch "${2:?scene}" "${3:-light}"
+  capture "${4:?output path}"
+  quit
+  ;;
+gallery) gallery "${2:?output directory}" ;;
+*) sed -n '2,22p' "$0" | sed 's/^# \{0,1\}//' && exit 64 ;;
+esac

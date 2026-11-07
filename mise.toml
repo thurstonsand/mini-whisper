@@ -45,6 +45,7 @@ xcodebuild -scheme $SCHEME \
     -derivedDataPath $DERIVED_DATA \
     -skipMacroValidation \
     -skipPackagePluginValidation \
+    ${CODE_SIGNING_ALLOWED:+CODE_SIGNING_ALLOWED=$CODE_SIGNING_ALLOWED} \
     build | xcbeautify -q --disable-colored-output --disable-logging
 """
 
@@ -63,6 +64,11 @@ xcodebuild -scheme $SCHEME \
 [tasks.logs]
 description = "Stream MiniWhisper structured logs (also written to .build/miniwhisper.log)"
 run = "mkdir -p .build && log stream --style compact --level info --predicate 'subsystem == \"com.thurstonsand.MiniWhisper\"' | tee .build/miniwhisper.log"
+
+[tasks."ui:gallery"]
+description = "Screenshot every agent scene in light and dark into .build/ui-gallery (takes over the screen)"
+depends = ["build"]
+run = "scripts/ui_shot gallery .build/ui-gallery"
 
 [tasks.mw]
 description = "Build and run the app"
