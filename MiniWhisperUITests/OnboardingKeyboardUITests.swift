@@ -343,6 +343,20 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
     app.typeKey(.escape, modifierFlags: [])
     assertValue("⌥ Opt →", of: keycap)
     XCTAssertTrue(rail.isEnabled)
+
+    // Revisit steps without adding the rail to the page's short Tab cycle.
+    app.typeKey("2", modifierFlags: [.command])
+    XCTAssertTrue(app.groups["miniwhisper.onboarding.permissions"].awaitExistence(timeout: 2))
+    app.typeKey("1", modifierFlags: [.command])
+    XCTAssertTrue(app.groups["miniwhisper.onboarding.keys"].awaitExistence(timeout: 2))
+    presentScene("onboarding-keys")
+    let field = app.secureTextFields["miniwhisper.onboarding.keys.anthropic"]
+    XCTAssertTrue(field.awaitExistence(timeout: 2))
+    field.click()
+    app.typeKey("3", modifierFlags: [.command])
+    XCTAssertTrue(keycap.awaitExistence(timeout: 2))
+    app.typeKey(.tab, modifierFlags: [])
+    assertValue("Ring on", of: ring)
   }
 
   @MainActor func testTryItTabCyclesOnlyBetweenEditorAndSkip() {

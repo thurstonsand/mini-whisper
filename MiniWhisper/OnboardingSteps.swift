@@ -188,8 +188,7 @@ struct OnboardingWelcomePage: View {
 
 // MARK: - OnboardingStepRail
 
-/// Mouse affordance only: the rail is never a Tab stop, so the keyboard's path through a page is
-/// exactly the page's own controls.
+/// Numbered shortcuts revisit steps without lengthening the page's own Tab cycle.
 struct OnboardingStepRail: View {
   // MARK: Internal
 
@@ -219,16 +218,19 @@ struct OnboardingStepRail: View {
         if !store.profile.credentials.isEmpty {
           railItem(
             store.profile.credentials.count == 1 ? "API Key" : "API Keys", step: .keys,
-            symbol: "key",
+            symbol: "key", shortcut: "1",
           )
         }
-        railItem("Permissions", step: .permissions, symbol: "lock.shield")
-        railItem("Shortcut", step: .shortcut, symbol: "command")
-        railItem("Speech Model", step: .model, symbol: "cpu")
-        railItem("Try It", step: .tryIt, symbol: "checkmark.bubble")
+        railItem("Permissions", step: .permissions, symbol: "lock.shield", shortcut: "2")
+        railItem("Shortcut", step: .shortcut, symbol: "command", shortcut: "3")
+        railItem("Speech Model", step: .model, symbol: "cpu", shortcut: "4")
+        railItem("Try It", step: .tryIt, symbol: "checkmark.bubble", shortcut: "5")
       }.padding(.top, 38)
 
       Spacer()
+      Text(store.profile.credentials.isEmpty ? "⌘2–5 to revisit a step" : "⌘1–5 to revisit a step")
+        .font(.caption)
+        .foregroundStyle(.secondary)
     }
     .accessibilityElement(children: .contain)
     .accessibilityIdentifier(AccessibilityID.onboardingRail)
@@ -260,7 +262,9 @@ struct OnboardingStepRail: View {
     }
   }
 
-  private func railItem(_ title: String, step: OnboardingStep, symbol: String) -> some View {
+  private func railItem(
+    _ title: String, step: OnboardingStep, symbol: String, shortcut: KeyEquivalent,
+  ) -> some View {
     let isCurrent = store.visibleStep == step || (store.visibleStep == .ready && step == .tryIt)
     let isComplete =
       switch step {
@@ -311,6 +315,8 @@ struct OnboardingStepRail: View {
     .buttonStyle(.plain)
     .focusable(false)
     .focusEffectDisabled()
+    .keyboardShortcut(shortcut, modifiers: .command)
+    .help("Go to \(title) (⌘\(String(shortcut.character)))")
     .disabled(store.isRecordingShortcut)
     .accessibilityIdentifier(OnboardingAccessibility.railIdentifier(step))
     .accessibilityLabel(title)
