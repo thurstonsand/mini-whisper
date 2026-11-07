@@ -12,11 +12,14 @@ struct HistoryPane: View {
   var searchFocus: FocusState<Bool>.Binding
 
   var body: some View {
-    List {
-      ForEach(sections) { section in
-        Section(section.title) {
-          ForEach(section.entries) { entry in
-            HistoryRow(store: store, entry: entry).id(entry.id)
+    GeometryReader { geometry in
+      List {
+        ForEach(sections) { section in
+          Section(section.title) {
+            ForEach(section.entries) { entry in
+              HistoryRow(store: store, entry: entry, isCompact: geometry.size.width < 620)
+                .id(entry.id)
+            }
           }
         }
       }
@@ -40,9 +43,11 @@ struct HistoryPane: View {
     )
     .searchFocused(searchFocus)
     .toolbar {
-      Button("Storage", systemImage: "internaldrive") {
+      Button("Retention…", systemImage: "internaldrive") {
         store.send(.history(.storagePresentationChanged(true)))
       }
+      .labelStyle(.titleAndIcon)
+      .help("Choose how long to keep transcripts and audio")
       .accessibilityIdentifier(AccessibilityID.historyStorage)
       .popover(
         isPresented: $store.history
@@ -177,54 +182,26 @@ private struct HistoryRow: View {
 
   let store: StoreOf<SettingsWindowFeature>
   let entry: HistoryEntry
+  let isCompact: Bool
 
   var body: some View {
-    // A wrapped transcript makes the row as tall as it needs to be; everything beside it sits on
-    // the transcript's first line, which is the line the row began on.
-    HStack(alignment: .firstTextBaseline, spacing: 8) {
-      Text(entry.createdAt.formatted(date: .omitted, time: .shortened))
-        .monospacedDigit()
-        .font(.callout)
-        .foregroundStyle(.secondary)
-        .frame(width: 62, alignment: .leading)
-
-      Text(entry.targetApp?.name ?? entry.targetApp?.bundleID ?? "Unknown")
-        .lineLimit(1)
-        .font(.callout)
-        .foregroundStyle(.secondary)
-        .frame(width: 78, alignment: .leading)
-
-      Text(rowText)
-        .fixedSize(horizontal: false, vertical: true)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .foregroundStyle(rowTextStyle)
-
-      if entry.revealedText != nil {
-        Image(systemName: "wand.and.sparkles")
-          .font(.callout)
-          .foregroundStyle(.tertiary)
-          .frame(width: 20)
-          .opacity(isRevealed ? 0 : 1)
-          .accessibilityIdentifier(AccessibilityID.historyCleaned(entry.id))
-      } else {
-        Color.clear.frame(width: 20, height: 1).accessibilityHidden(true)
-      }
-
-      if entry.audio != nil {
-        Button(isPlaying ? "Stop" : "Play", systemImage: playbackSymbol) {
-          store.send(.history(.playTapped(entry.id)))
+    Group {
+      if isCompact {
+        VStack(alignment: .leading, spacing: 6) {
+          transcript
+          HStack(spacing: 8) {
+            metadata
+            Spacer(minLength: 0)
+            accessories
+          }
         }
-        .labelStyle(.iconOnly)
-        .buttonStyle(.borderless)
-        .frame(width: 20)
-        .foregroundStyle(isPointed ? AnyShapeStyle(.primary) : AnyShapeStyle(.tertiary))
-        .help(isPlaying ? "Stop the recording" : "Play the recording")
       } else {
-        Color.clear.frame(width: 20, height: 1).accessibilityHidden(true)
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+          metadata
+          transcript
+          accessories
+        }
       }
-
-      accessory
-        .frame(width: 70, alignment: .trailing)
     }
     .settingsListRowHeight(grows: true)
     .padding(.horizontal, 6)
@@ -332,6 +309,54 @@ private struct HistoryRow: View {
       return "stop.fill"
     }
     return isPointed ? "play.fill" : "waveform"
+  }
+
+  private var transcript: some View {
+    Text(rowText)
+      .fixedSize(horizontal: false, vertical: true)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .foregroundStyle(rowTextStyle)
+  }
+
+  private var metadata: some View {
+    HStack(spacing: 8) {
+      Text(entry.createdAt.formatted(date: .omitted, time: .shortened))
+        .monospacedDigit()
+        .frame(width: 62, alignment: .leading)
+      Text(entry.targetApp?.name ?? entry.targetApp?.bundleID ?? "Unknown")
+        .lineLimit(1)
+        .frame(width: 78, alignment: .leading)
+    }
+    .font(.callout)
+    .foregroundStyle(.secondary)
+  }
+
+  private var accessories: some View {
+    HStack(spacing: 8) {
+      if entry.revealedText != nil {
+        Image(systemName: "wand.and.sparkles")
+          .font(.callout)
+          .foregroundStyle(.tertiary)
+          .frame(width: 20)
+          .opacity(isRevealed ? 0 : 1)
+          .accessibilityIdentifier(AccessibilityID.historyCleaned(entry.id))
+      } else {
+        Color.clear.frame(width: 20, height: 1).accessibilityHidden(true)
+      }
+      if entry.audio != nil {
+        Button(isPlaying ? "Stop" : "Play", systemImage: playbackSymbol) {
+          store.send(.history(.playTapped(entry.id)))
+        }
+        .labelStyle(.iconOnly)
+        .buttonStyle(.borderless)
+        .frame(width: 20)
+        .foregroundStyle(isPointed ? AnyShapeStyle(.primary) : AnyShapeStyle(.tertiary))
+        .help(isPlaying ? "Stop the recording" : "Play the recording")
+      } else {
+        Color.clear.frame(width: 20, height: 1).accessibilityHidden(true)
+      }
+      accessory.frame(width: 70, alignment: .trailing)
+    }
   }
 
   @ViewBuilder private var menuItems: some View {
