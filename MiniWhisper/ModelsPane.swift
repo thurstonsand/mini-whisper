@@ -230,7 +230,7 @@ private struct PatchCard: View {
           .foregroundStyle(isLit ? Color.accentColor : Color.secondary)
         Text(profile.name)
           .fontWeight(.medium)
-          .lineLimit(1)
+          .fixedSize(horizontal: false, vertical: true)
         Spacer(minLength: 0)
         if isActive {
           Text("Active")
@@ -310,23 +310,17 @@ private struct ComponentRow: View {
         .anchorPreference(key: PortKey.self, value: .center) { [.component(component): $0] }
       Image(systemName: component.asset == nil ? "cloud" : "internaldrive")
         .foregroundStyle(.secondary)
-      VStack(alignment: .leading, spacing: 2) {
-        Text(title)
-          .lineLimit(1)
-        Text(subtitle)
-          .font(.callout)
-          .foregroundStyle(.secondary)
-          .lineLimit(1)
-          .truncationMode(.middle)
-      }
-      Spacer(minLength: 0)
-      if let asset = component.asset {
-        AssetStatus(store: store, asset: asset)
-          .fixedSize()
-      } else {
-        Image(systemName: component == .scribe ? "waveform" : "text.quote")
-          .foregroundStyle(.secondary)
-          .help(component == .scribe ? "Sent your audio" : "Sent your transcript")
+      ViewThatFits(in: .horizontal) {
+        HStack(spacing: 8) {
+          identity.fixedSize(horizontal: true, vertical: false)
+          Spacer(minLength: 0)
+          status
+        }
+        VStack(alignment: .leading, spacing: 8) {
+          identity
+          status
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
       }
     }
     .padding(.horizontal, 10)
@@ -378,6 +372,28 @@ private struct ComponentRow: View {
       "Scribe v2"
     case let .endpoint(id):
       store.models.settings.profiles.profile(id).endpointLeg?.model ?? "Not set up"
+    }
+  }
+
+  private var identity: some View {
+    VStack(alignment: .leading, spacing: 2) {
+      Text(title)
+        .fixedSize(horizontal: false, vertical: true)
+      Text(subtitle)
+        .font(.callout)
+        .foregroundStyle(.secondary)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+  }
+
+  @ViewBuilder private var status: some View {
+    if let asset = component.asset {
+      AssetStatus(store: store, asset: asset)
+        .fixedSize()
+    } else {
+      Image(systemName: component == .scribe ? "waveform" : "text.quote")
+        .foregroundStyle(.secondary)
+        .help(component == .scribe ? "Sent your audio" : "Sent your transcript")
     }
   }
 }
