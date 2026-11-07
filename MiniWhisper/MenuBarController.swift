@@ -108,12 +108,12 @@ import ComposableArchitecture
   private func rebuild(_ menu: NSMenu, state: MenuBarViewState) {
     menu.removeAllItems()
 
-    menu.addItem(
-      item(
-        title: state.statusText, identifier: AccessibilityID.menuStatus, label: "Status",
-        value: state.accessibilityStatusText, action: nil, isEnabled: false,
-      ),
-    )
+    let status = NSMenuItem.sectionHeader(title: state.statusText)
+    status.isEnabled = false
+    status.setAccessibilityIdentifier(AccessibilityID.menuStatus)
+    status.setAccessibilityLabel("Status")
+    status.setAccessibilityValue(state.accessibilityStatusText)
+    menu.addItem(status)
 
     for degradation in state.degradations {
       let presentation = degradation.presentation
@@ -124,6 +124,9 @@ import ComposableArchitecture
       )
       repair.representedObject = degradation
       repair.image = MenuBarController.warningImage
+      if #available(macOS 27, *) {
+        repair.preferredImageVisibility = .visible
+      }
       menu.addItem(repair)
     }
 

@@ -802,8 +802,9 @@ final class DictionaryQuickAddView: NSView, NSTextFieldDelegate {
       if !button.isEnabled {
         .disabledControlTextColor
       } else {
-        selected ? .selectedMenuItemTextColor : .labelColor
+        selected ? .selectedMenuItemTextColor : .controlTextColor
       }
+    button.contentTintColor = color
     let paragraphStyle = NSMutableParagraphStyle()
     let textInset = button === headerButton
       ? Metrics.headerTitleInset
