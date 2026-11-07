@@ -33,9 +33,14 @@ final class ProfilesUITests: MiniWhisperUITestCase, SurfaceTagged {
         app.typeText("l")
         self.assertValue("Bar on", of: app.staticTexts["miniwhisper.profiles.row.profile.state"])
         app.typeText("j")
+        self.assertValue(
+          "Bar on",
+          of: app.staticTexts["miniwhisper.profiles.row.boostsVocabulary.state"],
+        )
+        app.typeText("j")
         self.assertValue("Bar on", of: app.staticTexts["miniwhisper.profiles.row.enabled.state"])
         self.assertValue("Ring on", of: app.staticTexts["miniwhisper.profiles.enabled.ring"])
-        for row in ["endpoint", "apiKey", "model", "boostsVocabulary", "timeout", "instructions"] {
+        for row in ["endpoint", "apiKey", "model", "timeout", "instructions"] {
           app.typeText("j")
           self.assertValue(
             "Bar on", of: app.staticTexts["miniwhisper.profiles.row.\(row).state"],
@@ -58,7 +63,7 @@ final class ProfilesUITests: MiniWhisperUITestCase, SurfaceTagged {
       // Edit on any row opens every fact Save proves together, with that row's field taking the
       // keys, so the keyboard press and the click land in the same place.
       Law("Return on Edit opens the editor with that field focused") { app in
-        app.typeText("kkkk")
+        app.typeText("kkk")
         self.assertValue("Bar on", of: app.staticTexts["miniwhisper.profiles.row.endpoint.state"])
         app.typeKey(.return, modifierFlags: [])
         let endpoint = app.textFields["miniwhisper.profiles.endpoint.field"]
@@ -153,7 +158,7 @@ final class ProfilesUITests: MiniWhisperUITestCase, SurfaceTagged {
         // The item's title leads with its symbol, so it is matched by name rather than equality.
         let haiku = app.menuItems
           .matching(
-            NSPredicate(format: "title CONTAINS %@", "Parakeet + Claude Haiku"),
+            NSPredicate(format: "title CONTAINS %@", "Everyday"),
           )
           .firstMatch
         try require(haiku.awaitExistence(timeout: 2))
@@ -244,7 +249,21 @@ final class ProfilesUITests: MiniWhisperUITestCase, SurfaceTagged {
 
     let picker = app.popUpButtons["miniwhisper.profiles.picker"]
     XCTAssertTrue(picker.awaitExistence(timeout: 5))
-    assertValue("Parakeet + Claude Haiku; Invalid key", of: picker)
+    assertValue("Everyday; Invalid key", of: picker)
     recordScreenshot("profiles-rejected", screenshot: app.screenshot())
+  }
+
+  @MainActor func testMissingOfflineCleanupRoutesToItsModel() {
+    let app = launch("settings-profiles-offline")
+    defer { terminate(app) }
+
+    let showModels = app.buttons["miniwhisper.profiles.show-models"]
+    XCTAssertTrue(showModels.awaitHittable(timeout: 5))
+    app.typeText("lj")
+    assertValue("Bar on", of: app.staticTexts["miniwhisper.profiles.row.localCleanup.state"])
+    app.typeKey(.return, modifierFlags: [])
+    let download = app.buttons["miniwhisper.models.asset.s1-mini.download"]
+    XCTAssertTrue(download.awaitHittable(timeout: 2))
+    assertValue("Models; Selected", of: app.staticTexts["miniwhisper.settings.sidebar.models"])
   }
 }

@@ -374,7 +374,7 @@ public struct ProfileSettings: Codable, Equatable, Sendable {
     switch id {
     case .haiku:
       Definition(
-        name: "Parakeet + Claude Haiku",
+        name: "Everyday",
         tagline: "Speech stays on this Mac; transcripts go to Anthropic for cleanup.",
         symbol: "sparkles",
         factory: FactoryEndpoint(
@@ -400,7 +400,7 @@ public struct ProfileSettings: Codable, Equatable, Sendable {
       )
     case .cerebras:
       Definition(
-        name: "Parakeet + Cerebras",
+        name: "Fastest cleanup",
         tagline: "The quickest cleanup measured, at some cost to accuracy.",
         symbol: "bolt",
         factory: FactoryEndpoint(

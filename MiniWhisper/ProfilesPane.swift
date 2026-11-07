@@ -18,7 +18,31 @@ struct ProfilesPane: View {
     Form {
       Section {
         PickerRow(store: store)
-        SummaryRows(profile: profile, s1Mini: profiles.assets[.s1Mini])
+      }
+
+      Section("Speech recognition") {
+        LabeledContent("Engine", value: profile.engine.name)
+          .accessibilityIdentifier(AccessibilityID.profilesEngine)
+        if let slot = profiles.engineCredential {
+          if let editor = profiles.editor {
+            KeyFieldRow(
+              store: store, editor: editor, field: .engineKey, row: .engineKey, slot: slot,
+              text: editor.engineKeyText,
+            ) { store.send(.profiles(.engineKeyEdited($0))) }
+              .disabled(editor.isChecking)
+          } else {
+            StoredKeyRow(store: store, slot: slot, field: .engineKey)
+          }
+        }
+        if profile.isCustom {
+          BoostsVocabularyRow(store: store)
+        }
+      }
+
+      Section("Cleanup") {
+        if profile.cleanup == .local {
+          LocalCleanupRow(store: store)
+        }
         if profile.isCustom, profiles.isSetUp {
           EnabledRow(store: store)
         }
@@ -31,9 +55,6 @@ struct ProfilesPane: View {
           } else {
             NotSetUpRows(store: store)
           }
-        }
-        if profile.isCustom {
-          BoostsVocabularyRow(store: store)
         }
       }
 
@@ -139,38 +160,49 @@ private extension ProfilesFeature.Status {
   }
 }
 
-// MARK: - SummaryRows
+// MARK: - LocalCleanupRow
 
-/// What the profile decided that the pane does not let the user change.
-private struct SummaryRows: View {
+private struct LocalCleanupRow: View {
   // MARK: Internal
 
-  let profile: Profile
-  let s1Mini: AssetState?
+  let store: StoreOf<SettingsWindowFeature>
 
   var body: some View {
-    LabeledContent("Engine", value: profile.engine.name)
-      .accessibilityIdentifier(AccessibilityID.profilesEngine)
-    // Nothing about S1-mini is configurable; its download is the one thing to say about it.
-    if profile.cleanup == .local {
-      LabeledContent("Cleanup", value: localCleanup)
-        .accessibilityIdentifier(AccessibilityID.profilesLocalCleanup)
+    if store.profiles.needsLocalCleanupModel {
+      content.modifier(ProfilesFormRow(store: store, row: .localCleanup))
+    } else {
+      content
     }
   }
 
   // MARK: Private
 
   private var localCleanup: String {
-    switch s1Mini {
+    switch store.profiles.assets[.s1Mini] {
     case .installed,
          nil:
       "S1-mini on this Mac"
     case .missing:
-      "S1-mini · download it in Models"
+      "S1-mini · not downloaded"
     case let .downloading(fraction):
       "S1-mini · downloading \(Int(fraction * 100))%"
     case .failed:
       "S1-mini · download failed"
+    }
+  }
+
+  private var content: some View {
+    LabeledContent("Model") {
+      HStack {
+        Text(localCleanup)
+          .foregroundStyle(.secondary)
+          .accessibilityIdentifier(AccessibilityID.profilesLocalCleanup)
+        if store.profiles.needsLocalCleanupModel {
+          Button("Show in Models") { store.send(.profiles(.showModelsTapped)) }
+            .focusRing(store.state.showsProfilesRing(.localCleanup, target: .showModels))
+            .accessibilityIdentifier(AccessibilityID.profilesShowModels)
+        }
+      }
     }
   }
 }
@@ -180,45 +212,47 @@ private struct SummaryRows: View {
 /// The endpoint as it is saved. Every value is read-only, and every button opens the same editor
 /// with its own field focused.
 private struct RestingRows: View {
-  // MARK: Internal
-
   let store: StoreOf<SettingsWindowFeature>
 
   var body: some View {
-    if let slot = store.profiles.engineCredential {
-      ValueRow(
-        store: store, field: .engineKey, label: keyLabel(slot), value: keyValue(slot),
-        edit: keyEdit(slot), isOverridden: false,
-      )
-    }
     if let leg = store.profiles.profile.endpointLeg {
       ValueRow(
         store: store, field: .endpoint, label: "Address",
         value: EndpointAddress.display(leg.endpoint), edit: "Edit",
         isOverridden: store.profiles.profile.isEndpointOverridden,
       )
-      ValueRow(
-        store: store, field: .apiKey, label: keyLabel(leg.credential),
-        value: keyValue(leg.credential), edit: keyEdit(leg.credential), isOverridden: false,
-      )
+      StoredKeyRow(store: store, slot: leg.credential, field: .apiKey)
       ValueRow(
         store: store, field: .model, label: "Model", value: leg.model ?? "", edit: "Edit",
         isOverridden: store.profiles.profile.isModelOverridden,
       )
     }
   }
+}
+
+// MARK: - StoredKeyRow
+
+private struct StoredKeyRow: View {
+  // MARK: Internal
+
+  let store: StoreOf<SettingsWindowFeature>
+  let slot: CredentialSlot
+  let field: ProfilesFeature.Field
+
+  var body: some View {
+    ValueRow(
+      store: store, field: field, label: keyLabel(slot), value: value,
+      edit: store.profiles.storedKeys?[slot] == nil ? "Add" : "Replace", isOverridden: false,
+    )
+  }
 
   // MARK: Private
 
-  private func keyValue(_ slot: CredentialSlot) -> String {
+  private var value: String {
     guard let prefix = store.profiles.storedKeys?[slot] else {
       return store.profiles.storedKeys == nil ? "" : "None"
     }
     return prefix + String(repeating: "•", count: 12)
-  }
-
-  private func keyEdit(_ slot: CredentialSlot) -> String {
-    store.profiles.storedKeys?[slot] == nil ? "Add" : "Replace"
   }
 }
 
@@ -309,12 +343,6 @@ private struct EditorRows: View {
 
   var body: some View {
     Group {
-      if let slot = store.profiles.engineCredential {
-        KeyFieldRow(
-          store: store, editor: editor, field: .engineKey, row: .engineKey, slot: slot,
-          text: editor.engineKeyText,
-        ) { store.send(.profiles(.engineKeyEdited($0))) }
-      }
       LabeledContent("Address") {
         VStack(alignment: .leading, spacing: 4) {
           ProfilesTextField(

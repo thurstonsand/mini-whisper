@@ -35,6 +35,7 @@ private let profilesPaneLogger = Logger(
 
   enum Row: Hashable {
     case profile
+    case localCleanup
     case enabled
     case engineKey
     case endpoint
@@ -50,6 +51,7 @@ private let profilesPaneLogger = Logger(
 
   enum Target: Equatable {
     case profile
+    case showModels
     case enabled
     case edit(Field)
     case reset(Field)
@@ -219,15 +221,25 @@ private let profilesPaneLogger = Logger(
       return false
     }
 
+    var needsLocalCleanupModel: Bool {
+      profile.cleanup == .local && assets[.s1Mini]?.isInstalled == false
+    }
+
     var rows: [Row] {
       var rows: [Row] = [.profile]
+      if engineCredential != nil {
+        rows.append(.engineKey)
+      }
+      if profile.isCustom {
+        rows.append(.boostsVocabulary)
+      }
+      if needsLocalCleanupModel {
+        rows.append(.localCleanup)
+      }
       if profile.isCustom, isSetUp {
         rows.append(.enabled)
       }
       if let editor {
-        if engineCredential != nil {
-          rows.append(.engineKey)
-        }
         rows += [.endpoint, .apiKey, .model]
         if editor.modelChoice == .custom {
           rows.append(.customModel)
@@ -235,16 +247,10 @@ private let profilesPaneLogger = Logger(
         rows.append(.actions)
       } else if profile.endpointLeg != nil {
         if isSetUp {
-          if engineCredential != nil {
-            rows.append(.engineKey)
-          }
           rows += [.endpoint, .apiKey, .model]
         } else {
           rows.append(.actions)
         }
-      }
-      if profile.isCustom {
-        rows.append(.boostsVocabulary)
       }
       if showsTimeout {
         rows.append(.timeout)
@@ -267,6 +273,8 @@ private let profilesPaneLogger = Logger(
       switch cursorRow {
       case .profile:
         return [.profile]
+      case .localCleanup:
+        return [.showModels]
       case .enabled:
         return [.enabled]
       case .engineKey:
@@ -387,6 +395,7 @@ private let profilesPaneLogger = Logger(
     case modelSelected(ModelChoice)
     case customModelEdited(String)
     case loadModelsTapped
+    case showModelsTapped
     case modelsListed(discovered: URL?, ModelListing)
     case listingRefreshed(URL, [String])
     case saveTapped
@@ -661,6 +670,8 @@ private let profilesPaneLogger = Logger(
         case .profile:
           state.profileActivation += 1
           return .none
+        case .showModels:
+          return .send(.showModelsTapped)
         case .enabled:
           return .send(.enabledToggled(!state.settings.profiles.custom.cleanupEnabled))
         case let .edit(field):
@@ -699,7 +710,8 @@ private let profilesPaneLogger = Logger(
       case let .assetsUpdated(assets):
         state.assets = assets
         return .none
-      case .delegate:
+      case .showModelsTapped,
+           .delegate:
         return .none
       }
     }

@@ -536,10 +536,10 @@ struct EndpointAddressTests {
     ])
     // S1-mini reads no prompt, so only the limit applies.
     #expect(rows(offline) == [.profile, .timeout])
-    #expect(rows(notSetUpCustom) == [.profile, .actions, .boostsVocabulary])
+    #expect(rows(notSetUpCustom) == [.profile, .boostsVocabulary, .actions])
     // With cleanup off there is no limit to bind and no prompt to read.
     #expect(rows(customOff) == [
-      .profile, .enabled, .endpoint, .apiKey, .model, .boostsVocabulary,
+      .profile, .boostsVocabulary, .enabled, .endpoint, .apiKey, .model,
     ])
   }
 
@@ -551,7 +551,7 @@ struct EndpointAddressTests {
     await store.send(.editTapped(.endpoint))
     #expect(store.state.cursorRow == .endpoint)
     #expect(store.state.rows == [
-      .profile, .enabled, .endpoint, .apiKey, .model, .customModel, .actions, .boostsVocabulary,
+      .profile, .boostsVocabulary, .enabled, .endpoint, .apiKey, .model, .customModel, .actions,
       .timeout, .instructions,
     ])
     for _ in 0 ..< 4 {
