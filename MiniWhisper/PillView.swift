@@ -17,12 +17,9 @@ struct PillView: View {
         }
         .accessibilityElement(children: .contain)
         .padding(.horizontal, 15)
-        .frame(height: 46)
-        .background(.regularMaterial, in: Capsule())
-        .overlay {
-          Capsule().strokeBorder(.white.opacity(0.14), lineWidth: 0.5).accessibilityHidden(true)
-        }
-        .shadow(color: .black.opacity(0.24), radius: 12, y: 5)
+        .padding(.vertical, 10)
+        .frame(minHeight: 46)
+        .glassEffect(.regular, in: .capsule)
         .scaleEffect(bounceScale)
         .opacity(
           store.isFadingOut ? 0 : 1,
@@ -76,9 +73,9 @@ struct PillView: View {
 
   @ViewBuilder private var submits: some View {
     if store.submits {
-      Image(systemName: "return")
-        .font(.system(size: 12, weight: .semibold))
-        .foregroundStyle(.secondary)
+      Label("Submit", systemImage: "return")
+        .font(.callout)
+        .foregroundStyle(.primary)
         .accessibilityLabel("Submits after delivery")
         .accessibilityIdentifier(AccessibilityID.pillSubmits)
     }
@@ -86,24 +83,17 @@ struct PillView: View {
 
   @ViewBuilder private var destination: some View {
     if let destination = store.destination {
-      Image(systemName: "arrow.right")
-        .font(.system(size: 11, weight: .semibold))
-        .foregroundStyle(.secondary)
-        .accessibilityHidden(true)
-      let label = SemanticText(
-        destination, identifier: AccessibilityID.pillDestination, label: "Delivers to",
-      )
-      .font(.system(size: 13, weight: .medium))
-      .lineLimit(1)
-      .truncationMode(.tail)
-      .foregroundStyle(.primary)
-      // The phase and the skip chip keep their full width; the destination takes what is left,
-      // and no more than a glance's worth of it when the pill has room to spare.
-      ViewThatFits(in: .horizontal) {
-        label.frame(maxWidth: 170, alignment: .leading).fixedSize()
-        label
+      HStack(spacing: 6) {
+        Image(systemName: "arrow.right")
+          .accessibilityHidden(true)
+        SemanticText(
+          destination, identifier: AccessibilityID.pillDestination, label: "Delivers to",
+        )
+        .lineLimit(1)
+        .truncationMode(.tail)
       }
-      .layoutPriority(-1)
+      .font(.callout)
+      .foregroundStyle(.primary)
     }
   }
 
@@ -112,7 +102,7 @@ struct PillView: View {
     case let .recording(recording):
       HStack(spacing: 10) {
         Circle()
-          .fill(Color(red: 0.95, green: 0.23, blue: 0.24))
+          .fill(.red)
           .frame(width: 9, height: 9)
           .shadow(
             color: .red.opacity(0.45), radius: 3,
@@ -127,53 +117,80 @@ struct PillView: View {
           recording.inputDeviceName, identifier: AccessibilityID.pillInputDevice,
           label: "Input device",
         )
-        .font(.system(size: 13, weight: .medium))
+        .font(.body.weight(.medium))
         .lineLimit(1)
         .truncationMode(.middle)
         .foregroundStyle(.primary)
       }
     case .transcribing:
-      HStack(spacing: 9) {
-        PulsingDot().accessibilityHidden(true)
-        SemanticText(
-          "Transcribing…", identifier: AccessibilityID.pillPhase, label: "Dictation phase",
-          value: "Transcribing",
-        )
-        .font(.system(size: 13, weight: .medium))
-        .foregroundStyle(.primary)
-        submits
+      VStack(spacing: 6) {
+        HStack(spacing: 9) {
+          PulsingDot().accessibilityHidden(true)
+          SemanticText(
+            "Transcribing…", identifier: AccessibilityID.pillPhase, label: "Dictation phase",
+            value: "Transcribing",
+          )
+          .font(.body.weight(.medium))
+          .foregroundStyle(.primary)
+          submits
+        }
         destination
       }
     case let .polishing(polishing):
-      HStack(spacing: 9) {
-        PulsingDot(color: .cleanup, glow: .purple).accessibilityHidden(true)
-        SemanticText(
-          "Polishing…", identifier: AccessibilityID.pillPhase, label: "Dictation phase",
-          value: "Polishing",
-        )
-        .font(.system(size: 13, weight: .medium))
-        .foregroundStyle(.primary)
-        submits
-        if polishing.isSkipRevealed {
-          Spacer().frame(width: 2)
-          HotkeyKeycaps(components: polishing.skipComponents, scale: 0.85)
-            .accessibilityHidden(true)
+      VStack(spacing: 6) {
+        HStack(spacing: 9) {
+          PulsingDot(color: .purple, glow: .purple).accessibilityHidden(true)
           SemanticText(
-            "to skip", identifier: AccessibilityID.pillSkipAffordance, label: "Skip cleanup",
-            value: "\(polishing.skipComponents.joined(separator: " ")) to skip",
+            "Polishing…", identifier: AccessibilityID.pillPhase, label: "Dictation phase",
+            value: "Polishing",
           )
-          .font(.system(size: 13, weight: .medium))
-          .foregroundStyle(.secondary)
+          .font(.body.weight(.medium))
+          .foregroundStyle(.primary)
+          submits
+          if polishing.isSkipRevealed {
+            Divider().frame(height: 16)
+            SemanticText(
+              "Skip", identifier: AccessibilityID.pillSkipAffordance, label: "Skip cleanup",
+              value: "\(polishing.skipComponents.joined(separator: " ")) to skip",
+            )
+            .font(.callout)
+            .foregroundStyle(.primary)
+            HotkeyKeycaps(components: polishing.skipComponents, scale: 0.85)
+              .accessibilityHidden(true)
+          }
         }
         destination
       }
     case let .notice(notice):
-      SemanticText(
-        notice.content.text, identifier: AccessibilityID.pillNotice,
-        label: "Dictation notice",
-      )
-      .font(.system(size: 13, weight: .medium))
+      HStack(spacing: 9) {
+        noticeSymbol(notice).accessibilityHidden(true)
+        SemanticText(
+          notice.content.text, identifier: AccessibilityID.pillNotice,
+          label: "Dictation notice",
+        )
+      }
+      .font(.body.weight(.medium))
       .foregroundStyle(.primary)
+    }
+  }
+
+  @ViewBuilder private func noticeSymbol(_ notice: PillFeature.State.Presentation
+    .Notice) -> some View
+  {
+    switch notice {
+    case .copiedToClipboard:
+      Image(systemName: "checkmark").foregroundStyle(.green)
+    case .cancelledSavedToHistory:
+      Image(systemName: "xmark").foregroundStyle(.secondary)
+    case .noSpeechDetected:
+      Image(systemName: "waveform.slash").foregroundStyle(.secondary)
+    case .noTranscriptToPaste:
+      Image(systemName: "clipboard").foregroundStyle(.secondary)
+    case .noReceiver,
+         .cleanupUnavailable,
+         .speechModelUnavailable,
+         .dictionarySaveFailed:
+      Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
     }
   }
 
@@ -220,7 +237,7 @@ struct PillView: View {
 private struct PulsingDot: View {
   // MARK: Internal
 
-  var color = Color.dictation
+  var color = Color.blue
   var glow = Color.blue
 
   var body: some View {
@@ -242,13 +259,4 @@ private struct PulsingDot: View {
   // MARK: Private
 
   @State private var isPulsing = false
-}
-
-// MARK: - Pill phase colours
-
-private extension Color {
-  /// The engine leg's blue and the network leg's purple, as chosen on real pixels in the pill
-  /// mock-up spike.
-  static let dictation = Color(red: 0.20, green: 0.53, blue: 1)
-  static let cleanup = Color(red: 0.62, green: 0.40, blue: 0.95)
 }
