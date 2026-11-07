@@ -59,7 +59,23 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
         app.typeKey(.tab, modifierFlags: [.shift])
         assertKeyboardFocus(on: stop)
       }
+      assertLabel(
+        scene == "onboarding-keys-accurate"
+          ? "Use on-device dictation instead" : "Use Custom to skip cleanup",
+        of: app.descendants(matching: .any)["miniwhisper.onboarding.keys.use-custom"],
+      )
     }
+    XCTAssertTrue(app.staticTexts[
+      "Switches to Custom: Parakeet on this Mac, without cleanup. Downloads its speech model if needed.",
+    ]
+    .awaitExistence())
+    app.descendants(matching: .any)["miniwhisper.onboarding.keys.use-custom"].click()
+    XCTAssertTrue(app.groups["miniwhisper.onboarding.permissions"].awaitExistence())
+    app.buttons["miniwhisper.onboarding.rail.model"].click()
+    assertValue(
+      "Prepare Parakeet TDT v2",
+      of: app.staticTexts["miniwhisper.onboarding.model.title"],
+    )
   }
 
   @MainActor func testSingleActionPageKeyboardLaws() {

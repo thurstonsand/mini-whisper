@@ -361,12 +361,22 @@ struct OnboardingKeysPage: View {
           keyRow(slot)
         }
         Divider()
-        Button("Use Custom to skip cleanup") {
+        Button(store.profile.engine == .scribe
+          ? "Use on-device dictation instead" : "Use Custom to skip cleanup")
+        {
           store.send(.useCustomTapped)
         }
         .buttonStyle(.link)
         .focused(focus, equals: .useCustom)
         .accessibilityIdentifier(AccessibilityID.onboardingKeysUseCustom)
+        if store.profile.engine == .scribe {
+          Text(
+            "Switches to Custom: Parakeet on this Mac, without cleanup. Downloads its speech model if needed.",
+          )
+          .font(.callout)
+          .foregroundStyle(.secondary)
+          .fixedSize(horizontal: false, vertical: true)
+        }
       }
     }
     .accessibilityIdentifier(AccessibilityID.onboardingKeys)

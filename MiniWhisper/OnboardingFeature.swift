@@ -503,8 +503,6 @@ enum OnboardingStep: Int, Equatable {
         state.failureMessage = nil
         state.selectedStep = nil
         return .none
-      // The other way past a factory profile's keys is a profile that needs none. Custom shares
-      // the factory engine, so whatever is already downloading is still what it needs.
       case .useCustomTapped:
         guard state.visibleStep == .keys else {
           return .none
