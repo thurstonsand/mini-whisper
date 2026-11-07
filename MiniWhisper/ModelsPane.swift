@@ -26,8 +26,16 @@ struct ModelsPane: View {
     ) { _ in
       Button("Cancel", role: .cancel) { store.send(.models(.deletionCancelled)) }
       Button("Delete", role: .destructive) { store.send(.models(.deletionConfirmed)) }
-    } message: { _ in
-      Text("\(models.settings.activeProfile.name) can’t transcribe until it’s downloaded again.")
+    } message: { asset in
+      switch asset {
+      case .s1Mini:
+        Text(
+          "\(models.settings.activeProfile.name) will deliver transcripts without cleanup until S1-mini is downloaded again.",
+        )
+      case .gate,
+           .parakeet:
+        Text("\(models.settings.activeProfile.name) can’t transcribe until it’s downloaded again.")
+      }
     }
     .task { store.send(.models(.task)) }
   }

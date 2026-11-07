@@ -41,11 +41,42 @@ final class ModelsUITests: MiniWhisperUITestCase, SurfaceTagged {
         delete.click()
         let cancel = app.sheets.buttons["Cancel"].firstMatch
         try require(cancel.awaitExistence(timeout: 2))
+        XCTAssertTrue(app.sheets
+          .staticTexts[
+            "Everyday can’t transcribe until it’s downloaded again.",
+          ]
+          .awaitExistence())
         cancel.click()
         XCTAssertTrue(cancel.awaitNonExistence())
         self.assertValue(
           "567.2 MB", of: app.staticTexts["miniwhisper.models.asset.parakeet.state"],
         )
+      },
+
+      Law("Deleting Offline cleanup warns of raw delivery, not lost transcription") { app in
+        app.staticTexts["miniwhisper.settings.sidebar.profiles"].click()
+        let picker = app.popUpButtons["miniwhisper.profiles.picker"]
+        try require(picker.awaitHittable(timeout: 2))
+        picker.click()
+        let offline = app.menuItems
+          .matching(NSPredicate(format: "title CONTAINS %@", "Offline"))
+          .firstMatch
+        try require(offline.awaitExistence(timeout: 2))
+        offline.click()
+        app.staticTexts["miniwhisper.settings.sidebar.models"].click()
+        let delete = app.buttons["miniwhisper.models.asset.s1-mini.delete"]
+        try require(delete.awaitHittable(timeout: 2))
+        delete.click()
+        let cancel = app.sheets.buttons["Cancel"].firstMatch
+        try require(cancel.awaitExistence(timeout: 2))
+        self.recordScreenshot("offline-delete-confirmation", screenshot: app.screenshot())
+        XCTAssertTrue(app.sheets
+          .staticTexts[
+            "Offline will deliver transcripts without cleanup until S1-mini is downloaded again.",
+          ]
+          .awaitExistence())
+        cancel.click()
+        XCTAssertTrue(cancel.awaitNonExistence())
       },
     ])
   }
