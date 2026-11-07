@@ -140,17 +140,6 @@ import TranscriptCleanup
     #expect(entry.original?.cleanup?.disposition == .failed(failure.historyDetail))
   }
 
-  /// The pill says what it can promise: delivery happened, the polish did not.
-  @Test func `the failure notice is subdued, like the other degraded successes`() {
-    let content = PillFeature.State.Presentation.Notice.cleanupUnavailable.content
-    #expect(content.text == "Cleanup unavailable — pasted as heard")
-    #expect(content.isSubdued)
-    #expect(
-      content.duration
-        == PillFeature.State.Presentation.Notice.noSpeechDetected.content.duration,
-    )
-  }
-
   @Test func `an unreadable keychain is a cleanup failure, not a dead dictation`() async throws {
     let store = cleanupStore(cleanup: .configured) {
       $0.keychain.read = { _ in throw KeychainError(operation: .read, status: -25300) }

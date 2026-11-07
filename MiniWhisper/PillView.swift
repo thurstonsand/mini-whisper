@@ -96,7 +96,7 @@ struct PillView: View {
       .font(.system(size: 13, weight: .medium))
       .lineLimit(1)
       .truncationMode(.tail)
-      .foregroundStyle(.secondary)
+      .foregroundStyle(.primary)
       // The phase and the skip chip keep their full width; the destination takes what is left,
       // and no more than a glance's worth of it when the pill has room to spare.
       ViewThatFits(in: .horizontal) {
@@ -173,8 +173,7 @@ struct PillView: View {
         label: "Dictation notice",
       )
       .font(.system(size: 13, weight: .medium))
-      .foregroundStyle(notice.content
-        .isSubdued ? AnyShapeStyle(.secondary) : AnyShapeStyle(.primary))
+      .foregroundStyle(.primary)
     }
   }
 

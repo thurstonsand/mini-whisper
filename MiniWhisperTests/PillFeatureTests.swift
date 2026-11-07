@@ -88,7 +88,14 @@ import Testing
     await store.send(.transcribingStarted(target: nil)) { $0.presentation = .transcribing }
   }
 
-  @Test func `no speech notice fades and dismisses after its delay`() async {
+  @Test(arguments: [
+    (PillFeature.Action.noSpeechDetected, PillFeature.State.Presentation.Notice.noSpeechDetected),
+    (.noTranscriptToPaste, .noTranscriptToPaste),
+    (.cleanupUnavailable, .cleanupUnavailable),
+  ])
+  func `explanatory notices remain readable before fading`(
+    action: PillFeature.Action, notice: PillFeature.State.Presentation.Notice,
+  ) async {
     let clock = TestClock()
     let store = TestStore(initialState: PillFeature.State()) {
       PillFeature()
@@ -96,11 +103,14 @@ import Testing
       $0.continuousClock = clock
     }
 
-    await store.send(.noSpeechDetected) {
+    await store.send(action) {
       $0.noticeGeneration = 1
-      $0.presentation = .notice(.noSpeechDetected)
+      $0.presentation = .notice(notice)
     }
-    await clock.advance(by: .milliseconds(1500))
+    await clock.advance(by: .seconds(2))
+    await store.send(.destinationUpdated(nil))
+    #expect(!store.state.isFadingOut)
+    await clock.advance(by: .seconds(1))
     await store.receive(.noticeDisplayElapsed(1)) { $0.isFadingOut = true }
     await clock.advance(by: .milliseconds(180))
     await store.receive(.noticeFadeElapsed(1)) {

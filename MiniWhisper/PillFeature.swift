@@ -42,50 +42,41 @@ import ComposableArchitecture
         struct Content: Equatable {
           let text: String
           let phase: String
-          let isSubdued: Bool
-          let duration: Duration
         }
 
         var content: Content {
           switch self {
           case .noSpeechDetected:
             Content(
-              text: "No speech detected", phase: "No speech detected", isSubdued: true,
-              duration: .milliseconds(1500),
+              text: "No speech detected", phase: "No speech detected",
             )
           case .noTranscriptToPaste:
             Content(
               text: "No transcript to paste yet", phase: "No transcript to paste yet",
-              isSubdued: true, duration: .milliseconds(1500),
             )
           case .copiedToClipboard:
             Content(
-              text: "Copied — ⌘V to paste", phase: "Copied", isSubdued: false,
-              duration: .seconds(3),
+              text: "Copied — ⌘V to paste", phase: "Copied",
             )
           case let .noReceiver(pasteShortcut):
             Content(
               text: Self.noReceiverText(pasteShortcut: pasteShortcut), phase: "Nowhere to paste",
-              isSubdued: false, duration: .seconds(3),
             )
           case .cancelledSavedToHistory:
             Content(
               text: "Cancelled — saved to History", phase: "Cancelled and saved to History",
-              isSubdued: false, duration: .seconds(3),
             )
           case .cleanupUnavailable:
             Content(
               text: "Cleanup unavailable — pasted as heard", phase: "Pasted without cleanup",
-              isSubdued: true, duration: .milliseconds(1500),
             )
           case let .speechModelUnavailable(status):
             Content(
-              text: status, phase: status, isSubdued: true, duration: .seconds(3),
+              text: status, phase: status,
             )
           case .dictionarySaveFailed:
             Content(
               text: "Couldn’t save dictionary entry", phase: "Dictionary entry not saved",
-              isSubdued: false, duration: .seconds(3),
             )
           }
         }
@@ -314,12 +305,11 @@ import ComposableArchitecture
     state.submits = false
     state.isFadingOut = false
     state.isLatchBouncePending = false
-    let duration = notice.content.duration
     return .merge(
       .cancel(id: CancelID.polishing),
       .cancel(id: CancelID.destination),
       .run { send in
-        try await clock.sleep(for: duration)
+        try await clock.sleep(for: .seconds(3))
         await send(.noticeDisplayElapsed(generation))
       }.cancellable(id: CancelID.notice, cancelInFlight: true),
     )
