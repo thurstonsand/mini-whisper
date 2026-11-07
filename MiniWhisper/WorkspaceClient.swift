@@ -12,12 +12,13 @@ enum WorkspaceError: Error, Equatable {
 
 @DependencyClient struct WorkspaceClient {
   var open: @Sendable (URL) async throws -> Void
+  var reveal: @Sendable (URL) async -> Void
 }
 
 // MARK: DependencyKey
 
 extension WorkspaceClient: DependencyKey {
-  static let testValue = Self(open: { _ in })
+  static let testValue = Self(open: { _ in }, reveal: { _ in })
 
   static let liveValue = Self(
     open: { url in
@@ -25,6 +26,9 @@ extension WorkspaceClient: DependencyKey {
       guard opened else {
         throw WorkspaceError.openFailed(url)
       }
+    },
+    reveal: { url in
+      await MainActor.run { NSWorkspace.shared.activateFileViewerSelecting([url]) }
     },
   )
 }

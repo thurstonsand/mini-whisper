@@ -257,6 +257,16 @@ import Testing
     #expect(store.state.dictionary == .empty)
     #expect(store.state.persistenceFailure == nil)
     #expect(try Data(contentsOf: url) == malformed)
+
+    await store.send(.reloadRequested).finish()
+    #expect(store.state.loadFailure != nil)
+    #expect(try Data(contentsOf: url) == malformed)
+
+    try Data("{\"version\":1,\"vocabulary\":[],\"corrections\":[]}".utf8).write(to: url)
+    await store.send(.reloadRequested).finish()
+    #expect(store.state.loadFailure == nil)
+    await store.send(.addRequested)
+    #expect(store.state.draft != nil)
   }
 }
 

@@ -171,6 +171,8 @@ enum DictionaryFieldCopy {
     case quickAddSubmitted(word: String, misspelling: String)
     case persistenceFailed(PersistenceContext, String)
     case persistenceFailureDismissed
+    case revealFileRequested
+    case reloadRequested
     case delegate(Delegate)
 
     // MARK: Internal
@@ -186,10 +188,23 @@ enum DictionaryFieldCopy {
   }
 
   @Dependency(\.date.now) var now
+  @Dependency(\.workspace) var workspace
 
   var body: some ReducerOf<Self> {
     Reduce { state, action in
       switch action {
+      case .revealFileRequested:
+        return .run { _ in await workspace.reveal(Channel.dictionaryFile) }
+      case .reloadRequested:
+        return .run { [dictionary = state.$dictionary] _ in
+          do {
+            try await dictionary.load()
+          } catch {
+            // Shared retains the load error, so the recovery surface stays available.
+            dictionaryLogger
+              .error("Dictionary reload failed: \(error.localizedDescription, privacy: .public)")
+          }
+        }
       case let .sortChanged(sort):
         state.sort = sort
         return .none

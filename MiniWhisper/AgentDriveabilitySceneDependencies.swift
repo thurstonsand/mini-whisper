@@ -125,6 +125,7 @@ import TranscriptCleanup
         try url.absoluteString.write(to: resultFile, atomically: true, encoding: .utf8)
         throw AgentSceneRefusal.systemSettings
       }
+      dependencies.workspace.reveal = { _ in }
     }
   }
 

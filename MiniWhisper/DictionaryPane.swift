@@ -71,12 +71,14 @@ struct DictionaryPane: View {
 
   @ViewBuilder private var emptyState: some View {
     if store.dictionary.loadFailure != nil {
-      ContentUnavailableView(
-        "Dictionary Unavailable", systemImage: "exclamationmark.triangle",
-        description: Text(
-          "dictionary.json could not be read. Fix or remove the file before editing.",
-        ),
-      )
+      ContentUnavailableView {
+        Label("Dictionary Unavailable", systemImage: "exclamationmark.triangle")
+      } description: {
+        Text("dictionary.json could not be read. Fix or remove the file, then try again.")
+      } actions: {
+        Button("Show in Finder") { store.send(.dictionary(.revealFileRequested)) }
+        Button("Try Again") { store.send(.dictionary(.reloadRequested)) }
+      }
     } else if store.dictionary.entries.isEmpty {
       ContentUnavailableView(
         "No Dictionary Entries", systemImage: "character.book.closed",

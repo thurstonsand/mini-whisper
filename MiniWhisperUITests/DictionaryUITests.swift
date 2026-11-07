@@ -118,11 +118,23 @@ final class DictionaryUITests: MiniWhisperUITestCase, SurfaceTagged {
     ])
   }
 
-  @MainActor func testUnreadableDictionaryRefusesEditing() {
+  @MainActor func testUnreadableDictionaryRefusesEditing() throws {
     let app = launch("settings-dictionary-unreadable")
     defer { terminate(app) }
 
     XCTAssertTrue(app.staticTexts["Dictionary Unavailable"].awaitExistence(timeout: 5))
+    XCTAssertTrue(app.buttons["Show in Finder"].isHittable)
+    let retry = app.buttons["Try Again"]
+    XCTAssertTrue(retry.isHittable)
+    retry.click()
+    XCTAssertTrue(app.staticTexts["Dictionary Unavailable"].awaitExistence(timeout: 2))
+    XCTAssertFalse(app.buttons["miniwhisper.dictionary.add"].isEnabled)
+    try Data("{\"vocabulary\":[],\"corrections\":[]}".utf8).write(to: agentDictionaryFileURL)
+    if retry.exists {
+      retry.click()
+    }
+    XCTAssertTrue(app.staticTexts["No Dictionary Entries"].awaitExistence(timeout: 2))
+    XCTAssertTrue(app.buttons["miniwhisper.dictionary.add"].isEnabled)
   }
 
   // Three tests, three launches, one past bug: first rows rendered collapsed depending on
