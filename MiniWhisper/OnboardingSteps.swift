@@ -172,14 +172,7 @@ struct OnboardingWelcomePage: View {
   }
 
   private func choiceTitle(_ profile: Profile) -> String {
-    switch profile.id {
-    case .haiku:
-      "Everyday · Recommended"
-    case .cerebras:
-      "Fastest cleanup"
-    default:
-      profile.name
-    }
+    profile.id == .haiku ? "\(profile.name) · Recommended" : profile.name
   }
 
   private func select(offset: Int) -> Bool {
@@ -394,6 +387,8 @@ struct OnboardingKeysPage: View {
     let provider = slot.provider
     if store.missingKeys.contains(slot) {
       VStack(alignment: .leading, spacing: 6) {
+        Text("\(provider.displayName) key")
+          .font(.body)
         SecureField(
           "\(provider.displayName) key",
           text: Binding(
