@@ -7,6 +7,26 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
 
   static let surfaces: Set<Surface> = [.onboarding]
 
+  @MainActor func testSkippedKeyOffersRecoveryInsteadOfDictationInstructions() {
+    let app = launch("onboarding-try-it-key-skipped")
+    defer { terminate(app) }
+
+    let title = app.staticTexts["miniwhisper.onboarding.try-it.title"]
+    XCTAssertTrue(title.awaitExistence(timeout: 5))
+    assertValue("Finish setup to try it", of: title)
+    XCTAssertFalse(app.tryItEditor.exists)
+    assertLabel("Finish Setup", of: app.buttons["miniwhisper.onboarding.try-it.skip"])
+    app.typeKey(.return, modifierFlags: [])
+    let field = app.secureTextFields["miniwhisper.onboarding.keys.anthropic"]
+    XCTAssertTrue(field.awaitExistence(timeout: 2))
+    field.click()
+    field.typeText("sk-accepted")
+    app.buttons["miniwhisper.onboarding.keys.continue"].click()
+    XCTAssertTrue(app.tryItEditor.awaitExistence(timeout: 2))
+    assertValue("Give it a try", of: title)
+    assertKeyboardFocus(on: app.tryItEditor)
+  }
+
   @MainActor func testKeyHelpLinksParticipateInBothTabDirections() {
     let app = launch("onboarding-keys")
     defer { terminate(app) }

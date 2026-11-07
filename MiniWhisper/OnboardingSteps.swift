@@ -325,7 +325,7 @@ struct OnboardingKeysPage: View {
         label: "Keys heading",
       ),
       summary: .init(
-        text: "\(store.profile.tagline) Keys stay in your Keychain and are used only by this profile.",
+        text: "Keys stay in your Keychain and are used only by this profile. Skipping leaves dictation unavailable until you add them.",
         identifier: AccessibilityID.onboardingKeysSummary, label: "Keys information",
       ),
       summaryMaxWidth: 430,

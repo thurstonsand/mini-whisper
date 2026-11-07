@@ -16,11 +16,12 @@ struct OnboardingTryItPage: View {
     OnboardingStepPage(
       symbol: "quote.bubble",
       title: .init(
-        text: "Give it a try", identifier: AccessibilityID.onboardingTryItTitle,
+        text: title,
+        identifier: AccessibilityID.onboardingTryItTitle,
         label: "Try it heading",
       ),
       summary: .init(
-        text: OnboardingCopy.tryItInstructions(hotkeys: store.hotkeys),
+        text: summary,
         identifier: AccessibilityID.onboardingTryItInstructions, label: "Try it instructions",
       ),
       summaryLineSpacing: 3,
@@ -35,6 +36,22 @@ struct OnboardingTryItPage: View {
   }
 
   // MARK: Private
+
+  private var title: String {
+    if store.step == .ready {
+      return "Test complete"
+    }
+    return store.canTryDictation ? "Give it a try" : "Finish setup to try it"
+  }
+
+  private var summary: String {
+    if store.step == .ready {
+      return "Your test dictation is complete."
+    }
+    return store.canTryDictation
+      ? OnboardingCopy.tryItInstructions(hotkeys: store.hotkeys)
+      : "Complete the missing setup below to try a dictation. You can also finish setup now and return to it in Settings."
+  }
 
   @ViewBuilder private var cardContent: some View {
     switch store.step {
@@ -53,7 +70,7 @@ struct OnboardingTryItPage: View {
       unavailable("Wait for the speech model to finish before trying a dictation.", symbol: "cpu")
     case .tryIt where !store.missingKeys.isEmpty:
       unavailable(
-        "\(store.profile.name) can’t dictate until it has \(OnboardingFeature.State.keysPhrase(store.missingKeys)). Add it in Settings → Profiles.",
+        "\(store.profile.name) can’t dictate until it has \(OnboardingFeature.State.keysPhrase(store.missingKeys)). Add your key here, or later in Settings → Profiles.",
         symbol: "key",
       )
     case .tryIt:

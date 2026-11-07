@@ -44,6 +44,7 @@ enum OnboardingFocus: Hashable {
   case modelAction
   case tryItEditor
   case tryItSkip
+  case tryItAddKey
   case readyAction
 }
 
@@ -110,10 +111,9 @@ struct OnboardingView: View {
       store.isRecordingShortcut ? [] : [.shortcutKeycap, .shortcutContinue]
     case .model:
       store.needsModelSetup || store.canContinueFromModel ? [.modelAction] : []
-    // Nothing to dictate into yet, so Skip is the page's only control — and still a Tab stop,
-    // because a button the keyboard cannot reach is not a way out.
     case .tryIt:
-      tryItIsLive ? [.tryItEditor, .tryItSkip] : [.tryItSkip]
+      tryItIsLive ? [.tryItEditor, .tryItSkip]
+        : store.missingKeys.isEmpty ? [.tryItSkip] : [.tryItAddKey, .tryItSkip]
     case .ready:
       [.readyAction]
     }
@@ -165,14 +165,16 @@ struct OnboardingView: View {
   }
 
   private var skipButton: some View {
-    secondaryButton("Skip", focus: .tryItSkip) { store.send(.skip) }
-      .disabled(store.isMarkingCompletion)
-      .accessibilityIdentifier(AccessibilityID.onboardingTryItSkip)
-      .accessibilityLabel("Skip test dictation")
-      .accessibilityPaintState(
-        AccessibilityID.onboardingTryItSkipRing, label: "Skip ring",
-        value: focus == .tryItSkip ? "Ring on" : "Ring off",
-      )
+    secondaryButton(store.canTryDictation ? "Skip" : "Finish Setup", focus: .tryItSkip) {
+      store.send(.skip)
+    }
+    .disabled(store.isMarkingCompletion)
+    .accessibilityIdentifier(AccessibilityID.onboardingTryItSkip)
+    .accessibilityLabel(store.canTryDictation ? "Skip test dictation" : "Finish Setup")
+    .accessibilityPaintState(
+      AccessibilityID.onboardingTryItSkipRing, label: "Skip ring",
+      value: focus == .tryItSkip ? "Ring on" : "Ring off",
+    )
   }
 
   /// Possible, not advised: the profile stays Degraded and does not dictate until a key is added.
@@ -221,8 +223,14 @@ struct OnboardingView: View {
           .accessibilityIdentifier(AccessibilityID.onboardingModelContinue)
       }
     case .tryIt:
-      // A skipped key leaves nothing to speak into; the card says why and Skip is the way on.
-      if store.canTryDictation {
+      if !store.missingKeys.isEmpty {
+        Button(store.missingKeys.count == 1 ? "Add Key…" : "Add Keys…") {
+          store.send(.navigate(.keys))
+        }
+        .buttonStyle(.borderedProminent)
+        .focused($focus, equals: .tryItAddKey)
+        .keyboardShortcut(.defaultAction)
+      } else if store.canTryDictation {
         SemanticText(
           "Speak to complete…", identifier: AccessibilityID.onboardingTryItGuidance,
           label: "Try it guidance",
