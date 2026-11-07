@@ -203,8 +203,11 @@ private struct HistoryRow: View {
         Image(systemName: "wand.and.sparkles")
           .font(.callout)
           .foregroundStyle(.tertiary)
+          .frame(width: 20)
           .opacity(isRevealed ? 0 : 1)
           .accessibilityIdentifier(AccessibilityID.historyCleaned(entry.id))
+      } else {
+        Color.clear.frame(width: 20, height: 1).accessibilityHidden(true)
       }
 
       if entry.audio != nil {
@@ -213,8 +216,11 @@ private struct HistoryRow: View {
         }
         .labelStyle(.iconOnly)
         .buttonStyle(.borderless)
+        .frame(width: 20)
         .foregroundStyle(isPointed ? AnyShapeStyle(.primary) : AnyShapeStyle(.tertiary))
         .help(isPlaying ? "Stop the recording" : "Play the recording")
+      } else {
+        Color.clear.frame(width: 20, height: 1).accessibilityHidden(true)
       }
 
       accessory
