@@ -31,6 +31,7 @@ enum PresentedWindow: Equatable {
     case onboardingShortcut = "onboarding-shortcut"
     case onboardingModel = "onboarding-model"
     case onboardingModelActionable = "onboarding-model-actionable"
+    case onboardingModelDownloadFailed = "onboarding-model-download-failed"
     case onboardingModelOffline = "onboarding-model-offline"
     case onboardingTryIt = "onboarding-try-it"
     case onboardingTryItKeySkipped = "onboarding-try-it-key-skipped"
@@ -154,6 +155,7 @@ enum PresentedWindow: Equatable {
            .onboardingShortcut,
            .onboardingModel,
            .onboardingModelActionable,
+           .onboardingModelDownloadFailed,
            .onboardingTryIt,
            .onboardingReady:
         return [haiku: "sk-ant-agent-scene"]
@@ -267,6 +269,14 @@ enum PresentedWindow: Equatable {
         // A real failure arrives through the readiness stream, which also posts the message the
         // footer shows — and clearing it is how a retry announces itself.
         state.onboarding.failureMessage = "Model setup failed"
+      case .onboardingModelDownloadFailed:
+        state.onboardingCompleted = false
+        present(&state.onboarding,
+                permissions: permissions(microphone: .granted, accessibility: true),
+                readiness: .failed(
+                  "The network connection was lost. Check your connection and retry.",
+                ),
+                selectedStep: .model, hasCompletedShortcut: true)
       case .onboardingModelOffline:
         state.onboardingCompleted = false
         present(&state.onboarding,

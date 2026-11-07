@@ -13,9 +13,10 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
 
     let title = app.staticTexts["miniwhisper.onboarding.try-it.title"]
     XCTAssertTrue(title.awaitExistence(timeout: 5))
-    assertValue("Finish setup to try it", of: title)
+    assertValue("Set up dictation to try it", of: title)
     XCTAssertFalse(app.tryItEditor.exists)
-    assertLabel("Finish Setup", of: app.buttons["miniwhisper.onboarding.try-it.skip"])
+    assertLabel("Set Up Later", of: app.buttons["miniwhisper.onboarding.try-it.skip"])
+    assertValue("Incomplete; Needs a key", of: app.buttons["miniwhisper.onboarding.rail.keys"])
     app.typeKey(.return, modifierFlags: [])
     let field = app.secureTextFields["miniwhisper.onboarding.keys.anthropic"]
     XCTAssertTrue(field.awaitExistence(timeout: 2))
@@ -24,6 +25,8 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
     app.buttons["miniwhisper.onboarding.keys.continue"].click()
     XCTAssertTrue(app.tryItEditor.awaitExistence(timeout: 2))
     assertValue("Give it a try", of: title)
+    assertValue("Complete", of: app.buttons["miniwhisper.onboarding.rail.keys"])
+    assertLabel("Skip test dictation", of: app.buttons["miniwhisper.onboarding.try-it.skip"])
     assertKeyboardFocus(on: app.tryItEditor)
   }
 
@@ -97,10 +100,35 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
         },
       ),
       ("onboarding-model-actionable", "miniwhisper.onboarding.model.retry", { app, _ in
-        let failure = app.descendants(matching: .any)["miniwhisper.onboarding.failure"]
+        self.assertValue(
+          "Model setup failed",
+          of: app.descendants(matching: .any)["miniwhisper.onboarding.model.status"],
+        )
         app.typeKey(.return, modifierFlags: [])
-        XCTAssertTrue(failure.awaitNonExistence())
+        self.assertValue(
+          "Downloading Parakeet TDT v2…",
+          of: app.staticTexts["miniwhisper.onboarding.model.status"],
+        )
       }),
+      (
+        "onboarding-model-download-failed",
+        "miniwhisper.onboarding.model.retry",
+        { app, _ in
+          self.assertValue(
+            "The network connection was lost. Check your connection and retry.",
+            of: app.staticTexts["miniwhisper.onboarding.model.status"],
+          )
+          self.assertValue(
+            "Current; Setup failed",
+            of: app.buttons["miniwhisper.onboarding.rail.model"],
+          )
+          app.typeKey(.return, modifierFlags: [])
+          self.assertValue(
+            "Downloading Parakeet TDT v2…",
+            of: app.staticTexts["miniwhisper.onboarding.model.status"],
+          )
+        },
+      ),
       ("onboarding-ready", "miniwhisper.onboarding.ready.finish", { app, _ in
         let ready = app.groups["miniwhisper.onboarding.ready"]
         app.typeKey(.return, modifierFlags: [])

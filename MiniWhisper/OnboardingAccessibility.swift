@@ -23,8 +23,11 @@ enum OnboardingAccessibility {
 
   static func railValue(
     step: OnboardingStep, engine: SpeechEngine, readiness: EngineReadiness, isComplete: Bool,
-    isCurrent: Bool,
+    isCurrent: Bool, problem: String?,
   ) -> String {
+    if let problem {
+      return "\(isCurrent ? "Current" : "Incomplete"); \(problem)"
+    }
     if isComplete {
       return "Complete"
     }

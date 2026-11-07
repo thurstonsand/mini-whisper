@@ -41,7 +41,7 @@ struct OnboardingTryItPage: View {
     if store.step == .ready {
       return "Test complete"
     }
-    return store.canTryDictation ? "Give it a try" : "Finish setup to try it"
+    return store.canTryDictation ? "Give it a try" : "Set up dictation to try it"
   }
 
   private var summary: String {
@@ -50,7 +50,7 @@ struct OnboardingTryItPage: View {
     }
     return store.canTryDictation
       ? OnboardingCopy.tryItInstructions(hotkeys: store.hotkeys)
-      : "Complete the missing setup below to try a dictation. You can also finish setup now and return to it in Settings."
+      : "Complete the missing setup below to try a dictation, or set it up later in Settings."
   }
 
   @ViewBuilder private var cardContent: some View {

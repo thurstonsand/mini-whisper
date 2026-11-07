@@ -143,7 +143,9 @@ struct OnboardingView: View {
 
   private var footer: some View {
     VStack(alignment: .leading, spacing: 12) {
-      if let failureMessage = store.failureMessage {
+      if let failureMessage = store.failureMessage,
+         store.visibleStep != .model || failureMessage != store.modelSetupFailure
+      {
         Label(failureMessage, systemImage: "exclamationmark.triangle.fill")
           .font(.system(size: 12))
           .foregroundStyle(.red)
@@ -166,12 +168,12 @@ struct OnboardingView: View {
   }
 
   private var skipButton: some View {
-    secondaryButton(store.canTryDictation ? "Skip" : "Finish Setup", focus: .tryItSkip) {
+    secondaryButton(store.canTryDictation ? "Skip" : "Set Up Later", focus: .tryItSkip) {
       store.send(.skip)
     }
     .disabled(store.isMarkingCompletion)
     .accessibilityIdentifier(AccessibilityID.onboardingTryItSkip)
-    .accessibilityLabel(store.canTryDictation ? "Skip test dictation" : "Finish Setup")
+    .accessibilityLabel(store.canTryDictation ? "Skip test dictation" : "Set Up Later")
     .accessibilityPaintState(
       AccessibilityID.onboardingTryItSkipRing, label: "Skip ring",
       value: focus == .tryItSkip ? "Ring on" : "Ring off",
@@ -210,7 +212,7 @@ struct OnboardingView: View {
     case .model:
       if store.needsModelSetup {
         Button(
-          store.engineReadiness.isFailure ? "Retry Model Setup" : "Download & Prepare",
+          store.modelSetupFailure != nil ? "Retry Model Setup" : "Download & Prepare",
         ) { store.send(.setupModel) }
           .buttonStyle(.borderedProminent)
           .focused($focus, equals: .modelAction)
@@ -261,18 +263,8 @@ struct OnboardingView: View {
     _ title: String, focus target: OnboardingFocus, action: @escaping () -> Void,
   ) -> some View {
     Button(title, action: action)
-      .buttonStyle(.plain)
-      .foregroundStyle(.secondary)
+      .buttonStyle(.bordered)
       .focused($focus, equals: target)
-      // The system effect fills a plain button with a solid accent capsule that swallows its
-      // label, so the ring is drawn here — from focus state and nothing else.
-      .focusEffectDisabled()
-      .overlay {
-        RoundedRectangle(cornerRadius: 5)
-          .strokeBorder(Color(nsColor: .keyboardFocusIndicatorColor), lineWidth: 2)
-          .padding(-4)
-          .opacity(focus == target ? 1 : 0)
-      }
   }
 
   private func handleTab(backward: Bool) -> Bool {
@@ -287,14 +279,5 @@ struct OnboardingView: View {
     let step = backward ? cycle.count - 1 : 1
     self.focus = cycle[(index + step) % cycle.count]
     return true
-  }
-}
-
-private extension EngineReadiness {
-  var isFailure: Bool {
-    if case .failed = self {
-      return true
-    }
-    return false
   }
 }

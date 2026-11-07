@@ -283,14 +283,25 @@ struct OnboardingStepRail: View {
            .ready:
         store.snapshot.isCompleted
       }
+    let problem: String? =
+      switch step {
+      case .keys where store.hasSkippedKeys && !store.missingKeys.isEmpty:
+        "Needs a key"
+      case .model where store.modelSetupFailure != nil:
+        "Setup failed"
+      default:
+        nil
+      }
     return Button {
       store.send(.navigate(step))
     } label: {
       HStack(spacing: 10) {
-        Image(systemName: isComplete ? "checkmark.circle.fill" : symbol)
+        Image(systemName: problem != nil ? "exclamationmark.triangle.fill"
+          : isComplete ? "checkmark.circle.fill" : symbol)
           .frame(width: 18)
           .foregroundStyle(
-            isComplete ? Color.green : isCurrent ? Color.accentColor : Color.secondary,
+            problem != nil ? Color.orange
+              : isComplete ? Color.green : isCurrent ? Color.accentColor : Color.secondary,
           )
           .accessibilityHidden(true)
         Text(title)
@@ -313,7 +324,7 @@ struct OnboardingStepRail: View {
     .accessibilityValue(
       OnboardingAccessibility.railValue(
         step: step, engine: store.health.engine, readiness: store.engineReadiness,
-        isComplete: isComplete, isCurrent: isCurrent,
+        isComplete: isComplete, isCurrent: isCurrent, problem: problem,
       ),
     )
   }
@@ -599,8 +610,20 @@ struct OnboardingModelPage: View {
         .font(.system(size: 12))
         .foregroundStyle(.secondary)
       }
-    case .modelMissing,
-         .failed:
+    case let .failed(message):
+      Label {
+        SemanticText(
+          message,
+          identifier: AccessibilityID.onboardingModelStatus,
+          label: "Model status",
+        )
+      } icon: {
+        Image(systemName: "exclamationmark.triangle.fill").accessibilityHidden(true)
+      }
+      .font(.callout)
+      .foregroundStyle(.red)
+      .fixedSize(horizontal: false, vertical: true)
+    case .modelMissing:
       Label(
         "\(Self.size(store.health.engine.assets)) · downloaded once", systemImage: "internaldrive",
       )

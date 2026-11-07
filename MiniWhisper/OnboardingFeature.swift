@@ -191,6 +191,13 @@ enum OnboardingStep: Int, Equatable {
       health.engineReadiness
     }
 
+    var modelSetupFailure: String? {
+      if case let .failed(message) = engineReadiness {
+        return message
+      }
+      return nil
+    }
+
     var hotkeys: [Hotkey] {
       shortcutBindings.hotkeys
     }
