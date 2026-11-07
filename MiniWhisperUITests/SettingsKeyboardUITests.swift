@@ -61,7 +61,7 @@ final class SettingsKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
       Law("The microphone row joins the keyboard grammar") { app in
         try require(self.enterDetailAtFirstRow(app))
         let picker = app.popUpButtons["miniwhisper.settings.microphone.picker"]
-        app.typeText("jj")
+        app.typeText("jjj")
         self.assertValue(
           "Bar on", of: app.staticTexts["miniwhisper.settings.microphone.state"],
         )
@@ -83,6 +83,7 @@ final class SettingsKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
       Law("Sound rows join the keyboard grammar") { app in
         try require(self.enterDetailAtFirstRow(app))
         for cue in [
+          "shortcut.submit",
           "shortcut.paste-last",
           "microphone",
           "sound.activate",
@@ -93,7 +94,7 @@ final class SettingsKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
           app.typeText("j")
           self.assertValue("Bar on", of: app.staticTexts["miniwhisper.settings.\(cue).state"])
         }
-        app.typeText("kkkkkk")
+        app.typeText("kkkkkkk")
         self.assertValue(
           "Bar on", of: app.staticTexts["miniwhisper.settings.shortcut.activate.state"],
         )
@@ -101,7 +102,7 @@ final class SettingsKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
 
       Law("Return opens a sound popup") { app in
         try require(self.enterDetailAtFirstRow(app))
-        app.typeText("jjj")
+        app.typeText("jjjj")
         self.assertValue(
           "Bar on", of: app.staticTexts["miniwhisper.settings.sound.activate.state"],
         )
