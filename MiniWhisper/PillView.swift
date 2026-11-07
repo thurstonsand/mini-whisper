@@ -19,7 +19,7 @@ struct PillView: View {
         .padding(.horizontal, 15)
         .padding(.vertical, 10)
         .frame(minHeight: 46)
-        .glassEffect(.regular, in: .capsule)
+        .background(Color(nsColor: .windowBackgroundColor), in: .capsule)
         .scaleEffect(bounceScale)
         .opacity(
           store.isFadingOut ? 0 : 1,
