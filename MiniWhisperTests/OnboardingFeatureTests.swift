@@ -677,22 +677,6 @@ struct OnboardingStepDerivationTests {
 @MainActor struct OnboardingProfileTests {
   // MARK: Internal
 
-  /// What the button downloads is the chosen profile's models, minus the megabyte gate that rides
-  /// along with anything; a profile with nothing large to fetch just starts.
-  @Test(arguments: [
-    (ProfileID.haiku, "Download Parakeet TDT v2"),
-    (.offline, "Download Parakeet TDT v2 and S1-mini"),
-    (.accurate, "Get Started"),
-    (.custom, "Download Parakeet TDT v2"),
-  ])
-  func `the welcome button names what the chosen profile downloads`(
-    _ id: ProfileID, title: String,
-  ) {
-    var state = welcomeState()
-    state.$settings.withLock { $0.profiles.active = id }
-    #expect(state.welcomeActionTitle == title)
-  }
-
   @Test func `the footnote sizes the download and names the keys that come next`() {
     var state = welcomeState()
     #expect(state.welcomeFootnote == "568.3 MB downloads while you finish setup.")
@@ -712,7 +696,6 @@ struct OnboardingStepDerivationTests {
     let size = ByteCountFormatter.string(
       fromByteCount: Int64(ModelAsset.s1Mini.pinnedBytes), countStyle: .file,
     )
-    #expect(state.welcomeActionTitle == "Download S1-mini")
     #expect(state.welcomeFootnote == "\(size) downloads while you finish setup.")
   }
 

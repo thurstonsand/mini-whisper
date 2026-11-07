@@ -62,9 +62,7 @@ struct OnboardingStepPage<Card: View>: View {
 
 // MARK: - OnboardingWelcomePage
 
-/// The choice and the consent on one page, so the download the profile needs starts on the first
-/// click. Three over two, so every tradeoff is on screen at once and compared rather than read in
-/// turn.
+/// Profile selection and its data-sharing facts stay together, before download consent.
 struct OnboardingWelcomePage: View {
   // MARK: Internal
 
@@ -77,26 +75,48 @@ struct OnboardingWelcomePage: View {
         Channel.name, identifier: AccessibilityID.onboardingWelcomeTitle,
         label: "Application name",
       )
-      .font(.system(size: 30, weight: .semibold))
+      .font(.largeTitle.weight(.semibold))
       SemanticText(
-        "Fast, accurate dictation that runs on your Mac.",
+        "Dictation, with a profile that fits you.",
         identifier: AccessibilityID.onboardingWelcomeSummary, label: "Welcome summary",
       )
-      .font(.system(size: 14))
+      .font(.body)
       .foregroundStyle(.secondary)
       .padding(.top, 4)
-      VStack(spacing: 10) {
-        HStack(spacing: 10) {
-          ForEach(lineup.prefix(3)) { card($0) }
+      HStack(alignment: .top, spacing: 28) {
+        Picker("Profile", selection: Binding(
+          get: { store.profile.id },
+          set: { store.send(.profileSelected($0)) },
+        )) {
+          ForEach(lineup) { profile in
+            Text(choiceTitle(profile))
+              .tag(profile.id)
+              .accessibilityIdentifier(AccessibilityID.profilesCard(profile.id))
+          }
         }
-        .fixedSize(horizontal: false, vertical: true)
-        HStack(spacing: 10) {
-          ForEach(lineup.dropFirst(3)) { card($0) }
+        .pickerStyle(.radioGroup)
+        .labelsHidden()
+        .focusable(false)
+        .fixedSize()
+        Divider()
+        VStack(alignment: .leading, spacing: 12) {
+          Text(store.profile.name).font(.headline)
+          Text(store.profile.tagline)
+          if store.profile.id == .cerebras {
+            Text("Speech stays on this Mac; transcripts go to Cerebras.")
+          }
+          Text(store.profile.credentials.isEmpty
+            ? "No API key required."
+            : "Needs \(OnboardingFeature.State.keysPhrase(store.profile.credentials)).")
+            .foregroundStyle(.secondary)
         }
-        .fixedSize(horizontal: false, vertical: true)
+        .font(.body)
+        .frame(maxWidth: .infinity, alignment: .leading)
       }
-      .padding(.top, 20)
-      Button(store.welcomeActionTitle) { store.send(.downloadModel) }
+      .fixedSize(horizontal: false, vertical: true)
+      .frame(width: 600, height: 176, alignment: .top)
+      .padding(.top, 32)
+      Button("Continue") { store.send(.downloadModel) }
         .buttonStyle(.borderedProminent)
         .controlSize(.large)
         .disabled(store.isRecordingModelDownloadConsent)
@@ -104,12 +124,12 @@ struct OnboardingWelcomePage: View {
         .keyboardShortcut(.defaultAction)
         .padding(.top, 20)
         .accessibilityIdentifier(AccessibilityID.onboardingDownloadModel)
-        .accessibilityLabel(store.welcomeActionTitle)
+        .accessibilityLabel("Continue")
       SemanticText(
         store.welcomeFootnote, identifier: AccessibilityID.onboardingWelcomeModelInfo,
         label: "Model download information",
       )
-      .font(.system(size: 12))
+      .font(.callout)
       .foregroundStyle(.secondary)
       .lineLimit(1)
       .padding(.top, 10)
@@ -124,13 +144,15 @@ struct OnboardingWelcomePage: View {
           .accessibilityValue(failureMessage)
       }
     }
-    // The cards are not Tab stops, so Tab still lands on the one button; the arrows choose.
+    // Tab reaches Continue; arrows choose the profile without starting a download.
     .background {
       WindowCharacterKeys { characters in
         switch characters {
-        case FunctionKey.leftArrow:
+        case FunctionKey.leftArrow,
+             FunctionKey.upArrow:
           select(offset: -1)
-        case FunctionKey.rightArrow:
+        case FunctionKey.rightArrow,
+             FunctionKey.downArrow:
           select(offset: 1)
         default:
           false
@@ -149,31 +171,22 @@ struct OnboardingWelcomePage: View {
     store.settings.profiles.lineup
   }
 
-  private func card(_ profile: Profile) -> some View {
-    let isSelected = profile.id == store.profile.id
-    // Only a key is worth saying here: every profile's downloads are named on the button.
-    let note = profile.credentials.isEmpty
-      ? nil : "Needs \(OnboardingFeature.State.keysPhrase(profile.credentials))"
-    let selection = isSelected ? "Selected" : "Not selected"
-    return ProfileCard(profile: profile, isSelected: isSelected) {
-      store.send(.profileSelected(profile.id))
-    } status: {
-      if let note {
-        Text(note)
-          .foregroundStyle(.secondary)
-          .fixedSize(horizontal: false, vertical: true)
-      }
+  private func choiceTitle(_ profile: Profile) -> String {
+    switch profile.id {
+    case .haiku:
+      "Everyday · Recommended"
+    case .cerebras:
+      "Fastest cleanup"
+    default:
+      profile.name
     }
-    .focusable(false)
-    .frame(width: 220)
-    .accessibilityValue(note.map { "\(selection); \($0)" } ?? selection)
   }
 
   private func select(offset: Int) -> Bool {
     guard let index = lineup.firstIndex(where: { $0.id == store.profile.id }),
           lineup.indices.contains(index + offset)
     else {
-      return false
+      return true
     }
     store.send(.profileSelected(lineup[index + offset].id))
     return true
@@ -746,55 +759,5 @@ struct OnboardingReadyPage: View {
     .accessibilityElement(children: .contain)
     .accessibilityIdentifier(AccessibilityID.onboardingReady)
     .accessibilityLabel("\(Channel.name) is ready")
-  }
-}
-
-// MARK: - ProfileCard
-
-/// One profile, whole: what it is, what it costs, and what it still needs. The welcome page lays
-/// the lineup out as cards so the taglines get compared rather than read in turn.
-struct ProfileCard<Status: View>: View {
-  let profile: Profile
-  let isSelected: Bool
-  let select: () -> Void
-  @ViewBuilder let status: Status
-
-  var body: some View {
-    Button(action: select) {
-      VStack(alignment: .leading, spacing: 6) {
-        HStack(spacing: 8) {
-          Image(systemName: profile.symbol)
-            .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
-          // A name is never truncated; a long one wraps instead.
-          Text(profile.name)
-            .fontWeight(.medium)
-            .fixedSize(horizontal: false, vertical: true)
-          Spacer(minLength: 0)
-        }
-        Text(profile.tagline)
-          .font(.callout)
-          .foregroundStyle(.secondary)
-          .fixedSize(horizontal: false, vertical: true)
-          .frame(maxWidth: .infinity, minHeight: 32, alignment: .topLeading)
-        Spacer(minLength: 0)
-        status
-          .font(.caption)
-      }
-      .padding(12)
-      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-      .background(.quinary, in: .rect(cornerRadius: 8))
-      .overlay {
-        RoundedRectangle(cornerRadius: 8)
-          .strokeBorder(
-            isSelected ? AnyShapeStyle(.tint) : AnyShapeStyle(.separator),
-            lineWidth: isSelected ? 2 : 1,
-          )
-      }
-      .contentShape(.rect(cornerRadius: 8))
-    }
-    .buttonStyle(.plain)
-    .accessibilityIdentifier(AccessibilityID.profilesCard(profile.id))
-    .accessibilityLabel(profile.name)
-    .accessibilityAddTraits(isSelected ? .isSelected : [])
   }
 }

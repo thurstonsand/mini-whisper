@@ -22,37 +22,57 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
         ),
         contract(
           .staticText, "miniwhisper.onboarding.welcome.summary", "Welcome summary",
-          "Fast, accurate dictation that runs on your Mac.",
+          "Dictation, with a profile that fits you.",
         ),
         contract(
-          .button, "miniwhisper.profiles.card.haiku", "Parakeet + Claude Haiku",
-          "Selected; Needs an Anthropic key", isEnabled: true, isActionable: true,
+          .radioButton, "miniwhisper.profiles.card.haiku", "Everyday · Recommended",
+          "1", isEnabled: true, isActionable: true,
         ),
         contract(
-          .button, "miniwhisper.profiles.card.offline", "Offline",
-          "Not selected", isEnabled: true, isActionable: true,
+          .radioButton, "miniwhisper.profiles.card.offline", "Offline",
+          "0", isEnabled: true, isActionable: true,
         ),
         contract(
-          .button, "miniwhisper.profiles.card.accurate", "Most accurate",
-          "Not selected; Needs ElevenLabs and Google keys", isEnabled: true, isActionable: true,
+          .radioButton, "miniwhisper.profiles.card.accurate", "Most accurate",
+          "0", isEnabled: true, isActionable: true,
         ),
         contract(
-          .button, "miniwhisper.profiles.card.cerebras", "Parakeet + Cerebras",
-          "Not selected; Needs a Cerebras key", isEnabled: true, isActionable: true,
+          .radioButton, "miniwhisper.profiles.card.cerebras", "Fastest cleanup",
+          "0", isEnabled: true, isActionable: true,
         ),
         contract(
-          .button, "miniwhisper.profiles.card.custom", "Custom",
-          "Not selected", isEnabled: true, isActionable: true,
+          .radioButton, "miniwhisper.profiles.card.custom", "Custom",
+          "0", isEnabled: true, isActionable: true,
         ),
         contract(
           .staticText, "miniwhisper.onboarding.welcome.model-info", "Model download information",
           "568.3 MB downloads while you finish setup. You’ll add an Anthropic key next.",
         ),
         contract(
-          .button, "miniwhisper.onboarding.download-model", "Download Parakeet TDT v2",
+          .button, "miniwhisper.onboarding.download-model", "Continue",
           isEnabled: true, isActionable: true,
         ),
       ],
+      mutation: { app in
+        app.radioButtons["miniwhisper.profiles.card.offline"].click()
+        XCTAssertTrue(app.staticTexts[
+          "Nothing leaves this Mac. Lighter cleanup, recognition tuned to your words.",
+        ]
+        .awaitExistence())
+        app.typeKey(.downArrow, modifierFlags: [])
+        self.assertValue(
+          "1.1 MB downloads while you finish setup. You’ll add ElevenLabs and Google keys next.",
+          of: app.staticTexts["miniwhisper.onboarding.welcome.model-info"],
+        )
+        XCTAssertTrue(app.staticTexts[
+          "The fewest mistakes. Your audio goes to ElevenLabs, transcripts to Google.",
+        ]
+        .awaitExistence())
+        app.typeKey(.return, modifierFlags: [])
+        XCTAssertTrue(app.secureTextFields["miniwhisper.onboarding.keys.elevenlabs"]
+          .awaitExistence())
+        XCTAssertTrue(app.secureTextFields["miniwhisper.onboarding.keys.google"].exists)
+      },
     )
 
     for permission in PermissionManifest.allCases {
@@ -72,11 +92,11 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
         contract(.group, "miniwhisper.onboarding.shortcut", "Activation shortcut setup"),
         contract(
           .staticText, "miniwhisper.onboarding.shortcut.title", "Shortcut heading",
-          "Activating \(appName)",
+          "Choose your shortcut",
         ),
         contract(
           .staticText, "miniwhisper.onboarding.shortcut.summary", "Shortcut information",
-          "Shortcut to start dictation.",
+          "Hold to record. Release to transcribe.",
         ),
         contract(
           .button, "miniwhisper.onboarding.shortcut.binding", "Dictation shortcut", "⌥ Opt →",

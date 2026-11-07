@@ -13,16 +13,18 @@ struct OnboardingShortcutPage: View {
     OnboardingStepPage(
       symbol: "command",
       title: .init(
-        text: "Activating \(Channel.name)", identifier: AccessibilityID.onboardingShortcutTitle,
+        text: "Choose your shortcut", identifier: AccessibilityID.onboardingShortcutTitle,
         label: "Shortcut heading",
       ),
       summary: .init(
-        text: "Shortcut to start dictation.",
+        text: "Hold to record. Release to transcribe.",
         identifier: AccessibilityID.onboardingShortcutSummary, label: "Shortcut information",
       ),
     ) {
       VStack(spacing: 14) {
         keycap
+        Text("Double-tap to keep recording. Tap again to finish.")
+          .font(.callout)
         SemanticText(
           store.isRecordingShortcut ? "Record your shortcut" : "Click the shortcut to change",
           identifier: AccessibilityID.onboardingShortcutCaption, label: "Shortcut guidance",

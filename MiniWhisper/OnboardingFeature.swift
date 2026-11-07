@@ -219,15 +219,6 @@ enum OnboardingStep: Int, Equatable {
       step == .tryIt && missingKeys.isEmpty
     }
 
-    var welcomeActionTitle: String {
-      switch pendingDownloads.count {
-      case 0:
-        "Get Started"
-      default:
-        "Download \(pendingDownloads.map(\.name).formatted(.list(type: .and)))"
-      }
-    }
-
     var welcomeFootnote: String {
       var sentences: [String] = []
       let downloads = profile.assets.filter { assets[$0]?.isInstalled != true }
