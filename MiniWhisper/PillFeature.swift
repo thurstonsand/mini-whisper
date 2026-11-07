@@ -72,7 +72,7 @@ import ComposableArchitecture
             )
           case let .speechModelUnavailable(status):
             Content(
-              text: status, phase: status,
+              text: "Dictation not started\n\(status)", phase: status,
             )
           case .dictionarySaveFailed:
             Content(

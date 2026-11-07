@@ -73,9 +73,10 @@ struct PillView: View {
 
   @ViewBuilder private var submits: some View {
     if store.submits {
-      Label("Submit", systemImage: "return")
+      Label("Then submit", systemImage: "return")
         .font(.callout)
-        .foregroundStyle(.primary)
+        .foregroundStyle(.secondary)
+        .fixedSize()
         .accessibilityLabel("Submits after delivery")
         .accessibilityIdentifier(AccessibilityID.pillSubmits)
     }
@@ -117,10 +118,10 @@ struct PillView: View {
           recording.inputDeviceName, identifier: AccessibilityID.pillInputDevice,
           label: "Input device",
         )
-        .font(.body.weight(.medium))
+        .font(.callout)
         .lineLimit(1)
         .truncationMode(.middle)
-        .foregroundStyle(.primary)
+        .foregroundStyle(.secondary)
       }
     case .transcribing:
       VStack(spacing: 6) {
@@ -147,19 +148,31 @@ struct PillView: View {
           .font(.body.weight(.medium))
           .foregroundStyle(.primary)
           submits
-          if polishing.isSkipRevealed {
-            Divider().frame(height: 16)
-            SemanticText(
-              "Skip", identifier: AccessibilityID.pillSkipAffordance, label: "Skip cleanup",
-              value: "\(polishing.skipComponents.joined(separator: " ")) to skip",
-            )
-            .font(.callout)
-            .foregroundStyle(.primary)
-            HotkeyKeycaps(components: polishing.skipComponents, scale: 0.85)
-              .accessibilityHidden(true)
+        }
+        if store.destination != nil || polishing.isSkipRevealed {
+          HStack(spacing: 9) {
+            destination
+            if polishing.isSkipRevealed {
+              if store.destination != nil {
+                Divider().frame(height: 16)
+              }
+              SemanticText(
+                "Skip", identifier: AccessibilityID.pillSkipAffordance, label: "Skip cleanup",
+                value: "\(polishing.skipComponents.joined(separator: " ")) to skip",
+              )
+              .font(.callout)
+              .foregroundStyle(.primary)
+              .fixedSize()
+              Text(polishing.skipComponents.joined(separator: " "))
+                .font(.callout)
+                .padding(.horizontal, 5)
+                .padding(.vertical, 2)
+                .background(.fill.tertiary, in: .rect(cornerRadius: 3))
+                .fixedSize()
+                .accessibilityHidden(true)
+            }
           }
         }
-        destination
       }
     case let .notice(notice):
       HStack(spacing: 9) {

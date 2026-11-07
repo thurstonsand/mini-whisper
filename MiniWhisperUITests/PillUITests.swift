@@ -52,5 +52,10 @@ final class PillUITests: MiniWhisperUITestCase, SurfaceTagged {
         ),
       ],
     )
+    presentScene("pill-model-unavailable")
+    assertValue(
+      "Dictation not started\nDownloading Parakeet v2 · 42%",
+      of: app.staticTexts["miniwhisper.pill.notice"],
+    )
   }
 }
