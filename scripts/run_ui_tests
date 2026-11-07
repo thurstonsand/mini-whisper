@@ -37,7 +37,11 @@ fi
 export TEST_RUNNER_MINIWHISPER_UI_SURFACES="$surfaces"
 
 rm -rf "$bundle"
-status=0
+mkdir -p .build
+status_file=$(mktemp .build/uitest-status.XXXXXX)
+trap 'rm -f "$status_file"' 0
+# The pipeline runs in subshells; keep xcodebuild's status, not the formatter's.
+{
 # shellcheck disable=SC2086 # $only is a deliberate word-split list of flags
 xcodebuild -scheme "$SCHEME" \
   -destination "$DEST" \
@@ -46,6 +50,9 @@ xcodebuild -scheme "$SCHEME" \
   -skipPackagePluginValidation \
   $only \
   -resultBundlePath "$bundle" \
-  test | xcbeautify -q --disable-colored-output --disable-logging || status=$?
+  test
+echo $? > "$status_file"
+} | xcbeautify -q --disable-colored-output --disable-logging
+status=$(cat "$status_file")
 scripts/profile_uitest_bundle "$bundle"
 exit $status
