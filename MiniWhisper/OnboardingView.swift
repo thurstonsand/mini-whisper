@@ -34,6 +34,7 @@ enum OnboardingCopy {
 enum OnboardingFocus: Hashable {
   case welcomeAction
   case keyField(CredentialSlot)
+  case keyHelp(CredentialSlot)
   case useCustom
   case keysSkip
   case keysContinue
@@ -99,7 +100,10 @@ struct OnboardingView: View {
     }
     return switch store.visibleStep {
     case .keys:
-      store.missingKeys.map(OnboardingFocus.keyField) + [.useCustom, .keysSkip, .keysContinue]
+      store.missingKeys.flatMap { slot in
+        slot.provider.keysURL == nil ? [OnboardingFocus.keyField(slot)]
+          : [.keyField(slot), .keyHelp(slot)]
+      } + [.useCustom, .keysSkip, .keysContinue]
     case .permissions:
       store.activePermission == nil ? [] : [.permissionsAction]
     case .shortcut:

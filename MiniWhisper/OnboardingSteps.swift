@@ -377,7 +377,7 @@ struct OnboardingKeysPage: View {
         if let url = provider.keysURL {
           Link("Get a key from \(provider.displayName)", destination: url)
             .font(.system(size: 12))
-            .focusable(false)
+            .focused(focus, equals: .keyHelp(slot))
             .accessibilityIdentifier(AccessibilityID.onboardingKeyLink(provider))
         }
       }

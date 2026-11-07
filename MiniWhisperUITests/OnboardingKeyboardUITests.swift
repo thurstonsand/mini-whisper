@@ -7,6 +7,38 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
 
   static let surfaces: Set<Surface> = [.onboarding]
 
+  @MainActor func testKeyHelpLinksParticipateInBothTabDirections() {
+    let app = launch("onboarding-keys")
+    defer { terminate(app) }
+
+    for (scene, providers) in [
+      ("onboarding-keys", ["anthropic"]),
+      ("onboarding-keys-accurate", ["elevenlabs", "google"]),
+    ] {
+      if scene != "onboarding-keys" {
+        presentScene(scene)
+      }
+      let stops = providers.flatMap { provider in
+        [
+          app.descendants(matching: .any)["miniwhisper.onboarding.keys.\(provider)"],
+          app.descendants(matching: .any)["miniwhisper.onboarding.keys.\(provider).link"],
+        ]
+      }
+      XCTAssertTrue(stops[0].awaitExistence(timeout: 5))
+      stops[0].click()
+      assertKeyboardFocus(on: stops[0])
+      for stop in stops.dropFirst() {
+        app.typeKey(.tab, modifierFlags: [])
+        assertKeyboardFocus(on: stop)
+      }
+      recordScreenshot("\(scene)-key-help-focused", screenshot: app.screenshot())
+      for stop in stops.dropLast().reversed() {
+        app.typeKey(.tab, modifierFlags: [.shift])
+        assertKeyboardFocus(on: stop)
+      }
+    }
+  }
+
   @MainActor func testSingleActionPageKeyboardLaws() {
     // Each page's single action owns the tab order; Return then proves the action does what its
     // page promises. The Return consequences differ, so each page carries its own.
