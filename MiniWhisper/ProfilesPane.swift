@@ -38,12 +38,18 @@ struct ProfilesPane: View {
       }
 
       if profiles.showsTimeout || profiles.hasPromptSurface {
-        Section("All profiles") {
+        Section {
           if profiles.showsTimeout {
             TimeoutRow(store: store)
           }
           if profiles.hasPromptSurface {
             InstructionsRow(store: store)
+          }
+        } header: {
+          Text("All profiles")
+        } footer: {
+          if profiles.showsTimeout {
+            Text("If cleanup times out, your transcript is delivered without cleanup.")
           }
         }
       }
@@ -143,16 +149,13 @@ private struct SummaryRows: View {
   let s1Mini: AssetState?
 
   var body: some View {
-    Group {
-      LabeledContent("Engine", value: profile.engine.name)
-        .accessibilityIdentifier(AccessibilityID.profilesEngine)
-      // Nothing about S1-mini is configurable; its download is the one thing to say about it.
-      if profile.cleanup == .local {
-        LabeledContent("Cleanup", value: localCleanup)
-          .accessibilityIdentifier(AccessibilityID.profilesLocalCleanup)
-      }
+    LabeledContent("Engine", value: profile.engine.name)
+      .accessibilityIdentifier(AccessibilityID.profilesEngine)
+    // Nothing about S1-mini is configurable; its download is the one thing to say about it.
+    if profile.cleanup == .local {
+      LabeledContent("Cleanup", value: localCleanup)
+        .accessibilityIdentifier(AccessibilityID.profilesLocalCleanup)
     }
-    .modifier(StaticFormRow())
   }
 
   // MARK: Private
@@ -283,7 +286,6 @@ private struct NotSetUpRows: View {
       LabeledContent("API key", value: "None")
       LabeledContent("Model", value: "None")
     }
-    .modifier(StaticFormRow())
     // Labelled, because a form row holding nothing but a button is made that button, frame and
     // all, and the click lands in the middle of the row.
     LabeledContent("Cleanup") {
@@ -582,7 +584,7 @@ private struct TimeoutRow: View {
   let store: StoreOf<SettingsWindowFeature>
 
   var body: some View {
-    LabeledContent("Give up after") {
+    LabeledContent("Cleanup timeout") {
       SettingsPopUpButton(
         options: options, selection: store.profiles.timeout,
         activation: store.profiles.timeoutActivation,
@@ -591,7 +593,7 @@ private struct TimeoutRow: View {
       .fixedSize()
       .focusRing(store.state.showsProfilesRing(.timeout, target: .timeout))
       .accessibilityIdentifier(AccessibilityID.profilesTimeout)
-      .accessibilityLabel("Give up after")
+      .accessibilityLabel("Cleanup timeout")
     }
     .modifier(ProfilesFormRow(store: store, row: .timeout))
   }
@@ -742,18 +744,15 @@ private struct ProfilesFormRow: ViewModifier {
 
   func body(content: Content) -> some View {
     content
-      .padding(.horizontal, 10)
-      .padding(.vertical, 8)
-      .background(alignment: .leading) {
+      .overlay(alignment: .leading) {
         Capsule()
           .fill(Color.accentColor)
           .frame(width: 3)
           .padding(.vertical, 4)
-          .padding(.leading, 4)
+          .offset(x: -10)
           .opacity(store.state.showsProfilesBar(row) ? 1 : 0)
           .animation(.easeOut(duration: 0.12), value: store.state.showsProfilesBar(row))
       }
-      .listRowInsets(EdgeInsets())
       .contentShape(.rect)
       .id(row)
       .windowPointerMovement(store: store) {
@@ -763,18 +762,6 @@ private struct ProfilesFormRow: ViewModifier {
         AccessibilityID.profilesRowState(row), label: "\(row) highlight",
         value: store.state.showsProfilesBar(row) ? "Bar on" : "Bar off",
       )
-  }
-}
-
-// MARK: - StaticFormRow
-
-/// Not a cursor row, but laid out like one, so every label in the section shares one edge.
-private struct StaticFormRow: ViewModifier {
-  func body(content: Content) -> some View {
-    content
-      .padding(.horizontal, 10)
-      .padding(.vertical, 8)
-      .listRowInsets(EdgeInsets())
   }
 }
 
