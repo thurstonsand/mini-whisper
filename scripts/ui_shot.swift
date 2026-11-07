@@ -45,7 +45,8 @@ func showBackdrop(isDark: Bool) -> Never {
   let window = NSWindow(
     contentRect: screen.frame, styleMask: .borderless, backing: .buffered, defer: false,
   )
-  window.level = .floating
+  // Above Notification Center's banners (21), below the menu bar (24), the pill (25), and menus.
+  window.level = NSWindow.Level(rawValue: 22)
   window.ignoresMouseEvents = true
   window.backgroundColor = isDark
     ? NSColor(srgbRed: 0.11, green: 0.11, blue: 0.12, alpha: 1)

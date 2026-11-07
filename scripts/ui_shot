@@ -17,9 +17,10 @@
 #                                                 of a pane taller than the window
 #   scripts/ui_shot quit
 #
-# pill-* scenes are captured over a fixed backdrop matching the appearance (a document in light,
-# a terminal in dark); UI_SHOT_BACKDROP=light|dark overrides it. menu-* scenes open the status
-# menu. Everything else captures the app's window.
+# pill-* and menu-* scenes are translucent, so they are captured over a fixed backdrop matching
+# the appearance (a document in light, a terminal in dark), the same on every Mac;
+# UI_SHOT_BACKDROP=light|dark overrides it. menu-* scenes open the status menu first. Everything
+# else captures the app's window.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -135,7 +136,7 @@ swap_scene() {
 
 capture() {
   local out="$1"
-  local scene appearance line backdrop_pid
+  local scene appearance line backdrop_pid click_pid
   scene="$(cat "$state/scene")"
   appearance="$(cat "$state/appearance")"
   mkdir -p "$(dirname "$out")"
@@ -151,7 +152,23 @@ capture() {
     wait "$backdrop_pid" 2>/dev/null || true
     ;;
   menu)
-    MW_APP="$app_name" scripts/capture_menu_screenshot "$out" >/dev/null
+    "$helper" backdrop "${UI_SHOT_BACKDROP:-$appearance}" &
+    backdrop_pid=$!
+    sleep 0.5
+    # The click returns only once the menu closes, so it runs in the background while the menu
+    # is open, and Escape below ends both.
+    osascript -e "tell application \"System Events\" to tell (first process whose unix id is $(running_pid))
+      click (first menu bar item of menu bar 2 whose value of attribute \"AXIdentifier\" is \"miniwhisper.menu.status-item\")
+    end tell" >/dev/null &
+    click_pid=$!
+    line="$(await_window '$2 >= 101')"
+    sleep 0.4
+    read -r _ _ x y w h <<<"$line"
+    screencapture -x -R "$((x - 24)),$y,$((w + 48)),$((h + 24))" "$out"
+    osascript -e 'tell application "System Events" to key code 53'
+    wait "$click_pid"
+    kill "$backdrop_pid"
+    wait "$backdrop_pid" 2>/dev/null || true
     ;;
   window)
     line="$(await_window '$2 == 0 && $5 >= 100')"
