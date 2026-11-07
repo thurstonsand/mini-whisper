@@ -51,7 +51,7 @@ struct OnboardingStepPage<Card: View>: View {
         .padding(cardPadding)
         .frame(maxWidth: .infinity, alignment: cardAlignment)
         .background(
-          Color(nsColor: .controlBackgroundColor).opacity(0.5),
+          .quaternary,
           in: RoundedRectangle(cornerRadius: 9),
         )
         .padding(.top, 24)
@@ -243,7 +243,7 @@ struct OnboardingStepRail: View {
     .padding(.horizontal, 24)
     .padding(.vertical, 30)
     .frame(width: 210)
-    .background(Color(nsColor: .controlBackgroundColor).opacity(0.62))
+    .background(.background.secondary)
   }
 
   // MARK: Private
