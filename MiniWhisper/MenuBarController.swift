@@ -56,7 +56,9 @@ import ComposableArchitecture
   private static let warningImage: NSImage? = {
     let image = NSImage(
       systemSymbolName: "exclamationmark.triangle.fill", accessibilityDescription: "Warning",
-    )?.withSymbolConfiguration(NSImage.SymbolConfiguration(paletteColors: [.systemOrange]))
+    )?.withSymbolConfiguration(
+      NSImage.SymbolConfiguration(paletteColors: [.textBackgroundColor, .systemOrange]),
+    )
     image?.isTemplate = false
     return image
   }()
