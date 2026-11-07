@@ -490,18 +490,15 @@ private struct SettingsFormRow: ViewModifier {
 
   func body(content: Content) -> some View {
     content
-      .padding(.horizontal, 10)
-      .padding(.vertical, 8)
-      .background(alignment: .leading) {
+      .overlay(alignment: .leading) {
         Capsule()
           .fill(Color.accentColor)
           .frame(width: 3)
           .padding(.vertical, 4)
-          .padding(.leading, 4)
+          .offset(x: -10)
           .opacity(store.state.showsSettingsBar(row) ? 1 : 0)
           .animation(.easeOut(duration: 0.12), value: store.state.showsSettingsBar(row))
       }
-      .listRowInsets(EdgeInsets())
       .contentShape(.rect)
       .id(row)
       .windowPointerMovement(store: store) {
