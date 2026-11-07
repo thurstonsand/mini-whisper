@@ -46,7 +46,7 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
         ),
         contract(
           .staticText, "miniwhisper.onboarding.welcome.model-info", "Model download information",
-          "567.2 MB downloads while you finish setup. You’ll add an Anthropic key next.",
+          "568.3 MB downloads while you finish setup. You’ll add an Anthropic key next.",
         ),
         contract(
           .button, "miniwhisper.onboarding.download-model", "Download Parakeet TDT v2",

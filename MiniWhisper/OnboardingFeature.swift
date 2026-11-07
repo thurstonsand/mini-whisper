@@ -230,8 +230,9 @@ enum OnboardingStep: Int, Equatable {
 
     var welcomeFootnote: String {
       var sentences: [String] = []
-      if !pendingDownloads.isEmpty {
-        let bytes = pendingDownloads.map(\.pinnedBytes).reduce(0, +)
+      let downloads = profile.assets.filter { assets[$0]?.isInstalled != true }
+      if !downloads.isEmpty {
+        let bytes = downloads.map(\.pinnedBytes).reduce(0, +)
         let size = ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .file)
         sentences.append("\(size) downloads while you finish setup.")
       }
