@@ -1,4 +1,6 @@
+import AppSettings
 import ComposableArchitecture
+import SpeechDictionary
 import SwiftUI
 
 // MARK: - DictionaryPane
@@ -13,6 +15,16 @@ struct DictionaryPane: View {
       Section {
         ForEach(store.dictionary.entries) { entry in
           DictionaryRow(store: store, entry: entry)
+        }
+      } footer: {
+        if !store.dictionary.profiles.activeProfile.usesVocabulary,
+           !store.dictionary.dictionary.vocabulary.isEmpty
+        {
+          Text(
+            "Vocabulary isn’t used by \(store.dictionary.profiles.activeProfile.name). Turn on Boost vocabulary in Profiles. Corrections still apply.",
+          )
+          .lineLimit(nil)
+          .fixedSize(horizontal: false, vertical: true)
         }
       }
     }
