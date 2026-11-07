@@ -5,15 +5,52 @@ import SwiftUI
 
 // MARK: - ModelsPane
 
-/// A patch bay: every profile on the left, everything they run on at the right, and a wire for
-/// each leg. Pointing at a profile lights its wires, so the question "what does this one use, and
-/// what would deleting that cost" is answered by looking rather than reading.
+/// A patch bay when its two columns fit; an asset-first form in a narrow window. Both show which
+/// profiles depend on each component, and share the same model actions.
 struct ModelsPane: View {
   // MARK: Internal
 
   let store: StoreOf<SettingsWindowFeature>
 
   var body: some View {
+    GeometryReader { geometry in
+      if geometry.size.width < 600 {
+        compact
+      } else {
+        patchBay
+      }
+    }
+    .alert(
+      "Delete \(models.pendingDeletion?.name ?? "")?", isPresented: deletionPending,
+      presenting: models.pendingDeletion,
+    ) { _ in
+      Button("Cancel", role: .cancel) { store.send(.models(.deletionCancelled)) }
+      Button("Delete", role: .destructive) { store.send(.models(.deletionConfirmed)) }
+    } message: { _ in
+      Text("\(models.settings.activeProfile.name) can’t transcribe until it’s downloaded again.")
+    }
+    .task { store.send(.models(.task)) }
+  }
+
+  // MARK: Private
+
+  private var models: ModelsFeature.State {
+    store.models
+  }
+
+  private var deletionPending: Binding<Bool> {
+    Binding(
+      get: { models.pendingDeletion != nil },
+      set: { isPresented in
+        guard !isPresented, models.pendingDeletion != nil else {
+          return
+        }
+        store.send(.models(.deletionCancelled))
+      },
+    )
+  }
+
+  private var patchBay: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 16) {
         GateStrip(store: store)
@@ -54,34 +91,105 @@ struct ModelsPane: View {
       .padding(20)
     }
     .keyboardCursorScroll(store: store, cursor: models.cursorRow)
-    .alert(
-      "Delete \(models.pendingDeletion?.name ?? "")?", isPresented: deletionPending,
-      presenting: models.pendingDeletion,
-    ) { _ in
-      Button("Cancel", role: .cancel) { store.send(.models(.deletionCancelled)) }
-      Button("Delete", role: .destructive) { store.send(.models(.deletionConfirmed)) }
-    } message: { _ in
-      Text("\(models.settings.activeProfile.name) can’t transcribe until it’s downloaded again.")
-    }
-    .task { store.send(.models(.task)) }
   }
 
-  // MARK: Private
-
-  private var models: ModelsFeature.State {
-    store.models
-  }
-
-  private var deletionPending: Binding<Bool> {
-    Binding(
-      get: { models.pendingDeletion != nil },
-      set: { isPresented in
-        guard !isPresented, models.pendingDeletion != nil else {
-          return
+  private var compact: some View {
+    Form {
+      Section("On this Mac") {
+        ForEach(ModelAsset.allCases, id: \.self) { asset in
+          VStack(alignment: .leading, spacing: 6) {
+            LabeledContent {
+              AssetStatus(store: store, asset: asset)
+                .fixedSize()
+            } label: {
+              Text(asset.name)
+                .fixedSize(horizontal: false, vertical: true)
+            }
+            if asset == .gate {
+              Text("First stop in every profile")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+            } else {
+              dependents(of: .asset(asset))
+            }
+          }
+          .modifier(ModelsRow(store: store, row: .asset(asset)))
+          .accessibilityElement(children: .contain)
+          .accessibilityIdentifier(AccessibilityID.modelsComponent(.asset(asset)))
         }
-        store.send(.models(.deletionCancelled))
-      },
-    )
+      }
+      Section("Off this Mac") {
+        hosted(.scribe, title: "ElevenLabs", model: "Scribe v2", sends: "Audio")
+        ForEach(models.settings.profiles.lineup.filter { $0.endpointLeg != nil }) { profile in
+          hosted(
+            .endpoint(profile.id),
+            title: profile.factory?.provider.displayName ?? "Your endpoint",
+            model: profile.endpointLeg?.model ?? "Not set up",
+            sends: "Transcript",
+          )
+        }
+      }
+      if let failure = models.assetFailure {
+        Section {
+          SemanticText(failure, identifier: AccessibilityID.modelsFailure, label: "Model failure")
+            .foregroundStyle(.red)
+        }
+      }
+    }
+    .formStyle(.grouped)
+    .keyboardCursorScroll(store: store, cursor: models.cursorRow)
+  }
+
+  private func hosted(
+    _ component: ModelsFeature.Component, title: String, model: String, sends: String,
+  ) -> some View {
+    VStack(alignment: .leading, spacing: 6) {
+      LabeledContent {
+        Text(sends)
+          .font(.callout)
+          .foregroundStyle(.secondary)
+      } label: {
+        Text(title)
+        Text(model)
+          .font(.callout)
+          .foregroundStyle(.secondary)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+      dependents(of: component)
+    }
+    .accessibilityElement(children: .contain)
+    .accessibilityIdentifier(AccessibilityID.modelsComponent(component))
+  }
+
+  private func dependents(of component: ModelsFeature.Component) -> some View {
+    ForEach(models.settings.profiles.lineup.filter { profile in
+      [ModelsFeature.Leg.speech, .cleanup].contains {
+        models.component($0, of: profile) == component
+      }
+    }) { profile in
+      let speech = models.component(.speech, of: profile) == component
+      let label = Text(
+        "\(profile.name)\(models.settings.profiles.active == profile.id ? " · Active" : "")",
+      )
+      .font(.callout)
+      .foregroundStyle(models.highlighted == profile.id ? Color.accentColor : Color.secondary)
+      .fixedSize(horizontal: false, vertical: true)
+      if speech {
+        label
+          .modifier(ModelsRow(store: store, row: .profile(profile.id)))
+          .accessibilityIdentifier(AccessibilityID.modelsCard(profile.id))
+          .accessibilityValue(
+            [
+              models.settings.profiles.active == profile.id ? "Active" : nil,
+              models.highlighted == profile.id ? "Highlighted" : nil,
+            ]
+            .compactMap(\.self)
+            .joined(separator: "; "),
+          )
+      } else {
+        label
+      }
+    }
   }
 }
 
