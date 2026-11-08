@@ -1210,10 +1210,11 @@ import Testing
     ContextUnavailable.noFocusedElement,
     .nonTextElement(role: "AXButton"),
   ])
-  func `delivery is withheld when context proves there is no receiver`(
+  func `a transcript with no receiver is copied without synthesizing paste`(
     _ reason: ContextUnavailable,
   ) async {
     let clock = TestClock()
+    let copied = StringRecorder()
     var state = AppFeature.State()
     state.awaitingTranscript(generation: 1)
     state.pill.presentation = .transcribing
@@ -1222,9 +1223,7 @@ import Testing
       $0.uuid = .incrementing
       $0.contextCapture.capture = { _ in .unavailable(reason) }
       $0.continuousClock = clock
-      $0.delivery.copy = { _ in
-        Issue.record("A delivery with no receiver must not change the clipboard")
-      }
+      $0.delivery.copy = { await copied.record($0) }
       $0.delivery.deliver = { _, _, _ in
         Issue.record("A delivery with no receiver must not synthesize paste")
         return .pasted(.restored)
@@ -1261,6 +1260,7 @@ import Testing
       $0.pill.noticeGeneration = 1
       $0.pill.presentation = .notice(.noReceiver(pasteShortcut: pasteShortcut))
     }
+    #expect(await copied.values == ["copy me"])
     await store.send(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
   }
@@ -1283,9 +1283,7 @@ import Testing
       $0.contextCapture.capture = { _ in .unavailable(.noFocusedElement) }
       $0.continuousClock = TestClock()
       $0.date.now = Date(timeIntervalSince1970: 32)
-      $0.delivery.copy = { _ in
-        Issue.record("A delivery with no receiver must not change the clipboard")
-      }
+      $0.delivery.copy = { _ in }
       $0.delivery.deliver = { _, _, _ in
         Issue.record("A delivery with no receiver must not synthesize paste")
         return .pasted(.restored)
@@ -1343,9 +1341,10 @@ import Testing
     #expect(store.state.pill.presentation == nil)
   }
 
-  @Test func `recovery with no receiver withholds and names the configured chord`() async throws {
+  @Test func `recovery with no receiver copies without pasting`() async throws {
     let pasteHotkey = try Hotkey(keyCode: 15, modifiers: [.leftControl, .rightCommand])
     let sounds = SoundRecorder()
+    let copied = StringRecorder()
     var settings = MiniWhisperSettings.defaults
     settings.bindings.set([pasteHotkey], for: .pasteLastTranscript)
     var state = AppFeature.State(settings: Shared(value: settings))
@@ -1353,9 +1352,7 @@ import Testing
     let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
       $0.contextCapture.capture = { _ in .unavailable(.noFocusedElement) }
       $0.continuousClock = TestClock()
-      $0.delivery.copy = { _ in
-        Issue.record("Recovery with no receiver must not change the clipboard")
-      }
+      $0.delivery.copy = { await copied.record($0) }
       $0.delivery.deliver = { _, _, _ in
         Issue.record("Recovery with no receiver must not synthesize paste")
         return .pasted(.restored)
@@ -1382,6 +1379,7 @@ import Testing
     await store.finish()
 
     #expect(await sounds.recorded == ["Basso"])
+    #expect(await copied.values == ["withhold me"])
     #expect(store.state.history.entries.isEmpty)
   }
 

@@ -132,6 +132,7 @@ extension AppFeature {
     let attempt: DeliveryAttempt
     do {
       if let noReceiver = capture.noReceiverReason {
+        try await delivery.copy(adjusted)
         attempt = .delivered(.noReceiver(noReceiver))
       } else {
         attempt = try await .delivered(delivery.deliver(adjusted, target, submits))

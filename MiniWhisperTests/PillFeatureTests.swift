@@ -153,11 +153,11 @@ import Testing
       $0.presentation = .notice(.noReceiver(pasteShortcut: "⌥⌘V"))
     }
     let bound = PillFeature.State.Presentation.Notice.noReceiver(pasteShortcut: "⌥⌘V").content
-    #expect(bound.text == "Nowhere to paste — ⌥⌘V to retry")
+    #expect(bound.text == "Copied — ⌘V to paste")
     #expect(bound.phase == "Nowhere to paste")
     #expect(
       PillFeature.State.Presentation.Notice.noReceiver(pasteShortcut: nil).content.text
-        == "Nowhere to paste — transcript saved to History",
+        == "Copied — ⌘V to paste",
     )
     await store.send(.dismiss) { $0.presentation = nil }
   }

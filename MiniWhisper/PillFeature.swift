@@ -59,9 +59,9 @@ import ComposableArchitecture
             Content(
               text: "Copied — ⌘V to paste", phase: "Copied",
             )
-          case let .noReceiver(pasteShortcut):
+          case .noReceiver:
             Content(
-              text: Self.noReceiverText(pasteShortcut: pasteShortcut), phase: "Nowhere to paste",
+              text: "Copied — ⌘V to paste", phase: "Nowhere to paste",
             )
           case .cancelledSavedToHistory:
             Content(
@@ -80,13 +80,6 @@ import ComposableArchitecture
               text: "Couldn’t save dictionary entry", phase: "Dictionary entry not saved",
             )
           }
-        }
-
-        // MARK: Private
-
-        private static func noReceiverText(pasteShortcut: String?) -> String {
-          pasteShortcut.map { "Nowhere to paste — \($0) to retry" }
-            ?? "Nowhere to paste — transcript saved to History"
         }
       }
     }

@@ -4,7 +4,7 @@
 - Activate: start the actual process that leads to dictation; triggered by pressing any configured binding
 - Record: the act of recording audio
 - Transcribe: STT
-- Delivery: placing the transcript where the user was typing when the dictation started.
+- Delivery: placing the transcript where the user was typing when the dictation started. If no text field was focused, or delivery cannot be completed safely, the transcript is copied to the clipboard for manual pasting.
 - Target: where a dictation delivers, captured at the press that starts it — the frontmost app, its focused window and element, and the tmux pane when that element hosts one, or else the Ghostty terminal. Delivery writes to it even after the user has moved on, without bringing it forward — only an Electron app, which takes no input in the background, is brought forward for the paste and sent back.
 - Submit: send Return after delivery. Return pressed during a live recording ends it and submits, and is never seen by the app underneath; after the recording, until its delivery starts, a Return at the dictation's target submits it the same way. Anywhere else Return is untouched. The optional submit binding drives the same gestures as Activate and submits the dictation it ends.
 - Detach: a press while a dictation polishes moves it to the background, where its cleanup and delivery continue, so the next dictation can start; a lone tap skips it instead.

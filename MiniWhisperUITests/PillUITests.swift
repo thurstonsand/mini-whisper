@@ -52,6 +52,8 @@ final class PillUITests: MiniWhisperUITestCase, SurfaceTagged {
         ),
       ],
     )
+    presentScene("pill-nowhere-to-paste")
+    assertValue("Copied — ⌘V to paste", of: app.staticTexts["miniwhisper.pill.notice"])
     presentScene("pill-model-unavailable")
     assertValue(
       "Dictation not started\nDownloading Parakeet v2 · 42%",

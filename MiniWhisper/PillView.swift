@@ -16,10 +16,10 @@ struct PillView: View {
           semanticState(for: presentation)
         }
         .accessibilityElement(children: .contain)
-        .padding(.horizontal, 15)
-        .padding(.vertical, 10)
-        .frame(minHeight: 46)
-        .background(Color(nsColor: .windowBackgroundColor), in: .capsule)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .frame(minHeight: 38)
+        .background(.thickMaterial, in: .capsule)
         .scaleEffect(bounceScale)
         .opacity(
           store.isFadingOut ? 0 : 1,
@@ -106,10 +106,7 @@ struct PillView: View {
       HStack(spacing: 10) {
         Circle()
           .fill(.red)
-          .frame(width: 9, height: 9)
-          .shadow(
-            color: .red.opacity(0.45), radius: 3,
-          )
+          .frame(width: 6, height: 6)
           .opacity(recording.isLive ? 1 : 0)
           .animation(
             .easeOut(duration: 0.15), value: recording.isLive,
@@ -128,12 +125,12 @@ struct PillView: View {
     case .transcribing:
       VStack(spacing: 6) {
         HStack(spacing: 9) {
-          PulsingDot().accessibilityHidden(true)
+          ProgressView().controlSize(.mini).accessibilityHidden(true)
           SemanticText(
             "Transcribing…", identifier: AccessibilityID.pillPhase, label: "Dictation phase",
             value: "Transcribing",
           )
-          .font(.body.weight(.medium))
+          .font(.callout)
           .foregroundStyle(.primary)
           submits
         }
@@ -142,12 +139,12 @@ struct PillView: View {
     case let .polishing(polishing):
       VStack(spacing: 6) {
         HStack(spacing: 9) {
-          PulsingDot(color: .purple, glow: .purple).accessibilityHidden(true)
+          ProgressView().controlSize(.mini).accessibilityHidden(true)
           SemanticText(
             "Polishing…", identifier: AccessibilityID.pillPhase, label: "Dictation phase",
             value: "Polishing",
           )
-          .font(.body.weight(.medium))
+          .font(.callout)
           .foregroundStyle(.primary)
           submits
           if polishing.isSkipRevealed {
@@ -189,7 +186,7 @@ struct PillView: View {
         )
         .accessibilityAddTraits(.isStaticText)
       }
-      .font(.body.weight(.medium))
+      .font(.callout)
       .foregroundStyle(.primary)
     }
   }
@@ -198,8 +195,9 @@ struct PillView: View {
     .Notice) -> some View
   {
     switch notice {
-    case .copiedToClipboard:
-      Image(systemName: "checkmark").foregroundStyle(.green)
+    case .copiedToClipboard,
+         .noReceiver:
+      Image(systemName: "clipboard").foregroundStyle(.secondary)
     case .cancelledSavedToHistory:
       Image(systemName: "xmark").foregroundStyle(.secondary)
     case .noSpeechDetected:
@@ -208,10 +206,9 @@ struct PillView: View {
       Image(systemName: "clipboard").foregroundStyle(.secondary)
     case .speechModelUnavailable:
       Image(systemName: "info.circle").foregroundStyle(.secondary)
-    case .noReceiver,
-         .cleanupUnavailable,
+    case .cleanupUnavailable,
          .dictionarySaveFailed:
-      Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
+      Image(systemName: "exclamationmark.triangle").foregroundStyle(.secondary)
     }
   }
 
@@ -251,33 +248,4 @@ struct PillView: View {
       .frame(width: 1, height: 1)
       .clipped()
   }
-}
-
-// MARK: - PulsingDot
-
-private struct PulsingDot: View {
-  // MARK: Internal
-
-  var color = Color.blue
-  var glow = Color.blue
-
-  var body: some View {
-    Circle()
-      .fill(color)
-      .frame(width: 9, height: 9)
-      .shadow(
-        color: glow.opacity(0.45), radius: 3,
-      )
-      .scaleEffect(isPulsing ? 0.82 : 1)
-      .opacity(isPulsing ? 0.48 : 1)
-      .task {
-        withAnimation(.easeInOut(duration: 0.75).repeatForever(autoreverses: true)) {
-          isPulsing = true
-        }
-      }
-  }
-
-  // MARK: Private
-
-  @State private var isPulsing = false
 }
