@@ -16,6 +16,8 @@ final class HistoryKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
     XCTAssertTrue(history.awaitHittable(timeout: 5))
     history.click()
     XCTAssertTrue(app.staticTexts["No History"].awaitExistence(timeout: 2))
+    let caption = app.staticTexts["miniwhisper.history.caption"]
+    XCTAssertFalse(caption.exists)
 
     postAgentMutation("history-first-entries", value: "")
     waitForAgentResult("history:first-entries")
@@ -23,6 +25,7 @@ final class HistoryKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
     let second = historyRow(app, id: "BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB")
     XCTAssertTrue(first.awaitExistence(timeout: 2))
     XCTAssertTrue(second.awaitExistence(timeout: 2))
+    XCTAssertTrue(caption.awaitExistence(timeout: 2))
     let pitch = abs(first.frame.midY - second.frame.midY)
     XCTAssertGreaterThanOrEqual(pitch, 30, "History row pitch was \(pitch)pt")
   }
@@ -162,6 +165,9 @@ final class HistoryKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
     let secondRow = historyRow(app, id: secondID)
     XCTAssertTrue(firstRow.awaitExistence(timeout: 5))
     XCTAssertTrue(secondRow.exists)
+    assertLabel(
+      "Cleaned up", of: app.images["miniwhisper.history.cleaned.\(firstID)"],
+    )
 
     firstRow.click()
     XCTAssertTrue(copiedToast(app, id: firstID).awaitExistence(timeout: 2))

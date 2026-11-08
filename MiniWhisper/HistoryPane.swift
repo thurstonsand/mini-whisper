@@ -15,11 +15,13 @@ struct HistoryPane: View {
     GeometryReader { geometry in
       List {
         ForEach(sections) { section in
-          Section(section.title) {
+          Section {
             ForEach(section.entries) { entry in
               HistoryRow(store: store, entry: entry, isCompact: geometry.size.width < 620)
                 .id(entry.id)
             }
+          } header: {
+            Text(section.title).padding(.leading, 6)
           }
         }
       }
@@ -37,13 +39,15 @@ struct HistoryPane: View {
         ContentUnavailableView.search(text: store.history.search)
       }
     }
-    .modifier(HistoryCaptionBar(mentionsHold: hasRevealableEntry))
+    .modifier(HistoryCaptionBar(
+      hasEntries: !store.history.filteredEntries.isEmpty, mentionsHold: hasRevealableEntry,
+    ))
     .searchable(
       text: $store.history.search.sending(\.history.searchChanged), prompt: "Search transcripts",
     )
     .searchFocused(searchFocus)
     .toolbar {
-      Button("Retention…", systemImage: "internaldrive") {
+      Button("Retention…", systemImage: "clock.badge.xmark") {
         store.send(.history(.storagePresentationChanged(true)))
       }
       .labelStyle(.titleAndIcon)
@@ -77,7 +81,7 @@ struct HistoryPane: View {
   }
 
   private var hasRevealableEntry: Bool {
-    store.history.log.entries.contains { $0.revealedText != nil }
+    store.history.filteredEntries.contains { $0.revealedText != nil }
   }
 
   /// A cursor filtered out by the search is not on screen to scroll to.
@@ -138,12 +142,18 @@ struct HistorySearchFocus: ViewModifier {
 private struct HistoryCaptionBar: ViewModifier {
   // MARK: Internal
 
+  let hasEntries: Bool
+
   /// A pane whose transcripts were never cleaned has nothing to reveal, so it never teaches a
   /// gesture that would do nothing.
   let mentionsHold: Bool
 
   func body(content: Content) -> some View {
-    content.safeAreaBar(edge: .top) { caption }
+    content.safeAreaBar(edge: .top) {
+      if hasEntries {
+        caption
+      }
+    }
   }
 
   // MARK: Private
@@ -157,7 +167,7 @@ private struct HistoryCaptionBar: ViewModifier {
     .font(.callout)
     .foregroundStyle(.secondary)
     .frame(maxWidth: .infinity, alignment: .leading)
-    .padding(.horizontal, 20)
+    .padding(.horizontal, 22)
     .padding(.bottom, 6)
     .accessibilityIdentifier(AccessibilityID.historyCaption)
   }
@@ -339,6 +349,8 @@ private struct HistoryRow: View {
           .foregroundStyle(.tertiary)
           .frame(width: 20)
           .opacity(isRevealed ? 0 : 1)
+          .help("Cleaned up. Hold ⌥ to see the raw transcript.")
+          .accessibilityLabel("Cleaned up")
           .accessibilityIdentifier(AccessibilityID.historyCleaned(entry.id))
       } else {
         Color.clear.frame(width: 20, height: 1).accessibilityHidden(true)
