@@ -113,7 +113,7 @@ struct ModelsPane: View {
                 .fixedSize(horizontal: false, vertical: true)
             }
             if asset == .gate {
-              Text("First stop in every profile")
+              Text("Filters out silence before transcription.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
             } else {
@@ -287,7 +287,7 @@ private struct GateStrip: View {
         .foregroundStyle(.secondary)
       VStack(alignment: .leading, spacing: 2) {
         Text(ModelAsset.gate.name)
-        Text("First stop in every profile")
+        Text("Filters out silence before transcription.")
           .font(.callout)
           .foregroundStyle(.secondary)
       }
