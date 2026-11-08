@@ -1,5 +1,6 @@
 import AppKit
 import AppSettings
+import ASREngine
 import ComposableArchitecture
 import ModelLibrary
 import SwiftUI
@@ -18,11 +19,23 @@ struct ProfilesPane: View {
     Form {
       Section {
         PickerRow(store: store)
+      } footer: {
+        Text("Speech recognition, cleanup, and keys belong to this profile.")
       }
 
       Section("Speech recognition") {
-        LabeledContent("Engine", value: profile.engine.name)
-          .accessibilityIdentifier(AccessibilityID.profilesEngine)
+        LabeledContent("Engine") {
+          VStack(alignment: .trailing, spacing: 4) {
+            Text(profile.engine == .scribe && profiles.settings.profiles.scribeOverride != nil
+              ? profiles.settings.profiles.scribeConfiguration.model : profile.engine.name)
+            ForEach(profile.engine.assets, id: \.self) { asset in
+              if let status = assetStatus(asset) {
+                Text(status).font(.callout).foregroundStyle(.secondary)
+              }
+            }
+          }
+        }
+        .accessibilityIdentifier(AccessibilityID.profilesEngine)
         if let slot = profiles.engineCredential {
           if let editor = profiles.editor {
             KeyFieldRow(
@@ -67,15 +80,55 @@ struct ProfilesPane: View {
             InstructionsRow(store: store)
           }
         } header: {
-          Text("All profiles")
+          Text("Shared across profiles")
         } footer: {
           if profiles.showsTimeout {
-            Text("If cleanup times out, your transcript is delivered without cleanup.")
+            Text("If cleanup takes too long, the original transcript is delivered.")
           }
         }
       }
     }
     .formStyle(.grouped)
+    .sheet(isPresented: Binding(
+      get: { profiles.isAdvancedExpanded },
+      set: { store.send(.profiles(.advancedToggled($0))) },
+    )) {
+      VStack(alignment: .leading, spacing: 0) {
+        Text("Advanced · \(profile.name)").font(.headline).padding()
+        Form {
+          if profiles.engineCredential != nil {
+            Section {
+              SpeechConnectionRows(store: store)
+            } header: {
+              Text("Speech recognition · ElevenLabs-compatible")
+            } footer: {
+              Text(
+                "Other speech endpoints are checked with one second of silence. The provider may charge for it.",
+              )
+            }
+          }
+          Section("Cleanup · OpenAI-compatible") {
+            if let editor = profiles.editor {
+              EditorRows(store: store, editor: editor, inAdvanced: true)
+            } else {
+              RestingRows(store: store, inAdvanced: true)
+            }
+          }
+        }
+        .formStyle(.grouped)
+        HStack {
+          Spacer()
+          if let editor = profiles.editor {
+            ActionsRow(store: store, editor: editor)
+          } else {
+            Button("Done") { store.send(.profiles(.advancedToggled(false))) }
+              .keyboardShortcut(.cancelAction)
+          }
+        }
+        .padding()
+      }
+      .frame(width: 560, height: profiles.engineCredential == nil ? 360 : 520)
+    }
     .focusEffectDisabled()
     .keyboardCursorScroll(store: store, cursor: profiles.cursorRow)
     // Whether a field is being typed in decides whether the window's letters are the pane's
@@ -96,6 +149,20 @@ struct ProfilesPane: View {
 
   private var profile: Profile {
     profiles.profile
+  }
+
+  private func assetStatus(_ asset: ModelAsset) -> String? {
+    switch profiles.assets[asset] {
+    case let .downloading(fraction):
+      "\(asset.name) · downloading \(DownloadProgress.percentage(fraction))"
+    case .missing:
+      "\(asset.name) · not downloaded"
+    case .failed:
+      "\(asset.name) · download failed"
+    case .installed,
+         nil:
+      nil
+    }
   }
 }
 
@@ -213,13 +280,14 @@ private struct LocalCleanupRow: View {
 /// with its own field focused.
 private struct RestingRows: View {
   let store: StoreOf<SettingsWindowFeature>
+  var inAdvanced = false
 
   var body: some View {
     if let leg = store.profiles.profile.endpointLeg {
-      if !store.profiles.profile.isCustom {
+      if !store.profiles.profile.isCustom, !inAdvanced {
         StoredKeyRow(store: store, slot: leg.credential, field: .apiKey)
       }
-      ConnectionRows(store: store) {
+      ConnectionRows(store: store, inAdvanced: inAdvanced) {
         ValueRow(
           store: store, field: .endpoint, label: "Address",
           value: EndpointAddress.display(leg.endpoint), edit: "Edit",
@@ -242,24 +310,74 @@ private struct RestingRows: View {
 /// Factory profiles already know their endpoint and model; Custom asks for both up front.
 private struct ConnectionRows<Content: View>: View {
   let store: StoreOf<SettingsWindowFeature>
+  var inAdvanced = false
   @ViewBuilder let content: Content
 
   var body: some View {
-    if store.profiles.profile.isCustom {
+    if store.profiles.profile.isCustom || inAdvanced {
       content
     } else {
-      DisclosureGroup(isExpanded: Binding(
-        get: { store.profiles.isAdvancedExpanded },
-        set: { store.send(.profiles(.advancedToggled($0))) },
-      )) {
-        content
-      } label: {
-        Text("Advanced")
+      LabeledContent("Endpoint and model") {
+        Button("Advanced…") { store.send(.profiles(.advancedToggled(true))) }
           .accessibilityIdentifier(AccessibilityID.profilesAdvanced)
           .focusRing(store.state.showsProfilesRing(.advanced, target: .advanced))
-          .modifier(ProfilesFormRow(store: store, row: .advanced))
+      }
+      .modifier(ProfilesFormRow(store: store, row: .advanced))
+    }
+  }
+}
+
+// MARK: - SpeechConnectionRows
+
+private struct SpeechConnectionRows: View {
+  // MARK: Internal
+
+  let store: StoreOf<SettingsWindowFeature>
+
+  var body: some View {
+    if let editor = store.profiles.editor {
+      field(.engineEndpoint, row: .engineEndpoint, label: "Speech URL",
+            value: editor.engineEndpointText, editor: editor)
+      {
+        store.send(.profiles(.engineEndpointEdited($0)))
+      }
+      field(.engineModel, row: .engineModel, label: "Speech model",
+            value: editor.engineModel, editor: editor)
+      {
+        store.send(.profiles(.engineModelEdited($0)))
+      }
+    } else {
+      ValueRow(store: store, field: .engineEndpoint, label: "Speech URL",
+               value: store.profiles.settings.profiles.scribeConfiguration.endpoint.absoluteString,
+               edit: "Edit",
+               isOverridden: store.profiles.settings.profiles.scribeOverride?.endpoint != nil)
+      ValueRow(store: store, field: .engineModel, label: "Speech model",
+               value: store.profiles.settings.profiles.scribeConfiguration.model,
+               edit: "Edit",
+               isOverridden: store.profiles.settings.profiles.scribeOverride?.model != nil)
+    }
+  }
+
+  // MARK: Private
+
+  private func field(_ field: ProfilesFeature.Field, row: ProfilesFeature.Row, label: String,
+                     value: String, editor: ProfilesFeature.Editor,
+                     onChange: @escaping (String) -> Void) -> some View
+  {
+    LabeledContent(label) {
+      VStack(alignment: .leading, spacing: 4) {
+        ProfilesTextField(
+          value: value, prompt: "", identifier: AccessibilityID.profilesField(field), label: label,
+          focus: .init(request: editor.focusRequest, isRequested: editor.focus == field),
+          isRinged: store.state.showsProfilesRing(row, target: .field(field)),
+          onChange: onChange,
+          onFocusChange: { store.send(.profiles(.fieldFocusChanged(row, $0))) },
+        )
+        FailureLine(editor: editor, field: field)
       }
     }
+    .disabled(editor.isChecking)
+    .modifier(ProfilesFormRow(store: store, row: row))
   }
 }
 
@@ -378,13 +496,14 @@ private struct EditorRows: View {
 
   let store: StoreOf<SettingsWindowFeature>
   let editor: ProfilesFeature.Editor
+  var inAdvanced = false
 
   var body: some View {
     Group {
-      if !store.profiles.profile.isCustom {
+      if !store.profiles.profile.isCustom, !inAdvanced {
         key
       }
-      ConnectionRows(store: store) {
+      ConnectionRows(store: store, inAdvanced: inAdvanced) {
         LabeledContent("Address") {
           VStack(alignment: .leading, spacing: 4) {
             ProfilesTextField(
@@ -422,7 +541,9 @@ private struct EditorRows: View {
       }
     }
     .disabled(editor.isChecking)
-    ActionsRow(store: store, editor: editor)
+    if !inAdvanced, !store.profiles.isAdvancedExpanded {
+      ActionsRow(store: store, editor: editor)
+    }
   }
 
   // MARK: Private
@@ -563,8 +684,9 @@ private struct ActionsRow: View {
         )
         .foregroundStyle(.secondary)
       }
-      // No Escape shortcut: inside a field, Escape is how the keyboard leaves it.
+      // The pane has its own Escape grammar; a sheet uses the native cancel action.
       Button("Cancel") { store.send(.profiles(.cancelTapped)) }
+        .keyboardShortcut(store.profiles.isAdvancedExpanded ? .cancelAction : nil)
         .focusRing(store.state.showsProfilesRing(.actions, target: .cancel))
         .accessibilityIdentifier(AccessibilityID.profilesCancel)
       Button("Save") { store.send(.profiles(.saveTapped)) }

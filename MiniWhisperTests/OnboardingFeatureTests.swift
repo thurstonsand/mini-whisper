@@ -709,13 +709,13 @@ struct OnboardingStepDerivationTests {
     state.$settings.withLock { $0.profiles.active = .accurate }
     state.storedKeys = []
     let verified = TestBox<(CleanupConfiguration, String?)?>(nil)
-    let engineChecked = TestBox<(SpeechEngine, String)?>(nil)
+    let engineChecked = TestBox<(HostedASREngine.Configuration, String)?>(nil)
     let store = TestStore(initialState: state) {
       OnboardingFeature()
     } withDependencies: {
       $0.keychain.store = { key, slot in stored.value[slot] = key }
       $0.keychain.read = { stored.value[$0] }
-      $0.asrEngine.verifyKey = { engine, key in
+      $0.asrEngine.verifyHosted = { engine, key in
         #expect(stored.value.isEmpty, "Nothing is stored before the engine key is proven")
         engineChecked.value = (engine, key)
       }
@@ -792,7 +792,7 @@ struct OnboardingStepDerivationTests {
       OnboardingFeature()
     } withDependencies: {
       $0.keychain.store = { _, _ in Issue.record("A refused key is never stored") }
-      $0.asrEngine.verifyKey = { _, _ in throw ASREngineError.credentialRejected }
+      $0.asrEngine.verifyHosted = { _, _ in throw ASREngineError.credentialRejected }
     }
 
     await store.send(.keyEdited(elevenLabs, "sk_wrong")) { $0.keyDrafts[elevenLabs] = "sk_wrong" }

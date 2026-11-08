@@ -124,6 +124,60 @@ struct HostedResponseTests {
       try HostedASREngine.outcome(status: 500, data: Data("overloaded".utf8), dictionary: .empty)
     }
   }
+
+  @Test func `verification sends the configured speech URL and model`() async throws {
+    let configuration = URLSessionConfiguration.ephemeral
+    configuration.protocolClasses = [SpeechOverrideProtocol.self]
+    let session = URLSession(configuration: configuration)
+    defer { session.invalidateAndCancel() }
+    try await HostedASREngine.verify(apiKey: "gateway-key", configuration: .init(
+      endpoint: #require(URL(string: "https://gateway.example/el/v1/speech-to-text")),
+      model: "scribe_v1",
+    ), session: session)
+  }
+}
+
+// MARK: - SpeechOverrideProtocol
+
+private final class SpeechOverrideProtocol: URLProtocol, @unchecked Sendable {
+  override class func canInit(with _: URLRequest) -> Bool {
+    true
+  }
+
+  override class func canonicalRequest(for request: URLRequest) -> URLRequest {
+    request
+  }
+
+  override func startLoading() {
+    var data = request.httpBody ?? Data()
+    if let stream = request.httpBodyStream {
+      stream.open()
+      defer { stream.close() }
+      var buffer = [UInt8](repeating: 0, count: 4096)
+      while stream.hasBytesAvailable {
+        let count = stream.read(&buffer, maxLength: buffer.count)
+        guard count > 0 else {
+          break
+        }
+        data.append(contentsOf: buffer[..<count])
+      }
+    }
+    let body = String(decoding: data, as: UTF8.self)
+    let matches = request.url?.absoluteString == "https://gateway.example/el/v1/speech-to-text"
+      && request.httpMethod == "POST"
+      && request.value(forHTTPHeaderField: "xi-api-key") == "gateway-key"
+      && body.contains("name=\"model_id\"\r\n\r\nscribe_v1\r\n")
+      && body.contains("name=\"file\"; filename=\"dictation.wav\"")
+      && data.contains(Data("RIFF".utf8))
+      && data.contains(Data(repeating: 0, count: 32000))
+    let response = HTTPURLResponse(url: request.url!, statusCode: matches ? 200 : 422,
+                                   httpVersion: nil, headerFields: nil)!
+    client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+    client?.urlProtocol(self, didLoad: Data(#"{"text":""}"#.utf8))
+    client?.urlProtocolDidFinishLoading(self)
+  }
+
+  override func stopLoading() {}
 }
 
 // MARK: - HostedReadinessTests

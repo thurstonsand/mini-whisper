@@ -385,9 +385,9 @@ struct EndpointAddressTests {
     settings.profiles.active = .accurate
     let store = profilesStore(settings: settings, keys: [googleSlot: "AIza-0123"]) {
       $0.keychain.store = { secret, slot in stored.value[slot] = secret }
-      $0.asrEngine.verifyKey = { engine, key in
+      $0.asrEngine.verifyHosted = { configuration, key in
         #expect(stored.value.isEmpty)
-        #expect(engine == .scribe)
+        #expect(configuration == .scribe)
         if key == "sk_wrong" {
           throw ASREngineError.credentialRejected
         }
@@ -420,11 +420,66 @@ struct EndpointAddressTests {
       endpoint: #require(
         URL(string: "https://generativelanguage.googleapis.com/v1beta/openai"),
       ),
-      model: "gemini-3.8-flash", storedKeys: [elevenLabsSlot: "sk_ele"],
+      model: "gemini-3.8-flash", storedKeys: [elevenLabsSlot: "sk_ele"], speech: .scribe,
     )))
     await store.receive(.delegate(.keysStored([elevenLabsSlot])))
 
     #expect(stored.value == [elevenLabsSlot: "sk_eleven-0123"])
+  }
+
+  @Test func `speech overrides are proven, persisted, and reset independently of cleanup`(
+  ) async throws {
+    var settings = MiniWhisperSettings.defaults
+    settings.profiles.active = .accurate
+    let keys = [elevenLabsSlot: "sk-speech", googleSlot: "google-key"]
+    let verified = TestBox<HostedASREngine.Configuration?>(nil)
+    let store = profilesStore(settings: settings, keys: keys) {
+      $0.asrEngine.verifyHosted = { configuration, key in
+        #expect(key == "sk-speech")
+        verified.value = configuration
+        if configuration.model == "unknown" {
+          throw ASREngineError.hostedFailure(400, "invalid_model_id")
+        }
+      }
+      $0.cleanup.verify = { _, _ in .verified }
+    }
+    store.exhaustivity = .off(showSkippedAssertions: false)
+    await openPane(store, keys: keys)
+    let cleanup = try #require(store.state.profile.endpointLeg)
+    let speech = try HostedASREngine.Configuration(
+      endpoint: #require(URL(string: "https://gateway.example/el/v1/speech-to-text")),
+      model: "scribe_v1",
+    )
+    func saved(_ speech: HostedASREngine.Configuration) -> ProfilesFeature.Action {
+      .saveSucceeded(.init(endpoint: cleanup.endpoint!, model: cleanup.model!,
+                           storedKeys: [:], speech: speech))
+    }
+
+    await store.send(.editTapped(.engineEndpoint))
+    await store.send(.engineEndpointEdited("gateway.example/el/v1/speech-to-text/"))
+    await store.send(.engineModelEdited("unknown"))
+    await store.send(.saveTapped)
+    await store.receive(.saveFailed(.init(field: .engineModel,
+                                          message: "The speech endpoint has no model ‘unknown’.")))
+    #expect(store.state.settings.profiles.scribeOverride == nil)
+
+    await store.send(.engineModelEdited(" scribe_v1 "))
+    await store.send(.saveTapped)
+    await store.receive(saved(speech))
+    #expect(verified.value == speech)
+    let encoded = try JSONEncoder().encode(store.state.settings)
+    let restored = try JSONDecoder().decode(MiniWhisperSettings.self, from: encoded)
+    #expect(restored.profiles.scribeConfiguration == speech)
+    #expect(restored.activeProfile.endpointLeg == cleanup)
+
+    await store.send(.resetTapped(.engineModel))
+    await store.receive(saved(.init(endpoint: speech.endpoint, model: "scribe_v2")))
+    #expect(store.state.settings.profiles.scribeOverride?.endpoint == speech.endpoint)
+    #expect(store.state.settings.profiles.scribeOverride?.model == nil)
+    await store.send(.resetTapped(.engineEndpoint))
+    await store.receive(saved(.scribe))
+    #expect(store.state.settings.profiles.scribeOverride == nil)
+    #expect(store.state.profile.endpointLeg == cleanup)
   }
 
   /// A reset is an edit back to the factory's value, so it is proven like any other.

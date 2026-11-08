@@ -32,7 +32,7 @@ import TranscriptCleanup
       dependencies.modelDownloadConsent.markConsented = {}
       dependencies.asrEngine.installAndPrepare = { _ in AsyncStream { $0.finish() } }
       dependencies.asrEngine.unload = { _ in }
-      dependencies.asrEngine.verifyKey = { _, key in
+      dependencies.asrEngine.verifyHosted = { _, key in
         if key.hasPrefix("sk_rejected") {
           throw ASREngineError.credentialRejected
         }

@@ -413,7 +413,7 @@ enum OnboardingStep: Int, Equatable {
         guard state.canContinueFromKeys else {
           return .none
         }
-        let engine = state.profile.engine
+        let speechConfiguration = state.settings.profiles.scribeConfiguration
         var engineKey: (slot: CredentialSlot, key: String)?
         if let slot = state.profile.engineCredential, state.missingKeys.contains(slot) {
           engineKey = (slot, state.draft(for: slot))
@@ -440,7 +440,7 @@ enum OnboardingStep: Int, Equatable {
           if let (slot, key) = engineKey {
             let provider = slot.provider.displayName
             do {
-              try await asrEngine.verifyKey(engine, key)
+              try await asrEngine.verifyHosted(speechConfiguration, key)
             } catch ASREngineError.credentialRejected {
               await send(.keysCheckFailed(slot, "Invalid \(provider) key."))
               return

@@ -15,31 +15,55 @@ public actor HostedASREngine {
   /// effect on the next dictation without the engine hearing about it.
   public init(
     library: ModelLibrary, apiKey: @escaping @Sendable () throws -> String?,
-    endpoint: URL = HostedASREngine.endpoint, session: URLSession = .shared,
+    session: URLSession = .shared,
     gateConfiguration: GateConfiguration = .calibrated,
   ) {
     self.library = library
     self.apiKey = apiKey
-    self.endpoint = endpoint
     self.session = session
     gate = SpeechGate(library: library, configuration: gateConfiguration)
   }
 
   // MARK: Public
 
+  public struct Configuration: Equatable, Sendable {
+    // MARK: Lifecycle
+
+    public init(endpoint: URL, model: String) {
+      self.endpoint = endpoint
+      self.model = model
+    }
+
+    // MARK: Public
+
+    public static let scribe = Configuration(endpoint: HostedASREngine.endpoint, model: "scribe_v2")
+
+    public let endpoint: URL
+    public let model: String
+  }
+
   public static let endpoint = URL(string: "https://api.elevenlabs.io/v1/speech-to-text")!
   public nonisolated static let identity = "elevenlabs/scribe_v2"
   public nonisolated static let assets: [ModelAsset] = [.gate]
 
-  /// Proves a key without sending audio. Scribe checks the key, then `model_id`, and only then
-  /// asks for a file, so a request without one is refused on `file` exactly when the key and
-  /// model would transcribe.
+  /// ElevenLabs checks the key and model before asking for a file. Compatible endpoints need
+  /// not validate in that order, so they get one second of generated silence, never user audio.
   public static func verify(
-    apiKey: String, endpoint: URL = HostedASREngine.endpoint, session: URLSession = .shared,
+    apiKey: String, configuration: Configuration = .scribe, session: URLSession = .shared,
   ) async throws {
-    let request = request(endpoint: endpoint, apiKey: apiKey, wav: nil, dictionary: .empty)
+    let isElevenLabs = configuration.endpoint == endpoint
+    let wav = isElevenLabs ? nil : WAVEncoder.pcm16(
+      [Float](repeating: 0, count: 16000), sampleRate: 16000,
+    )
+    let request = request(endpoint: configuration.endpoint, model: configuration.model,
+                          apiKey: apiKey, wav: wav, dictionary: .empty)
     let (data, response) = try await session.data(for: request)
-    try verification(status: (response as? HTTPURLResponse)?.statusCode ?? -1, data: data)
+    let status = (response as? HTTPURLResponse)?.statusCode ?? -1
+    if isElevenLabs {
+      try verification(status: status, data: data)
+    } else {
+      _ = try outcome(status: status, data: data, dictionary: .empty)
+    }
   }
 
   public nonisolated func prepareInstalled() -> AsyncStream<EngineReadiness> {
@@ -66,6 +90,7 @@ public actor HostedASREngine {
 
   public func submit(
     _ samples: [Float], sampleRate: Double, dictionary: TranscriptionDictionary,
+    configuration: Configuration = .scribe,
   ) async throws -> TranscriptionOutcome {
     if let refusal = try await gate.refusal(of: samples, sampleRate: sampleRate) {
       return refusal
@@ -75,7 +100,7 @@ public actor HostedASREngine {
       throw ASREngineError.credentialMissing
     }
     let request = Self.request(
-      endpoint: endpoint, apiKey: key,
+      endpoint: configuration.endpoint, model: configuration.model, apiKey: key,
       wav: WAVEncoder.pcm16(samples, sampleRate: sampleRate), dictionary: dictionary,
     )
     let started = ContinuousClock.now
@@ -97,9 +122,10 @@ public actor HostedASREngine {
   /// `keyterms` part per term. A JSON array in a single part is rejected as one over-long term.
   /// Without `wav` it is the key check: the same request, short of the one part Scribe needs.
   static func request(
-    endpoint: URL, apiKey: String, wav: Data?, dictionary: TranscriptionDictionary,
+    endpoint: URL, model: String = "scribe_v2", apiKey: String, wav: Data?,
+    dictionary: TranscriptionDictionary,
   ) -> URLRequest {
-    var fields = [("model_id", "scribe_v2"), ("language_code", "eng")]
+    var fields = [("model_id", model), ("language_code", "eng")]
     fields += keyterms(dictionary).map { ("keyterms", $0) }
     let boundary = UUID().uuidString
     var body = Data()
@@ -179,7 +205,6 @@ public actor HostedASREngine {
 
   private let library: ModelLibrary
   private let apiKey: @Sendable () throws -> String?
-  private let endpoint: URL
   private let session: URLSession
   private let gate: SpeechGate
   private var readiness: EngineReadiness = .modelMissing

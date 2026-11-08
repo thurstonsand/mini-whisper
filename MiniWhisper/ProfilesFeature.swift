@@ -28,6 +28,8 @@ private let profilesPaneLogger = Logger(
   /// What Save writes together, and what a failed Save can blame.
   enum Field: Hashable {
     case engineKey
+    case engineEndpoint
+    case engineModel
     case endpoint
     case apiKey
     case model
@@ -38,6 +40,8 @@ private let profilesPaneLogger = Logger(
     case localCleanup
     case enabled
     case engineKey
+    case engineEndpoint
+    case engineModel
     case advanced
     case endpoint
     case apiKey
@@ -100,6 +104,7 @@ private let profilesPaneLogger = Logger(
     let endpoint: URL
     let model: String
     let storedKeys: [CredentialSlot: String]
+    var speech: HostedASREngine.Configuration?
   }
 
   /// The endpoint's facts while they are being changed. Nothing in here is anywhere else yet.
@@ -108,6 +113,8 @@ private let profilesPaneLogger = Logger(
     /// Empty keeps whatever key is stored; anything typed replaces it.
     var keyText = ""
     var engineKeyText = ""
+    var engineEndpointText = ""
+    var engineModel = ""
     var modelChoice: ModelChoice
     var customModel: String
     var listing: ModelListing
@@ -229,6 +236,17 @@ private let profilesPaneLogger = Logger(
     }
 
     var rows: [Row] {
+      if isAdvancedExpanded {
+        var rows: [Row] = engineCredential == nil ? [] : [.engineEndpoint, .engineModel]
+        rows += [.endpoint, .model]
+        if editor?.modelChoice == .custom {
+          rows.append(.customModel)
+        }
+        if editor != nil {
+          rows.append(.actions)
+        }
+        return rows
+      }
       var rows: [Row] = [.profile]
       if engineCredential != nil {
         rows.append(.engineKey)
@@ -247,11 +265,8 @@ private let profilesPaneLogger = Logger(
           rows += [.endpoint, .apiKey, .model]
         } else {
           rows += [.apiKey, .advanced]
-          if isAdvancedExpanded {
-            rows += [.endpoint, .model]
-          }
         }
-        if editor?.modelChoice == .custom, profile.isCustom || isAdvancedExpanded {
+        if editor?.modelChoice == .custom, profile.isCustom {
           rows.append(.customModel)
         }
         if editor != nil {
@@ -289,6 +304,18 @@ private let profilesPaneLogger = Logger(
         return [.advanced]
       case .engineKey:
         return isEditing ? [.field(.engineKey)] : [.edit(.engineKey)]
+      case .engineEndpoint:
+        if isEditing {
+          return [.field(.engineEndpoint)]
+        }
+        return [.edit(.engineEndpoint)] +
+          (settings.profiles.scribeOverride?.endpoint != nil ? [.reset(.engineEndpoint)] : [])
+      case .engineModel:
+        if isEditing {
+          return [.field(.engineModel)]
+        }
+        return [.edit(.engineModel)] +
+          (settings.profiles.scribeOverride?.model != nil ? [.reset(.engineModel)] : [])
       case .endpoint:
         if isEditing {
           return [.field(.endpoint)]
@@ -367,6 +394,10 @@ private let profilesPaneLogger = Logger(
         endpointText: EndpointAddress.display(leg?.endpoint), modelChoice: .custom,
         customModel: model, listing: .notLoaded,
       )
+      if engineCredential != nil {
+        editor.engineEndpointText = settings.profiles.scribeConfiguration.endpoint.absoluteString
+        editor.engineModel = settings.profiles.scribeConfiguration.model
+      }
       if let endpoint = leg?.endpoint, let cached = modelListings[endpoint.absoluteString] {
         editor.listing = .loaded(cached)
         editor.modelChoice = cached.contains(model) ? .listed(model) : .custom
@@ -378,6 +409,10 @@ private let profilesPaneLogger = Logger(
       switch field {
       case .engineKey:
         .engineKey
+      case .engineEndpoint:
+        .engineEndpoint
+      case .engineModel:
+        .engineModel
       case .endpoint:
         .endpoint
       case .apiKey:
@@ -403,6 +438,8 @@ private let profilesPaneLogger = Logger(
     case endpointEdited(String)
     case keyEdited(String)
     case engineKeyEdited(String)
+    case engineEndpointEdited(String)
+    case engineModelEdited(String)
     case modelSelected(ModelChoice)
     case customModelEdited(String)
     case loadModelsTapped
@@ -479,7 +516,7 @@ private let profilesPaneLogger = Logger(
       case let .advancedToggled(expanded):
         state.isAdvancedExpanded = expanded
         state.cursor = Cursor(row: .advanced)
-        return .none
+        return expanded ? .none : discardEditor(&state)
       case let .enabledToggled(enabled):
         state.$settings.withLock { $0.profiles.custom.cleanupEnabled = enabled }
         return clampTarget(&state)
@@ -497,9 +534,7 @@ private let profilesPaneLogger = Logger(
         if state.editor == nil {
           state.editor = state.makeEditor()
         }
-        if !state.profile.isCustom, field == .endpoint || field == .model {
-          state.isAdvancedExpanded = true
-        }
+        state.isAdvancedExpanded = !state.profile.isCustom && field.isConnection
         state.editor?.requestFocus(field)
         state.cursor = Cursor(row: state.row(for: field))
         return .none
@@ -510,6 +545,10 @@ private let profilesPaneLogger = Logger(
         }
         var editor = state.makeEditor()
         switch field {
+        case .engineEndpoint:
+          editor.engineEndpointText = HostedASREngine.Configuration.scribe.endpoint.absoluteString
+        case .engineModel:
+          editor.engineModel = HostedASREngine.Configuration.scribe.model
         case .endpoint:
           editor.endpointText = factory.endpoint.absoluteString
         case .model:
@@ -530,6 +569,12 @@ private let profilesPaneLogger = Logger(
         return .none
       case let .engineKeyEdited(text):
         state.editor?.engineKeyText = text
+        return .none
+      case let .engineEndpointEdited(text):
+        state.editor?.engineEndpointText = text
+        return .none
+      case let .engineModelEdited(text):
+        state.editor?.engineModel = text
         return .none
       case let .modelSelected(choice):
         state.editor?.modelChoice = choice
@@ -629,6 +674,13 @@ private let profilesPaneLogger = Logger(
         state.$settings.withLock {
           $0.profiles.setEndpoint(saved.endpoint, for: id)
           $0.profiles.setModel(saved.model, for: id)
+          if let speech = saved.speech {
+            let factory = HostedASREngine.Configuration.scribe
+            $0.profiles.scribeOverride = speech == factory ? nil : EndpointOverride(
+              endpoint: speech.endpoint == factory.endpoint ? nil : speech.endpoint,
+              model: speech.model == factory.model ? nil : speech.model,
+            )
+          }
           // Setting Custom up is asking for its cleanup; turning it off later is a separate say.
           if id == .custom, !wasSetUp {
             $0.profiles.custom.cleanupEnabled = true
@@ -652,9 +704,7 @@ private let profilesPaneLogger = Logger(
         }
         state.editor?.isChecking = false
         state.editor?.failure = failure
-        if !state.profile.isCustom, failure.field == .endpoint || failure.field == .model {
-          state.isAdvancedExpanded = true
-        }
+        state.isAdvancedExpanded = !state.profile.isCustom && failure.field.isConnection
         state.editor?.requestFocus(failure.field)
         state.cursor = Cursor(row: state.row(for: failure.field))
         return .none
@@ -831,9 +881,7 @@ private let profilesPaneLogger = Logger(
       editor.failure = Failure(field: field, message: message)
       editor.requestFocus(field)
       state.editor = editor
-      if !state.profile.isCustom, field == .endpoint || field == .model {
-        state.isAdvancedExpanded = true
-      }
+      state.isAdvancedExpanded = !state.profile.isCustom && field.isConnection
       state.cursor = Cursor(row: state.row(for: field))
       return .none
     }
@@ -844,27 +892,55 @@ private let profilesPaneLogger = Logger(
     guard !model.isEmpty else {
       return fail(.model, "Choose a model, or enter one.")
     }
+    var speech: HostedASREngine.Configuration?
+    if state.engineCredential != nil {
+      guard let address = EndpointAddress.conform(editor.engineEndpointText) else {
+        return fail(.engineEndpoint, "Enter the full speech-to-text URL.")
+      }
+      let model = editor.engineModel.trimmingCharacters(in: .whitespacesAndNewlines)
+      guard !model.isEmpty else {
+        return fail(.engineModel, "Enter a model ID.")
+      }
+      editor.engineEndpointText = address.absoluteString
+      editor.engineModel = model
+      speech = .init(endpoint: address, model: model)
+    }
+    let speechChanged = speech != nil && speech != state.settings.profiles.scribeConfiguration
     editor.endpointText = endpoint.absoluteString
     editor.isChecking = true
     editor.failure = nil
     state.editor = editor
-    let engine = state.profile.engine
     let engineSlot = state.engineCredential
     let typedEngineKey = editor.engineKeyText.typedSecret
     let typedKey = editor.keyText.typedSecret
     let candidates = EndpointAddress.candidates(for: endpoint)
-    return .run { send in
-      if let engineSlot {
+    return .run { [speech] send in
+      if let engineSlot, let speech {
         let provider = engineSlot.provider.displayName
-        if let typedEngineKey {
+        guard let engineKey = try typedEngineKey ?? keychain.read(engineSlot) else {
+          await send(.saveFailed(Failure(
+            field: .engineKey,
+            message: "Paste your \(provider) key.",
+          )))
+          return
+        }
+        if typedEngineKey != nil || speechChanged {
           do {
-            try await asrEngine.verifyKey(engine, typedEngineKey)
+            try await asrEngine.verifyHosted(speech, engineKey)
           } catch ASREngineError.credentialRejected {
             await send(.saveFailed(Failure(field: .engineKey, message: "Invalid key.")))
             return
           } catch is URLError {
             await send(.saveFailed(Failure(
-              field: .engineKey, message: "Couldn’t reach \(provider).",
+              field: .engineEndpoint, message: "Couldn’t reach the speech endpoint.",
+            )))
+            return
+          } catch let ASREngineError.hostedFailure(status, message) {
+            let field: Field = message.contains("model_id") ? .engineModel : .engineEndpoint
+            await send(.saveFailed(Failure(
+              field: field, message: field == .engineModel
+                ? "The speech endpoint has no model ‘\(speech.model)’."
+                : "The speech endpoint refused this request (HTTP \(status)).",
             )))
             return
           } catch {
@@ -876,11 +952,6 @@ private let profilesPaneLogger = Logger(
             )))
             return
           }
-        } else if try keychain.read(engineSlot) == nil {
-          await send(.saveFailed(Failure(
-            field: .engineKey, message: "Paste your \(provider) key.",
-          )))
-          return
         }
       }
       let apiKey = try typedKey ?? keychain.read(slot)
@@ -922,7 +993,12 @@ private let profilesPaneLogger = Logger(
           )))
           return
         }
-        await send(.saveSucceeded(Saved(endpoint: base, model: model, storedKeys: stored)))
+        await send(.saveSucceeded(Saved(
+          endpoint: base,
+          model: model,
+          storedKeys: stored,
+          speech: speech,
+        )))
       case .cancelled:
         return
       case let .exhausted(failures):
@@ -1004,6 +1080,21 @@ private extension Profile {
   /// Every slot the profile could hold a key in, whether or not its cleanup is on.
   var credentialSlots: [CredentialSlot] {
     [engineCredential, endpointLeg?.credential].compactMap(\.self)
+  }
+}
+
+private extension ProfilesFeature.Field {
+  var isConnection: Bool {
+    switch self {
+    case .engineEndpoint,
+         .engineModel,
+         .endpoint,
+         .model:
+      true
+    case .engineKey,
+         .apiKey:
+      false
+    }
   }
 }
 

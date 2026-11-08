@@ -164,20 +164,23 @@ final class ProfilesUITests: MiniWhisperUITestCase, SurfaceTagged {
         try require(haiku.awaitExistence(timeout: 2))
         haiku.click()
         XCTAssertTrue(app.staticTexts["miniwhisper.profiles.endpoint.value"].awaitNonExistence())
-        let advanced = app.disclosureTriangles.firstMatch
+        let advanced = app.buttons["miniwhisper.profiles.advanced"]
         try require(advanced.awaitHittable())
         app.typeText("jj")
         self.assertValue("Bar on", of: app.staticTexts["miniwhisper.profiles.row.advanced.state"])
         app.typeKey(.return, modifierFlags: [])
+        try require(app.sheets.firstMatch.awaitExistence())
         self.assertValue(
           "https://api.anthropic.com/v1",
           of: app.staticTexts["miniwhisper.profiles.endpoint.value"],
         )
         self.assertValue(
-          "sk-ant••••••••••••", of: app.staticTexts["miniwhisper.profiles.apiKey.value"],
-        )
-        self.assertValue(
           "claude-haiku-5-5", of: app.staticTexts["miniwhisper.profiles.model.value"],
+        )
+        app.typeKey(.escape, modifierFlags: [])
+        try require(app.sheets.firstMatch.awaitNonExistence())
+        self.assertValue(
+          "sk-ant••••••••••••", of: app.staticTexts["miniwhisper.profiles.apiKey.value"],
         )
         XCTAssertTrue(app.switches["miniwhisper.profiles.enabled"].awaitNonExistence())
         XCTAssertTrue(app.switches["miniwhisper.profiles.boosts-vocabulary"].awaitNonExistence())
@@ -229,11 +232,62 @@ final class ProfilesUITests: MiniWhisperUITestCase, SurfaceTagged {
     recordScreenshot("profiles-custom-saved", screenshot: app.screenshot())
   }
 
+  @MainActor func testSpeechConnectionOverrides() {
+    assertLaws(on: "settings-profiles-accurate", [
+      Law("The speech key is added before changing its connection") { app in
+        let add = app.buttons["miniwhisper.profiles.engineKey.edit"]
+        try require(add.awaitHittable())
+        add.click()
+        let key = app.textFields["miniwhisper.profiles.engineKey.field"]
+        self.assertKeyboardFocus(on: key)
+        key.typeText("sk-speech-scene")
+        app.buttons["miniwhisper.profiles.save"].click()
+        self.assertValue(
+          "sk-spe••••••••••••",
+          of: app.staticTexts["miniwhisper.profiles.engineKey.value"],
+        )
+      },
+      Law("Advanced saves an ElevenLabs-compatible speech URL and model") { app in
+        app.buttons["miniwhisper.profiles.advanced"].click()
+        let edit = app.buttons["miniwhisper.profiles.engineEndpoint.edit"]
+        try require(edit.awaitHittable())
+        edit.click()
+        let endpoint = app.textFields["miniwhisper.profiles.engineEndpoint.field"]
+        self.assertKeyboardFocus(on: endpoint)
+        endpoint.typeKey("a", modifierFlags: .command)
+        endpoint.typeText("https://gateway.example/el/v1/speech-to-text")
+        let model = app.textFields["miniwhisper.profiles.engineModel.field"]
+        model.click()
+        model.typeKey("a", modifierFlags: .command)
+        model.typeText("scribe_v1")
+        app.buttons["miniwhisper.profiles.save"].click()
+        self.assertValue("https://gateway.example/el/v1/speech-to-text",
+                         of: app.staticTexts["miniwhisper.profiles.engineEndpoint.value"])
+        self.assertValue("scribe_v1", of: app.staticTexts["miniwhisper.profiles.engineModel.value"])
+        self.assertValue(
+          "gemini-3.8-flash",
+          of: app.staticTexts["miniwhisper.profiles.model.value"],
+        )
+        self.recordScreenshot("profiles-speech-overridden", screenshot: app.screenshot())
+      },
+      Law("Resetting the speech model keeps the speech URL, and Escape closes Advanced") { app in
+        let reset = app.buttons["miniwhisper.profiles.engineModel.reset"]
+        try require(reset.awaitHittable())
+        reset.click()
+        self.assertValue("scribe_v2", of: app.staticTexts["miniwhisper.profiles.engineModel.value"])
+        self.assertValue("https://gateway.example/el/v1/speech-to-text",
+                         of: app.staticTexts["miniwhisper.profiles.engineEndpoint.value"])
+        app.typeKey(.escape, modifierFlags: [])
+        XCTAssertTrue(app.sheets.firstMatch.awaitNonExistence())
+      },
+    ])
+  }
+
   @MainActor func testOverriddenFieldResetsToItsFactoryValue() {
     let app = launch("settings-profiles-overridden")
     defer { terminate(app) }
 
-    let advanced = app.disclosureTriangles.firstMatch
+    let advanced = app.buttons["miniwhisper.profiles.advanced"]
     XCTAssertTrue(advanced.awaitHittable())
     XCTAssertFalse(app.staticTexts["miniwhisper.profiles.endpoint.value"].exists)
     app.typeText("ljj")

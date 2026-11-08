@@ -2,6 +2,7 @@ import AppSettings
 import ASREngine
 import AudioCapture
 import ComposableArchitecture
+import Foundation
 import ModelLibrary
 import SpeechDictionary
 
@@ -29,7 +30,15 @@ import SpeechDictionary
     SpeechEngine, CanonicalRecording, TranscriptionDictionary,
   ) async throws -> TranscriptionOutcome
   /// Proves a key the engine has not been given yet, so nothing stores a key that cannot hear.
-  var verifyKey: @Sendable (SpeechEngine, String) async throws -> Void
+  var verifyHosted: @Sendable (HostedASREngine.Configuration, String) async throws -> Void
+}
+
+extension ProfileSettings {
+  var scribeConfiguration: HostedASREngine.Configuration {
+    let factory = HostedASREngine.Configuration.scribe
+    return .init(endpoint: scribeOverride?.endpoint ?? factory.endpoint,
+                 model: scribeOverride?.model ?? factory.model)
+  }
 }
 
 // MARK: - DictionaryContents transcription mapping
@@ -64,6 +73,7 @@ extension SpeechEngine {
 
 extension ASREngineClient: DependencyKey {
   static let liveValue: Self = {
+    @Shared(.settingsFile) var settings = MiniWhisperSettings.defaults
     let local = LocalASREngine(library: .live, speechModel: Channel.speechModel)
     // Only Most accurate hears through Scribe, so its slot is the only one the engine reads.
     let keychain = KeychainClient.liveValue
@@ -102,8 +112,13 @@ extension ASREngineClient: DependencyKey {
           await hosted.unload()
         }
       },
-      identity: { $0.identity },
-      submit: { engine, recording, dictionary in
+      identity: { [$settings] engine in
+        let configuration = $settings.wrappedValue.profiles.scribeConfiguration
+        return engine == .scribe && configuration != .scribe
+          ? "\(configuration.endpoint.host() ?? "hosted")/\(configuration.model)"
+          : engine.identity
+      },
+      submit: { [$settings] engine, recording, dictionary in
         switch engine {
         case .parakeet:
           try await local.submit(
@@ -112,16 +127,12 @@ extension ASREngineClient: DependencyKey {
         case .scribe:
           try await hosted.submit(
             recording.samples, sampleRate: CanonicalRecording.sampleRate, dictionary: dictionary,
+            configuration: $settings.wrappedValue.profiles.scribeConfiguration,
           )
         }
       },
-      verifyKey: { engine, key in
-        switch engine {
-        case .parakeet:
-          preconditionFailure("Parakeet hears without a key")
-        case .scribe:
-          try await HostedASREngine.verify(apiKey: key)
-        }
+      verifyHosted: { configuration, key in
+        try await HostedASREngine.verify(apiKey: key, configuration: configuration)
       },
     )
   }()

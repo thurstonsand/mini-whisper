@@ -1,5 +1,6 @@
 import AppSettings
 import ComposableArchitecture
+import Foundation
 import ModelLibrary
 import SwiftUI
 
@@ -29,9 +30,7 @@ struct ModelsPane: View {
     } message: { asset in
       switch asset {
       case .s1Mini:
-        Text(
-          "\(models.settings.activeProfile.name) will deliver transcripts without cleanup until S1-mini is downloaded again.",
-        )
+        Text("MiniWhisper will deliver transcripts without cleanup.")
       case .gate,
            .parakeet:
         Text("\(models.settings.activeProfile.name) can’t transcribe until it’s downloaded again.")
@@ -127,7 +126,12 @@ struct ModelsPane: View {
         }
       }
       Section("Off this Mac") {
-        hosted(.scribe, title: "ElevenLabs", model: "Scribe v2", sends: "Audio")
+        hosted(
+          .scribe,
+          title: models.settings.profiles.scribeOverride?.endpoint?.host() ?? "ElevenLabs",
+          model: models.settings.profiles.scribeOverride?.model ?? "Scribe v2",
+          sends: "Audio",
+        )
         ForEach(models.settings.profiles.lineup.filter { $0.endpointLeg != nil }) { profile in
           hosted(
             .endpoint(profile.id),
@@ -352,7 +356,9 @@ private struct PatchCard: View {
             .foregroundStyle(.secondary)
         }
       }
-      leg(.speech, "Speech", profile.engine.name)
+      leg(.speech, "Speech", profile.engine == .scribe
+        ? store.models.settings.profiles.scribeOverride?.model ?? profile.engine.name
+        : profile.engine.name)
       leg(.cleanup, "Cleanup", cleanup)
     }
     .padding(10)
@@ -474,7 +480,7 @@ private struct ComponentRow: View {
     case let .asset(asset):
       asset.name
     case .scribe:
-      "ElevenLabs"
+      store.models.settings.profiles.scribeOverride?.endpoint?.host() ?? "ElevenLabs"
     case let .endpoint(id):
       store.models.settings.profiles.profile(id).factory?.provider.displayName ?? "Your endpoint"
     }
@@ -485,7 +491,7 @@ private struct ComponentRow: View {
     case let .asset(asset):
       store.models.users(of: asset)
     case .scribe:
-      "Scribe v2"
+      store.models.settings.profiles.scribeOverride?.model ?? "Scribe v2"
     case let .endpoint(id):
       store.models.settings.profiles.profile(id).endpointLeg?.model ?? "Not set up"
     }

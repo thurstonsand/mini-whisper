@@ -27,6 +27,8 @@ If automatic paste is unavailable, MiniWhisper leaves the transcript on the clip
 
 Settings are stored at `~/Library/Application Support/MiniWhisper/settings.json`. The file controls the shortcuts, microphone, per-cue sounds, and history retention.
 
+In Profiles, Most accurate’s **Advanced…** button opens its speech and cleanup connections. The speech connection accepts a full ElevenLabs-compatible speech-to-text URL and model ID; Save checks them before keeping the change. Other speech endpoints are checked with one second of generated silence, which the provider may charge for. Custom’s speech recognition stays on this Mac.
+
 ## Building from source
 
 Building requires Xcode and [mise](https://mise.jdx.dev).

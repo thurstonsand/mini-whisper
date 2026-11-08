@@ -292,6 +292,7 @@ public struct ProfileSettings: Codable, Equatable, Sendable {
   public var active: ProfileID
   public private(set) var overrides: [ProfileID: EndpointOverride]
   public var custom: CustomProfileSettings
+  public var scribeOverride: EndpointOverride?
 
   public var lineup: [Profile] {
     ProfileID.allCases.map(profile)
@@ -430,6 +431,7 @@ extension ProfileSettings {
     case active
     case overrides
     case custom
+    case scribeOverride
   }
 
   public init(from decoder: Decoder) throws {
@@ -440,6 +442,7 @@ extension ProfileSettings {
     ) ?? [:]
     custom = try container.decodeIfPresent(CustomProfileSettings.self, forKey: .custom)
       ?? .defaults
+    scribeOverride = try container.decodeIfPresent(EndpointOverride.self, forKey: .scribeOverride)
   }
 }
 

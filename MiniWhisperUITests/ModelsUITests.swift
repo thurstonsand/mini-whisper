@@ -72,7 +72,7 @@ final class ModelsUITests: MiniWhisperUITestCase, SurfaceTagged {
         self.recordScreenshot("offline-delete-confirmation", screenshot: app.screenshot())
         XCTAssertTrue(app.sheets
           .staticTexts[
-            "Offline will deliver transcripts without cleanup until S1-mini is downloaded again.",
+            "MiniWhisper will deliver transcripts without cleanup.",
           ]
           .awaitExistence())
         cancel.click()
