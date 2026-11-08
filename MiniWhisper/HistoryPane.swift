@@ -40,9 +40,6 @@ struct HistoryPane: View {
         ContentUnavailableView.search(text: store.history.search)
       }
     }
-    .modifier(HistoryCaptionBar(
-      hasEntries: !store.history.filteredEntries.isEmpty, mentionsHold: hasRevealableEntry,
-    ))
     .searchable(
       text: $store.history.search.sending(\.history.searchChanged), prompt: "Search transcripts",
     )
@@ -79,10 +76,6 @@ struct HistoryPane: View {
         entries: grouped[day, default: []].sorted { $0.createdAt > $1.createdAt },
       )
     }
-  }
-
-  private var hasRevealableEntry: Bool {
-    store.history.filteredEntries.contains { $0.revealedText != nil }
   }
 
   /// A cursor filtered out by the search is not on screen to scroll to.
@@ -135,42 +128,6 @@ struct HistorySearchFocus: ViewModifier {
         store.send(.keyboardModeEntered)
         focusedColumn.wrappedValue = .detail
       }
-  }
-}
-
-// MARK: - HistoryCaptionBar
-
-private struct HistoryCaptionBar: ViewModifier {
-  // MARK: Internal
-
-  let hasEntries: Bool
-
-  /// A pane whose transcripts were never cleaned has nothing to reveal, so it never teaches a
-  /// gesture that would do nothing.
-  let mentionsHold: Bool
-
-  func body(content: Content) -> some View {
-    content.safeAreaBar(edge: .top) {
-      if hasEntries {
-        caption
-      }
-    }
-  }
-
-  // MARK: Private
-
-  private var caption: some View {
-    Text(
-      mentionsHold
-        ? "Click a transcript to copy it. Hold \u{2325} to see raw transcript."
-        : "Click a transcript to copy it.",
-    )
-    .font(.callout)
-    .foregroundStyle(.secondary)
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .padding(.horizontal, 22)
-    .padding(.bottom, 6)
-    .accessibilityIdentifier(AccessibilityID.historyCaption)
   }
 }
 
@@ -373,6 +330,23 @@ private struct HistoryRow: View {
   }
 
   @ViewBuilder private var menuItems: some View {
+    Button("Copy", systemImage: "doc.on.doc") {
+      store.send(.history(.copyEntry(entry.id, raw: false)))
+    }
+    .disabled(entry.displayText == nil)
+    if entry.revealedText != nil {
+      Button("Copy Raw Transcript") {
+        store.send(.history(.copyEntry(entry.id, raw: true)))
+      }
+    }
+    Button(
+      isPlaying ? "Stop Audio" : "Play Audio",
+      systemImage: isPlaying ? "stop.fill" : "play.fill",
+    ) {
+      store.send(.history(.playTapped(entry.id)))
+    }
+    .disabled(entry.audio == nil)
+    Divider()
     Button("Re-transcribe", systemImage: "arrow.clockwise") {
       store.send(.history(.retranscribeTapped(entry.id)))
     }
@@ -401,7 +375,7 @@ private struct HistoryRow: View {
           Text(duration.formattedDuration)
             .monospacedDigit()
             .font(.callout)
-            .foregroundStyle(.tertiary)
+            .foregroundStyle(.secondary)
         }
       }
       .opacity(isCopied ? 0 : 1)

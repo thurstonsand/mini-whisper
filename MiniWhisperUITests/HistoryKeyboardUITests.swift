@@ -16,8 +16,6 @@ final class HistoryKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
     XCTAssertTrue(history.awaitHittable(timeout: 5))
     history.click()
     XCTAssertTrue(app.staticTexts["No History"].awaitExistence(timeout: 2))
-    let caption = app.staticTexts["miniwhisper.history.caption"]
-    XCTAssertFalse(caption.exists)
 
     postAgentMutation("history-first-entries", value: "")
     waitForAgentResult("history:first-entries")
@@ -25,7 +23,6 @@ final class HistoryKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
     let second = historyRow(app, id: "BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB")
     XCTAssertTrue(first.awaitExistence(timeout: 2))
     XCTAssertTrue(second.awaitExistence(timeout: 2))
-    XCTAssertTrue(caption.awaitExistence(timeout: 2))
     let pitch = abs(first.frame.midY - second.frame.midY)
     XCTAssertGreaterThanOrEqual(pitch, 30, "History row pitch was \(pitch)pt")
   }
@@ -190,6 +187,18 @@ final class HistoryKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
     }
     assertLabel("The history pane keeps every transcript close at hand.", of: firstRow)
     assertLabel("A second deterministic transcript for search and deletion.", of: secondRow)
+
+    firstRow.rightClick()
+    let copy = app.windows.menuItems["Copy"]
+    XCTAssertTrue(copy.awaitHittable())
+    XCTAssertTrue(app.menuItems["Play Audio"].isEnabled)
+    copy.click()
+    assertPasteboard("The history pane keeps every transcript close at hand.")
+    firstRow.rightClick()
+    let copyRaw = app.menuItems["Copy Raw Transcript"]
+    XCTAssertTrue(copyRaw.awaitHittable())
+    copyRaw.click()
+    assertPasteboard("um the history pane keeps every transcript close at hand")
 
     let storage = app.buttons["miniwhisper.history.storage"]
     XCTAssertTrue(storage.awaitHittable())

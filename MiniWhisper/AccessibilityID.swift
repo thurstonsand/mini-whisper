@@ -99,7 +99,6 @@ enum AccessibilityID {
   /// A switch spends its own accessibility value on being on or off, so the one row whose ring
   /// does not hug its control has to report the ring somewhere else.
   static let settingsLaunchAtLoginRing = "miniwhisper.settings.launch-at-login.ring"
-  static let historyCaption = "miniwhisper.history.caption"
   static let historyStorage = "miniwhisper.history.storage"
   static let historyStoragePopover = "miniwhisper.history.storage.popover"
   static let profilesPicker = "miniwhisper.profiles.picker"

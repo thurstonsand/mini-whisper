@@ -94,6 +94,7 @@ import TranscriptCleanup
     case cursorMoved(CursorMovement)
     case cursorHovered(UUID)
     case copyRequested
+    case copyEntry(UUID, raw: Bool)
     case rowTapped(UUID)
     case revealChanged(Bool)
     case copyFailed(String)
@@ -158,10 +159,13 @@ import TranscriptCleanup
           return .none
         }
         state.cursor = place.id
-        return copy(place.id, state: &state)
+        return copy(place.id, raw: state.isRevealingRawText, state: &state)
       case let .rowTapped(id):
         state.cursor = id
-        return copy(id, state: &state)
+        return copy(id, raw: state.isRevealingRawText, state: &state)
+      case let .copyEntry(id, raw):
+        state.cursor = id
+        return copy(id, raw: raw, state: &state)
       // The peek is the whole pane's, not one row's: every transcript a cleanup pass rewrote
       // comes back for as long as the key is down.
       case let .revealChanged(isRevealing):
@@ -317,9 +321,9 @@ import TranscriptCleanup
 
   /// A copy takes what the row is showing, which is what the peek changes: ⌥ held copies the
   /// transcript, exactly as the row reads under the same key.
-  private func copy(_ id: UUID, state: inout State) -> Effect<Action> {
+  private func copy(_ id: UUID, raw: Bool, state: inout State) -> Effect<Action> {
     guard let entry = state.log.entries.first(where: { $0.id == id }),
-          let text = state.isRevealingRawText
+          let text = raw
           ? entry.revealedText ?? entry.displayText
           : entry.displayText
     else {
