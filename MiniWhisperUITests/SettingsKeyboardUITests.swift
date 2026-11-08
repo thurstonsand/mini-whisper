@@ -129,6 +129,8 @@ final class SettingsKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
           "Ring on", of: app.staticTexts["miniwhisper.settings.launch-at-login.ring"],
         )
         XCTAssertTrue(toggle.isHittable)
+        XCTAssertLessThan(toggle.frame.width, 60, "Only the switch owns the focus ring")
+        self.recordScreenshot("launch-switch-focus", screenshot: app.screenshot())
 
         app.typeKey(.return, modifierFlags: [])
         self.assertValue("0", of: toggle)

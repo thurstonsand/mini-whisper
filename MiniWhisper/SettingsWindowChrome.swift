@@ -257,3 +257,56 @@ extension View {
     }
   }
 }
+
+// MARK: - SettingsSwitch
+
+/// A native switch keeps its AXSwitch subrole while the row label stays outside its focus ring.
+struct SettingsSwitch: NSViewRepresentable {
+  @MainActor final class Coordinator: NSObject {
+    // MARK: Lifecycle
+
+    init(onChange: @escaping (Bool) -> Void) {
+      self.onChange = onChange
+    }
+
+    // MARK: Internal
+
+    var onChange: (Bool) -> Void
+
+    @objc func changed(_ sender: NSSwitch) {
+      onChange(sender.state == .on)
+    }
+  }
+
+  let isOn: Bool
+  let label: String
+  let identifier: String
+  let onChange: (Bool) -> Void
+
+  func makeCoordinator() -> Coordinator {
+    Coordinator(onChange: onChange)
+  }
+
+  func makeNSView(context: Context) -> NSSwitch {
+    let control = NSSwitch()
+    control.focusRingType = .none
+    control.setAccessibilityRole(.checkBox)
+    control.setAccessibilitySubrole(.switch)
+    control.target = context.coordinator
+    control.action = #selector(Coordinator.changed(_:))
+    return control
+  }
+
+  func updateNSView(_ control: NSSwitch, context: Context) {
+    control.state = isOn ? .on : .off
+    control.isEnabled = context.environment.isEnabled
+    control.setAccessibilityValue(isOn ? 1 : 0)
+    control.setAccessibilityLabel(label)
+    control.setAccessibilityIdentifier(identifier)
+    context.coordinator.onChange = onChange
+  }
+
+  func sizeThatFits(_: ProposedViewSize, nsView: NSSwitch, context _: Context) -> CGSize? {
+    nsView.intrinsicContentSize
+  }
+}

@@ -126,22 +126,14 @@ private struct LaunchAtLoginRow: View {
 
   var body: some View {
     let showsRing = store.state.showsSettingsRing(.launchAtLogin, target: .launchAtLogin)
-    // A switch owns its label, and in a grouped Form that label is as wide as the row, so the
-    // ring goes around the whole row rather than around the switch. Moving the label onto a
-    // `LabeledContent` and hiding the switch's own fixes the ring and costs the control its
-    // `AXSwitch` subrole — VoiceOver then calls it a checkbox. The ring is the cheaper thing to
-    // be wrong about.
-    Toggle(
-      "Open at login",
-      isOn: Binding(
-        get: { store.settingsPane.launchAtLoginRegistered },
-        set: { store.send(.settingsPane(.launchAtLoginToggled($0))) },
-      ),
-    )
-    .toggleStyle(.switch)
-    .focusRing(showsRing)
-    .accessibilityIdentifier(AccessibilityID.settingsLaunchAtLogin)
-    .accessibilityLabel("Open at login")
+    LabeledContent("Open at login") {
+      SettingsSwitch(
+        isOn: store.settingsPane.launchAtLoginRegistered, label: "Open at login",
+        identifier: AccessibilityID.settingsLaunchAtLogin,
+        onChange: { store.send(.settingsPane(.launchAtLoginToggled($0))) },
+      )
+      .focusRing(showsRing)
+    }
     .modifier(SettingsFormRow(store: store, row: .launchAtLogin))
     .accessibilityPaintState(
       AccessibilityID.settingsLaunchAtLoginState, label: "Open at login highlight",

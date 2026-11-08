@@ -745,17 +745,14 @@ private struct EnabledRow: View {
 
   var body: some View {
     let showsRing = store.state.showsProfilesRing(.enabled, target: .enabled)
-    Toggle(
-      "Clean up transcripts",
-      isOn: Binding(
-        get: { store.profiles.settings.profiles.custom.cleanupEnabled },
-        set: { store.send(.profiles(.enabledToggled($0))) },
-      ),
-    )
-    .toggleStyle(.switch)
-    .focusRing(showsRing)
-    .accessibilityIdentifier(AccessibilityID.profilesEnabled)
-    .accessibilityLabel("Clean up transcripts")
+    LabeledContent("Clean up transcripts") {
+      SettingsSwitch(
+        isOn: store.profiles.settings.profiles.custom.cleanupEnabled, label: "Clean up transcripts",
+        identifier: AccessibilityID.profilesEnabled,
+        onChange: { store.send(.profiles(.enabledToggled($0))) },
+      )
+      .focusRing(showsRing)
+    }
     .modifier(ProfilesFormRow(store: store, row: .enabled))
     .accessibilityPaintState(
       AccessibilityID.profilesEnabledRing, label: "Clean up transcripts ring",
@@ -774,12 +771,14 @@ private struct BoostsVocabularyRow: View {
 
   var body: some View {
     let custom = store.profiles.settings.profiles.custom
-    Toggle(
-      isOn: Binding(
-        get: { custom.boostsVocabulary },
-        set: { store.send(.profiles(.boostsVocabularyToggled($0))) },
-      ),
-    ) {
+    LabeledContent {
+      SettingsSwitch(
+        isOn: custom.boostsVocabulary, label: "Boost vocabulary",
+        identifier: AccessibilityID.profilesBoostsVocabulary,
+        onChange: { store.send(.profiles(.boostsVocabularyToggled($0))) },
+      )
+      .focusRing(store.state.showsProfilesRing(.boostsVocabulary, target: .boostsVocabulary))
+    } label: {
       Text("Boost vocabulary")
       if custom.boostsVocabulary, store.profiles.profile.cleanup != .none {
         Label(
@@ -789,9 +788,6 @@ private struct BoostsVocabularyRow: View {
         .accessibilityIdentifier(AccessibilityID.profilesBoostWarning)
       }
     }
-    .toggleStyle(.switch)
-    .focusRing(store.state.showsProfilesRing(.boostsVocabulary, target: .boostsVocabulary))
-    .accessibilityIdentifier(AccessibilityID.profilesBoostsVocabulary)
     .modifier(ProfilesFormRow(store: store, row: .boostsVocabulary))
   }
 }
