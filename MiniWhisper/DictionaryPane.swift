@@ -11,7 +11,7 @@ struct DictionaryPane: View {
   @Bindable var store: StoreOf<SettingsWindowFeature>
 
   var body: some View {
-    List {
+    Form {
       Section {
         ForEach(store.dictionary.entries) { entry in
           DictionaryRow(store: store, entry: entry)
@@ -34,11 +34,10 @@ struct DictionaryPane: View {
             .buttonStyle(.bordered)
             .accessibilityIdentifier("miniwhisper.dictionary.vocabulary-settings")
           }
-          .padding(.horizontal, 6)
         }
       }
     }
-    .stableSettingsListRowHeight()
+    .formStyle(.grouped)
     .focusEffectDisabled()
     .keyboardCursorScroll(store: store, cursor: store.dictionary.cursor)
     .overlay { emptyState }
@@ -147,7 +146,6 @@ private struct DictionaryRow: View {
       }
     }
     .settingsListRowHeight()
-    .padding(.horizontal, 6)
     .background {
       RoundedRectangle(cornerRadius: 8)
         .fill(.quaternary)
@@ -207,14 +205,19 @@ private struct DictionaryEditSheet: View {
   @Bindable var store: StoreOf<SettingsWindowFeature>
 
   var body: some View {
-    Form {
-      Section {
-        Toggle("Correction", isOn: correctionBinding)
+    VStack(alignment: .leading, spacing: 16) {
+      Picker("Entry type", selection: correctionBinding) {
+        Text("Word").tag(false)
+        Text("Correction").tag(true)
       }
-
-      Section(store.dictionary.draft?.isCorrection == true ? "Correction" : "Word") {
-        if store.dictionary.draft?.isCorrection == true {
-          TextField(DictionaryFieldCopy.misspelling, text: misspellingBinding)
+      .pickerStyle(.segmented)
+      .labelsHidden()
+      .accessibilityIdentifier("miniwhisper.dictionary.entry-type")
+      if store.dictionary.draft?.isCorrection == true {
+        VStack(alignment: .leading) {
+          Text("Replace")
+          TextField("Replace", text: misspellingBinding)
+            .labelsHidden()
             .onSubmit { save() }
             .focused($focus, equals: .misspelling)
             .task {
@@ -222,11 +225,19 @@ private struct DictionaryEditSheet: View {
               focus = .misspelling
             }
             .accessibilityIdentifier(AccessibilityID.dictionaryMisspelling)
-          TextField(DictionaryFieldCopy.correction, text: textBinding)
+        }
+        VStack(alignment: .leading) {
+          Text("With")
+          TextField("With", text: textBinding)
+            .labelsHidden()
             .onSubmit { save() }
             .accessibilityIdentifier(AccessibilityID.dictionaryText)
-        } else {
+        }
+      } else {
+        VStack(alignment: .leading) {
+          Text(DictionaryFieldCopy.word)
           TextField(DictionaryFieldCopy.word, text: textBinding)
+            .labelsHidden()
             .onSubmit { save() }
             .focused($focus, equals: .word)
             .task {
@@ -237,8 +248,11 @@ private struct DictionaryEditSheet: View {
         }
       }
     }
-    .formStyle(.grouped)
-    .frame(width: 420, height: 300)
+    .textFieldStyle(.roundedBorder)
+    .multilineTextAlignment(.leading)
+    .padding(20)
+    .frame(width: 420)
+    .fixedSize(horizontal: false, vertical: true)
     .safeAreaBar(edge: .top) {
       Text(title)
         .font(.headline)
