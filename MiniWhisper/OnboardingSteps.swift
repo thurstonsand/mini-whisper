@@ -397,6 +397,11 @@ struct OnboardingKeysPage: View {
     }
     .accessibilityIdentifier(AccessibilityID.onboardingKeys)
     .accessibilityLabel("API keys")
+    .onChange(of: store.keyFailure) { _, failure in
+      if let failure {
+        focus.wrappedValue = .keyField(failure.slot)
+      }
+    }
   }
 
   // MARK: Private
@@ -426,6 +431,16 @@ struct OnboardingKeysPage: View {
         .onSubmit { store.send(.keysContinueTapped) }
         .accessibilityIdentifier(AccessibilityID.onboardingKeyField(provider))
         .accessibilityLabel("\(provider.displayName) key")
+        if let failure = store.keyFailure, failure.slot == slot {
+          Label(failure.message, systemImage: "exclamationmark.circle.fill")
+            .font(.callout)
+            .foregroundStyle(.red)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityElement(children: .ignore)
+            .accessibilityIdentifier(AccessibilityID.onboardingFailure)
+            .accessibilityLabel("Key error")
+            .accessibilityValue(failure.message)
+        }
         if let url = provider.keysURL {
           Link("Get a key from \(provider.displayName)", destination: url)
             .font(.system(size: 12))

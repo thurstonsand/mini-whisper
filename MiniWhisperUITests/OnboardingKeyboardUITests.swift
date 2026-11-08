@@ -75,6 +75,13 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
     continueButton.click()
     let failure = app.descendants(matching: .any)["miniwhisper.onboarding.failure"]
     XCTAssertTrue(failure.awaitExistence(timeout: 2))
+    let google = app.secureTextFields["miniwhisper.onboarding.keys.google"]
+    assertKeyboardFocus(on: google)
+    XCTAssertGreaterThan(failure.frame.minY, google.frame.maxY)
+    XCTAssertLessThan(
+      failure.frame.maxY,
+      app.links["miniwhisper.onboarding.keys.google.link"].frame.minY,
+    )
     XCTAssertGreaterThanOrEqual(window.frame.maxY - continueButton.frame.maxY, 24)
     XCTAssertLessThan(failure.frame.maxY, continueButton.frame.minY)
     recordScreenshot("two-keys-validation-error", screenshot: app.screenshot())

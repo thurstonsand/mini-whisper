@@ -768,12 +768,16 @@ struct OnboardingStepDerivationTests {
 
     await store.send(.keyEdited(haiku, "sk-ant-wrong")) { $0.keyDrafts[haiku] = "sk-ant-wrong" }
     await store.send(.keysContinueTapped) { $0.isCheckingKeys = true }
-    await store.receive(.keysCheckFailed("Invalid Anthropic key.")) {
+    await store.receive(.keysCheckFailed(haiku, "Invalid Anthropic key.")) {
       $0.isCheckingKeys = false
-      $0.failureMessage = "Invalid Anthropic key."
+      $0.keyFailure = .init(slot: haiku, message: "Invalid Anthropic key.")
     }
     #expect(store.state.step == .keys)
     #expect(store.state.canContinueFromKeys)
+    await store.send(.keyEdited(haiku, "replacement")) {
+      $0.keyDrafts[haiku] = "replacement"
+      $0.keyFailure = nil
+    }
   }
 
   @Test func `an engine key Scribe refuses stops the step before cleanup is asked`() async {
@@ -794,11 +798,13 @@ struct OnboardingStepDerivationTests {
     await store.send(.keyEdited(elevenLabs, "sk_wrong")) { $0.keyDrafts[elevenLabs] = "sk_wrong" }
     await store.send(.keyEdited(google, "AIzaGoogle")) { $0.keyDrafts[google] = "AIzaGoogle" }
     await store.send(.keysContinueTapped) { $0.isCheckingKeys = true }
-    await store.receive(.keysCheckFailed("Invalid ElevenLabs key.")) {
+    await store.receive(.keysCheckFailed(elevenLabs, "Invalid ElevenLabs key.")) {
       $0.isCheckingKeys = false
-      $0.failureMessage = "Invalid ElevenLabs key."
+      $0.keyFailure = .init(slot: elevenLabs, message: "Invalid ElevenLabs key.")
     }
     #expect(store.state.step == .keys)
+    await store.send(.keyEdited(google, "other-key")) { $0.keyDrafts[google] = "other-key" }
+    #expect(store.state.keyFailure?.slot == elevenLabs)
   }
 
   @Test func `the way past a factory key is Custom with no cleanup`() async {

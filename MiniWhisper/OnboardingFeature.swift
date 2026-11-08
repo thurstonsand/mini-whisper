@@ -116,12 +116,18 @@ enum OnboardingStep: Int, Equatable {
       case skip
     }
 
+    struct KeyFailure: Equatable {
+      let slot: CredentialSlot
+      let message: String
+    }
+
     @Shared var settings: MiniWhisperSettings
     @Shared var health: AppHealth
     /// Which of the active profile's keys the Keychain holds. Unread is not missing: until the
     /// Keychain has answered, no step is shown that it might not need.
     var storedKeys: Set<CredentialSlot>?
     var keyDrafts: [CredentialSlot: String] = [:]
+    var keyFailure: KeyFailure?
     /// The user chose to go on without the keys. Not advised: the profile does not dictate until
     /// they are added in Settings.
     var hasSkippedKeys = false
@@ -301,7 +307,7 @@ enum OnboardingStep: Int, Equatable {
     case keyEdited(CredentialSlot, String)
     case keysContinueTapped
     case keysVerified
-    case keysCheckFailed(String)
+    case keysCheckFailed(CredentialSlot, String)
     case keysSkipped
     case useCustomTapped
     case downloadModel
@@ -372,6 +378,7 @@ enum OnboardingStep: Int, Equatable {
         state.isPresented = true
         state.storedKeys = storedKeys(of: state.profile)
         state.keyDrafts = [:]
+        state.keyFailure = nil
         state.hasSkippedKeys = false
         state.snapshot = snapshot
         state.selectedStep = nil
@@ -396,10 +403,14 @@ enum OnboardingStep: Int, Equatable {
         state.$settings.withLock { $0.profiles.active = id }
         state.storedKeys = storedKeys(of: state.profile)
         state.keyDrafts = [:]
+        state.keyFailure = nil
         state.hasSkippedKeys = false
         return .send(.delegate(.profileSelected))
       case let .keyEdited(slot, text):
         state.keyDrafts[slot] = text
+        if state.keyFailure?.slot == slot {
+          state.keyFailure = nil
+        }
         return .none
       // Every key is proven before any is stored, as the pane's Save proves them.
       case .keysContinueTapped:
@@ -407,16 +418,16 @@ enum OnboardingStep: Int, Equatable {
           return .none
         }
         let engine = state.profile.engine
-        var engineKey: (provider: String, key: String)?
+        var engineKey: (slot: CredentialSlot, key: String)?
         if let slot = state.profile.engineCredential, state.missingKeys.contains(slot) {
-          engineKey = (slot.provider.displayName, state.draft(for: slot))
+          engineKey = (slot, state.draft(for: slot))
         }
-        var cleanupKey: (provider: String, key: String, configuration: CleanupConfiguration)?
+        var cleanupKey: (slot: CredentialSlot, key: String, configuration: CleanupConfiguration)?
         if let leg = state.profile.endpointLeg, state.missingKeys.contains(leg.credential),
            let endpoint = leg.endpoint, let model = leg.model
         {
           cleanupKey = (
-            leg.credential.provider.displayName, state.draft(for: leg.credential),
+            leg.credential, state.draft(for: leg.credential),
             CleanupConfiguration(
               endpoint: endpoint, model: model, timeout: CleanupConfiguration.verificationTimeout,
               additionalInstructions: "",
@@ -428,54 +439,57 @@ enum OnboardingStep: Int, Equatable {
         }
         state.isCheckingKeys = true
         state.failureMessage = nil
+        state.keyFailure = nil
         return .run { [engineKey, cleanupKey] send in
-          if let (provider, key) = engineKey {
+          if let (slot, key) = engineKey {
+            let provider = slot.provider.displayName
             do {
               try await asrEngine.verifyKey(engine, key)
             } catch ASREngineError.credentialRejected {
-              await send(.keysCheckFailed("Invalid \(provider) key."))
+              await send(.keysCheckFailed(slot, "Invalid \(provider) key."))
               return
             } catch is URLError {
-              await send(.keysCheckFailed("Couldn’t reach \(provider)."))
+              await send(.keysCheckFailed(slot, "Couldn’t reach \(provider)."))
               return
             } catch {
               onboardingLogger.error(
                 "Key check failed: \(error.localizedDescription, privacy: .public)",
               )
-              await send(.keysCheckFailed("Couldn’t check the key with \(provider)."))
+              await send(.keysCheckFailed(slot, "Couldn’t check the key with \(provider)."))
               return
             }
           }
-          if let (provider, key, configuration) = cleanupKey {
+          if let (slot, key, configuration) = cleanupKey {
+            let provider = slot.provider.displayName
             switch await cleanup.verify(configuration, key) {
             case .verified:
               break
             case .cancelled:
-              await send(.keysCheckFailed("Couldn’t check the key with \(provider)."))
+              await send(.keysCheckFailed(slot, "Couldn’t check the key with \(provider)."))
               return
             case let .failed(failure):
               onboardingLogger.error(
                 "Key check failed: \(failure.localizedDescription, privacy: .public)",
               )
               if failure.rejectsKey {
-                await send(.keysCheckFailed("Invalid \(provider) key."))
+                await send(.keysCheckFailed(slot, "Invalid \(provider) key."))
                 return
               }
               switch failure {
               case .unreachable,
                    .timedOut:
-                await send(.keysCheckFailed("Couldn’t reach \(provider)."))
+                await send(.keysCheckFailed(slot, "Couldn’t reach \(provider)."))
               default:
-                await send(.keysCheckFailed("Couldn’t check the key with \(provider)."))
+                await send(.keysCheckFailed(slot, "Couldn’t check the key with \(provider)."))
               }
               return
             }
           }
           await send(.keysVerified)
         }
-      case let .keysCheckFailed(message):
+      case let .keysCheckFailed(slot, message):
         state.isCheckingKeys = false
-        state.failureMessage = message
+        state.keyFailure = .init(slot: slot, message: message)
         return .none
       case .keysVerified:
         state.isCheckingKeys = false
@@ -491,6 +505,7 @@ enum OnboardingStep: Int, Equatable {
         }
         state.storedKeys = storedKeys(of: state.profile)
         state.keyDrafts = [:]
+        state.keyFailure = nil
         state.failureMessage = nil
         state.selectedStep = nil
         return .send(.delegate(.keysStored))
@@ -500,6 +515,7 @@ enum OnboardingStep: Int, Equatable {
         }
         state.hasSkippedKeys = true
         state.keyDrafts = [:]
+        state.keyFailure = nil
         state.failureMessage = nil
         state.selectedStep = nil
         return .none
@@ -513,6 +529,7 @@ enum OnboardingStep: Int, Equatable {
         }
         state.storedKeys = storedKeys(of: state.profile)
         state.keyDrafts = [:]
+        state.keyFailure = nil
         state.failureMessage = nil
         state.selectedStep = nil
         return .send(.delegate(.profileSelected))
