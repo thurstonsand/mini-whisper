@@ -388,12 +388,16 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
     let skip = app.buttons["miniwhisper.onboarding.try-it.skip"]
     let skipRing = app.staticTexts["miniwhisper.onboarding.try-it.skip.state"]
     XCTAssertTrue(editor.awaitExistence(timeout: 5))
-    XCTAssertEqual(
-      editor.placeholderValue,
+    XCTAssertEqual(editor.placeholderValue, "Your words appear here")
+    let quote = app.staticTexts["miniwhisper.onboarding.try-it.quote"]
+    assertValue(
       "“A future is not given to you. It is something you must take for yourself.” — Pod 042",
-      "The try-it field does not offer the line the page asks the user to read",
+      of: quote,
     )
     assertKeyboardFocus(on: editor)
+    editor.typeText("Test words")
+    assertValue("Test words", of: editor)
+    XCTAssertTrue(quote.exists, "The reading line must remain visible while dictating")
     assertValue("Ring off", of: skipRing)
     let entryScreenshot = app.screenshot()
     recordScreenshot("try-it-entry", screenshot: entryScreenshot)

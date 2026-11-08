@@ -698,6 +698,7 @@ struct OnboardingStepDerivationTests {
   @Test func `the footnote sizes the download and names the keys that come next`() {
     var state = welcomeState()
     #expect(state.welcomeFootnote == "568.3 MB downloads while you finish setup.")
+    #expect(state.welcomeActionTitle == "Download & Continue")
     state.storedKeys = [CredentialSlot(profile: .accurate, provider: .google)]
     state.$settings.withLock { $0.profiles.active = .accurate }
     #expect(state
@@ -715,6 +716,9 @@ struct OnboardingStepDerivationTests {
       fromByteCount: Int64(ModelAsset.s1Mini.pinnedBytes), countStyle: .file,
     )
     #expect(state.welcomeFootnote == "\(size) downloads while you finish setup.")
+    #expect(state.welcomeActionTitle == "Download & Continue")
+    state.assets[.s1Mini] = .installed(bytes: ModelAsset.s1Mini.pinnedBytes)
+    #expect(state.welcomeActionTitle == "Continue")
   }
 
   /// Most accurate needs two keys, each in its own slot: a key pasted into the wrong one would be

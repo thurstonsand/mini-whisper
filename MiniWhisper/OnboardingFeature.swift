@@ -275,6 +275,11 @@ enum OnboardingStep: Int, Equatable {
       step == .tryIt && missingKeys.isEmpty
     }
 
+    var welcomeActionTitle: String {
+      profile.assets.contains { assets[$0]?.isInstalled != true }
+        ? "Download & Continue" : "Continue"
+    }
+
     var welcomeFootnote: String {
       var sentences: [String] = []
       let downloads = profile.assets.filter { assets[$0]?.isInstalled != true }

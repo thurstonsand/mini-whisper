@@ -201,7 +201,7 @@ enum AccessibilityID {
   static let onboardingTryItInstructions = "miniwhisper.onboarding.try-it.instructions"
   static let onboardingTryItAvailability = "miniwhisper.onboarding.try-it.availability"
   static let onboardingTryItText = "miniwhisper.onboarding.try-it.text"
-  static let onboardingTryItHotkey = "miniwhisper.onboarding.try-it.hotkey"
+  static let onboardingTryItQuote = "miniwhisper.onboarding.try-it.quote"
   static let onboardingTryItCompletion = "miniwhisper.onboarding.try-it.completion"
   static let onboardingTryItCompletionSummary = "miniwhisper.onboarding.try-it.completion-summary"
   static let onboardingTryItGuidance = "miniwhisper.onboarding.try-it.guidance"

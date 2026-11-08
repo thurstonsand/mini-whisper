@@ -25,7 +25,6 @@ struct OnboardingTryItPage: View {
         identifier: AccessibilityID.onboardingTryItInstructions, label: "Try it instructions",
       ),
       summaryLineSpacing: 3,
-      cardPadding: 14,
       cardAlignment: .topLeading,
     ) {
       VStack(alignment: .leading, spacing: 10) { cardContent }
@@ -74,22 +73,13 @@ struct OnboardingTryItPage: View {
         symbol: "key",
       )
     case .tryIt:
+      SemanticText(
+        OnboardingCopy.tryItQuote, identifier: AccessibilityID.onboardingTryItQuote,
+        label: "Read aloud",
+      )
+      .font(.title3)
+      .fixedSize(horizontal: false, vertical: true)
       editor
-      if let hotkey = store.hotkeys.first {
-        HotkeyKeycaps(components: hotkey.displayComponents)
-          .accessibilityHidden(true)
-          .accessibilityPaintState(
-            AccessibilityID.onboardingTryItHotkey, label: "Dictation hotkey",
-            value: hotkey.displayName,
-          )
-      } else {
-        Text("Activation shortcut not set")
-          .font(.callout)
-          .foregroundStyle(.secondary)
-          .accessibilityIdentifier(AccessibilityID.onboardingTryItHotkey)
-          .accessibilityLabel("Dictation hotkey")
-          .accessibilityValue("Not set")
-      }
     case .ready:
       HStack(alignment: .top, spacing: 12) {
         Image(systemName: "checkmark.circle.fill")
@@ -116,7 +106,7 @@ struct OnboardingTryItPage: View {
   private var editor: some View {
     TextField(
       text: Binding(get: { store.tryItText }, set: { store.send(.tryItTextChanged($0)) }),
-      prompt: Text(OnboardingCopy.tryItQuote).italic(),
+      prompt: Text("Your words appear here"),
       axis: .vertical,
     ) {
       Text("Try dictation")

@@ -49,7 +49,7 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
           "568.3 MB downloads while you finish setup. You’ll add an Anthropic key next.",
         ),
         contract(
-          .button, "miniwhisper.onboarding.download-model", "Continue",
+          .button, "miniwhisper.onboarding.download-model", "Download & Continue",
           isEnabled: true, isActionable: true,
         ),
       ],
@@ -164,11 +164,8 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
           "Hold Right ⌥ and read the line aloud. Release when you're done.",
         ), contract(.textField, "miniwhisper.onboarding.try-it.text", "Try dictation", ""),
         contract(
-          .staticText, "miniwhisper.onboarding.try-it.hotkey", "Dictation hotkey", "Right ⌥",
-        ),
-        contract(
-          .staticText, "miniwhisper.onboarding.try-it.guidance", "Try it guidance",
-          "Speak to complete…",
+          .staticText, "miniwhisper.onboarding.try-it.quote", "Read aloud",
+          "“A future is not given to you. It is something you must take for yourself.” — Pod 042",
         ),
         contract(
           .button, "miniwhisper.onboarding.try-it.skip", "Skip test dictation", isEnabled: true,

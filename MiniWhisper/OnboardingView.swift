@@ -233,13 +233,6 @@ struct OnboardingView: View {
         .buttonStyle(.borderedProminent)
         .focused($focus, equals: .tryItAddKey)
         .keyboardShortcut(.defaultAction)
-      } else if store.canTryDictation {
-        SemanticText(
-          "Speak to complete…", identifier: AccessibilityID.onboardingTryItGuidance,
-          label: "Try it guidance",
-        )
-        .font(.system(size: 12))
-        .foregroundStyle(.secondary)
       } else if store.step != .ready, store.step != .tryIt {
         SemanticText(
           "Complete the earlier steps to try a dictation",

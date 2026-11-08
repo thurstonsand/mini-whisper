@@ -20,7 +20,6 @@ struct OnboardingStepPage<Card: View>: View {
   var summaryLineLimit: Int?
   var summaryLineSpacing: CGFloat = 0
   var summaryMaxWidth: CGFloat?
-  var summaryHeight: CGFloat? = 58
   var cardPadding: CGFloat = 0
   var cardAlignment: Alignment = .center
   @ViewBuilder let card: Card
@@ -35,10 +34,7 @@ struct OnboardingStepPage<Card: View>: View {
         .foregroundStyle(.secondary)
         .lineLimit(summaryLineLimit)
         .lineSpacing(summaryLineSpacing)
-        .frame(
-          maxWidth: summaryMaxWidth, minHeight: summaryHeight, maxHeight: summaryHeight,
-          alignment: .topLeading,
-        )
+        .frame(maxWidth: summaryMaxWidth, alignment: .topLeading)
         .padding(.top, 10)
       card
         .padding(cardPadding)
@@ -94,7 +90,7 @@ struct OnboardingWelcomePage: View {
       .font(.body)
       .foregroundStyle(.secondary)
       .padding(.top, 4)
-      VStack(spacing: 12) {
+      VStack(alignment: .leading, spacing: 12) {
         HStack(spacing: 12) {
           ForEach(lineup.prefix(3)) { profileChoice($0) }
         }
@@ -103,7 +99,7 @@ struct OnboardingWelcomePage: View {
         }
       }
       .padding(.top, 24)
-      Button("Continue") { store.send(.downloadModel) }
+      Button(store.welcomeActionTitle) { store.send(.downloadModel) }
         .buttonStyle(.borderedProminent)
         .controlSize(.large)
         .disabled(store.isRecordingModelDownloadConsent)
@@ -111,7 +107,7 @@ struct OnboardingWelcomePage: View {
         .keyboardShortcut(.defaultAction)
         .padding(.top, 20)
         .accessibilityIdentifier(AccessibilityID.onboardingDownloadModel)
-        .accessibilityLabel("Continue")
+        .accessibilityLabel(store.welcomeActionTitle)
       SemanticText(
         store.welcomeFootnote, identifier: AccessibilityID.onboardingWelcomeModelInfo,
         label: "Model download information",
@@ -178,7 +174,10 @@ struct OnboardingWelcomePage: View {
           : profile.isCustom ? "No key needed without cleanup"
           : profile.credentials.isEmpty ? "No key needed"
           : "Needs \(OnboardingFeature.State.keysPhrase(profile.credentials))")
-          .font(.caption)
+          .font(.callout)
+          .lineLimit(nil)
+          .multilineTextAlignment(.leading)
+          .fixedSize(horizontal: false, vertical: true)
           .foregroundStyle(Color.secondary)
       }
       .frame(width: 174, height: 130, alignment: .topLeading)
@@ -381,7 +380,6 @@ struct OnboardingKeysPage: View {
         identifier: AccessibilityID.onboardingKeysSummary, label: "Keys information",
       ),
       summaryMaxWidth: 430,
-      summaryHeight: nil,
       cardPadding: 0,
       cardAlignment: .topLeading,
     ) {
