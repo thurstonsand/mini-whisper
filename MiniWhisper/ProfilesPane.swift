@@ -490,15 +490,10 @@ private struct NotSetUpRows: View {
   let store: StoreOf<SettingsWindowFeature>
 
   var body: some View {
-    Group {
-      LabeledContent("Address", value: "None")
-      LabeledContent("API key", value: "None")
-      LabeledContent("Model", value: "None")
-    }
     // Labelled, because a form row holding nothing but a button is made that button, frame and
     // all, and the click lands in the middle of the row.
-    LabeledContent("Cleanup") {
-      Button("Set Up") { store.send(.profiles(.editTapped(.endpoint))) }
+    LabeledContent("Clean up transcripts") {
+      Button("Set Up…") { store.send(.profiles(.editTapped(.endpoint))) }
         .focusRing(store.state.showsProfilesRing(.actions, target: .setUp))
         .accessibilityIdentifier(AccessibilityID.profilesSetUp)
     }
