@@ -345,9 +345,12 @@ private let profilesPaneLogger = Logger(
       targets[min(cursor.target, targets.count - 1)]
     }
 
-    /// Its models outrank its keys: without them nothing is transcribed at all.
+    /// Speech assets block dictation; cleanup assets only prevent the cleanup pass.
     func status(of profile: Profile) -> Status {
       for asset in profile.assets {
+        if !profile.engine.assets.contains(asset), assets[asset]?.isInstalled == false {
+          return .note("Dictation without cleanup")
+        }
         switch assets[asset] {
         case .missing:
           return .problem("Needs \(asset.name)")
@@ -380,7 +383,7 @@ private let profilesPaneLogger = Logger(
           return .problem("Needs \(leg.credential.provider.keyPhrase)")
         }
         if health.rejectedKeys.contains(leg.credential) {
-          return .problem("Invalid key")
+          return .problem("Cleanup key rejected")
         }
         return .ready
       }

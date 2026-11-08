@@ -314,7 +314,9 @@ final class ProfilesUITests: MiniWhisperUITestCase, SurfaceTagged {
 
     let picker = app.popUpButtons["miniwhisper.profiles.picker"]
     XCTAssertTrue(picker.awaitExistence(timeout: 5))
-    assertValue("Everyday; Invalid key", of: picker)
+    assertValue("Everyday; Cleanup key rejected", of: picker)
+    assertValue("Anthropic rejected this key. Replace it and try again.",
+                of: app.staticTexts["miniwhisper.profiles.key-rejection"])
     recordScreenshot("profiles-rejected", screenshot: app.screenshot())
   }
 

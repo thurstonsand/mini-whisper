@@ -61,7 +61,7 @@ struct ProfilesPane: View {
         }
       }
 
-      Section("Cleanup") {
+      Section {
         if profile.cleanup == .local {
           LocalCleanupRow(store: store)
         }
@@ -77,6 +77,12 @@ struct ProfilesPane: View {
           } else {
             NotSetUpRows(store: store)
           }
+        }
+      } header: {
+        Text("Cleanup")
+      } footer: {
+        if profiles.needsLocalCleanupModel {
+          Text("Dictation works without cleanup. Download S1-mini in Models to enable cleanup.")
         }
       }
 
@@ -402,6 +408,12 @@ private struct StoredKeyRow: View {
       store: store, field: field, label: keyLabel(slot), value: value,
       edit: store.profiles.storedKeys?[slot] == nil ? "Add" : "Replace", isOverridden: false,
     )
+    if store.profiles.health.rejectedKeys.contains(slot) {
+      Text("\(slot.provider.displayName) rejected this key. Replace it and try again.")
+        .font(.callout)
+        .foregroundStyle(.secondary)
+        .accessibilityIdentifier("miniwhisper.profiles.key-rejection")
+    }
   }
 
   // MARK: Private

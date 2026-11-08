@@ -362,7 +362,7 @@ struct EndpointAddressTests {
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
     await openPane(store, keys: [haikuSlot: "sk-ant-0123"])
-    #expect(store.state.status(of: store.state.profile) == .problem("Invalid key"))
+    #expect(store.state.status(of: store.state.profile) == .problem("Cleanup key rejected"))
 
     await store.send(.editTapped(.apiKey))
     await store.send(.keyEdited("sk-ant-fresh"))
@@ -656,7 +656,11 @@ struct EndpointAddressTests {
     #expect(status(.haiku) == .note("Downloading Parakeet TDT v2 · 42%"))
     #expect(status(.offline) == .note("Downloading Parakeet TDT v2 · 42%"))
     state.assets[.parakeet] = .installed(bytes: 1)
-    #expect(status(.offline) == .problem("Needs S1-mini"))
+    #expect(status(.offline) == .note("Dictation without cleanup"))
+    state.assets[.s1Mini] = .downloading(0.42)
+    #expect(status(.offline) == .note("Dictation without cleanup"))
+    state.assets[.s1Mini] = .installed(bytes: 1)
+    #expect(status(.offline) == .ready)
     // Custom's key is optional, so a set-up Custom without one is ready.
     #expect(status(.custom) == .note("No cleanup"))
   }
