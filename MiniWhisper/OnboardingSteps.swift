@@ -175,6 +175,7 @@ struct OnboardingWelcomePage: View {
           .fixedSize(horizontal: false, vertical: true)
         Spacer(minLength: 0)
         Text(profile.id == .haiku ? "Recommended · Anthropic key"
+          : profile.isCustom ? "No key needed without cleanup"
           : profile.credentials.isEmpty ? "No key needed"
           : "Needs \(OnboardingFeature.State.keysPhrase(profile.credentials))")
           .font(.caption)
