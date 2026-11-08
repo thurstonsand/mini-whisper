@@ -38,7 +38,14 @@ struct ProfilesPane: View {
             Text(profile.engine == .scribe && profiles.settings.profiles.scribeOverride != nil
               ? profiles.settings.profiles.scribeConfiguration.model : profile.engine.name)
             ForEach(profile.engine.assets, id: \.self) { asset in
-              if let status = assetStatus(asset) {
+              if case let .downloading(fraction) = profiles.assets[asset] {
+                ProgressView(value: fraction) {
+                  Text(asset == .gate ? "Speech gate" : "Downloading")
+                } currentValueLabel: {
+                  Text(DownloadProgress.percentage(fraction))
+                }
+                .frame(width: 180)
+              } else if let status = assetStatus(asset) {
                 Text(status).font(.callout).foregroundStyle(.secondary)
               }
             }

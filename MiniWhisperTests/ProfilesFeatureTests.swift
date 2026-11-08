@@ -653,8 +653,8 @@ struct EndpointAddressTests {
     #expect(status(.accurate) == .problem("Needs an ElevenLabs key"))
 
     state.assets = [.gate: .installed(bytes: 1), .parakeet: .downloading(0.42), .s1Mini: .missing]
-    #expect(status(.haiku) == .note("Downloading Parakeet TDT v2 · 42%"))
-    #expect(status(.offline) == .note("Downloading Parakeet TDT v2 · 42%"))
+    #expect(status(.haiku) == .note("Dictation is available after the download"))
+    #expect(status(.offline) == .note("Dictation is available after the download"))
     state.assets[.parakeet] = .installed(bytes: 1)
     #expect(status(.offline) == .note("Dictation without cleanup"))
     state.assets[.s1Mini] = .downloading(0.42)

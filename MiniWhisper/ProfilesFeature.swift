@@ -356,8 +356,8 @@ private let profilesPaneLogger = Logger(
           return .problem("Needs \(asset.name)")
         case .failed:
           return .problem("\(asset.name) failed to download")
-        case let .downloading(fraction):
-          return .note("Downloading \(asset.name) · \(DownloadProgress.percentage(fraction))")
+        case .downloading:
+          return .note("Dictation is available after the download")
         case .installed,
              nil:
           continue
