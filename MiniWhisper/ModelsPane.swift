@@ -297,11 +297,6 @@ private struct GateStrip: View {
     .padding(.horizontal, 12)
     .padding(.vertical, 8)
     .background(.quinary, in: .rect(cornerRadius: 8))
-    .overlay {
-      if let color = store.models.assets[.gate]?.attentionColor {
-        RoundedRectangle(cornerRadius: 8).strokeBorder(color, lineWidth: 2)
-      }
-    }
     .modifier(ModelsRow(store: store, row: .asset(.gate)))
     .accessibilityElement(children: .contain)
     .accessibilityIdentifier(AccessibilityID.modelsComponent(.asset(.gate)))
@@ -331,8 +326,7 @@ private struct ColumnHeader: View {
 
 // MARK: - PatchCard
 
-/// A profile and its two legs, each ending in the port its wire leaves from. The lit card wears
-/// the accent stroke; the active one says so in words, because lit and active are different facts.
+/// The highlighted profile lights its symbol and wires; the active profile says so in words.
 private struct PatchCard: View {
   // MARK: Internal
 
@@ -365,9 +359,7 @@ private struct PatchCard: View {
     .background(.quinary, in: .rect(cornerRadius: 8))
     .overlay {
       RoundedRectangle(cornerRadius: 8)
-        .strokeBorder(
-          isLit ? AnyShapeStyle(.tint) : AnyShapeStyle(.separator), lineWidth: 1,
-        )
+        .strokeBorder(.separator, lineWidth: 1)
     }
     .contentShape(.rect(cornerRadius: 8))
     .modifier(ModelsRow(store: store, row: .profile(profile.id)))
@@ -402,14 +394,11 @@ private struct PatchCard: View {
         .lineLimit(1)
         .truncationMode(.middle)
       Spacer(minLength: 0)
-      PortDot(isLit: store.models.highlighted == profile.id, isPlugged: isPlugged(leg))
+      Color.clear
+        .frame(width: 1, height: 1)
         .anchorPreference(key: PortKey.self, value: .center) { [.card(profile.id, leg): $0] }
     }
     .font(.callout)
-  }
-
-  private func isPlugged(_ leg: ModelsFeature.Leg) -> Bool {
-    store.models.component(leg, of: profile) != nil
   }
 }
 
@@ -424,10 +413,9 @@ private struct ComponentRow: View {
   let component: ModelsFeature.Component
 
   var body: some View {
-    let isLit = litComponents.contains(component)
-    let attentionColor = component.asset.flatMap { store.models.assets[$0]?.attentionColor }
     let row = HStack(spacing: 8) {
-      PortDot(isLit: isLit, isPlugged: true)
+      Color.clear
+        .frame(width: 1, height: 1)
         .anchorPreference(key: PortKey.self, value: .center) { [.component(component): $0] }
       Image(systemName: component.asset == nil ? "cloud" : "internaldrive")
         .foregroundStyle(.secondary)
@@ -449,12 +437,7 @@ private struct ComponentRow: View {
     .background(.quinary, in: .rect(cornerRadius: 8))
     .overlay {
       RoundedRectangle(cornerRadius: 8)
-        .strokeBorder(
-          attentionColor.map { AnyShapeStyle($0) } ?? AnyShapeStyle(.separator),
-          style: StrokeStyle(
-            lineWidth: attentionColor == nil ? 1 : 2, dash: component.asset == nil ? [4, 3] : [],
-          ),
-        )
+        .strokeBorder(.separator, lineWidth: 1)
     }
     .accessibilityElement(children: .contain)
     .accessibilityIdentifier(AccessibilityID.modelsComponent(component))
@@ -467,13 +450,6 @@ private struct ComponentRow: View {
   }
 
   // MARK: Private
-
-  private var litComponents: Set<ModelsFeature.Component> {
-    let profile = store.models.settings.profiles.profile(store.models.highlighted)
-    return Set([ModelsFeature.Leg.speech, .cleanup].compactMap {
-      store.models.component($0, of: profile)
-    })
-  }
 
   private var title: String {
     switch component {
@@ -590,20 +566,6 @@ private extension AssetState {
          .missing:
       nil
     }
-  }
-}
-
-// MARK: - PortDot
-
-private struct PortDot: View {
-  let isLit: Bool
-  let isPlugged: Bool
-
-  var body: some View {
-    Circle()
-      .fill(isLit && isPlugged ? AnyShapeStyle(.tint) : AnyShapeStyle(.tertiary))
-      .frame(width: 7, height: 7)
-      .opacity(isPlugged ? 1 : 0)
   }
 }
 
