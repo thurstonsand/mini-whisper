@@ -9,6 +9,8 @@ import SwiftUI
 /// Every step wears the same silhouette — glyph, heading, a summary that reserves its height, and
 /// an intrinsic card. Written once so a new step inherits the layout instead of copying it.
 struct OnboardingStepPage<Card: View>: View {
+  // MARK: Internal
+
   struct Line {
     let text: String
     let identifier: String
@@ -24,21 +26,20 @@ struct OnboardingStepPage<Card: View>: View {
   var summaryHeight: CGFloat? = 58
   var cardPadding: CGFloat = 0
   var cardAlignment: Alignment = .center
+  var compactHeading = false
   @ViewBuilder let card: Card
 
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
-      ZStack {
-        RoundedRectangle(cornerRadius: 13).fill(Color.accentColor.opacity(0.12)).frame(
-          width: 58, height: 58,
-        )
-        Image(systemName: symbol).font(.system(size: 24, weight: .medium)).foregroundStyle(
-          Color.accentColor,
-        )
-      }.accessibilityHidden(true)
-      SemanticText(title.text, identifier: title.identifier, label: title.label)
-        .font(.system(size: 28, weight: .semibold))
-        .padding(.top, 20)
+      if compactHeading {
+        HStack(spacing: 16) {
+          emblem
+          heading
+        }
+      } else {
+        emblem
+        heading.padding(.top, 20)
+      }
       SemanticText(summary.text, identifier: summary.identifier, label: summary.label)
         .font(.system(size: 14))
         .foregroundStyle(.secondary)
@@ -59,6 +60,24 @@ struct OnboardingStepPage<Card: View>: View {
         .padding(.top, 24)
     }
     .accessibilityElement(children: .contain)
+  }
+
+  // MARK: Private
+
+  private var emblem: some View {
+    ZStack {
+      RoundedRectangle(cornerRadius: 13).fill(Color.accentColor.opacity(0.12)).frame(
+        width: 58, height: 58,
+      )
+      Image(systemName: symbol).font(.system(size: 24, weight: .medium)).foregroundStyle(
+        Color.accentColor,
+      )
+    }.accessibilityHidden(true)
+  }
+
+  private var heading: some View {
+    SemanticText(title.text, identifier: title.identifier, label: title.label)
+      .font(.system(size: 28, weight: .semibold))
   }
 }
 
@@ -357,6 +376,7 @@ struct OnboardingKeysPage: View {
       summaryHeight: nil,
       cardPadding: 18,
       cardAlignment: .topLeading,
+      compactHeading: true,
     ) {
       VStack(alignment: .leading, spacing: 12) {
         ForEach(store.profile.credentials, id: \.self) { slot in
@@ -462,6 +482,7 @@ struct OnboardingPermissionsPage: View {
           explanation: "Hear your beautiful voice",
         )
         Divider()
+          .padding(.horizontal, 10)
         permissionRow(
           .accessibility, title: "Accessibility", symbol: "keyboard",
           explanation: "Listen for the hotkey and paste at your cursor.",
@@ -632,10 +653,12 @@ struct OnboardingModelPage: View {
           label: "Model status",
         )
       } icon: {
-        Image(systemName: "exclamationmark.triangle.fill").accessibilityHidden(true)
+        Image(systemName: "exclamationmark.triangle.fill")
+          .foregroundStyle(.orange)
+          .accessibilityHidden(true)
       }
       .font(.callout)
-      .foregroundStyle(.red)
+      .foregroundStyle(.primary)
       .fixedSize(horizontal: false, vertical: true)
     case .modelMissing:
       Label(
