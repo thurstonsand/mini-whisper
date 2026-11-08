@@ -88,7 +88,7 @@ struct OnboardingWelcomePage: View {
       )
       .font(.largeTitle.weight(.semibold))
       SemanticText(
-        "Dictation, with a profile that fits you.",
+        "Hold a shortcut, speak, then release to paste.",
         identifier: AccessibilityID.onboardingWelcomeSummary, label: "Welcome summary",
       )
       .font(.body)

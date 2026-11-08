@@ -22,7 +22,7 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
         ),
         contract(
           .staticText, "miniwhisper.onboarding.welcome.summary", "Welcome summary",
-          "Dictation, with a profile that fits you.",
+          "Hold a shortcut, speak, then release to paste.",
         ),
         contract(
           .button, "miniwhisper.profiles.card.haiku", "Everyday · Recommended",
