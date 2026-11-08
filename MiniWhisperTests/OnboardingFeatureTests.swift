@@ -12,6 +12,24 @@ import TranscriptCleanup
 // MARK: - OnboardingStepDerivationTests
 
 struct OnboardingStepDerivationTests {
+  @Test func `offline download progress includes cleanup weighted by bytes`() throws {
+    var settings = MiniWhisperSettings.defaults
+    settings.profiles.active = .offline
+    var state = OnboardingFeature.State(
+      settings: Shared(value: settings),
+      health: Shared(value: AppHealth(engineReadiness: .downloading(0.2))),
+    )
+    state.assets = [.s1Mini: .downloading(0.8)]
+    #expect(try DownloadProgress.percentage(#require(state.modelDownloadProgress)) == "47%")
+
+    state.$health.withLock { $0.engineReadiness = .ready }
+    #expect(try DownloadProgress.percentage(#require(state.modelDownloadProgress)) == "90%")
+    #expect(!state.isSetUp)
+    state.assets[.s1Mini] = .installed(bytes: 484_234_390)
+    #expect(state.modelDownloadProgress == nil)
+    #expect(state.isSetUp)
+  }
+
   @Test func `every permission must land before setup leaves the permissions step`() {
     var snapshot = OnboardingSnapshot(
       permissions: OnboardingPermissionStatuses(

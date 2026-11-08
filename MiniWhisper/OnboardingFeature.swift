@@ -196,6 +196,52 @@ enum OnboardingStep: Int, Equatable {
       health.engineReadiness
     }
 
+    var modelDownloadProgress: Double? {
+      let engineFraction: Double
+      let engineIsDownloading: Bool
+      switch engineReadiness {
+      case let .downloading(fraction):
+        engineFraction = fraction
+        engineIsDownloading = true
+      case .ready,
+           .compiling,
+           .prewarming,
+           .credentialMissing:
+        engineFraction = 1
+        engineIsDownloading = false
+      case .modelMissing,
+           .failed:
+        engineFraction = 0
+        engineIsDownloading = false
+      }
+      let cleanupIsDownloading = cleanupAssets.contains {
+        if case .downloading = assets[$0] {
+          return true
+        }
+        return false
+      }
+      guard engineIsDownloading || cleanupIsDownloading else {
+        return nil
+      }
+      let engineBytes = profile.engine.assets.map(\.pinnedBytes).reduce(0, +)
+      let cleanupBytes = cleanupAssets.reduce(0.0) { total, asset in
+        let fraction: Double =
+          switch assets[asset] {
+          case .installed:
+            1
+          case let .downloading(progress):
+            progress
+          case .missing,
+               .failed,
+               nil:
+            0
+          }
+        return total + Double(asset.pinnedBytes) * fraction
+      }
+      let totalBytes = profile.assets.map(\.pinnedBytes).reduce(0, +)
+      return (Double(engineBytes) * engineFraction + cleanupBytes) / Double(totalBytes)
+    }
+
     var modelSetupFailure: String? {
       if case let .failed(message) = engineReadiness {
         return message

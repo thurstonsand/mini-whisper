@@ -246,14 +246,18 @@ struct OnboardingStepRail: View {
             symbol: "key", shortcut: "1",
           )
         }
-        railItem("Permissions", step: .permissions, symbol: "lock.shield", shortcut: "2")
-        railItem("Shortcut", step: .shortcut, symbol: "command", shortcut: "3")
-        railItem("Speech Model", step: .model, symbol: "cpu", shortcut: "4")
-        railItem("Try It", step: .tryIt, symbol: "checkmark.bubble", shortcut: "5")
+        railItem("Permissions", step: .permissions, symbol: "lock.shield",
+                 shortcut: store.profile.credentials.isEmpty ? "1" : "2")
+        railItem("Shortcut", step: .shortcut, symbol: "command",
+                 shortcut: store.profile.credentials.isEmpty ? "2" : "3")
+        railItem("Speech Model", step: .model, symbol: "cpu",
+                 shortcut: store.profile.credentials.isEmpty ? "3" : "4")
+        railItem("Try It", step: .tryIt, symbol: "checkmark.bubble",
+                 shortcut: store.profile.credentials.isEmpty ? "4" : "5")
       }.padding(.top, 38)
 
       Spacer()
-      Text(store.profile.credentials.isEmpty ? "⌘2–5 to revisit a step" : "⌘1–5 to revisit a step")
+      Text(store.profile.credentials.isEmpty ? "⌘1–4 to revisit a step" : "⌘1–5 to revisit a step")
         .font(.caption)
         .foregroundStyle(.secondary)
     }
@@ -269,21 +273,20 @@ struct OnboardingStepRail: View {
   // MARK: Private
 
   @ViewBuilder private var compactModelProgress: some View {
-    switch store.engineReadiness {
-    case let .downloading(fraction):
+    if let fraction = store.modelDownloadProgress {
       Text(DownloadProgress.percentage(fraction))
         .font(.caption2)
         .monospacedDigit()
         .foregroundStyle(.secondary)
         .fixedSize(horizontal: true, vertical: false)
-    case .compiling,
-         .prewarming:
-      ProgressView().controlSize(.mini)
-    case .modelMissing,
-         .credentialMissing,
-         .ready,
-         .failed:
-      EmptyView()
+    } else {
+      switch store.engineReadiness {
+      case .compiling,
+           .prewarming:
+        ProgressView().controlSize(.mini)
+      default:
+        EmptyView()
+      }
     }
   }
 
@@ -349,6 +352,7 @@ struct OnboardingStepRail: View {
       OnboardingAccessibility.railValue(
         step: step, engine: store.health.engine, readiness: store.engineReadiness,
         isComplete: isComplete, isCurrent: isCurrent, problem: problem,
+        downloadProgress: store.cleanupAssets.isEmpty ? nil : store.modelDownloadProgress,
       ),
     )
   }
@@ -711,7 +715,7 @@ struct OnboardingModelPage: View {
           label: "Model status",
         ).font(.system(size: 13, weight: .medium))
         Spacer()
-        Text(DownloadProgress.percentage(fraction))
+        Text("\(DownloadProgress.percentage(fraction)) of \(Self.size(store.health.engine.assets))")
           .monospacedDigit()
           .foregroundStyle(.secondary)
           .accessibilityHidden(true)
@@ -740,19 +744,18 @@ struct OnboardingModelPage: View {
            nil:
         Self.size([asset])
       }
-    return HStack(spacing: 10) {
-      partIcon(state)
-        .frame(width: 18)
-        .accessibilityHidden(true)
-      VStack(alignment: .leading, spacing: 2) {
-        Text(asset.name).font(.system(size: 13, weight: .medium))
-        Text("Local cleanup").font(.system(size: 11)).foregroundStyle(.secondary)
+    return VStack(alignment: .leading, spacing: 8) {
+      HStack(spacing: 10) {
+        partIcon(state).accessibilityHidden(true)
+        Text(asset.name).font(.body.weight(.medium))
+        Spacer()
+        Text(value)
+          .monospacedDigit()
+          .foregroundStyle(.secondary)
       }
-      Spacer()
-      Text(value)
-        .font(.system(size: 12))
-        .monospacedDigit()
-        .foregroundStyle(.secondary)
+      if case let .downloading(fraction) = state {
+        ProgressView(value: fraction).progressViewStyle(.linear)
+      }
     }
     .accessibilityElement(children: .ignore)
     .accessibilityIdentifier(AccessibilityID.onboardingModelPart(asset))
@@ -763,10 +766,8 @@ struct OnboardingModelPage: View {
   /// Progress, never an arrow: nothing in this row is a button.
   @ViewBuilder private func partIcon(_ state: AssetState?) -> some View {
     switch state {
-    case let .downloading(fraction):
-      ProgressView(value: fraction)
-        .progressViewStyle(.circular)
-        .controlSize(.small)
+    case .downloading:
+      EmptyView()
     case .installed:
       Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
     case .failed:

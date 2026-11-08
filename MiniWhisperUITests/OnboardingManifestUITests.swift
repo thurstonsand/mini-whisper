@@ -140,6 +140,17 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
         ],
     )
 
+    presentScene("onboarding-model-offline")
+    assertValue("Current; Downloading models 30%",
+                of: app.buttons["miniwhisper.onboarding.rail.model"])
+    for (key, page) in [("1", "permissions"), ("2", "shortcut"), ("3", "model"), ("4", "try-it")] {
+      app.typeKey(XCUIKeyboardKey(key), modifierFlags: [.command])
+      XCTAssertTrue(app.groups["miniwhisper.onboarding.\(page)"].awaitExistence())
+    }
+    postAgentMutation("model-ready", value: "")
+    assertValue("Available; Downloading models 62%",
+                of: app.buttons["miniwhisper.onboarding.rail.model"])
+
     presentScene("onboarding-try-it")
     try assertManifest(
       in: app,

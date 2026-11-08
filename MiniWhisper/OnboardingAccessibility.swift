@@ -23,7 +23,7 @@ enum OnboardingAccessibility {
 
   static func railValue(
     step: OnboardingStep, engine: SpeechEngine, readiness: EngineReadiness, isComplete: Bool,
-    isCurrent: Bool, problem: String?,
+    isCurrent: Bool, problem: String?, downloadProgress: Double? = nil,
   ) -> String {
     if let problem {
       return "\(isCurrent ? "Current" : "Incomplete"); \(problem)"
@@ -35,6 +35,9 @@ enum OnboardingAccessibility {
     guard step == .model else {
       return position
     }
+    if let downloadProgress {
+      return "\(position); Downloading models \(DownloadProgress.percentage(downloadProgress))"
+    }
     switch readiness {
     case let .downloading(fraction):
       return "\(position); Downloading \(engine.name) \(DownloadProgress.percentage(fraction))"
@@ -45,7 +48,7 @@ enum OnboardingAccessibility {
     case .modelMissing:
       return position
     case .ready:
-      return "Complete"
+      return position
     case .failed:
       return "\(position); Setup failed"
     case .credentialMissing:
