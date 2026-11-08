@@ -4,21 +4,22 @@ import Testing
 
 struct HotkeyDisplayNameTests {
   @Test(arguments: try [
-    (Hotkey.testRightOption, "⌥ Opt →"),
-    (Hotkey(modifiers: [.leftOption]), "⌥ Opt ←"),
-    (Hotkey(modifiers: [.rightCommand]), "⌘ Cmd →"),
-    (Hotkey(modifiers: [.leftShift]), "⇧ Shift ←"),
+    (Hotkey.testRightOption, "Right ⌥"),
+    (Hotkey(modifiers: [.leftOption]), "Left ⌥"),
+    (Hotkey(keyCode: 124, modifiers: [.leftOption]), "Left ⌥ →"),
+    (Hotkey(modifiers: [.rightCommand]), "Right ⌘"),
+    (Hotkey(modifiers: [.leftShift]), "Left ⇧"),
     (Hotkey(modifiers: [.function]), "fn"),
-    (Hotkey(keyCode: 15, modifiers: [.rightControl]), "⌃ Ctrl → R"),
+    (Hotkey(keyCode: 15, modifiers: [.rightControl]), "Right ⌃ R"),
     (
       Hotkey(
         keyCode: 0,
         modifiers: [.rightCommand, .leftShift, .rightOption, .leftControl],
       ),
-      "⌃ Ctrl ← ⌥ Opt → ⇧ Shift ← ⌘ Cmd → A",
+      "Left ⌃ Right ⌥ Left ⇧ Right ⌘ A",
     ),
   ])
-  func `hotkeys use directional shorthand in canonical order`(hotkey: Hotkey, expected: String) {
+  func `hotkeys name sides without confusing arrow keys`(hotkey: Hotkey, expected: String) {
     #expect(hotkey.displayName == expected)
   }
 
@@ -35,10 +36,10 @@ struct HotkeyDisplayNameTests {
   @Test func `each modifier and key is A separate display component`() throws {
     let hotkey = try Hotkey(keyCode: 15, modifiers: [.rightControl])
 
-    #expect(hotkey.displayComponents == ["⌃ Ctrl →", "R"])
+    #expect(hotkey.displayComponents == ["Right ⌃", "R"])
     #expect(
       HotkeyRecordingChord(keyCodes: [15], modifiers: [.rightControl]).displayComponents
-        == ["⌃ Ctrl →", "R"],
+        == ["Right ⌃", "R"],
     )
   }
 
@@ -48,11 +49,11 @@ struct HotkeyDisplayNameTests {
     #expect(
       OnboardingCopy.tryItInstructions(hotkeys: hotkeys)
         ==
-        "Hold ⌃ Ctrl → R and read the line aloud. Release when you're done.",
+        "Hold Right ⌃ R and read the line aloud. Release when you're done.",
     )
     #expect(
       OnboardingCopy.readySummary(hotkeys: hotkeys)
-        == "Hold ⌃ Ctrl → R to dictate into any text field. Release to paste.",
+        == "Hold Right ⌃ R to dictate into any text field. Release to paste.",
     )
   }
 
@@ -73,7 +74,7 @@ struct HotkeyDisplayNameTests {
 
     #expect(
       AppFeature.noSpeechRetryMessage(hotkeys: [hotkey, .testRightOption])
-        == "No speech was detected. Hold ⌃ Ctrl → R and try again.",
+        == "No speech was detected. Hold Right ⌃ R and try again.",
     )
   }
 

@@ -40,11 +40,11 @@ final class SettingsUITests: MiniWhisperUITestCase, SurfaceTagged {
           "Activate shortcut highlight", "Bar off",
         ),
         contract(
-          .button, "miniwhisper.settings.shortcut.binding.0", "⌥ Opt →", "Ring off",
+          .button, "miniwhisper.settings.shortcut.binding.0", "Right ⌥", "Ring off",
           isEnabled: true, isActionable: true,
         ),
         contract(
-          .button, "miniwhisper.settings.shortcut.binding.1", "⌃ Ctrl → R", "Ring off",
+          .button, "miniwhisper.settings.shortcut.binding.1", "Right ⌃ R", "Ring off",
           isEnabled: true, isActionable: true,
         ),
         contract(
@@ -60,7 +60,7 @@ final class SettingsUITests: MiniWhisperUITestCase, SurfaceTagged {
         ),
         contract(
           .button, "miniwhisper.settings.shortcut.paste-last.binding.0",
-          "⌥ Opt ← ⌘ Cmd ← V", "Ring off", isEnabled: true, isActionable: true,
+          "Left ⌥ Left ⌘ V", "Ring off", isEnabled: true, isActionable: true,
         ),
         contract(
           .menuButton, "miniwhisper.settings.shortcut.paste-last.menu", "Shortcut actions",

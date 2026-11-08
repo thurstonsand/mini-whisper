@@ -321,7 +321,7 @@ private let configuration = CleanupConfiguration(
   endpoint: endpoint, model: "gpt-oss-120b", timeout: 10, additionalInstructions: "",
 )
 /// The default activation binding, which is what the skip chip has to speak.
-private let skipChord = ["⌥ Opt →"]
+private let skipChord = ["Right ⌥"]
 private let ghostty = TargetApp(bundleID: "com.mitchellh.ghostty", name: "Ghostty")
 private let fieldContext = FocusedTextContext(
   role: "AXTextArea", before: "$ ", selected: "", after: "", selectedRange: 2 ..< 2,

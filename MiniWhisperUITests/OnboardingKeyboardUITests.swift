@@ -341,7 +341,7 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
     assertValue("Record your shortcut", of: caption)
     XCTAssertFalse(continueButton.isEnabled)
     app.typeKey(.escape, modifierFlags: [])
-    assertValue("⌥ Opt →", of: keycap)
+    assertValue("Right ⌥", of: keycap)
     assertValue("Click the shortcut to change", of: caption)
     XCTAssertTrue(continueButton.isEnabled)
 
@@ -362,7 +362,7 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
     XCTAssertFalse(rail.isEnabled)
     XCTAssertFalse(continueButton.isEnabled)
     app.typeKey(.escape, modifierFlags: [])
-    assertValue("⌥ Opt →", of: keycap)
+    assertValue("Right ⌥", of: keycap)
     XCTAssertTrue(rail.isEnabled)
 
     // Revisit steps without adding the rail to the page's short Tab cycle.

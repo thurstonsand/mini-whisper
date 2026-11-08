@@ -93,7 +93,7 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
           "Hold to record. Release to transcribe.",
         ),
         contract(
-          .button, "miniwhisper.onboarding.shortcut.binding", "Dictation shortcut", "⌥ Opt →",
+          .button, "miniwhisper.onboarding.shortcut.binding", "Dictation shortcut", "Right ⌥",
           isEnabled: true, isActionable: true,
         ),
         contract(
@@ -161,10 +161,10 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
         ),
         contract(
           .staticText, "miniwhisper.onboarding.try-it.instructions", "Try it instructions",
-          "Hold ⌥ Opt → and read the line aloud. Release when you're done.",
+          "Hold Right ⌥ and read the line aloud. Release when you're done.",
         ), contract(.textField, "miniwhisper.onboarding.try-it.text", "Try dictation", ""),
         contract(
-          .staticText, "miniwhisper.onboarding.try-it.hotkey", "Dictation hotkey", "⌥ Opt →",
+          .staticText, "miniwhisper.onboarding.try-it.hotkey", "Dictation hotkey", "Right ⌥",
         ),
         contract(
           .staticText, "miniwhisper.onboarding.try-it.guidance", "Try it guidance",
@@ -188,7 +188,7 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
         contract(.staticText, "miniwhisper.onboarding.ready.title", "Setup status", "Ready"),
         contract(
           .staticText, "miniwhisper.onboarding.ready.summary", "Ready instructions",
-          "Hold ⌥ Opt → to dictate into any text field. Release to paste.",
+          "Hold Right ⌥ to dictate into any text field. Release to paste.",
         ),
         contract(
           .staticText, "miniwhisper.onboarding.ready.transcript", "Completed dictation",

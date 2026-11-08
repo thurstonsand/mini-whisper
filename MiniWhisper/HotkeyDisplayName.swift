@@ -105,21 +105,21 @@ enum HotkeyDisplayName {
   private static func modifierName(_ modifier: ModifierKey) -> String {
     switch modifier {
     case .leftControl:
-      "⌃ Ctrl ←"
+      "Left ⌃"
     case .rightControl:
-      "⌃ Ctrl →"
+      "Right ⌃"
     case .leftOption:
-      "⌥ Opt ←"
+      "Left ⌥"
     case .rightOption:
-      "⌥ Opt →"
+      "Right ⌥"
     case .leftShift:
-      "⇧ Shift ←"
+      "Left ⇧"
     case .rightShift:
-      "⇧ Shift →"
+      "Right ⇧"
     case .leftCommand:
-      "⌘ Cmd ←"
+      "Left ⌘"
     case .rightCommand:
-      "⌘ Cmd →"
+      "Right ⌘"
     case .function:
       "fn"
     }
