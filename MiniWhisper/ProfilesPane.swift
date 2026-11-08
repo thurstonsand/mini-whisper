@@ -216,16 +216,49 @@ private struct RestingRows: View {
 
   var body: some View {
     if let leg = store.profiles.profile.endpointLeg {
-      ValueRow(
-        store: store, field: .endpoint, label: "Address",
-        value: EndpointAddress.display(leg.endpoint), edit: "Edit",
-        isOverridden: store.profiles.profile.isEndpointOverridden,
-      )
-      StoredKeyRow(store: store, slot: leg.credential, field: .apiKey)
-      ValueRow(
-        store: store, field: .model, label: "Model", value: leg.model ?? "", edit: "Edit",
-        isOverridden: store.profiles.profile.isModelOverridden,
-      )
+      if !store.profiles.profile.isCustom {
+        StoredKeyRow(store: store, slot: leg.credential, field: .apiKey)
+      }
+      ConnectionRows(store: store) {
+        ValueRow(
+          store: store, field: .endpoint, label: "Address",
+          value: EndpointAddress.display(leg.endpoint), edit: "Edit",
+          isOverridden: store.profiles.profile.isEndpointOverridden,
+        )
+        if store.profiles.profile.isCustom {
+          StoredKeyRow(store: store, slot: leg.credential, field: .apiKey)
+        }
+        ValueRow(
+          store: store, field: .model, label: "Model", value: leg.model ?? "", edit: "Edit",
+          isOverridden: store.profiles.profile.isModelOverridden,
+        )
+      }
+    }
+  }
+}
+
+// MARK: - ConnectionRows
+
+/// Factory profiles already know their endpoint and model; Custom asks for both up front.
+private struct ConnectionRows<Content: View>: View {
+  let store: StoreOf<SettingsWindowFeature>
+  @ViewBuilder let content: Content
+
+  var body: some View {
+    if store.profiles.profile.isCustom {
+      content
+    } else {
+      DisclosureGroup(isExpanded: Binding(
+        get: { store.profiles.isAdvancedExpanded },
+        set: { store.send(.profiles(.advancedToggled($0))) },
+      )) {
+        content
+      } label: {
+        Text("Advanced")
+          .accessibilityIdentifier(AccessibilityID.profilesAdvanced)
+          .focusRing(store.state.showsProfilesRing(.advanced, target: .advanced))
+          .modifier(ProfilesFormRow(store: store, row: .advanced))
+      }
     }
   }
 }
@@ -338,8 +371,8 @@ private struct NotSetUpRows: View {
 
 // MARK: - EditorRows
 
-/// Every endpoint fact open at once, because Save proves them together. While the check runs the
-/// fields hold still; Cancel stays live to stop it.
+/// Save proves the whole draft, including any factory overrides hidden under Advanced.
+/// While the check runs the fields hold still; Cancel stays live to stop it.
 private struct EditorRows: View {
   // MARK: Internal
 
@@ -348,42 +381,44 @@ private struct EditorRows: View {
 
   var body: some View {
     Group {
-      LabeledContent("Address") {
-        VStack(alignment: .leading, spacing: 4) {
-          ProfilesTextField(
-            value: editor.endpointText, prompt: "https://gateway.example/v1",
-            identifier: AccessibilityID.profilesField(.endpoint), label: "Address",
-            focus: focus(.endpoint),
-            isRinged: store.state.showsProfilesRing(.endpoint, target: .field(.endpoint)),
-            onChange: { store.send(.profiles(.endpointEdited($0))) },
-            onFocusChange: { store.send(.profiles(.fieldFocusChanged(.endpoint, $0))) },
-          )
-          FailureLine(editor: editor, field: .endpoint)
-        }
+      if !store.profiles.profile.isCustom {
+        key
       }
-      .modifier(ProfilesFormRow(store: store, row: .endpoint))
-      if let slot = store.profiles.credential {
-        KeyFieldRow(
-          store: store, editor: editor, field: .apiKey, row: .apiKey, slot: slot,
-          text: editor.keyText,
-        ) { store.send(.profiles(.keyEdited($0))) }
-      }
-      ModelRow(store: store, editor: editor)
-      if editor.modelChoice == .custom {
-        LabeledContent("Model ID") {
+      ConnectionRows(store: store) {
+        LabeledContent("Address") {
           VStack(alignment: .leading, spacing: 4) {
             ProfilesTextField(
-              value: editor.customModel, prompt: "gpt-oss-120b",
-              identifier: AccessibilityID.profilesCustomModel, label: "Model ID",
-              focus: focus(.model),
-              isRinged: store.state.showsProfilesRing(.customModel, target: .customModel),
-              onChange: { store.send(.profiles(.customModelEdited($0))) },
-              onFocusChange: { store.send(.profiles(.fieldFocusChanged(.customModel, $0))) },
+              value: editor.endpointText, prompt: "https://gateway.example/v1",
+              identifier: AccessibilityID.profilesField(.endpoint), label: "Address",
+              focus: focus(.endpoint),
+              isRinged: store.state.showsProfilesRing(.endpoint, target: .field(.endpoint)),
+              onChange: { store.send(.profiles(.endpointEdited($0))) },
+              onFocusChange: { store.send(.profiles(.fieldFocusChanged(.endpoint, $0))) },
             )
-            FailureLine(editor: editor, field: .model)
+            FailureLine(editor: editor, field: .endpoint)
           }
         }
-        .modifier(ProfilesFormRow(store: store, row: .customModel))
+        .modifier(ProfilesFormRow(store: store, row: .endpoint))
+        if store.profiles.profile.isCustom {
+          key
+        }
+        ModelRow(store: store, editor: editor)
+        if editor.modelChoice == .custom {
+          LabeledContent("Model ID") {
+            VStack(alignment: .leading, spacing: 4) {
+              ProfilesTextField(
+                value: editor.customModel, prompt: "gpt-oss-120b",
+                identifier: AccessibilityID.profilesCustomModel, label: "Model ID",
+                focus: focus(.model),
+                isRinged: store.state.showsProfilesRing(.customModel, target: .customModel),
+                onChange: { store.send(.profiles(.customModelEdited($0))) },
+                onFocusChange: { store.send(.profiles(.fieldFocusChanged(.customModel, $0))) },
+              )
+              FailureLine(editor: editor, field: .model)
+            }
+          }
+          .modifier(ProfilesFormRow(store: store, row: .customModel))
+        }
       }
     }
     .disabled(editor.isChecking)
@@ -391,6 +426,15 @@ private struct EditorRows: View {
   }
 
   // MARK: Private
+
+  @ViewBuilder private var key: some View {
+    if let slot = store.profiles.credential {
+      KeyFieldRow(
+        store: store, editor: editor, field: .apiKey, row: .apiKey, slot: slot,
+        text: editor.keyText,
+      ) { store.send(.profiles(.keyEdited($0))) }
+    }
+  }
 
   private func focus(_ field: ProfilesFeature.Field) -> ProfilesTextField.Focus {
     .init(request: editor.focusRequest, isRequested: editor.focus == field)

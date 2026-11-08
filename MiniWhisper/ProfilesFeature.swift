@@ -38,6 +38,7 @@ private let profilesPaneLogger = Logger(
     case localCleanup
     case enabled
     case engineKey
+    case advanced
     case endpoint
     case apiKey
     case model
@@ -53,6 +54,7 @@ private let profilesPaneLogger = Logger(
     case profile
     case showModels
     case enabled
+    case advanced
     case edit(Field)
     case reset(Field)
     case field(Field)
@@ -169,6 +171,7 @@ private let profilesPaneLogger = Logger(
     /// from settings, so the file and the keychain cannot disagree; nil until it has answered.
     var storedKeys: [CredentialSlot: String]?
     var editor: Editor?
+    var isAdvancedExpanded = false
     var cursor = Cursor()
     /// The field the user is typing in, if any. The window's letter keys are the pane's grammar
     /// everywhere except inside a field, where they are just letters.
@@ -239,18 +242,23 @@ private let profilesPaneLogger = Logger(
       if profile.isCustom, isSetUp {
         rows.append(.enabled)
       }
-      if let editor {
-        rows += [.endpoint, .apiKey, .model]
-        if editor.modelChoice == .custom {
-          rows.append(.customModel)
-        }
-        rows.append(.actions)
-      } else if profile.endpointLeg != nil {
-        if isSetUp {
+      if profile.endpointLeg != nil, isSetUp || editor != nil {
+        if profile.isCustom {
           rows += [.endpoint, .apiKey, .model]
         } else {
+          rows += [.apiKey, .advanced]
+          if isAdvancedExpanded {
+            rows += [.endpoint, .model]
+          }
+        }
+        if editor?.modelChoice == .custom, profile.isCustom || isAdvancedExpanded {
+          rows.append(.customModel)
+        }
+        if editor != nil {
           rows.append(.actions)
         }
+      } else if profile.endpointLeg != nil {
+        rows.append(.actions)
       }
       if showsTimeout {
         rows.append(.timeout)
@@ -277,6 +285,8 @@ private let profilesPaneLogger = Logger(
         return [.showModels]
       case .enabled:
         return [.enabled]
+      case .advanced:
+        return [.advanced]
       case .engineKey:
         return isEditing ? [.field(.engineKey)] : [.edit(.engineKey)]
       case .endpoint:
@@ -385,6 +395,7 @@ private let profilesPaneLogger = Logger(
     case profileSelected(ProfileID)
     case enabledToggled(Bool)
     case boostsVocabularyToggled(Bool)
+    case advancedToggled(Bool)
     case timeoutSelected(TimeInterval)
     case instructionsEdited(String)
     case editTapped(Field)
@@ -463,7 +474,12 @@ private let profilesPaneLogger = Logger(
         }
         let discard = discardEditor(&state)
         state.$settings.withLock { $0.profiles.active = id }
+        state.isAdvancedExpanded = false
         return .merge(discard, refreshListing(state))
+      case let .advancedToggled(expanded):
+        state.isAdvancedExpanded = expanded
+        state.cursor = Cursor(row: .advanced)
+        return .none
       case let .enabledToggled(enabled):
         state.$settings.withLock { $0.profiles.custom.cleanupEnabled = enabled }
         return clampTarget(&state)
@@ -480,6 +496,9 @@ private let profilesPaneLogger = Logger(
       case let .editTapped(field):
         if state.editor == nil {
           state.editor = state.makeEditor()
+        }
+        if !state.profile.isCustom, field == .endpoint || field == .model {
+          state.isAdvancedExpanded = true
         }
         state.editor?.requestFocus(field)
         state.cursor = Cursor(row: state.row(for: field))
@@ -633,6 +652,9 @@ private let profilesPaneLogger = Logger(
         }
         state.editor?.isChecking = false
         state.editor?.failure = failure
+        if !state.profile.isCustom, failure.field == .endpoint || failure.field == .model {
+          state.isAdvancedExpanded = true
+        }
         state.editor?.requestFocus(failure.field)
         state.cursor = Cursor(row: state.row(for: failure.field))
         return .none
@@ -674,6 +696,8 @@ private let profilesPaneLogger = Logger(
           return .send(.showModelsTapped)
         case .enabled:
           return .send(.enabledToggled(!state.settings.profiles.custom.cleanupEnabled))
+        case .advanced:
+          return .send(.advancedToggled(!state.isAdvancedExpanded))
         case let .edit(field):
           return .send(.editTapped(field))
         case let .reset(field):
@@ -807,6 +831,9 @@ private let profilesPaneLogger = Logger(
       editor.failure = Failure(field: field, message: message)
       editor.requestFocus(field)
       state.editor = editor
+      if !state.profile.isCustom, field == .endpoint || field == .model {
+        state.isAdvancedExpanded = true
+      }
       state.cursor = Cursor(row: state.row(for: field))
       return .none
     }

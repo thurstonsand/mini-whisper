@@ -163,6 +163,12 @@ final class ProfilesUITests: MiniWhisperUITestCase, SurfaceTagged {
           .firstMatch
         try require(haiku.awaitExistence(timeout: 2))
         haiku.click()
+        XCTAssertTrue(app.staticTexts["miniwhisper.profiles.endpoint.value"].awaitNonExistence())
+        let advanced = app.disclosureTriangles.firstMatch
+        try require(advanced.awaitHittable())
+        app.typeText("jj")
+        self.assertValue("Bar on", of: app.staticTexts["miniwhisper.profiles.row.advanced.state"])
+        app.typeKey(.return, modifierFlags: [])
         self.assertValue(
           "https://api.anthropic.com/v1",
           of: app.staticTexts["miniwhisper.profiles.endpoint.value"],
@@ -227,6 +233,11 @@ final class ProfilesUITests: MiniWhisperUITestCase, SurfaceTagged {
     let app = launch("settings-profiles-overridden")
     defer { terminate(app) }
 
+    let advanced = app.disclosureTriangles.firstMatch
+    XCTAssertTrue(advanced.awaitHittable())
+    XCTAssertFalse(app.staticTexts["miniwhisper.profiles.endpoint.value"].exists)
+    app.typeText("ljj")
+    app.typeKey(.return, modifierFlags: [])
     let address = app.staticTexts["miniwhisper.profiles.endpoint.value"]
     XCTAssertTrue(address.awaitExistence(timeout: 5))
     assertValue("https://aig.thurstons.house/v1", of: address)

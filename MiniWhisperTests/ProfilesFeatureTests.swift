@@ -445,6 +445,7 @@ struct EndpointAddressTests {
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
     await openPane(store, keys: [haikuSlot: "sk-ant-0123"])
+    await store.send(.advancedToggled(true))
     #expect(targets(store.state, at: .model) == [.edit(.model), .reset(.model)])
 
     await store.send(.resetTapped(.model))
@@ -530,9 +531,9 @@ struct EndpointAddressTests {
     var customOff = configuredCustom
     customOff.profiles.custom.cleanupEnabled = false
 
-    #expect(rows(.defaults) == [.profile, .endpoint, .apiKey, .model, .timeout, .instructions])
+    #expect(rows(.defaults) == [.profile, .apiKey, .advanced, .timeout, .instructions])
     #expect(rows(accurate) == [
-      .profile, .engineKey, .endpoint, .apiKey, .model, .timeout, .instructions,
+      .profile, .engineKey, .apiKey, .advanced, .timeout, .instructions,
     ])
     // S1-mini reads no prompt, so only the limit applies.
     #expect(rows(offline) == [.profile, .timeout])
@@ -561,6 +562,23 @@ struct EndpointAddressTests {
     #expect(store.state.targets == [.cancel, .save])
     await store.send(.rightPressed)
     #expect(store.state.cursorTarget == .save)
+  }
+
+  @Test func `a failed factory override opens Advanced to its error`() async {
+    let store = profilesStore(settings: .defaults, keys: [haikuSlot: "sk-ant-test"]) {
+      $0.cleanup.verify = { _, _ in .failed(.unreachable("refused")) }
+    }
+    store.exhaustivity = .off(showSkippedAssertions: false)
+    await openPane(store, keys: [haikuSlot: "sk-ant-test"])
+    await store.send(.editTapped(.apiKey))
+    #expect(!store.state.rows.contains(.endpoint))
+    await store.send(.saveTapped)
+    await store.receive(.saveFailed(.init(
+      field: .endpoint, message: "Couldn’t reach api.anthropic.com.",
+    )))
+    #expect(store.state.rows.contains(.endpoint))
+    #expect(store.state.editor?.focus == .endpoint)
+    #expect(store.state.cursorRow == .endpoint)
   }
 
   @Test func `the picker says what each profile still needs, models before keys`() {
