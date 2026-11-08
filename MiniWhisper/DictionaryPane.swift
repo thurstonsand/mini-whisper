@@ -23,6 +23,8 @@ struct DictionaryPane: View {
           Text(
             "Vocabulary isn’t used by \(store.dictionary.profiles.activeProfile.name). Turn on Boost vocabulary in Profiles. Corrections still apply.",
           )
+          .font(.callout.weight(.regular))
+          .foregroundStyle(.secondary)
           .lineLimit(nil)
           .fixedSize(horizontal: false, vertical: true)
         }
