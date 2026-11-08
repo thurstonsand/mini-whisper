@@ -9,8 +9,6 @@ import SwiftUI
 /// Every step wears the same silhouette — glyph, heading, a summary that reserves its height, and
 /// an intrinsic card. Written once so a new step inherits the layout instead of copying it.
 struct OnboardingStepPage<Card: View>: View {
-  // MARK: Internal
-
   struct Line {
     let text: String
     let identifier: String
@@ -26,22 +24,15 @@ struct OnboardingStepPage<Card: View>: View {
   var summaryHeight: CGFloat? = 58
   var cardPadding: CGFloat = 0
   var cardAlignment: Alignment = .center
-  var compactHeading = false
   @ViewBuilder let card: Card
 
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
-      if compactHeading {
-        HStack(spacing: 16) {
-          emblem
-          heading
-        }
-      } else {
-        emblem
-        heading.padding(.top, 20)
-      }
+      OnboardingStepHeader(
+        symbol: symbol, title: title.text, identifier: title.identifier, label: title.label,
+      )
       SemanticText(summary.text, identifier: summary.identifier, label: summary.label)
-        .font(.system(size: 14))
+        .font(.body)
         .foregroundStyle(.secondary)
         .lineLimit(summaryLineLimit)
         .lineSpacing(summaryLineSpacing)
@@ -61,23 +52,27 @@ struct OnboardingStepPage<Card: View>: View {
     }
     .accessibilityElement(children: .contain)
   }
+}
 
-  // MARK: Private
+// MARK: - OnboardingStepHeader
 
-  private var emblem: some View {
-    ZStack {
-      RoundedRectangle(cornerRadius: 13).fill(Color.accentColor.opacity(0.12)).frame(
-        width: 58, height: 58,
-      )
-      Image(systemName: symbol).font(.system(size: 24, weight: .medium)).foregroundStyle(
-        Color.accentColor,
-      )
-    }.accessibilityHidden(true)
-  }
+struct OnboardingStepHeader: View {
+  let symbol: String
+  let title: String
+  let identifier: String
+  let label: String
 
-  private var heading: some View {
-    SemanticText(title.text, identifier: title.identifier, label: title.label)
-      .font(.system(size: 28, weight: .semibold))
+  var body: some View {
+    HStack(spacing: 16) {
+      Image(systemName: symbol)
+        .font(.title.weight(.medium))
+        .foregroundStyle(Color.accentColor)
+        .frame(width: 58, height: 58)
+        .background(.tint.quinary, in: .rect(cornerRadius: 13))
+        .accessibilityHidden(true)
+      SemanticText(title, identifier: identifier, label: label)
+        .font(.title.weight(.semibold))
+    }
   }
 }
 
@@ -376,7 +371,6 @@ struct OnboardingKeysPage: View {
       summaryHeight: nil,
       cardPadding: 18,
       cardAlignment: .topLeading,
-      compactHeading: true,
     ) {
       VStack(alignment: .leading, spacing: 12) {
         ForEach(store.profile.credentials, id: \.self) { slot in
@@ -787,27 +781,22 @@ struct OnboardingReadyPage: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
-      ZStack {
-        Circle().fill(Color.green.opacity(0.14)).frame(width: 58, height: 58)
-        Image(systemName: "checkmark").font(.system(size: 25, weight: .bold)).foregroundStyle(
-          .green,
-        )
-      }.accessibilityHidden(true)
-      SemanticText("Ready", identifier: AccessibilityID.onboardingReadyTitle, label: "Setup status")
-        .font(.system(size: 32, weight: .semibold))
-        .padding(.top, 20)
+      OnboardingStepHeader(
+        symbol: "checkmark", title: "Ready", identifier: AccessibilityID.onboardingReadyTitle,
+        label: "Setup status",
+      )
       SemanticText(
         OnboardingCopy.readySummary(hotkeys: store.hotkeys),
         identifier: AccessibilityID.onboardingReadySummary, label: "Ready instructions",
       )
-      .font(.system(size: 14))
+      .font(.body)
       .foregroundStyle(.secondary)
       .lineSpacing(3)
       .frame(maxWidth: 420, alignment: .leading)
       .padding(.top, 10)
       if !store.tryItText.isEmpty {
         Text("“\(store.tryItText)”")
-          .font(.system(size: 14))
+          .font(.body)
           .italic()
           .lineLimit(3)
           .padding(.top, 24)
