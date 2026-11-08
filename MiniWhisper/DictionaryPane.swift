@@ -34,6 +34,7 @@ struct DictionaryPane: View {
             .buttonStyle(.bordered)
             .accessibilityIdentifier("miniwhisper.dictionary.vocabulary-settings")
           }
+          .padding(.horizontal, 6)
         }
       }
     }
