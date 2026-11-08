@@ -174,7 +174,7 @@ extension EngineReadiness {
     case .ready:
       "Ready · \(name)"
     case let .downloading(fraction):
-      "Downloading \(engine == .parakeet ? name : "speech gate") · \(Int(fraction * 100))%"
+      "Downloading \(engine == .parakeet ? name : "speech gate") · \(DownloadProgress.percentage(fraction))"
     case .compiling:
       "Compiling \(name)"
     case .prewarming:

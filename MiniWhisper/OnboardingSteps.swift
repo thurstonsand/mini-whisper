@@ -262,7 +262,7 @@ struct OnboardingStepRail: View {
   @ViewBuilder private var compactModelProgress: some View {
     switch store.engineReadiness {
     case let .downloading(fraction):
-      Text("\(Int(fraction * 100))%")
+      Text(DownloadProgress.percentage(fraction))
         .font(.caption2)
         .monospacedDigit()
         .foregroundStyle(.secondary)
@@ -698,7 +698,7 @@ struct OnboardingModelPage: View {
           label: "Model status",
         ).font(.system(size: 13, weight: .medium))
         Spacer()
-        Text("\(Int(fraction * 100))%")
+        Text(DownloadProgress.percentage(fraction))
           .monospacedDigit()
           .foregroundStyle(.secondary)
           .accessibilityHidden(true)
@@ -707,7 +707,7 @@ struct OnboardingModelPage: View {
         .progressViewStyle(.linear)
         .accessibilityIdentifier(AccessibilityID.onboardingModelProgress)
         .accessibilityLabel("Model download")
-        .accessibilityValue("\(Int(fraction * 100))%")
+        .accessibilityValue(DownloadProgress.percentage(fraction))
     }
   }
 
@@ -718,7 +718,7 @@ struct OnboardingModelPage: View {
     let value =
       switch state {
       case let .downloading(fraction):
-        "\(Int(fraction * 100))% of \(Self.size([asset]))"
+        "\(DownloadProgress.percentage(fraction)) of \(Self.size([asset]))"
       case .installed:
         "Ready"
       case .failed:

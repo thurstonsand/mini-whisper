@@ -185,7 +185,7 @@ private struct LocalCleanupRow: View {
     case .missing:
       "S1-mini · not downloaded"
     case let .downloading(fraction):
-      "S1-mini · downloading \(Int(fraction * 100))%"
+      "S1-mini · downloading \(DownloadProgress.percentage(fraction))"
     case .failed:
       "S1-mini · download failed"
     }

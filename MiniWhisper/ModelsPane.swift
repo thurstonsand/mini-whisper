@@ -541,7 +541,7 @@ private struct AssetStatus: View {
       case let .downloading(fraction):
         ProgressView(value: fraction)
           .frame(width: 60)
-        state("\(Int(fraction * 100))%")
+        state(DownloadProgress.percentage(fraction))
       case .failed:
         Image(systemName: "exclamationmark.triangle.fill")
           .foregroundStyle(.orange)

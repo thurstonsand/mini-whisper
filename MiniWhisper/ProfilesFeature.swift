@@ -327,7 +327,7 @@ private let profilesPaneLogger = Logger(
         case .failed:
           return .problem("\(asset.name) failed to download")
         case let .downloading(fraction):
-          return .note("Downloading \(asset.name) · \(Int(fraction * 100))%")
+          return .note("Downloading \(asset.name) · \(DownloadProgress.percentage(fraction))")
         case .installed,
              nil:
           continue
