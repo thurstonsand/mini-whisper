@@ -173,10 +173,21 @@ struct PillView: View {
     case let .notice(notice):
       HStack(spacing: 9) {
         noticeSymbol(notice).accessibilityHidden(true)
-        SemanticText(
-          notice.content.text, identifier: AccessibilityID.pillNotice,
-          label: "Dictation notice",
+        VStack(alignment: .leading, spacing: 3) {
+          Text(notice.content.text)
+          if let detail = notice.content.detail {
+            Text(detail)
+              .font(.callout)
+              .foregroundStyle(.secondary)
+          }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityIdentifier(AccessibilityID.pillNotice)
+        .accessibilityLabel("Dictation notice")
+        .accessibilityValue(
+          [notice.content.text, notice.content.detail].compactMap(\.self).joined(separator: "\n"),
         )
+        .accessibilityAddTraits(.isStaticText)
       }
       .font(.body.weight(.medium))
       .foregroundStyle(.primary)
@@ -195,9 +206,10 @@ struct PillView: View {
       Image(systemName: "waveform.slash").foregroundStyle(.secondary)
     case .noTranscriptToPaste:
       Image(systemName: "clipboard").foregroundStyle(.secondary)
+    case .speechModelUnavailable:
+      Image(systemName: "info.circle").foregroundStyle(.secondary)
     case .noReceiver,
          .cleanupUnavailable,
-         .speechModelUnavailable,
          .dictionarySaveFailed:
       Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
     }

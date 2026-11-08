@@ -41,6 +41,7 @@ import ComposableArchitecture
 
         struct Content: Equatable {
           let text: String
+          var detail: String?
           let phase: String
         }
 
@@ -72,7 +73,7 @@ import ComposableArchitecture
             )
           case let .speechModelUnavailable(status):
             Content(
-              text: "Dictation not started\n\(status)", phase: status,
+              text: "Dictation not started", detail: status, phase: status,
             )
           case .dictionarySaveFailed:
             Content(
