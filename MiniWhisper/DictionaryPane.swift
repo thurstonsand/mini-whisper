@@ -93,7 +93,9 @@ struct DictionaryPane: View {
       ContentUnavailableView {
         Label("Dictionary Unavailable", systemImage: "exclamationmark.triangle")
       } description: {
-        Text("dictionary.json could not be read. Fix or remove the file, then try again.")
+        Text(
+          "dictionary.json couldn’t be read. Back it up before repairing or removing it. Removing it resets saved words and corrections.",
+        )
       } actions: {
         Button("Show in Finder") { store.send(.dictionary(.revealFileRequested)) }
         Button("Try Again") { store.send(.dictionary(.reloadRequested)) }

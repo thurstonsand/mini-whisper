@@ -89,7 +89,7 @@ enum DictionaryFieldCopy {
 
     var refusalReason: String? {
       loadFailure.map {
-        "dictionary.json could not be loaded. Fix or remove it before making changes. \($0)"
+        "dictionary.json couldn’t be read. Back it up before repairing or removing it. Removing it resets saved words and corrections. \($0)"
       }
     }
 
