@@ -21,6 +21,7 @@ struct OnboardingStepPage<Card: View>: View {
   var summaryLineLimit: Int?
   var summaryLineSpacing: CGFloat = 0
   var summaryMaxWidth: CGFloat?
+  var summaryHeight: CGFloat? = 58
   var cardPadding: CGFloat = 0
   var cardAlignment: Alignment = .center
   @ViewBuilder let card: Card
@@ -44,7 +45,8 @@ struct OnboardingStepPage<Card: View>: View {
         .lineLimit(summaryLineLimit)
         .lineSpacing(summaryLineSpacing)
         .frame(
-          maxWidth: summaryMaxWidth, minHeight: 58, maxHeight: 58, alignment: .topLeading,
+          maxWidth: summaryMaxWidth, minHeight: summaryHeight, maxHeight: summaryHeight,
+          alignment: .topLeading,
         )
         .padding(.top, 10)
       card
@@ -352,6 +354,7 @@ struct OnboardingKeysPage: View {
         identifier: AccessibilityID.onboardingKeysSummary, label: "Keys information",
       ),
       summaryMaxWidth: 430,
+      summaryHeight: nil,
       cardPadding: 18,
       cardAlignment: .topLeading,
     ) {

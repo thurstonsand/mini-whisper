@@ -64,8 +64,17 @@ struct OnboardingView: View {
           OnboardingStepRail(store: store)
           Divider()
           VStack(alignment: .leading, spacing: 0) {
-            stepContent.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            if store.visibleStep == .keys {
+              ScrollView {
+                stepContent.frame(maxWidth: .infinity, alignment: .topLeading)
+              }
+              .scrollBounceBehavior(.basedOnSize)
+            } else {
+              stepContent.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            }
             footer
+              .fixedSize(horizontal: false, vertical: true)
+              .padding(.top, 16)
           }
           .padding(.horizontal, 42)
           .padding(.vertical, 36)

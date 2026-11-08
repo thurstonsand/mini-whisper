@@ -65,6 +65,19 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
         of: app.descendants(matching: .any)["miniwhisper.onboarding.keys.use-custom"],
       )
     }
+    let window = app.windows["miniwhisper.onboarding.window"]
+    let continueButton = app.buttons["miniwhisper.onboarding.keys.continue"]
+    XCTAssertGreaterThanOrEqual(window.frame.maxY - continueButton.frame.maxY, 24)
+    app.secureTextFields["miniwhisper.onboarding.keys.elevenlabs"].click()
+    app.typeText("scene-key")
+    app.secureTextFields["miniwhisper.onboarding.keys.google"].click()
+    app.typeText("sk-rejected-scene")
+    continueButton.click()
+    let failure = app.descendants(matching: .any)["miniwhisper.onboarding.failure"]
+    XCTAssertTrue(failure.awaitExistence(timeout: 2))
+    XCTAssertGreaterThanOrEqual(window.frame.maxY - continueButton.frame.maxY, 24)
+    XCTAssertLessThan(failure.frame.maxY, continueButton.frame.minY)
+    recordScreenshot("two-keys-validation-error", screenshot: app.screenshot())
     XCTAssertTrue(app.staticTexts[
       "Switches to Custom: Parakeet on this Mac, without cleanup. Downloads its speech model if needed.",
     ]
