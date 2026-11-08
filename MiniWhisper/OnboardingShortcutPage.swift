@@ -20,6 +20,7 @@ struct OnboardingShortcutPage: View {
         text: "Hold to record. Release to transcribe.",
         identifier: AccessibilityID.onboardingShortcutSummary, label: "Shortcut information",
       ),
+      cardPadding: 18,
     ) {
       VStack(spacing: 14) {
         keycap
