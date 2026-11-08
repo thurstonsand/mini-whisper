@@ -213,6 +213,11 @@ private struct DictionaryEditSheet: View {
         if store.dictionary.draft?.isCorrection == true {
           TextField(DictionaryFieldCopy.misspelling, text: misspellingBinding)
             .onSubmit { save() }
+            .focused($focus, equals: .misspelling)
+            .task {
+              await Task.yield()
+              focus = .misspelling
+            }
             .accessibilityIdentifier(AccessibilityID.dictionaryMisspelling)
           TextField(DictionaryFieldCopy.correction, text: textBinding)
             .onSubmit { save() }
@@ -220,6 +225,11 @@ private struct DictionaryEditSheet: View {
         } else {
           TextField(DictionaryFieldCopy.word, text: textBinding)
             .onSubmit { save() }
+            .focused($focus, equals: .word)
+            .task {
+              await Task.yield()
+              focus = .word
+            }
             .accessibilityIdentifier(AccessibilityID.dictionaryText)
         }
       }
@@ -255,6 +265,13 @@ private struct DictionaryEditSheet: View {
   }
 
   // MARK: Private
+
+  private enum Field: Hashable {
+    case word
+    case misspelling
+  }
+
+  @FocusState private var focus: Field?
 
   private var title: String {
     store.dictionary.draft?.originalID == nil ? "Add Entry" : "Edit Entry"

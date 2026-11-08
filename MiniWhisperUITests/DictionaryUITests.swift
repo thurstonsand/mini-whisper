@@ -61,6 +61,7 @@ final class DictionaryUITests: MiniWhisperUITestCase, SurfaceTagged {
         self.recordScreenshot("recognition-off-sheet", screenshot: app.screenshot())
         XCTAssertTrue(sheet.buttons["Delete"].exists)
         self.assertValue("mini whisperer", of: app.textFields["miniwhisper.dictionary.misspelling"])
+        self.assertKeyboardFocus(on: app.textFields["miniwhisper.dictionary.misspelling"])
         self.assertValue("MiniWhisper", of: app.textFields["miniwhisper.dictionary.text"])
         app.typeKey(.escape, modifierFlags: [])
         try require(sheet.awaitNonExistence())
@@ -74,8 +75,9 @@ final class DictionaryUITests: MiniWhisperUITestCase, SurfaceTagged {
         try require(save.awaitExistence(timeout: 2))
         XCTAssertFalse(save.isEnabled)
         let text = app.textFields["miniwhisper.dictionary.text"]
-        text.click()
-        text.typeText("TCA")
+        self.assertKeyboardFocus(on: text)
+        app.typeText("TCA")
+        self.assertValue("TCA", of: text)
         XCTAssertTrue(poll { save.isEnabled })
         text.typeKey(.return, modifierFlags: [])
         XCTAssertTrue(app.descendants(matching: .any)["miniwhisper.dictionary.row.vocabulary.tca"]
