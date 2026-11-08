@@ -77,7 +77,7 @@ import ComposableArchitecture
             )
           case .dictionarySaveFailed:
             Content(
-              text: "Couldn’t save dictionary entry", phase: "Dictionary entry not saved",
+              text: "Entry not saved — open Dictionary", phase: "Dictionary entry not saved",
             )
           }
         }

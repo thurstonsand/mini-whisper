@@ -118,15 +118,15 @@ final class DictionaryUITests: MiniWhisperUITestCase, SurfaceTagged {
         XCTAssertTrue(settings.awaitNonExistence())
       },
 
-      Law("A persistence failure is explained") { app in
+      Law("A persistence failure stays available until a successful retry") { app in
         self.postAgentMutation("dictionary-save-failed", value: "disk full")
 
-        let alert = app.sheets.firstMatch
-        try require(alert.awaitExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["Changes could not be saved"].exists)
-        XCTAssertTrue(alert.staticTexts["disk full"].exists)
-        alert.buttons["OK"].click()
-        XCTAssertTrue(alert.awaitNonExistence())
+        let retry = app.buttons["Retry Save"]
+        try require(retry.awaitHittable())
+        XCTAssertTrue(app.staticTexts["Changes haven’t been saved."].exists)
+        XCTAssertTrue(app.staticTexts["disk full"].exists)
+        retry.click()
+        XCTAssertTrue(retry.awaitNonExistence())
       },
     ])
   }

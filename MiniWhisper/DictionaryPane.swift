@@ -59,10 +59,18 @@ struct DictionaryPane: View {
     .sheet(isPresented: draftPresented) {
       DictionaryEditSheet(store: store)
     }
-    .alert("Changes could not be saved", isPresented: persistenceFailurePresented) {
-      Button("OK") { store.send(.dictionary(.persistenceFailureDismissed)) }
-    } message: {
-      Text(store.dictionary.persistenceFailure ?? "Unknown error")
+    .safeAreaBar(edge: .bottom) {
+      if let failure = store.dictionary.persistenceFailure, store.dictionary.loadFailure == nil {
+        HStack {
+          VStack(alignment: .leading, spacing: 4) {
+            Text("Changes haven’t been saved.")
+            Text(failure).font(.callout).foregroundStyle(.secondary)
+          }
+          Spacer()
+          Button("Retry Save") { store.send(.dictionary(.retrySaveRequested)) }
+        }
+        .padding()
+      }
     }
   }
 
@@ -74,17 +82,6 @@ struct DictionaryPane: View {
       set: {
         if !$0 {
           store.send(.dictionary(.draftCancelled))
-        }
-      },
-    )
-  }
-
-  private var persistenceFailurePresented: Binding<Bool> {
-    Binding(
-      get: { store.dictionary.persistenceFailure != nil },
-      set: {
-        if !$0 {
-          store.send(.dictionary(.persistenceFailureDismissed))
         }
       },
     )

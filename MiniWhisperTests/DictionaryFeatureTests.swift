@@ -88,12 +88,14 @@ import Testing
     }
 
     await store.send(.quickAddSubmitted(word: " tca ", misspelling: ""))
+    await store.receive(.persistenceSaved)
     await store.send(.quickAddSubmitted(word: "MiniWhisper", misspelling: " MINI WHISPER ")) {
       $0.$dictionary.withLock {
         $0.corrections[0].misspelling = "MINI WHISPER"
         $0.corrections[0].text = "MiniWhisper"
       }
     }
+    await store.receive(.persistenceSaved)
     #expect(store.state.dictionary.vocabulary.count == 1)
     #expect(store.state.dictionary.corrections.count == 1)
     #expect(store.state.dictionary.corrections[0].addedAt == date)
@@ -112,6 +114,7 @@ import Testing
         $0.vocabulary = [VocabularyEntry(text: "AcmeOS", addedAt: date)]
       }
     }
+    await store.receive(.persistenceSaved)
     #expect(store.state.dictionary.corrections.isEmpty)
   }
 
@@ -140,6 +143,7 @@ import Testing
         ]
       }
     }
+    await store.receive(.persistenceSaved)
     await store.receive(.draftSaveCompleted) {
       $0.draft = nil
     }
@@ -168,6 +172,7 @@ import Testing
       $0.cursor = .vocabulary("Beta")
       $0.$dictionary.withLock { $0.vocabulary = [older] }
     }
+    await store.receive(.persistenceSaved)
   }
 
   @Test func `deleting from the edit sheet dismisses it`() async {
@@ -183,19 +188,27 @@ import Testing
       $0.draft = nil
       $0.$dictionary.withLock { $0.vocabulary = [] }
     }
+    await store.receive(.persistenceSaved)
   }
 
-  @Test func `pane persistence failures present and dismiss an alert`() async {
+  @Test func `persistence failures keep entries available for retry`() async {
+    let entry = VocabularyEntry(text: "AcmeOS", addedAt: .distantPast)
     let store = TestStore(
-      initialState: makeRecognitionEnabledDictionaryState(dictionary: Shared(value: .empty)),
+      initialState: makeRecognitionEnabledDictionaryState(
+        dictionary: Shared(value: DictionaryContents(vocabulary: [entry])),
+      ),
     ) { DictionaryFeature() }
 
-    await store.send(.persistenceFailed(.pane, "disk full")) {
+    await store.send(.persistenceFailed(.quickAdd, "disk full")) {
       $0.persistenceFailure = "disk full"
     }
-    await store.send(.persistenceFailureDismissed) {
+    await store.receive(.delegate(.quickAddPersistenceFailed("disk full")))
+    #expect(store.state.entries.map(\.text) == ["AcmeOS"])
+    await store.send(.retrySaveRequested)
+    await store.receive(.persistenceSaved) {
       $0.persistenceFailure = nil
     }
+    #expect(store.state.entries.map(\.text) == ["AcmeOS"])
   }
 
   @Test func `quick add persistence failures delegate to the app notice`() async {
@@ -211,7 +224,9 @@ import Testing
 
     await store.send(
       .settingsWindow(.dictionary(.persistenceFailed(.quickAdd, "disk full"))),
-    )
+    ) {
+      $0.settingsWindow.dictionary.persistenceFailure = "disk full"
+    }
     await store.receive(
       .settingsWindow(.dictionary(.delegate(.quickAddPersistenceFailed("disk full")))),
     )

@@ -170,7 +170,8 @@ enum DictionaryFieldCopy {
     case draftSaveCompleted
     case quickAddSubmitted(word: String, misspelling: String)
     case persistenceFailed(PersistenceContext, String)
-    case persistenceFailureDismissed
+    case persistenceSaved
+    case retrySaveRequested
     case revealFileRequested
     case reloadRequested
     case showVocabularySettings
@@ -313,16 +314,21 @@ enum DictionaryFieldCopy {
         return save(state.$dictionary, context: .quickAdd)
       case let .persistenceFailed(context, message):
         dictionaryLogger.error("Dictionary failed to persist: \(message, privacy: .public)")
+        state.persistenceFailure = message
         switch context {
         case .pane:
-          state.persistenceFailure = message
           return .none
         case .quickAdd:
           return .send(.delegate(.quickAddPersistenceFailed(message)))
         }
-      case .persistenceFailureDismissed:
+      case .persistenceSaved:
         state.persistenceFailure = nil
         return .none
+      case .retrySaveRequested:
+        if let refusal = mutationsAreAllowed(&state, context: .pane).refusal {
+          return refusal
+        }
+        return save(state.$dictionary, context: .pane)
       case .showVocabularySettings,
            .delegate:
         return .none
@@ -385,7 +391,10 @@ enum DictionaryFieldCopy {
     _ value: Shared<some Sendable>, context: PersistenceContext,
   ) -> Effect<Action> {
     .run { send in
-      do { try await value.save() } catch {
+      do {
+        try await value.save()
+        await send(.persistenceSaved)
+      } catch {
         await send(.persistenceFailed(context, error.localizedDescription))
       }
     }
