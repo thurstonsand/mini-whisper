@@ -17,9 +17,11 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
     XCTAssertFalse(app.tryItEditor.exists)
     assertLabel("Set Up Later", of: app.buttons["miniwhisper.onboarding.try-it.skip"])
     assertValue("Incomplete; Needs a key", of: app.buttons["miniwhisper.onboarding.rail.keys"])
+    XCTAssertTrue(app.buttons["Add Key…"].isHittable)
     app.typeKey(.return, modifierFlags: [])
     let field = app.secureTextFields["miniwhisper.onboarding.keys.anthropic"]
     XCTAssertTrue(field.awaitExistence(timeout: 2))
+    XCTAssertFalse(app.buttons["miniwhisper.onboarding.keys.skip"].exists)
     field.click()
     field.typeText("sk-accepted")
     app.buttons["miniwhisper.onboarding.keys.continue"].click()

@@ -48,11 +48,11 @@ struct HotkeyDisplayNameTests {
     #expect(
       OnboardingCopy.tryItInstructions(hotkeys: hotkeys)
         ==
-        "Focus the text box below, hold ⌃ Ctrl → R, and read the line aloud. Release when you're done, or double-tap ⌃ Ctrl → R to keep recording until you tap it again.",
+        "Hold ⌃ Ctrl → R and read the line aloud. Release when you're done.",
     )
     #expect(
       OnboardingCopy.readySummary(hotkeys: hotkeys)
-        == "Your first dictation made the full trip. Hold ⌃ Ctrl → R in any text field and speak.",
+        == "Hold ⌃ Ctrl → R to dictate into any text field. Release to paste.",
     )
   }
 
@@ -64,7 +64,7 @@ struct HotkeyDisplayNameTests {
     #expect(
       OnboardingCopy.readySummary(hotkeys: [])
         ==
-        "Your first dictation made the full trip. Set an activation shortcut in Settings before using dictation in another text field.",
+        "Set a shortcut in Settings to dictate into other apps.",
     )
   }
 

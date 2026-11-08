@@ -24,8 +24,6 @@ struct OnboardingShortcutPage: View {
     ) {
       VStack(spacing: 14) {
         keycap
-        Text("Double-tap to keep recording. Tap again to finish.")
-          .font(.callout)
         SemanticText(
           store.isRecordingShortcut ? "Record your shortcut" : "Click the shortcut to change",
           identifier: AccessibilityID.onboardingShortcutCaption, label: "Shortcut guidance",

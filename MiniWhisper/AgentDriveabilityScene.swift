@@ -282,7 +282,7 @@ enum PresentedWindow: Equatable {
         present(&state.onboarding,
                 permissions: permissions(microphone: .granted, accessibility: true),
                 readiness: .downloading(0.42), selectedStep: .model, hasCompletedShortcut: true)
-      // The key was skipped on its page: the rail went on, and nothing can dictate.
+      // The rail can move on before the key is supplied, but nothing can dictate.
       case .onboardingTryItKeySkipped:
         state.onboardingCompleted = false
         present(&state.onboarding,

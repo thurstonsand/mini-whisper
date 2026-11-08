@@ -16,14 +16,14 @@ enum OnboardingCopy {
     guard let name = hotkeys.first?.displayName else {
       return "Set an activation shortcut in Settings before reading the line aloud."
     }
-    return "Focus the text box below, hold \(name), and read the line aloud. Release when you're done, or double-tap \(name) to keep recording until you tap it again."
+    return "Hold \(name) and read the line aloud. Release when you're done."
   }
 
   static func readySummary(hotkeys: [Hotkey]) -> String {
     guard let name = hotkeys.first?.displayName else {
-      return "Your first dictation made the full trip. Set an activation shortcut in Settings before using dictation in another text field."
+      return "Set a shortcut in Settings to dictate into other apps."
     }
-    return "Your first dictation made the full trip. Hold \(name) in any text field and speak."
+    return "Hold \(name) to dictate into any text field. Release to paste."
   }
 }
 
@@ -36,7 +36,6 @@ enum OnboardingFocus: Hashable {
   case keyField(CredentialSlot)
   case keyHelp(CredentialSlot)
   case useCustom
-  case keysSkip
   case keysContinue
   case permissionsAction
   case shortcutKeycap
@@ -114,7 +113,7 @@ struct OnboardingView: View {
       store.missingKeys.flatMap { slot in
         slot.provider.keysURL == nil ? [OnboardingFocus.keyField(slot)]
           : [.keyField(slot), .keyHelp(slot)]
-      } + [.useCustom, .keysSkip, .keysContinue]
+      } + [.useCustom, .keysContinue]
     case .permissions:
       store.activePermission == nil ? [] : [.permissionsAction]
     case .shortcut:
@@ -167,8 +166,6 @@ struct OnboardingView: View {
       HStack {
         if store.canSkip {
           skipButton
-        } else if store.visibleStep == .keys {
-          keysSkipButton
         }
         Spacer()
         footerButtons
@@ -187,12 +184,6 @@ struct OnboardingView: View {
       AccessibilityID.onboardingTryItSkipRing, label: "Skip ring",
       value: focus == .tryItSkip ? "Ring on" : "Ring off",
     )
-  }
-
-  /// Possible, not advised: the profile stays Degraded and does not dictate until a key is added.
-  private var keysSkipButton: some View {
-    secondaryButton("Continue without dictation", focus: .keysSkip) { store.send(.keysSkipped) }
-      .accessibilityIdentifier(AccessibilityID.onboardingKeysSkip)
   }
 
   @ViewBuilder private var footerButtons: some View {

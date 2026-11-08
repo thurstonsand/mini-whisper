@@ -830,9 +830,7 @@ struct OnboardingStepDerivationTests {
     #expect(store.state.step == .permissions)
   }
 
-  /// Skipping the key is allowed, not advised: the rail moves on, but Try It has nothing that
-  /// can dictate, and Skip is the way out of it.
-  @Test func `a skipped key moves the rail on and leaves nothing to try`() async {
+  @Test func `the rail can skip keys and return to finish them`() async {
     var state = welcomeState()
     state.isShowingWelcome = false
     state.snapshot = OnboardingSnapshot(
@@ -844,10 +842,15 @@ struct OnboardingStepDerivationTests {
     let store = TestStore(initialState: state) { OnboardingFeature() }
     #expect(store.state.step == .keys)
 
-    await store.send(.keysSkipped) { $0.hasSkippedKeys = true }
+    await store.send(.navigate(.tryIt)) {
+      $0.selectedStep = .tryIt
+      $0.hasSkippedKeys = true
+    }
     #expect(store.state.step == .tryIt)
     #expect(!store.state.canTryDictation)
     #expect(store.state.canSkip)
+    await store.send(.navigate(.keys)) { $0.selectedStep = .keys }
+    #expect(store.state.visibleStep == .keys)
   }
 
   /// The choice belongs to the welcome page: once the download it chose has started, another

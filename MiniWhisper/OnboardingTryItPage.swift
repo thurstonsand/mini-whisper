@@ -50,7 +50,7 @@ struct OnboardingTryItPage: View {
     }
     return store.canTryDictation
       ? OnboardingCopy.tryItInstructions(hotkeys: store.hotkeys)
-      : "Complete the missing setup below to try a dictation, or set it up later in Settings."
+      : "Finish the setup below to try a dictation."
   }
 
   @ViewBuilder private var cardContent: some View {
@@ -70,7 +70,7 @@ struct OnboardingTryItPage: View {
       unavailable("Wait for the speech model to finish before trying a dictation.", symbol: "cpu")
     case .tryIt where !store.missingKeys.isEmpty:
       unavailable(
-        "\(store.profile.name) can’t dictate until it has \(OnboardingFeature.State.keysPhrase(store.missingKeys)). Add your key here, or later in Settings → Profiles.",
+        "\(store.profile.name) needs \(OnboardingFeature.State.keysPhrase(store.missingKeys)) before you can dictate. Choose Add Key to return to the keys step.",
         symbol: "key",
       )
     case .tryIt:

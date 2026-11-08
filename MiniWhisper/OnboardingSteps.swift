@@ -6,8 +6,7 @@ import SwiftUI
 
 // MARK: - OnboardingStepPage
 
-/// Every step wears the same silhouette — glyph, heading, a summary that reserves its height, and
-/// an intrinsic card. Written once so a new step inherits the layout instead of copying it.
+/// Shared heading and spacing keep each step aligned without enclosing its controls in cards.
 struct OnboardingStepPage<Card: View>: View {
   struct Line {
     let text: String
@@ -44,10 +43,6 @@ struct OnboardingStepPage<Card: View>: View {
       card
         .padding(cardPadding)
         .frame(maxWidth: .infinity, alignment: cardAlignment)
-        .background(
-          .quaternary,
-          in: RoundedRectangle(cornerRadius: 9),
-        )
         .padding(.top, 24)
     }
     .accessibilityElement(children: .contain)
@@ -99,39 +94,15 @@ struct OnboardingWelcomePage: View {
       .font(.body)
       .foregroundStyle(.secondary)
       .padding(.top, 4)
-      HStack(alignment: .top, spacing: 28) {
-        Picker("Profile", selection: Binding(
-          get: { store.profile.id },
-          set: { store.send(.profileSelected($0)) },
-        )) {
-          ForEach(lineup) { profile in
-            Text(choiceTitle(profile))
-              .tag(profile.id)
-              .accessibilityIdentifier(AccessibilityID.profilesCard(profile.id))
-          }
+      VStack(spacing: 12) {
+        HStack(spacing: 12) {
+          ForEach(lineup.prefix(3)) { profileChoice($0) }
         }
-        .pickerStyle(.radioGroup)
-        .labelsHidden()
-        .focusable(false)
-        .fixedSize()
-        Divider()
-        VStack(alignment: .leading, spacing: 12) {
-          Text(store.profile.name).font(.headline)
-          Text(store.profile.tagline)
-          if store.profile.id == .cerebras {
-            Text("Speech stays on this Mac; transcripts go to Cerebras.")
-          }
-          Text(store.profile.credentials.isEmpty
-            ? "No API key required."
-            : "Needs \(OnboardingFeature.State.keysPhrase(store.profile.credentials)).")
-            .foregroundStyle(.secondary)
+        HStack(spacing: 12) {
+          ForEach(lineup.suffix(2)) { profileChoice($0) }
         }
-        .font(.body)
-        .frame(maxWidth: .infinity, alignment: .leading)
       }
-      .fixedSize(horizontal: false, vertical: true)
-      .frame(width: 600, height: 176, alignment: .top)
-      .padding(.top, 32)
+      .padding(.top, 24)
       Button("Continue") { store.send(.downloadModel) }
         .buttonStyle(.borderedProminent)
         .controlSize(.large)
@@ -185,6 +156,44 @@ struct OnboardingWelcomePage: View {
 
   private var lineup: [Profile] {
     store.settings.profiles.lineup
+  }
+
+  private func profileChoice(_ profile: Profile) -> some View {
+    let selected = store.profile.id == profile.id
+    return Button { store.send(.profileSelected(profile.id)) } label: {
+      VStack(alignment: .leading, spacing: 8) {
+        Label(profile.name, systemImage: profile.symbol)
+          .font(.headline)
+          .foregroundStyle(selected ? Color.accentColor : Color.primary)
+        Text(profile.id == .cerebras
+          ? "Speech stays on this Mac. Fast cleanup from Cerebras."
+          : profile.tagline)
+          .font(.callout)
+          .lineLimit(nil)
+          .multilineTextAlignment(.leading)
+          .foregroundStyle(Color.secondary)
+          .fixedSize(horizontal: false, vertical: true)
+        Spacer(minLength: 0)
+        Text(profile.id == .haiku ? "Recommended · Anthropic key"
+          : profile.credentials.isEmpty ? "No key needed"
+          : "Needs \(OnboardingFeature.State.keysPhrase(profile.credentials))")
+          .font(.caption)
+          .foregroundStyle(Color.secondary)
+      }
+      .frame(width: 174, height: 130, alignment: .topLeading)
+      .padding(8)
+    }
+    .buttonStyle(.bordered)
+    .tint(selected ? Color.accentColor : Color.secondary)
+    .overlay {
+      RoundedRectangle(cornerRadius: 8)
+        .strokeBorder(selected ? Color.accentColor : .clear, lineWidth: 2)
+        .allowsHitTesting(false)
+    }
+    .focusable(false)
+    .accessibilityIdentifier(AccessibilityID.profilesCard(profile.id))
+    .accessibilityLabel(choiceTitle(profile))
+    .accessibilityValue(selected ? "Selected" : "Not selected")
   }
 
   private func choiceTitle(_ profile: Profile) -> String {
@@ -347,7 +356,7 @@ struct OnboardingStepRail: View {
 
 // MARK: - OnboardingKeysPage
 
-/// The on-device alternative can dictate without keys; continuing without them cannot.
+/// Each key names its job; on-device dictation is the alternative to providing one.
 struct OnboardingKeysPage: View {
   // MARK: Internal
 
@@ -363,12 +372,12 @@ struct OnboardingKeysPage: View {
         label: "Keys heading",
       ),
       summary: .init(
-        text: "Keys stay in your Keychain and are used only by this profile.",
+        text: "\(store.profile.name) needs \(store.profile.credentials.count == 1 ? "this key" : "these keys") before you can dictate. Keys stay in your Keychain.",
         identifier: AccessibilityID.onboardingKeysSummary, label: "Keys information",
       ),
       summaryMaxWidth: 430,
       summaryHeight: nil,
-      cardPadding: 18,
+      cardPadding: 0,
       cardAlignment: .topLeading,
     ) {
       VStack(alignment: .leading, spacing: 12) {
@@ -410,6 +419,10 @@ struct OnboardingKeysPage: View {
       VStack(alignment: .leading, spacing: 6) {
         Text("\(provider.displayName) key")
           .font(.body)
+        Text(slot == store.profile
+          .engineCredential ? "Transcribes your audio." : "Cleans up your transcript.")
+          .font(.callout)
+          .foregroundStyle(.secondary)
         SecureField(
           "\(provider.displayName) key",
           text: Binding(
@@ -468,11 +481,11 @@ struct OnboardingPermissionsPage: View {
     OnboardingStepPage(
       symbol: "lock.shield",
       title: .init(
-        text: "Allow dictation access",
+        text: "Two permissions to dictate",
         identifier: AccessibilityID.onboardingPermissionsTitle, label: "Permissions heading",
       ),
       summary: .init(
-        text: "macOS prompts for both. Grant them in the order they appear.",
+        text: "First the microphone, then Accessibility.",
         identifier: AccessibilityID.onboardingPermissionsSummary,
         label: "Permissions information",
       ),
@@ -481,13 +494,13 @@ struct OnboardingPermissionsPage: View {
       VStack(spacing: 0) {
         permissionRow(
           .microphone, title: "Microphone", symbol: "waveform",
-          explanation: "Record while you dictate.",
+          explanation: "Records your voice during dictation.",
         )
         Divider()
           .padding(.horizontal, 10)
         permissionRow(
           .accessibility, title: "Accessibility", symbol: "keyboard",
-          explanation: "Use the shortcut and paste text.",
+          explanation: "Reads your shortcut and pastes the transcript where you’re typing.",
         )
       }
     }
@@ -516,7 +529,7 @@ struct OnboardingPermissionsPage: View {
         Text(explanation)
           .font(.system(size: 11))
           .foregroundStyle(.secondary)
-          .lineLimit(1)
+          .fixedSize(horizontal: false, vertical: true)
       }
       .frame(maxWidth: .infinity, alignment: .leading)
       .accessibilityElement(children: .combine)

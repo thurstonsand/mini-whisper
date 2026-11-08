@@ -25,24 +25,24 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
           "Dictation, with a profile that fits you.",
         ),
         contract(
-          .radioButton, "miniwhisper.profiles.card.haiku", "Everyday · Recommended",
-          "1", isEnabled: true, isActionable: true,
+          .button, "miniwhisper.profiles.card.haiku", "Everyday · Recommended",
+          "Selected", isEnabled: true, isActionable: true,
         ),
         contract(
-          .radioButton, "miniwhisper.profiles.card.offline", "Offline",
-          "0", isEnabled: true, isActionable: true,
+          .button, "miniwhisper.profiles.card.offline", "Offline",
+          "Not selected", isEnabled: true, isActionable: true,
         ),
         contract(
-          .radioButton, "miniwhisper.profiles.card.accurate", "Most accurate",
-          "0", isEnabled: true, isActionable: true,
+          .button, "miniwhisper.profiles.card.accurate", "Most accurate",
+          "Not selected", isEnabled: true, isActionable: true,
         ),
         contract(
-          .radioButton, "miniwhisper.profiles.card.cerebras", "Fastest cleanup",
-          "0", isEnabled: true, isActionable: true,
+          .button, "miniwhisper.profiles.card.cerebras", "Fastest cleanup",
+          "Not selected", isEnabled: true, isActionable: true,
         ),
         contract(
-          .radioButton, "miniwhisper.profiles.card.custom", "Custom",
-          "0", isEnabled: true, isActionable: true,
+          .button, "miniwhisper.profiles.card.custom", "Custom",
+          "Not selected", isEnabled: true, isActionable: true,
         ),
         contract(
           .staticText, "miniwhisper.onboarding.welcome.model-info", "Model download information",
@@ -54,20 +54,14 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
         ),
       ],
       mutation: { app in
-        app.radioButtons["miniwhisper.profiles.card.offline"].click()
-        XCTAssertTrue(app.staticTexts[
-          "Nothing leaves this Mac. Lighter cleanup, recognition tuned to your words.",
-        ]
-        .awaitExistence())
+        app.buttons["miniwhisper.profiles.card.offline"].click()
+        self.assertValue("Selected", of: app.buttons["miniwhisper.profiles.card.offline"])
         app.typeKey(.downArrow, modifierFlags: [])
         self.assertValue(
           "1.1 MB downloads while you finish setup. You’ll add ElevenLabs and Google keys next.",
           of: app.staticTexts["miniwhisper.onboarding.welcome.model-info"],
         )
-        XCTAssertTrue(app.staticTexts[
-          "The fewest mistakes. Your audio goes to ElevenLabs, transcripts to Google.",
-        ]
-        .awaitExistence())
+        self.assertValue("Selected", of: app.buttons["miniwhisper.profiles.card.accurate"])
         app.typeKey(.return, modifierFlags: [])
         XCTAssertTrue(app.secureTextFields["miniwhisper.onboarding.keys.elevenlabs"]
           .awaitExistence())
@@ -156,7 +150,7 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
         ),
         contract(
           .staticText, "miniwhisper.onboarding.try-it.instructions", "Try it instructions",
-          "Focus the text box below, hold ⌥ Opt →, and read the line aloud. Release when you're done, or double-tap ⌥ Opt → to keep recording until you tap it again.",
+          "Hold ⌥ Opt → and read the line aloud. Release when you're done.",
         ), contract(.textField, "miniwhisper.onboarding.try-it.text", "Try dictation", ""),
         contract(
           .staticText, "miniwhisper.onboarding.try-it.hotkey", "Dictation hotkey", "⌥ Opt →",
@@ -183,7 +177,7 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
         contract(.staticText, "miniwhisper.onboarding.ready.title", "Setup status", "Ready"),
         contract(
           .staticText, "miniwhisper.onboarding.ready.summary", "Ready instructions",
-          "Your first dictation made the full trip. Hold ⌥ Opt → in any text field and speak.",
+          "Hold ⌥ Opt → to dictate into any text field. Release to paste.",
         ),
         contract(
           .staticText, "miniwhisper.onboarding.ready.transcript", "Completed dictation",
@@ -239,15 +233,15 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
       contract(.group, "miniwhisper.onboarding.permissions", "Permissions setup"),
       contract(
         .staticText, "miniwhisper.onboarding.permissions.title", "Permissions heading",
-        "Allow dictation access",
+        "Two permissions to dictate",
       ),
       contract(
         .staticText, "miniwhisper.onboarding.permissions.summary", "Permissions information",
-        "macOS prompts for both. Grant them in the order they appear.",
+        "First the microphone, then Accessibility.",
       ),
       contract(
         .staticText, "miniwhisper.onboarding.permission.microphone", "Microphone",
-        "Record while you dictate.",
+        "Records your voice during dictation.",
       ),
       contract(
         .staticText, "miniwhisper.onboarding.permission.microphone.status", "Microphone status",
@@ -255,7 +249,7 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
       ),
       contract(
         .staticText, "miniwhisper.onboarding.permission.accessibility", "Accessibility",
-        "Use the shortcut and paste text.",
+        "Reads your shortcut and pastes the transcript where you’re typing.",
       ),
       contract(
         .staticText, "miniwhisper.onboarding.permission.accessibility.status",

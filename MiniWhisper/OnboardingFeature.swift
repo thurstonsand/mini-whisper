@@ -128,8 +128,7 @@ enum OnboardingStep: Int, Equatable {
     var storedKeys: Set<CredentialSlot>?
     var keyDrafts: [CredentialSlot: String] = [:]
     var keyFailure: KeyFailure?
-    /// The user chose to go on without the keys. Not advised: the profile does not dictate until
-    /// they are added in Settings.
+    /// The rail can visit later steps before the keys are supplied.
     var hasSkippedKeys = false
     /// The cleanup key is being proven against its endpoint before it is stored.
     var isCheckingKeys = false
@@ -220,9 +219,7 @@ enum OnboardingStep: Int, Equatable {
       selectedStep == .permissions
     }
 
-    /// The last page always offers the way out, even when the steps before it are unfinished.
-    /// Almost nobody should leave here with a permission missing, but the app says plainly what
-    /// is broken once they do, and refusing to let them out says nothing at all.
+    /// The last page lets the user leave unfinished setup for later.
     var canSkip: Bool {
       isPresented && visibleStep == .tryIt
     }
@@ -308,7 +305,6 @@ enum OnboardingStep: Int, Equatable {
     case keysContinueTapped
     case keysVerified
     case keysCheckFailed(CredentialSlot, String)
-    case keysSkipped
     case useCustomTapped
     case downloadModel
     case modelDownloadConsented
@@ -509,16 +505,6 @@ enum OnboardingStep: Int, Equatable {
         state.failureMessage = nil
         state.selectedStep = nil
         return .send(.delegate(.keysStored))
-      case .keysSkipped:
-        guard state.visibleStep == .keys else {
-          return .none
-        }
-        state.hasSkippedKeys = true
-        state.keyDrafts = [:]
-        state.keyFailure = nil
-        state.failureMessage = nil
-        state.selectedStep = nil
-        return .none
       case .useCustomTapped:
         guard state.visibleStep == .keys else {
           return .none
@@ -554,6 +540,9 @@ enum OnboardingStep: Int, Equatable {
           return .none
         }
         state.selectedStep = step
+        if step != .keys, !state.missingKeys.isEmpty {
+          state.hasSkippedKeys = true
+        }
         let polling = permissionPollingEffect(for: state)
         return step == .permissions
           ? .merge(refreshPermissionStatuses(for: state), polling) : polling

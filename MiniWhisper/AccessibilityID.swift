@@ -164,7 +164,6 @@ enum AccessibilityID {
   static let onboardingKeysSummary = "miniwhisper.onboarding.keys.summary"
   static let onboardingKeysUseCustom = "miniwhisper.onboarding.keys.use-custom"
   static let onboardingKeysContinue = "miniwhisper.onboarding.keys.continue"
-  static let onboardingKeysSkip = "miniwhisper.onboarding.keys.skip"
 
   static let onboardingPermissions = "miniwhisper.onboarding.permissions"
   static let onboardingPermissionsTitle = "miniwhisper.onboarding.permissions.title"
