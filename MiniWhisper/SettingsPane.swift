@@ -20,7 +20,7 @@ struct SettingsPane: View {
           ForEach(health.degradations, id: \.self) { degradation in
             RepairRow(store: store, degradation: degradation)
           }
-          if health.engineReadiness != .ready {
+          if health.engineReadiness.isSetupInProgress {
             EngineStatusRow(store: store)
           }
         }

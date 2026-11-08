@@ -201,9 +201,7 @@ final class SettingsUITests: MiniWhisperUITestCase, SurfaceTagged {
       app.buttons["miniwhisper.settings.repair.model-setup-failed.action"].label,
       "Retry Speech Setup",
     )
-    assertValue(
-      "Speech model setup failed", of: app.staticTexts["miniwhisper.settings.engine-status"],
-    )
+    XCTAssertFalse(app.staticTexts["miniwhisper.settings.engine-status"].exists)
 
     app.typeText("l")
     app.typeKey(.return, modifierFlags: [])

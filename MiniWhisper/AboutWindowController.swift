@@ -122,7 +122,7 @@ private struct AboutView: View {
 
         // The S1-mini license requires this exact name and capitalization wherever it ships.
         Text(
-          "Offline cleanup uses “S1-mini” by “Superwhisper”, licensed under the Apache License 2.0, run with llama.cpp under the MIT License.",
+          "Offline cleanup uses S1-mini by Superwhisper, licensed under the Apache License 2.0, run with llama.cpp under the MIT License.",
         )
         .fixedSize(horizontal: false, vertical: true)
         .accessibilityIdentifier(AccessibilityID.aboutS1MiniAttribution)
