@@ -309,7 +309,7 @@ private struct HistoryRow: View {
   /// The revealed transcript is not the entry's text, and reads as the supporting fact it is.
   private var rowTextStyle: AnyShapeStyle {
     if failure != nil {
-      return AnyShapeStyle(.orange)
+      return AnyShapeStyle(.primary)
     }
     return isRevealed ? AnyShapeStyle(.secondary) : AnyShapeStyle(.primary)
   }

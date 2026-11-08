@@ -274,8 +274,13 @@ private struct ValueRow: View {
     let row = store.profiles.row(for: field)
     LabeledContent(label) {
       HStack(spacing: 8) {
+        if isProblem {
+          Image(systemName: "exclamationmark.triangle.fill")
+            .foregroundStyle(.orange)
+            .accessibilityHidden(true)
+        }
         SemanticText(value, identifier: AccessibilityID.profilesValue(field), label: label)
-          .foregroundStyle(isProblem ? AnyShapeStyle(.orange) : AnyShapeStyle(.secondary))
+          .foregroundStyle(isProblem ? AnyShapeStyle(.primary) : AnyShapeStyle(.secondary))
           .lineLimit(1)
           .truncationMode(.middle)
         Button(edit) { store.send(.profiles(.editTapped(field))) }

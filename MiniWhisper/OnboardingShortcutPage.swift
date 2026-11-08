@@ -39,7 +39,7 @@ struct OnboardingShortcutPage: View {
             label: "Shortcut recording error",
           )
           .font(.caption)
-          .foregroundStyle(.orange)
+          .foregroundStyle(.primary)
         }
       }
       .accessibilityPaintState(

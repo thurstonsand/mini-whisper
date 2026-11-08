@@ -113,9 +113,13 @@ struct SettingsPopUpButton<Value: Equatable>: NSViewRepresentable {
       let title = NSMutableAttributedString()
       // Inline rather than the item's image: the cell pins an image to the far edge, away from a
       // right-aligned title.
-      if let symbol = option.symbol,
+      let isProblem = option.status?.isProblem == true
+      if let symbol = isProblem ? "exclamationmark.triangle.fill" : option.symbol,
          let image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil)?
-         .withSymbolConfiguration(.init(pointSize: font.pointSize, weight: .regular))
+         .withSymbolConfiguration(
+           NSImage.SymbolConfiguration(pointSize: font.pointSize, weight: .regular)
+             .applying(.init(paletteColors: [isProblem ? .systemOrange : .labelColor])),
+         )
       {
         let attachment = NSTextAttachment()
         attachment.image = image
@@ -127,7 +131,7 @@ struct SettingsPopUpButton<Value: Equatable>: NSViewRepresentable {
         title.append(NSAttributedString(
           string: "  \(status.text)", attributes: [
             .font: font,
-            .foregroundColor: status.isProblem ? NSColor.systemOrange : .secondaryLabelColor,
+            .foregroundColor: status.isProblem ? NSColor.labelColor : .secondaryLabelColor,
           ],
         ))
       }

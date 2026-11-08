@@ -357,7 +357,7 @@ private struct ShortcutRow: View {
         if let message = bindings.validationMessage {
           Text(message)
             .font(.caption)
-            .foregroundStyle(.orange)
+            .foregroundStyle(.primary)
             .accessibilityIdentifier(recordingErrorAccessibilityID)
         }
       }
