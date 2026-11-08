@@ -25,6 +25,7 @@ struct HistoryPane: View {
           }
         }
       }
+      .listStyle(.plain)
     }
     .stableSettingsListRowHeight()
     .focusEffectDisabled()
