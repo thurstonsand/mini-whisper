@@ -20,7 +20,16 @@ struct ProfilesPane: View {
       Section {
         PickerRow(store: store)
       } footer: {
-        Text("Speech recognition, cleanup, and keys belong to this profile.")
+        VStack(alignment: .leading, spacing: 6) {
+          if let status = profiles.status(of: profile).option {
+            Label(
+              status.text,
+              systemImage: status.isProblem ? "exclamationmark.triangle" : "info.circle",
+            )
+            .foregroundStyle(status.isProblem ? .primary : .secondary)
+          }
+          Text("Speech recognition, cleanup, and keys belong to this profile.")
+        }
       }
 
       Section("Speech recognition") {
@@ -168,9 +177,7 @@ struct ProfilesPane: View {
 
 // MARK: - PickerRow
 
-/// One row however many profiles there are. Each item says what its profile still needs, and the
-/// closed control says it for the active one: that is the only place the pane marks a problem
-/// with a profile as a whole.
+/// The picker names the profile; its section footer names anything it still needs.
 private struct PickerRow: View {
   // MARK: Internal
 

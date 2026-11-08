@@ -23,7 +23,7 @@ struct SettingsPopUpButton<Value: Equatable>: NSViewRepresentable {
 
     // MARK: Internal
 
-    /// A few words after the title, in the menu and in the collapsed control alike.
+    /// Status supplies a warning symbol and menu accessibility help, never part of the title.
     struct Status: Equatable {
       let text: String
       let isProblem: Bool
@@ -150,14 +150,7 @@ struct SettingsPopUpButton<Value: Equatable>: NSViewRepresentable {
         title.append(NSAttributedString(string: " ", attributes: [.font: font]))
       }
       title.append(NSAttributedString(string: option.title, attributes: [.font: font]))
-      if let status = option.status {
-        title.append(NSAttributedString(
-          string: "  \(status.text)", attributes: [
-            .font: font,
-            .foregroundColor: status.isProblem ? NSColor.labelColor : .secondaryLabelColor,
-          ],
-        ))
-      }
+      item.setAccessibilityHelp(option.status?.text)
       if item.attributedTitle != title {
         item.attributedTitle = title
       }
