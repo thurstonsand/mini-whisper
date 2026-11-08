@@ -83,20 +83,23 @@ struct PillView: View {
     }
   }
 
-  @ViewBuilder private var destination: some View {
-    if let destination = store.destination {
+  @ViewBuilder private var deliveryStatus: some View {
+    if store.destination != nil || store.submits {
       HStack(spacing: 6) {
-        Image(systemName: "arrow.right")
-          .accessibilityHidden(true)
-        SemanticText(
-          destination, identifier: AccessibilityID.pillDestination, label: "Delivers to",
-        )
-        .lineLimit(1)
-        .truncationMode(.middle)
+        if let destination = store.destination {
+          Image(systemName: "arrow.right")
+            .accessibilityHidden(true)
+          SemanticText(
+            destination, identifier: AccessibilityID.pillDestination, label: "Delivers to",
+          )
+          .lineLimit(1)
+          .truncationMode(.middle)
+        }
+        submits
       }
       .font(.callout)
       .foregroundStyle(.secondary)
-      .frame(maxWidth: 320)
+      .frame(maxWidth: store.destination == nil ? nil : 360)
     }
   }
 
@@ -132,11 +135,10 @@ struct PillView: View {
             "Transcribing…", identifier: AccessibilityID.pillPhase, label: "Dictation phase",
             value: "Transcribing",
           )
-          .font(.callout)
-          .foregroundStyle(.primary)
-          submits
+          .font(.callout.weight(.medium))
+          .foregroundStyle(Color(nsColor: .labelColor))
         }
-        destination
+        deliveryStatus
       }
     case let .polishing(polishing):
       VStack(spacing: 6) {
@@ -144,7 +146,7 @@ struct PillView: View {
           polishingRow(polishing, showsBinding: true)
           polishingRow(polishing, showsBinding: false)
         }
-        destination
+        deliveryStatus
       }
     case let .notice(notice):
       HStack(spacing: 9) {
@@ -179,7 +181,8 @@ struct PillView: View {
         "Cleaning up…", identifier: AccessibilityID.pillPhase, label: "Dictation phase",
         value: "Cleaning up",
       )
-      submits
+      .fontWeight(.medium)
+      .foregroundStyle(Color(nsColor: .labelColor))
       if polishing.isSkipRevealed {
         Divider().frame(height: 16)
         SemanticText(
@@ -187,8 +190,10 @@ struct PillView: View {
           identifier: AccessibilityID.pillSkipAffordance, label: "Skip cleanup",
           value: "\(polishing.skipComponents.joined(separator: " ")) to skip",
         )
+        .foregroundStyle(.secondary)
         if showsBinding {
           Text(polishing.skipComponents.joined(separator: " "))
+            .foregroundStyle(.secondary)
             .padding(.horizontal, 5)
             .padding(.vertical, 2)
             .background(.fill.tertiary, in: .rect(cornerRadius: 3))
