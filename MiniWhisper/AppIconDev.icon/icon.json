@@ -1,0 +1,66 @@
+{
+  "fill": {
+    "linear-gradient": [
+      "srgb:0.76078,0.41961,0.09020,1.00000",
+      "srgb:0.52157,0.23922,0.02745,1.00000"
+    ]
+  },
+  "groups": [
+    {
+      "layers": [
+        {
+          "glass": true,
+          "image-name": "3-chevron.png",
+          "name": "chevron"
+        }
+      ],
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.5
+      },
+      "translucency": {
+        "enabled": true,
+        "value": 0.25
+      }
+    },
+    {
+      "layers": [
+        {
+          "glass": true,
+          "image-name": "2-parrot.png",
+          "name": "parrot"
+        }
+      ],
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.5
+      },
+      "translucency": {
+        "enabled": true,
+        "value": 0.25
+      }
+    },
+    {
+      "layers": [
+        {
+          "glass": true,
+          "image-name": "1-perch.png",
+          "name": "perch"
+        }
+      ],
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.5
+      },
+      "translucency": {
+        "enabled": true,
+        "value": 0.25
+      }
+    }
+  ],
+  "supported-platforms": {
+    "squares": [
+      "macOS"
+    ]
+  }
+}

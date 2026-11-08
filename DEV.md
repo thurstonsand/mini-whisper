@@ -36,6 +36,8 @@ Three build configurations produce three separate apps, so all three can be inst
 | Nightly       | MiniWhisper Nightly.app | `com.thurstonsand.MiniWhisper.nightly` | CI, on push to `main` |
 | Release       | MiniWhisper.app         | `com.thurstonsand.MiniWhisper`         | CI, on a `v*` tag     |
 
+Each configuration selects an Icon Composer file in `MiniWhisper/` through `ASSETCATALOG_COMPILER_APPICON_NAME`: `AppIconDev` (amber), `AppIconNightly` (violet), or `AppIcon` (teal). The three icons share identical Polly and prompt layers; only the background fill differs. Keep those layers identical when updating the artwork.
+
 `benchmark:live` requires microphone permission and a downloaded engine model. Quit MiniWhisper before running it. Logs at `.build/{miniwhisper-performance.log,miniwhisper-performance-app.log}`.
 
 On a Mac without a usable microphone, such as one with its lid closed, real dictations can be driven through the BlackHole 2ch loopback when it is installed (`brew install --cask blackhole-2ch`, then restart `coreaudiod`): pick BlackHole 2ch as the microphone in Settings and speak with `say -a BlackHole "…"`.
