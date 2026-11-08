@@ -249,12 +249,12 @@ struct OnboardingView: View {
         .foregroundStyle(.secondary)
       }
     case .ready:
-      Button("Start Dictating") { store.send(.finish) }
+      Button("Done") { store.send(.finish) }
         .buttonStyle(.borderedProminent)
         .focused($focus, equals: .readyAction)
         .keyboardShortcut(.defaultAction)
         .accessibilityIdentifier(AccessibilityID.onboardingReadyFinish)
-        .accessibilityLabel("Start Dictating")
+        .accessibilityLabel("Done")
     }
   }
 

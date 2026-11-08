@@ -184,7 +184,7 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
           "MiniWhisper is ready.",
         ),
         contract(
-          .button, "miniwhisper.onboarding.ready.finish", "Start Dictating", isEnabled: true,
+          .button, "miniwhisper.onboarding.ready.finish", "Done", isEnabled: true,
           isActionable: true,
         ),
       ],

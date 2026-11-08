@@ -815,6 +815,10 @@ struct OnboardingReadyPage: View {
       .lineSpacing(3)
       .frame(maxWidth: 420, alignment: .leading)
       .padding(.top, 10)
+      Text("\(Channel.name) stays in the menu bar.")
+        .font(.callout)
+        .foregroundStyle(.secondary)
+        .padding(.top, 8)
       if !store.tryItText.isEmpty {
         Text("“\(store.tryItText)”")
           .font(.body)
