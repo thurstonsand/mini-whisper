@@ -91,7 +91,7 @@ struct PillView: View {
           destination, identifier: AccessibilityID.pillDestination, label: "Delivers to",
         )
         .lineLimit(1)
-        .truncationMode(.tail)
+        .truncationMode(.middle)
       }
       .font(.callout)
       .foregroundStyle(.primary)
