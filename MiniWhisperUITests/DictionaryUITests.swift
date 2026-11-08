@@ -105,6 +105,19 @@ final class DictionaryUITests: MiniWhisperUITestCase, SurfaceTagged {
         self.closeStatusMenu(app)
       },
 
+      Law("Vocabulary settings opens the active profile's boost control") { app in
+        let settings = app.buttons["miniwhisper.dictionary.vocabulary-settings"]
+        try require(settings.awaitHittable())
+        settings.click()
+        let boost = app.switches["miniwhisper.profiles.boosts-vocabulary"]
+        try require(boost.awaitHittable())
+        self.assertValue("0", of: boost)
+        boost.click()
+        self.assertValue("1", of: boost)
+        app.staticTexts["miniwhisper.settings.sidebar.dictionary"].click()
+        XCTAssertTrue(settings.awaitNonExistence())
+      },
+
       Law("A persistence failure is explained") { app in
         self.postAgentMutation("dictionary-save-failed", value: "disk full")
 

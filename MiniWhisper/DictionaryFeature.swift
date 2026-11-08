@@ -173,6 +173,7 @@ enum DictionaryFieldCopy {
     case persistenceFailureDismissed
     case revealFileRequested
     case reloadRequested
+    case showVocabularySettings
     case delegate(Delegate)
 
     // MARK: Internal
@@ -322,7 +323,8 @@ enum DictionaryFieldCopy {
       case .persistenceFailureDismissed:
         state.persistenceFailure = nil
         return .none
-      case .delegate:
+      case .showVocabularySettings,
+           .delegate:
         return .none
       }
     }

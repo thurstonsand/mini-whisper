@@ -20,13 +20,20 @@ struct DictionaryPane: View {
         if !store.dictionary.profiles.activeProfile.usesVocabulary,
            !store.dictionary.dictionary.vocabulary.isEmpty
         {
-          Text(
-            "Vocabulary isn’t used by \(store.dictionary.profiles.activeProfile.name). Turn on Boost vocabulary in Profiles. Corrections still apply.",
-          )
-          .font(.callout.weight(.regular))
-          .foregroundStyle(.secondary)
-          .lineLimit(nil)
-          .fixedSize(horizontal: false, vertical: true)
+          VStack(alignment: .leading, spacing: 8) {
+            Text(
+              "Vocabulary isn’t used by \(store.dictionary.profiles.activeProfile.name). Corrections still apply.",
+            )
+            .font(.callout.weight(.regular))
+            .foregroundStyle(.secondary)
+            .lineLimit(nil)
+            .fixedSize(horizontal: false, vertical: true)
+            Button("Open Vocabulary Settings…") {
+              store.send(.dictionary(.showVocabularySettings))
+            }
+            .buttonStyle(.bordered)
+            .accessibilityIdentifier("miniwhisper.dictionary.vocabulary-settings")
+          }
         }
       }
     }

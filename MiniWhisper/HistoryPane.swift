@@ -47,7 +47,7 @@ struct HistoryPane: View {
     )
     .searchFocused(searchFocus)
     .toolbar {
-      Button("Retention…", systemImage: "clock.badge.xmark") {
+      Button("Keep Dictations…", systemImage: "clock.badge.xmark") {
         store.send(.history(.storagePresentationChanged(true)))
       }
       .labelStyle(.titleAndIcon)

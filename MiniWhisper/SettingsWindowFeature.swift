@@ -180,6 +180,11 @@ struct SettingsWindowInteraction: Equatable {
       case let .selectionChanged(selection):
         state.selection = selection
         return .none
+      case .dictionary(.showVocabularySettings):
+        state.profiles.cursor = ProfilesFeature.Cursor(row: .boostsVocabulary)
+        state.selection = .profiles
+        state.interaction.focus = .detail
+        return .none
       case .profiles(.showModelsTapped):
         state.models.cursor = .asset(.s1Mini)
         state.models.highlightedProfile = .offline
