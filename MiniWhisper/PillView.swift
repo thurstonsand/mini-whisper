@@ -73,7 +73,7 @@ struct PillView: View {
 
   @ViewBuilder private var submits: some View {
     if store.submits {
-      Label("Then submit", systemImage: "return")
+      Label("Will submit", systemImage: "return")
         .labelStyle(.titleAndIcon)
         .font(.callout)
         .foregroundStyle(.secondary)
