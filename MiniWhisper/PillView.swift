@@ -74,11 +74,10 @@ struct PillView: View {
   @ViewBuilder private var submits: some View {
     if store.submits {
       Label("Then submit", systemImage: "return")
-        .labelStyle(.iconOnly)
+        .labelStyle(.titleAndIcon)
         .font(.callout)
         .foregroundStyle(.secondary)
         .fixedSize()
-        .help("Submits after delivery")
         .accessibilityLabel("Submits after delivery")
         .accessibilityIdentifier(AccessibilityID.pillSubmits)
     }
