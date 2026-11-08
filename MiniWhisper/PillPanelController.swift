@@ -114,7 +114,7 @@ private final class NonactivatingPillPanel: NSPanel {
     level = .statusBar
     backgroundColor = .clear
     isOpaque = false
-    hasShadow = false
+    hasShadow = true
     ignoresMouseEvents = true
     hidesOnDeactivate = false
     isReleasedWhenClosed = false
