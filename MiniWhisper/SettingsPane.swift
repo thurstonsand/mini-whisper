@@ -170,10 +170,10 @@ private struct MicrophoneRow: View {
             options: options,
             selection: store.settingsPane.microphone,
             activation: store.settingsPane.microphoneActivation,
+            isRinged: store.state.showsSettingsRing(.microphone, target: .microphone),
             onSelection: { store.send(.settingsPane(.microphoneSelected($0))) },
           )
           .fixedSize()
-          .focusRing(store.state.showsSettingsRing(.microphone, target: .microphone))
           .accessibilityIdentifier(AccessibilityID.settingsMicrophonePicker)
           .accessibilityLabel("Microphone input")
         }
@@ -266,10 +266,10 @@ private struct SoundRow: View {
         SettingsPopUpButton(
           options: options, selection: selection,
           activation: store.settingsPane.soundActivations[cue, default: 0],
+          isRinged: store.state.showsSettingsRing(row, target: .soundPicker(cue)),
           onSelection: { store.send(.settingsPane(.soundSelected(cue, $0))) },
         )
         .fixedSize()
-        .focusRing(store.state.showsSettingsRing(row, target: .soundPicker(cue)))
         .accessibilityIdentifier(AccessibilityID.settingsSound(cue, .picker))
         .accessibilityLabel("\(cue.label) sound")
         .accessibilityPaintState(

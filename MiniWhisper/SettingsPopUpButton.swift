@@ -58,27 +58,50 @@ struct SettingsPopUpButton<Value: Equatable>: NSViewRepresentable {
     }
   }
 
+  final class Control: NSPopUpButton {
+    var isRinged = false
+
+    override func draw(_ dirtyRect: NSRect) {
+      super.draw(dirtyRect)
+      guard isRinged, let cell else {
+        return
+      }
+      // Menu width stays stable; only the selected title and arrow wear the focus ring.
+      let title = cell.titleRect(forBounds: bounds)
+      let ring = NSRect(x: title.minX - 4, y: 1,
+                        width: bounds.maxX - title.minX + 3, height: bounds.height - 2)
+      NSGraphicsContext.saveGraphicsState()
+      NSFocusRingPlacement.only.set()
+      NSBezierPath(roundedRect: ring, xRadius: 5, yRadius: 5).fill()
+      NSGraphicsContext.restoreGraphicsState()
+    }
+  }
+
   let options: [Option]
   let selection: Value
   let activation: Int
+  let isRinged: Bool
   let onSelection: (Value) -> Void
 
   func makeCoordinator() -> Coordinator {
     Coordinator(activation: activation, onSelection: onSelection)
   }
 
-  func makeNSView(context: Context) -> NSPopUpButton {
-    let button = NSPopUpButton(frame: .zero, pullsDown: false)
+  func makeNSView(context: Context) -> Control {
+    let button = Control(frame: .zero, pullsDown: false)
     // The control is as wide as its widest option, which a long model id can make very wide. A
     // settings row reads right to left from its value, so the collapsed title stays against the
     // chevron instead of stranded at the far end of the button.
     button.alignment = .right
+    button.focusRingType = .none
     button.target = context.coordinator
     button.action = #selector(Coordinator.selectionChanged(_:))
     return button
   }
 
-  func updateNSView(_ button: NSPopUpButton, context: Context) {
+  func updateNSView(_ button: Control, context: Context) {
+    button.isRinged = isRinged
+    button.needsDisplay = true
     context.coordinator.options = options
     context.coordinator.onSelection = onSelection
     if button.itemTitles != options.map(\.title) {

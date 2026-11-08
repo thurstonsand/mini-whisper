@@ -181,10 +181,10 @@ private struct PickerRow: View {
       SettingsPopUpButton(
         options: options, selection: store.profiles.profile.id,
         activation: store.profiles.profileActivation,
+        isRinged: store.state.showsProfilesRing(.profile, target: .profile),
         onSelection: { store.send(.profiles(.profileSelected($0))) },
       )
       .fixedSize()
-      .focusRing(store.state.showsProfilesRing(.profile, target: .profile))
       .accessibilityIdentifier(AccessibilityID.profilesPicker)
       .accessibilityLabel("Profile")
       .accessibilityValue(summary(store.profiles.profile))
@@ -628,10 +628,10 @@ private struct ModelRow: View {
           SettingsPopUpButton(
             options: options, selection: editor.modelChoice,
             activation: store.profiles.modelActivation,
+            isRinged: store.state.showsProfilesRing(.model, target: .field(.model)),
             onSelection: { store.send(.profiles(.modelSelected($0))) },
           )
           .fixedSize()
-          .focusRing(store.state.showsProfilesRing(.model, target: .field(.model)))
           .accessibilityIdentifier(AccessibilityID.profilesModel)
           .accessibilityLabel("Model")
           Button("Load Models") { store.send(.profiles(.loadModelsTapped)) }
@@ -787,10 +787,10 @@ private struct TimeoutRow: View {
       SettingsPopUpButton(
         options: options, selection: store.profiles.timeout,
         activation: store.profiles.timeoutActivation,
+        isRinged: store.state.showsProfilesRing(.timeout, target: .timeout),
         onSelection: { store.send(.profiles(.timeoutSelected($0))) },
       )
       .fixedSize()
-      .focusRing(store.state.showsProfilesRing(.timeout, target: .timeout))
       .accessibilityIdentifier(AccessibilityID.profilesTimeout)
       .accessibilityLabel("Cleanup timeout")
     }
