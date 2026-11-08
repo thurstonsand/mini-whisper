@@ -346,7 +346,7 @@ private struct HistoryRow: View {
       if entry.revealedText != nil {
         Image(systemName: "wand.and.sparkles")
           .font(.callout)
-          .foregroundStyle(.tertiary)
+          .foregroundStyle(.secondary)
           .frame(width: 20)
           .opacity(isRevealed ? 0 : 1)
           .help("Cleaned up. Hold ⌥ to see the raw transcript.")
@@ -362,7 +362,7 @@ private struct HistoryRow: View {
         .labelStyle(.iconOnly)
         .buttonStyle(.borderless)
         .frame(width: 20)
-        .foregroundStyle(isPointed ? AnyShapeStyle(.primary) : AnyShapeStyle(.tertiary))
+        .foregroundStyle(isPointed ? AnyShapeStyle(.primary) : AnyShapeStyle(.secondary))
         .help(isPlaying ? "Stop the recording" : "Play the recording")
       } else {
         Color.clear.frame(width: 20, height: 1).accessibilityHidden(true)
