@@ -95,7 +95,8 @@ struct PillView: View {
         .truncationMode(.middle)
       }
       .font(.callout)
-      .foregroundStyle(.primary)
+      .foregroundStyle(.secondary)
+      .frame(maxWidth: 320)
     }
   }
 
@@ -112,14 +113,16 @@ struct PillView: View {
           )
           .accessibilityHidden(true)
         AudioLevelBars(level: recording.level).accessibilityHidden(true)
-        SemanticText(
-          recording.inputDeviceName, identifier: AccessibilityID.pillInputDevice,
-          label: "Input device",
-        )
-        .font(.callout)
-        .lineLimit(1)
-        .truncationMode(.middle)
-        .foregroundStyle(.secondary)
+        if store.showsInputDeviceName {
+          SemanticText(
+            recording.inputDeviceName, identifier: AccessibilityID.pillInputDevice,
+            label: "Input device",
+          )
+          .font(.callout)
+          .lineLimit(1)
+          .truncationMode(.middle)
+          .foregroundStyle(.secondary)
+        }
       }
     case .transcribing:
       VStack(spacing: 6) {
@@ -137,32 +140,9 @@ struct PillView: View {
       }
     case let .polishing(polishing):
       VStack(spacing: 6) {
-        HStack(spacing: 9) {
-          ProgressView().controlSize(.mini).accessibilityHidden(true)
-          SemanticText(
-            "Polishing…", identifier: AccessibilityID.pillPhase, label: "Dictation phase",
-            value: "Polishing",
-          )
-          .font(.callout)
-          .foregroundStyle(.primary)
-          submits
-          if polishing.isSkipRevealed {
-            Divider().frame(height: 16)
-            SemanticText(
-              "Skip", identifier: AccessibilityID.pillSkipAffordance, label: "Skip cleanup",
-              value: "\(polishing.skipComponents.joined(separator: " ")) to skip",
-            )
-            .font(.callout)
-            .foregroundStyle(.primary)
-            .fixedSize()
-            Text(polishing.skipComponents.joined(separator: " "))
-              .font(.callout)
-              .padding(.horizontal, 5)
-              .padding(.vertical, 2)
-              .background(.fill.tertiary, in: .rect(cornerRadius: 3))
-              .fixedSize()
-              .accessibilityHidden(true)
-          }
+        ViewThatFits(in: .horizontal) {
+          polishingRow(polishing, showsBinding: true)
+          polishingRow(polishing, showsBinding: false)
         }
         destination
       }
@@ -188,6 +168,37 @@ struct PillView: View {
       .font(.callout)
       .foregroundStyle(.primary)
     }
+  }
+
+  private func polishingRow(
+    _ polishing: PillFeature.State.Presentation.Polishing, showsBinding: Bool,
+  ) -> some View {
+    HStack(spacing: 9) {
+      ProgressView().controlSize(.mini).accessibilityHidden(true)
+      SemanticText(
+        "Cleaning up…", identifier: AccessibilityID.pillPhase, label: "Dictation phase",
+        value: "Cleaning up",
+      )
+      submits
+      if polishing.isSkipRevealed {
+        Divider().frame(height: 16)
+        SemanticText(
+          showsBinding ? "Skip cleanup" : "Press shortcut to skip",
+          identifier: AccessibilityID.pillSkipAffordance, label: "Skip cleanup",
+          value: "\(polishing.skipComponents.joined(separator: " ")) to skip",
+        )
+        if showsBinding {
+          Text(polishing.skipComponents.joined(separator: " "))
+            .padding(.horizontal, 5)
+            .padding(.vertical, 2)
+            .background(.fill.tertiary, in: .rect(cornerRadius: 3))
+            .accessibilityHidden(true)
+        }
+      }
+    }
+    .font(.callout)
+    .foregroundStyle(.primary)
+    .fixedSize()
   }
 
   @ViewBuilder private func noticeSymbol(_ notice: PillFeature.State.Presentation
@@ -216,6 +227,10 @@ struct PillView: View {
   ) -> some View {
     switch presentation {
     case let .recording(recording):
+      if !store.showsInputDeviceName {
+        semanticLeaf(identifier: AccessibilityID.pillInputDevice, label: "Input device",
+                     value: recording.inputDeviceName)
+      }
       semanticLeaf(
         identifier: AccessibilityID.pillPhase, label: "Dictation phase", value: "Recording",
       )

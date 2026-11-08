@@ -14,12 +14,16 @@ import Testing
 // MARK: - AppFeatureTests
 
 @MainActor struct AppFeatureTests {
-  @Test func `hotkey hold captures and retains A recording`() async {
+  @Test(arguments: [MicrophoneSelection.systemDefault,
+                    .device(uid: "test-mic", lastKnownName: "Test Microphone")])
+  func `hotkey hold captures and retains A recording`(_ microphone: MicrophoneSelection) async {
     let (captureEvents, captureContinuation) = AsyncStream.makeStream(of: AudioCaptureEvent.self)
     let recording = CanonicalRecording(samples: Array(repeating: 0.1, count: 16000))
     let sessionID = UUID()
     let clock = TestClock()
-    var state = AppFeature.State()
+    var settings = MiniWhisperSettings.defaults
+    settings.microphone = microphone
+    var state = AppFeature.State(settings: Shared(value: settings))
     state.$health.withLock {
       $0.hotkeyTap = .active
       $0.micStatus = .granted
@@ -50,6 +54,7 @@ import Testing
       .send(.hotkeyListenerEvent(.gesture(.startRecording))) {
         $0.transcriptionGeneration = 1
       }
+    #expect(store.state.pill.showsInputDeviceName == (microphone != .systemDefault))
     await store.receive(.pill(.recordingStarting(inputDeviceName: "Test Microphone"))) {
       $0.pill.presentation = .recording(
         PillFeature.State.Presentation.Recording(

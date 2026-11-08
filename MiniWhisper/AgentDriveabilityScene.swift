@@ -73,6 +73,8 @@ enum PresentedWindow: Equatable {
     case pillCleanupUnavailable = "pill-cleanup-unavailable"
     case pillModelUnavailable = "pill-model-unavailable"
     case pillDictionarySaveFailed = "pill-dictionary-save-failed"
+    case pillRecordingSelectedInput = "pill-recording-selected-input"
+    case pillPolishingLongShortcut = "pill-polishing-long-shortcut"
 
     // MARK: Internal
 
@@ -400,6 +402,19 @@ enum PresentedWindow: Equatable {
         state.pill.presentation = .notice(.speechModelUnavailable(state.health.engineStatusText))
       case .pillDictionarySaveFailed:
         state.pill.presentation = .notice(.dictionarySaveFailed)
+      case .pillRecordingSelectedInput:
+        state.pill.showsInputDeviceName = true
+        state.pill.presentation = .recording(
+          .init(inputDeviceName: "Studio Microphone", level: 0.6, isLive: true),
+        )
+      case .pillPolishingLongShortcut:
+        state.pill.presentation = .polishing(
+          .init(skipComponents: HotkeyDisplayName.components(
+            keyCodes: [117], modifiers: Set(ModifierKey.allCases),
+          ), isSkipRevealed: true),
+        )
+        state.pill.destination = "Safari · Pull request #482: Background delivery"
+        state.pill.submits = true
       }
       // An onboarding scene's permission truth is its snapshot; the app-level fields follow it, so
       // the seeded state and the seeded clients can never disagree about what has been granted.

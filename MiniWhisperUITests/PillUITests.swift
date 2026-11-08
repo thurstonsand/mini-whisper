@@ -24,6 +24,10 @@ final class PillUITests: MiniWhisperUITestCase, SurfaceTagged {
         self.assertValue("20%", of: level)
       },
     )
+    XCTAssertLessThanOrEqual(app.staticTexts["miniwhisper.pill.input-device"].frame.width, 1)
+    presentScene("pill-recording-selected-input")
+    assertValue("Studio Microphone", of: app.staticTexts["miniwhisper.pill.input-device"])
+    XCTAssertGreaterThan(app.staticTexts["miniwhisper.pill.input-device"].frame.width, 50)
     presentScene("pill-transcribing")
     try assertManifest(
       in: app,
@@ -67,5 +71,13 @@ final class PillUITests: MiniWhisperUITestCase, SurfaceTagged {
     XCTAssertTrue(skip.awaitExistence())
     XCTAssertTrue(poll { skip.frame.maxY < destination.frame.minY })
     XCTAssertTrue(poll { abs(skip.frame.midY - phase.frame.midY) < 2 })
+    assertValue("Cleaning up", of: phase)
+    presentScene("pill-polishing-long-shortcut")
+    XCTAssertTrue(skip.awaitExistence())
+    let panel = app.dialogs["miniwhisper.pill"]
+    XCTAssertTrue(poll {
+      skip.frame.maxX <= panel.frame.maxX && phase.frame.minX >= panel.frame.minX
+    })
+    XCTAssertTrue(poll { skip.frame.maxY < destination.frame.minY })
   }
 }

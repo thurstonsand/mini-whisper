@@ -1,5 +1,6 @@
 import AppSettings
 import ASREngine
+import AudioCapture
 import ComposableArchitecture
 import History
 import HotkeyListener
@@ -73,6 +74,7 @@ extension AppFeature {
       state.activationTarget = nil
       state.recordingSubmits = false
       state.dictationInFlight = true
+      state.pill.showsInputDeviceName = state.settings.microphone != .systemDefault
       if state.historyMaintenance == .running {
         state.historyMaintenance = .waiting
       }

@@ -85,6 +85,7 @@ import ComposableArchitecture
     }
 
     var presentation: Presentation?
+    var showsInputDeviceName = false
     /// Where the dictation now transcribing or polishing will land, named only while the user is
     /// somewhere else: staying put is the ordinary case, and the pill says nothing new about it.
     var destination: String?
