@@ -74,9 +74,11 @@ struct PillView: View {
   @ViewBuilder private var submits: some View {
     if store.submits {
       Label("Then submit", systemImage: "return")
+        .labelStyle(.iconOnly)
         .font(.callout)
         .foregroundStyle(.secondary)
         .fixedSize()
+        .help("Submits after delivery")
         .accessibilityLabel("Submits after delivery")
         .accessibilityIdentifier(AccessibilityID.pillSubmits)
     }
@@ -148,31 +150,25 @@ struct PillView: View {
           .font(.body.weight(.medium))
           .foregroundStyle(.primary)
           submits
-        }
-        if store.destination != nil || polishing.isSkipRevealed {
-          HStack(spacing: 9) {
-            destination
-            if polishing.isSkipRevealed {
-              if store.destination != nil {
-                Divider().frame(height: 16)
-              }
-              SemanticText(
-                "Skip", identifier: AccessibilityID.pillSkipAffordance, label: "Skip cleanup",
-                value: "\(polishing.skipComponents.joined(separator: " ")) to skip",
-              )
+          if polishing.isSkipRevealed {
+            Divider().frame(height: 16)
+            SemanticText(
+              "Skip", identifier: AccessibilityID.pillSkipAffordance, label: "Skip cleanup",
+              value: "\(polishing.skipComponents.joined(separator: " ")) to skip",
+            )
+            .font(.callout)
+            .foregroundStyle(.primary)
+            .fixedSize()
+            Text(polishing.skipComponents.joined(separator: " "))
               .font(.callout)
-              .foregroundStyle(.primary)
+              .padding(.horizontal, 5)
+              .padding(.vertical, 2)
+              .background(.fill.tertiary, in: .rect(cornerRadius: 3))
               .fixedSize()
-              Text(polishing.skipComponents.joined(separator: " "))
-                .font(.callout)
-                .padding(.horizontal, 5)
-                .padding(.vertical, 2)
-                .background(.fill.tertiary, in: .rect(cornerRadius: 3))
-                .fixedSize()
-                .accessibilityHidden(true)
-            }
+              .accessibilityHidden(true)
           }
         }
+        destination
       }
     case let .notice(notice):
       HStack(spacing: 9) {

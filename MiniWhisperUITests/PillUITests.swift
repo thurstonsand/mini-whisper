@@ -57,5 +57,13 @@ final class PillUITests: MiniWhisperUITestCase, SurfaceTagged {
       "Dictation not started\nDownloading Parakeet v2 · 42%",
       of: app.staticTexts["miniwhisper.pill.notice"],
     )
+    presentScene("pill-polishing-skip")
+    let destination = app.staticTexts["miniwhisper.pill.destination"]
+    let skip = app.staticTexts["miniwhisper.pill.skip-affordance"]
+    let phase = app.staticTexts["miniwhisper.pill.phase"]
+    XCTAssertTrue(destination.awaitExistence())
+    XCTAssertTrue(skip.awaitExistence())
+    XCTAssertTrue(poll { skip.frame.maxY < destination.frame.minY })
+    XCTAssertTrue(poll { abs(skip.frame.midY - phase.frame.midY) < 2 })
   }
 }
