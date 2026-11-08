@@ -223,8 +223,7 @@ private struct PortKey: PreferenceKey {
 
 // MARK: - Wires
 
-/// Drawn under nothing and hit by nothing: the cards and rows are the controls, the wires only say
-/// which is plugged into which. The lit profile is drawn last so its wires cross over the rest.
+/// Only the highlighted profile's connections are drawn, so maintenance stays ahead of the wiring.
 private struct Wires: View {
   let store: StoreOf<SettingsWindowFeature>
   let ports: [Port: Anchor<CGPoint>]
@@ -237,41 +236,35 @@ private struct Wires: View {
     let assets = models.assets
     let highlighted = models.highlighted
     Canvas { context, _ in
-      let lineup = models.settings.profiles.lineup
-      let ordered = lineup.filter { $0.id != highlighted } + lineup.filter { $0.id == highlighted }
-      for profile in ordered {
-        let isLit = profile.id == highlighted
-        for leg in [ModelsFeature.Leg.speech, .cleanup] {
-          guard let component = models.component(leg, of: profile),
-                let from = ports[.card(profile.id, leg)].map({ proxy[$0] }),
-                let to = ports[.component(component)].map({ proxy[$0] })
-          else {
-            continue
-          }
-          var path = Path()
-          path.move(to: from)
-          let bend = (to.x - from.x) * 0.5
-          path.addCurve(
-            to: to, control1: CGPoint(x: from.x + bend, y: from.y),
-            control2: CGPoint(x: to.x - bend, y: to.y),
-          )
-          let state = component.asset.flatMap { assets[$0] }
-          let isBroken = state?.isInstalled == false
-          let shading: GraphicsContext.Shading =
-            if case .failed = state {
-              .color(.red)
-            } else if isLit {
-              .color(.accentColor)
-            } else {
-              .style(.tertiary)
-            }
-          context.stroke(
-            path, with: shading,
-            style: StrokeStyle(
-              lineWidth: isLit ? 2 : 1, lineCap: .round, dash: isBroken ? [4, 3] : [],
-            ),
-          )
+      let profile = models.settings.profiles.profile(highlighted)
+      for leg in [ModelsFeature.Leg.speech, .cleanup] {
+        guard let component = models.component(leg, of: profile),
+              let from = ports[.card(profile.id, leg)].map({ proxy[$0] }),
+              let to = ports[.component(component)].map({ proxy[$0] })
+        else {
+          continue
         }
+        var path = Path()
+        path.move(to: from)
+        let bend = (to.x - from.x) * 0.5
+        path.addCurve(
+          to: to, control1: CGPoint(x: from.x + bend, y: from.y),
+          control2: CGPoint(x: to.x - bend, y: to.y),
+        )
+        let state = component.asset.flatMap { assets[$0] }
+        let isBroken = state?.isInstalled == false
+        let shading: GraphicsContext.Shading =
+          if case .failed = state {
+            .color(.orange)
+          } else {
+            .color(.accentColor)
+          }
+        context.stroke(
+          path, with: shading,
+          style: StrokeStyle(
+            lineWidth: 1, lineCap: .round, dash: isBroken ? [4, 3] : [],
+          ),
+        )
       }
     }
   }
@@ -299,7 +292,12 @@ private struct GateStrip: View {
     }
     .padding(.horizontal, 12)
     .padding(.vertical, 8)
-    .background(.tint.quinary, in: .rect(cornerRadius: 8))
+    .background(.quinary, in: .rect(cornerRadius: 8))
+    .overlay {
+      if let color = store.models.assets[.gate]?.attentionColor {
+        RoundedRectangle(cornerRadius: 8).strokeBorder(color, lineWidth: 2)
+      }
+    }
     .modifier(ModelsRow(store: store, row: .asset(.gate)))
     .accessibilityElement(children: .contain)
     .accessibilityIdentifier(AccessibilityID.modelsComponent(.asset(.gate)))
@@ -362,7 +360,7 @@ private struct PatchCard: View {
     .overlay {
       RoundedRectangle(cornerRadius: 8)
         .strokeBorder(
-          isLit ? AnyShapeStyle(.tint) : AnyShapeStyle(.separator), lineWidth: isLit ? 2 : 1,
+          isLit ? AnyShapeStyle(.tint) : AnyShapeStyle(.separator), lineWidth: 1,
         )
     }
     .contentShape(.rect(cornerRadius: 8))
@@ -421,6 +419,7 @@ private struct ComponentRow: View {
 
   var body: some View {
     let isLit = litComponents.contains(component)
+    let attentionColor = component.asset.flatMap { store.models.assets[$0]?.attentionColor }
     let row = HStack(spacing: 8) {
       PortDot(isLit: isLit, isPlugged: true)
         .anchorPreference(key: PortKey.self, value: .center) { [.component(component): $0] }
@@ -441,13 +440,14 @@ private struct ComponentRow: View {
     }
     .padding(.horizontal, 10)
     .padding(.vertical, 8)
-    .background(
-      isLit ? AnyShapeStyle(.tint.quinary) : AnyShapeStyle(.quinary), in: .rect(cornerRadius: 8),
-    )
+    .background(.quinary, in: .rect(cornerRadius: 8))
     .overlay {
       RoundedRectangle(cornerRadius: 8)
         .strokeBorder(
-          .separator, style: StrokeStyle(lineWidth: 1, dash: component.asset == nil ? [4, 3] : []),
+          attentionColor.map { AnyShapeStyle($0) } ?? AnyShapeStyle(.separator),
+          style: StrokeStyle(
+            lineWidth: attentionColor == nil ? 1 : 2, dash: component.asset == nil ? [4, 3] : [],
+          ),
         )
     }
     .accessibilityElement(children: .contain)
@@ -544,9 +544,10 @@ private struct AssetStatus: View {
         state("\(Int(fraction * 100))%")
       case .failed:
         Image(systemName: "exclamationmark.triangle.fill")
-          .foregroundStyle(.red)
+          .foregroundStyle(.orange)
         state("Failed")
         Button("Retry") { store.send(.models(.downloadTapped(asset))) }
+          .buttonStyle(.borderedProminent)
           .focusRing(isRinged)
           .accessibilityIdentifier(AccessibilityID.modelsAssetDownload(asset))
       case .missing:
@@ -567,8 +568,22 @@ private struct AssetStatus: View {
       text, identifier: AccessibilityID.modelsAssetState(asset), label: "\(asset.name) state",
     )
     .font(.callout)
-    .foregroundStyle(.secondary)
+    .foregroundStyle(store.models.assets[asset]?.attentionColor == nil ? Color.secondary : .primary)
     .monospacedDigit()
+  }
+}
+
+private extension AssetState {
+  var attentionColor: Color? {
+    switch self {
+    case .failed:
+      .orange
+    case .downloading:
+      .accentColor
+    case .installed,
+         .missing:
+      nil
+    }
   }
 }
 
