@@ -347,8 +347,7 @@ struct OnboardingStepRail: View {
 
 // MARK: - OnboardingKeysPage
 
-/// A factory profile is prescriptive, so this page has no Skip. The only way past it is a profile
-/// that needs no key, and the link says which one and what it costs.
+/// The on-device alternative can dictate without keys; continuing without them cannot.
 struct OnboardingKeysPage: View {
   // MARK: Internal
 
@@ -364,7 +363,7 @@ struct OnboardingKeysPage: View {
         label: "Keys heading",
       ),
       summary: .init(
-        text: "Keys stay in your Keychain and are used only by this profile. Skipping leaves dictation unavailable until you add them.",
+        text: "Keys stay in your Keychain and are used only by this profile.",
         identifier: AccessibilityID.onboardingKeysSummary, label: "Keys information",
       ),
       summaryMaxWidth: 430,
@@ -377,22 +376,16 @@ struct OnboardingKeysPage: View {
           keyRow(slot)
         }
         Divider()
-        Button(store.profile.engine == .scribe
-          ? "Use on-device dictation instead" : "Use Custom to skip cleanup")
-        {
+        Button("Use on-device dictation") {
           store.send(.useCustomTapped)
         }
-        .buttonStyle(.link)
+        .buttonStyle(.bordered)
         .focused(focus, equals: .useCustom)
         .accessibilityIdentifier(AccessibilityID.onboardingKeysUseCustom)
-        if store.profile.engine == .scribe {
-          Text(
-            "Switches to Custom: Parakeet on this Mac, without cleanup. Downloads its speech model if needed.",
-          )
+        Text("Parakeet on this Mac, without cleanup. Downloads its speech model if needed.")
           .font(.callout)
           .foregroundStyle(.secondary)
           .fixedSize(horizontal: false, vertical: true)
-        }
       }
     }
     .accessibilityIdentifier(AccessibilityID.onboardingKeys)
@@ -475,7 +468,7 @@ struct OnboardingPermissionsPage: View {
     OnboardingStepPage(
       symbol: "lock.shield",
       title: .init(
-        text: "We need access to a few things first",
+        text: "Allow dictation access",
         identifier: AccessibilityID.onboardingPermissionsTitle, label: "Permissions heading",
       ),
       summary: .init(
@@ -488,13 +481,13 @@ struct OnboardingPermissionsPage: View {
       VStack(spacing: 0) {
         permissionRow(
           .microphone, title: "Microphone", symbol: "waveform",
-          explanation: "Hear your beautiful voice",
+          explanation: "Record while you dictate.",
         )
         Divider()
           .padding(.horizontal, 10)
         permissionRow(
           .accessibility, title: "Accessibility", symbol: "keyboard",
-          explanation: "Listen for the hotkey and paste at your cursor.",
+          explanation: "Use the shortcut and paste text.",
         )
       }
     }

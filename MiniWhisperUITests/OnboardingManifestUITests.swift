@@ -239,7 +239,7 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
       contract(.group, "miniwhisper.onboarding.permissions", "Permissions setup"),
       contract(
         .staticText, "miniwhisper.onboarding.permissions.title", "Permissions heading",
-        "We need access to a few things first",
+        "Allow dictation access",
       ),
       contract(
         .staticText, "miniwhisper.onboarding.permissions.summary", "Permissions information",
@@ -247,7 +247,7 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
       ),
       contract(
         .staticText, "miniwhisper.onboarding.permission.microphone", "Microphone",
-        "Hear your beautiful voice",
+        "Record while you dictate.",
       ),
       contract(
         .staticText, "miniwhisper.onboarding.permission.microphone.status", "Microphone status",
@@ -255,7 +255,7 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
       ),
       contract(
         .staticText, "miniwhisper.onboarding.permission.accessibility", "Accessibility",
-        "Listen for the hotkey and paste at your cursor.",
+        "Use the shortcut and paste text.",
       ),
       contract(
         .staticText, "miniwhisper.onboarding.permission.accessibility.status",

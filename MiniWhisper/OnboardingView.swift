@@ -191,7 +191,7 @@ struct OnboardingView: View {
 
   /// Possible, not advised: the profile stays Degraded and does not dictate until a key is added.
   private var keysSkipButton: some View {
-    secondaryButton("Skip for Now", focus: .keysSkip) { store.send(.keysSkipped) }
+    secondaryButton("Continue without dictation", focus: .keysSkip) { store.send(.keysSkipped) }
       .accessibilityIdentifier(AccessibilityID.onboardingKeysSkip)
   }
 

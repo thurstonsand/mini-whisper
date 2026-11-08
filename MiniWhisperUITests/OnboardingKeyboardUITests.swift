@@ -60,8 +60,7 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
         assertKeyboardFocus(on: stop)
       }
       assertLabel(
-        scene == "onboarding-keys-accurate"
-          ? "Use on-device dictation instead" : "Use Custom to skip cleanup",
+        "Use on-device dictation",
         of: app.descendants(matching: .any)["miniwhisper.onboarding.keys.use-custom"],
       )
     }
@@ -86,7 +85,7 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
     XCTAssertLessThan(failure.frame.maxY, continueButton.frame.minY)
     recordScreenshot("two-keys-validation-error", screenshot: app.screenshot())
     XCTAssertTrue(app.staticTexts[
-      "Switches to Custom: Parakeet on this Mac, without cleanup. Downloads its speech model if needed.",
+      "Parakeet on this Mac, without cleanup. Downloads its speech model if needed.",
     ]
     .awaitExistence())
     app.descendants(matching: .any)["miniwhisper.onboarding.keys.use-custom"].click()
