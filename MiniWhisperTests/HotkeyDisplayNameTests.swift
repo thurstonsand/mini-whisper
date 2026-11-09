@@ -9,7 +9,7 @@ struct HotkeyDisplayNameTests {
     (Hotkey(keyCode: 124, modifiers: [.leftOption]), "Left ⌥ →"),
     (Hotkey(modifiers: [.rightCommand]), "Right ⌘"),
     (Hotkey(modifiers: [.leftShift]), "Left ⇧"),
-    (Hotkey(modifiers: [.function]), "fn"),
+    (Hotkey(modifiers: [.function]), "🌐"),
     (Hotkey(keyCode: 15, modifiers: [.rightControl]), "Right ⌃ R"),
     (
       Hotkey(

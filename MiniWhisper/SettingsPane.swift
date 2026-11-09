@@ -332,26 +332,31 @@ private struct ShortcutRow: View {
   let command: HotkeyCommand
 
   var body: some View {
-    LabeledContent(label) {
-      VStack(alignment: .trailing, spacing: 4) {
-        HStack {
-          ForEach(Array(hotkeys.enumerated()), id: \.offset) { index, hotkey in
-            bindingButton(index: index, hotkey: hotkey)
+    VStack(alignment: .leading, spacing: 0) {
+      LabeledContent(label) {
+        VStack(alignment: .trailing, spacing: 4) {
+          HStack {
+            ForEach(Array(hotkeys.enumerated()), id: \.offset) { index, hotkey in
+              bindingButton(index: index, hotkey: hotkey)
+            }
+            if bindings.target == .new {
+              recordingChip
+            }
+            if hotkeys.isEmpty, !bindings.isRecording {
+              emptyState
+            }
+            ShortcutMoreMenu(store: store, command: command)
           }
-          if bindings.target == .new {
-            recordingChip
+          if let message = bindings.validationMessage {
+            Text(message)
+              .font(.caption)
+              .foregroundStyle(.primary)
+              .accessibilityIdentifier(recordingErrorAccessibilityID)
           }
-          if hotkeys.isEmpty, !bindings.isRecording {
-            emptyState
-          }
-          ShortcutMoreMenu(store: store, command: command)
         }
-        if let message = bindings.validationMessage {
-          Text(message)
-            .font(.caption)
-            .foregroundStyle(.primary)
-            .accessibilityIdentifier(recordingErrorAccessibilityID)
-        }
+      }
+      if command == .activate {
+        ShortcutSystemNote(hotkeys: hotkeys)
       }
     }
     .modifier(SettingsFormRow(store: store, row: row))

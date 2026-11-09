@@ -21,10 +21,6 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
           .staticText, "miniwhisper.onboarding.welcome.title", "Application name", appName,
         ),
         contract(
-          .staticText, "miniwhisper.onboarding.welcome.summary", "Welcome summary",
-          "Hold a shortcut, speak, then release to paste.",
-        ),
-        contract(
           .button, "miniwhisper.profiles.card.haiku", "Everyday · Recommended",
           "Selected", isEnabled: true, isActionable: true,
         ),
@@ -46,7 +42,7 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
         ),
         contract(
           .staticText, "miniwhisper.onboarding.welcome.model-info", "Model download information",
-          "568.3 MB downloads while you finish setup. You’ll add an Anthropic key next.",
+          "568.3 MB downloads while you finish setup.",
         ),
         contract(
           .button, "miniwhisper.onboarding.download-model", "Download & Continue",
@@ -58,7 +54,7 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
         self.assertValue("Selected", of: app.buttons["miniwhisper.profiles.card.offline"])
         app.typeKey(.downArrow, modifierFlags: [])
         self.assertValue(
-          "1.1 MB downloads while you finish setup. You’ll add ElevenLabs and Google keys next.",
+          "1.1 MB downloads while you finish setup.",
           of: app.staticTexts["miniwhisper.onboarding.welcome.model-info"],
         )
         self.assertValue("Selected", of: app.buttons["miniwhisper.profiles.card.accurate"])
@@ -90,7 +86,16 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
         ),
         contract(
           .staticText, "miniwhisper.onboarding.shortcut.summary", "Shortcut information",
-          "Hold to record. Release to transcribe.",
+          "Every dictation starts here.",
+        ),
+        contract(.button, "miniwhisper.onboarding.shortcut.preset.0", "Right ⌥", "Selected"),
+        contract(.button, "miniwhisper.onboarding.shortcut.preset.1", "Right ⌘", "Not selected"),
+        contract(.button, "miniwhisper.onboarding.shortcut.preset.2", "🌐", "Not selected"),
+        contract(
+          .button,
+          "miniwhisper.onboarding.shortcut.preset.3",
+          "Left ⌃ Left ⌥ Space",
+          "Not selected",
         ),
         contract(
           .button, "miniwhisper.onboarding.shortcut.binding", "Dictation shortcut", "Right ⌥",
@@ -99,10 +104,6 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
         contract(
           .staticText, "miniwhisper.onboarding.shortcut.binding.state",
           "Dictation shortcut ring", "Ring off",
-        ),
-        contract(
-          .staticText, "miniwhisper.onboarding.shortcut.caption", "Shortcut guidance",
-          "Click the shortcut to change",
         ),
         contract(
           .button, "miniwhisper.onboarding.shortcut.continue", "Continue", isEnabled: true,
@@ -128,11 +129,11 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
           ),
           contract(
             .staticText, "miniwhisper.onboarding.model.summary", "Model setup information",
-            "Downloads once (568.3 MB), then runs on this Mac.",
+            "Downloads once, then runs on this Mac.",
           ),
           contract(
             .staticText, "miniwhisper.onboarding.model.status", "Model status",
-            "Downloading Parakeet TDT v2…",
+            "Parakeet TDT v2",
           ),
           contract(
             .progressIndicator, "miniwhisper.onboarding.model-progress", "Model download", "0.42",
@@ -241,15 +242,11 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
       contract(.group, "miniwhisper.onboarding.permissions", "Permissions setup"),
       contract(
         .staticText, "miniwhisper.onboarding.permissions.title", "Permissions heading",
-        "Two permissions to dictate",
-      ),
-      contract(
-        .staticText, "miniwhisper.onboarding.permissions.summary", "Permissions information",
-        "First the microphone, then Accessibility.",
+        "Allow dictation access",
       ),
       contract(
         .staticText, "miniwhisper.onboarding.permission.microphone", "Microphone",
-        "Records your voice during dictation.",
+        "Records your voice while you dictate",
       ),
       contract(
         .staticText, "miniwhisper.onboarding.permission.microphone.status", "Microphone status",
@@ -257,7 +254,7 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
       ),
       contract(
         .staticText, "miniwhisper.onboarding.permission.accessibility", "Accessibility",
-        "Reads your shortcut and pastes the transcript where you’re typing.",
+        "Watches for your shortcut and pastes where you're typing",
       ),
       contract(
         .staticText, "miniwhisper.onboarding.permission.accessibility.status",

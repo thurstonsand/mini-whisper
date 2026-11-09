@@ -38,7 +38,9 @@ enum OnboardingFocus: Hashable {
   case useCustom
   case keysContinue
   case permissionsAction
+  case shortcutPreset(Int)
   case shortcutKeycap
+  case shortcutSettings
   case shortcutContinue
   case modelAction
   case tryItEditor
@@ -99,6 +101,7 @@ struct OnboardingView: View {
   /// opens with none: Return already reaches the primary action, so the first Tab is what the
   /// page's other control is waiting for. Focus of a view that goes away goes away with it.
   @FocusState private var focus: OnboardingFocus?
+  @State private var shortcutWarningVisible = false
 
   /// A page's whole rendered keyboard path, in order: Tab walks it forward and Shift-Tab back,
   /// wrapping at either end. A 1-cycle parks on its only stop; a 2-cycle is its own reverse; and an
@@ -117,7 +120,9 @@ struct OnboardingView: View {
     case .permissions:
       store.activePermission == nil ? [] : [.permissionsAction]
     case .shortcut:
-      store.isRecordingShortcut ? [] : [.shortcutKeycap, .shortcutContinue]
+      store.isRecordingShortcut ? []
+        : (0 ..< 4).map(OnboardingFocus.shortcutPreset) + [.shortcutKeycap]
+        + (shortcutWarningVisible ? [.shortcutSettings] : []) + [.shortcutContinue]
     case .model:
       store.needsModelSetup || store.canContinueFromModel ? [.modelAction] : []
     case .tryIt:
@@ -139,7 +144,7 @@ struct OnboardingView: View {
     case .permissions:
       OnboardingPermissionsPage(store: store, focus: $focus)
     case .shortcut:
-      OnboardingShortcutPage(store: store, focus: $focus)
+      OnboardingShortcutPage(store: store, focus: $focus) { shortcutWarningVisible = $0 }
     case .model:
       OnboardingModelPage(store: store)
     case .tryIt:
@@ -212,7 +217,7 @@ struct OnboardingView: View {
     case .model:
       if store.needsModelSetup {
         Button(
-          store.modelSetupFailure != nil ? "Retry Model Setup" : "Download & Prepare",
+          store.modelSetupFailure != nil ? "Retry" : "Download & Prepare",
         ) { store.send(.setupModel) }
           .buttonStyle(.borderedProminent)
           .focused($focus, equals: .modelAction)

@@ -61,6 +61,7 @@ private let shortcutLogger = Logger(
   enum Action: Equatable {
     case bindingTapped(Int)
     case primaryBindingTapped
+    case presetSelected(Hotkey)
     case addTapped
     case removeTapped(Int)
     case recorderReady
@@ -86,6 +87,12 @@ private let shortcutLogger = Logger(
   var body: some ReducerOf<Self> {
     Reduce { state, action in
       switch action {
+      case let .presetSelected(hotkey):
+        guard !state.isRecording else {
+          return .none
+        }
+        commit(hotkey, to: state.hotkeys.isEmpty ? .new : .existing(0), state: &state)
+        return .send(.delegate(.bindingsChanged))
       case let .bindingTapped(index):
         guard state.hotkeys.indices.contains(index) else {
           return .none

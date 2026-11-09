@@ -98,7 +98,7 @@ enum HotkeyDisplayName {
          .rightCommand:
       "⌘"
     case .function:
-      "fn"
+      "🌐"
     }
   }
 
@@ -121,7 +121,7 @@ enum HotkeyDisplayName {
     case .rightCommand:
       "Right ⌘"
     case .function:
-      "fn"
+      "🌐"
     }
   }
 }

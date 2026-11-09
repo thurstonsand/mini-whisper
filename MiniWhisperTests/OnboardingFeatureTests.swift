@@ -695,19 +695,12 @@ struct OnboardingStepDerivationTests {
 @MainActor struct OnboardingProfileTests {
   // MARK: Internal
 
-  @Test func `the footnote sizes the download and names the keys that come next`() {
+  @Test func `the footnote sizes the remaining downloads`() {
     var state = welcomeState()
     #expect(state.welcomeFootnote == "568.3 MB downloads while you finish setup.")
     #expect(state.welcomeActionTitle == "Download & Continue")
-    state.storedKeys = [CredentialSlot(profile: .accurate, provider: .google)]
     state.$settings.withLock { $0.profiles.active = .accurate }
-    #expect(state
-      .welcomeFootnote ==
-      "1.1 MB downloads while you finish setup. You’ll add an ElevenLabs key next.")
-    state.storedKeys = []
-    #expect(state
-      .welcomeFootnote ==
-      "1.1 MB downloads while you finish setup. You’ll add ElevenLabs and Google keys next.")
+    #expect(state.welcomeFootnote == "1.1 MB downloads while you finish setup.")
 
     state.$settings.withLock { $0.profiles.active = .offline }
     state.assets[.gate] = .installed(bytes: ModelAsset.gate.pinnedBytes)

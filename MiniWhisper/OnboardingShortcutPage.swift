@@ -1,13 +1,13 @@
 import ComposableArchitecture
+import HotkeyListener
 import SwiftUI
 
-/// The keycap is the button. Clicking it — or pressing Return or Space while it wears the ring —
-/// records into the primary binding in place, so there is no second control to explain.
 struct OnboardingShortcutPage: View {
   // MARK: Internal
 
   let store: StoreOf<OnboardingFeature>
   var focus: FocusState<OnboardingFocus?>.Binding
+  var warningVisibilityChanged: (Bool) -> Void
 
   var body: some View {
     OnboardingStepPage(
@@ -17,19 +17,39 @@ struct OnboardingShortcutPage: View {
         label: "Shortcut heading",
       ),
       summary: .init(
-        text: "Hold to record. Release to transcribe.",
+        text: "Every dictation starts here.",
         identifier: AccessibilityID.onboardingShortcutSummary, label: "Shortcut information",
       ),
-      cardPadding: 18,
+      cardPadding: 0,
     ) {
       VStack(spacing: 14) {
+        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+          ForEach(Array(Self.presets.enumerated()), id: \.offset) { index, hotkey in
+            Button { store.send(.shortcutBindings(.presetSelected(hotkey))) } label: {
+              HotkeyKeycaps(components: index == 3 ? ["⌃", "⌥", "Space"] : hotkey.displayComponents)
+                .frame(maxWidth: .infinity, minHeight: 42)
+                .focusable()
+                .focused(focus, equals: .shortcutPreset(index))
+                .focusEffectDisabled()
+                .onKeyPress(keys: [.return, .space]) { _ in
+                  store.send(.shortcutBindings(.presetSelected(hotkey)))
+                  return .handled
+                }
+            }
+            .buttonStyle(.bordered)
+            .tint(store.hotkeys.first == hotkey ? Color.accentColor : Color.secondary)
+            .disabled(store.isRecordingShortcut)
+            .focusRing(focus.wrappedValue == .shortcutPreset(index))
+            .focusable(false)
+            .accessibilityIdentifier("miniwhisper.onboarding.shortcut.preset.\(index)")
+            .accessibilityLabel(hotkey.displayName)
+            .accessibilityValue(store.hotkeys.first == hotkey ? "Selected" : "Not selected")
+          }
+        }
         keycap
-        SemanticText(
-          store.isRecordingShortcut ? "Record your shortcut" : "Click the shortcut to change",
-          identifier: AccessibilityID.onboardingShortcutCaption, label: "Shortcut guidance",
+        ShortcutSystemNote(
+          hotkeys: store.hotkeys, focus: focus, visibilityChanged: warningVisibilityChanged,
         )
-        .font(.caption)
-        .foregroundStyle(.secondary)
 
         if let message = store.shortcutBindings.validationMessage {
           SemanticText(
@@ -53,6 +73,13 @@ struct OnboardingShortcutPage: View {
 
   // MARK: Private
 
+  private static let presets = [
+    try! Hotkey(modifiers: [.rightOption]),
+    try! Hotkey(modifiers: [.rightCommand]),
+    try! Hotkey(modifiers: [.function]),
+    try! Hotkey(keyCode: 49, modifiers: [.leftControl, .leftOption]),
+  ]
+
   /// The ring is focus vocabulary and nothing else, so a recording in flight — which owns the
   /// keyboard outright — never wears one.
   private var showsRing: Bool {
@@ -75,16 +102,25 @@ struct OnboardingShortcutPage: View {
 
   private var keycap: some View {
     Button { store.send(.shortcutBindings(.primaryBindingTapped)) } label: {
-      HotkeyKeycaps(components: components, scale: 1.8, ringed: showsRing)
-        .focusable()
-        .focused(focus, equals: .shortcutKeycap)
-        .focusEffectDisabled()
-        .onKeyPress(keys: [.return, .space]) { _ in
-          store.send(.shortcutBindings(.primaryBindingTapped))
-          return .handled
+      HStack(spacing: 8) {
+        if store.isRecordingShortcut || !Self.presets
+          .contains(where: { $0 == store.hotkeys.first })
+        {
+          HotkeyKeycaps(components: components, ringed: showsRing)
+        } else {
+          Label("Record your own", systemImage: "record.circle")
         }
+      }
+      .focusable()
+      .focused(focus, equals: .shortcutKeycap)
+      .focusEffectDisabled()
+      .onKeyPress(keys: [.return, .space]) { _ in
+        store.send(.shortcutBindings(.primaryBindingTapped))
+        return .handled
+      }
     }
-    .buttonStyle(.plain)
+    .buttonStyle(.bordered)
+    .focusRing(showsRing)
     .focusable(false)
     .accessibilityIdentifier(AccessibilityID.onboardingShortcutBinding)
     .accessibilityLabel("Dictation shortcut")

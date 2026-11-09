@@ -288,9 +288,6 @@ enum OnboardingStep: Int, Equatable {
         let size = ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .file)
         sentences.append("\(size) downloads while you finish setup.")
       }
-      if !missingKeys.isEmpty {
-        sentences.append("You’ll add \(Self.keysPhrase(missingKeys)) next.")
-      }
       return sentences.isEmpty
         ? "Everything it needs is already on this Mac." : sentences.joined(separator: " ")
     }

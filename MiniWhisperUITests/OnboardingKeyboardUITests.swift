@@ -143,7 +143,7 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
         )
         app.typeKey(.return, modifierFlags: [])
         self.assertValue(
-          "Downloading Parakeet TDT v2…",
+          "Parakeet TDT v2",
           of: app.staticTexts["miniwhisper.onboarding.model.status"],
         )
       }),
@@ -152,7 +152,7 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
         "miniwhisper.onboarding.model.retry",
         { app, _ in
           self.assertValue(
-            "The network connection was lost. Check your connection and retry.",
+            "The network connection was lost. Check your connection.",
             of: app.staticTexts["miniwhisper.onboarding.model.status"],
           )
           self.assertValue(
@@ -161,7 +161,7 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
           )
           app.typeKey(.return, modifierFlags: [])
           self.assertValue(
-            "Downloading Parakeet TDT v2…",
+            "Parakeet TDT v2",
             of: app.staticTexts["miniwhisper.onboarding.model.status"],
           )
         },
@@ -302,7 +302,13 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
     let entryPixels = focusRingPixelCount(in: entryScreenshot, around: keycap)
     XCTAssertEqual(entryPixels, 0, "The keycap is painted as focused on entry")
 
-    // The page opens unfocused, so the very first Tab is the keycap's — no searching for it.
+    // Presets precede the recorder, and selecting one changes the real binding.
+    for (index, name) in ["Right ⌥", "Right ⌘", "🌐", "Left ⌃ Left ⌥ Space"].enumerated() {
+      app.typeKey(.tab, modifierFlags: [])
+      app.typeKey(.space, modifierFlags: [])
+      assertValue(name, of: keycap)
+      assertValue("Selected", of: app.buttons["miniwhisper.onboarding.shortcut.preset.\(index)"])
+    }
     app.typeKey(.tab, modifierFlags: [])
     assertValue("Ring on", of: ring)
     let focusedScreenshot = app.screenshot()
@@ -315,16 +321,7 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
     assertValue("Ring off", of: ring)
     assertKeyboardFocus(on: continueButton)
 
-    // A 2-cycle is its own reverse, so Shift-Tab walks the same two stops.
-    for modifiers: XCUIElement.KeyModifierFlags in [[], [], [.shift], [.shift]] {
-      app.typeKey(.tab, modifierFlags: modifiers)
-      assertValue("Ring on", of: ring)
-      app.typeKey(.tab, modifierFlags: modifiers)
-      assertValue("Ring off", of: ring)
-      assertKeyboardFocus(on: continueButton)
-    }
-
-    app.typeKey(.tab, modifierFlags: [])
+    app.typeKey(.tab, modifierFlags: [.shift])
     assertValue("Ring on", of: ring)
     resetShortcutFocus(app)
     let roundTripScreenshot = app.screenshot()
@@ -334,20 +331,19 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
       "The keycap kept its ring across a rail round trip",
     )
 
-    let caption = app.staticTexts["miniwhisper.onboarding.shortcut.caption"]
+    app.buttons["miniwhisper.onboarding.shortcut.preset.0"].click()
+    assertValue("Right ⌥", of: keycap)
     keycap.click()
     assertValue("Recording…", of: keycap)
     assertValue("Ring off", of: ring)
-    assertValue("Record your shortcut", of: caption)
     XCTAssertFalse(continueButton.isEnabled)
     app.typeKey(.escape, modifierFlags: [])
     assertValue("Right ⌥", of: keycap)
-    assertValue("Click the shortcut to change", of: caption)
     XCTAssertTrue(continueButton.isEnabled)
 
     for key: XCUIKeyboardKey in [.return, .space] {
       resetShortcutFocus(app)
-      app.typeKey(.tab, modifierFlags: [])
+      app.typeText("\t\t\t\t\t")
       assertValue("Ring on", of: ring)
       app.typeKey(key, modifierFlags: [])
       assertValue("Recording…", of: keycap)
@@ -376,7 +372,7 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
     field.click()
     app.typeKey("3", modifierFlags: [.command])
     XCTAssertTrue(keycap.awaitExistence(timeout: 2))
-    app.typeKey(.tab, modifierFlags: [])
+    app.typeText("\t\t\t\t\t")
     assertValue("Ring on", of: ring)
   }
 

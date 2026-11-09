@@ -16,7 +16,7 @@ struct OnboardingStepPage<Card: View>: View {
 
   let symbol: String
   let title: Line
-  let summary: Line
+  var summary: Line?
   var summaryLineLimit: Int?
   var summaryLineSpacing: CGFloat = 0
   var summaryMaxWidth: CGFloat?
@@ -29,13 +29,15 @@ struct OnboardingStepPage<Card: View>: View {
       OnboardingStepHeader(
         symbol: symbol, title: title.text, identifier: title.identifier, label: title.label,
       )
-      SemanticText(summary.text, identifier: summary.identifier, label: summary.label)
-        .font(.body)
-        .foregroundStyle(.secondary)
-        .lineLimit(summaryLineLimit)
-        .lineSpacing(summaryLineSpacing)
-        .frame(maxWidth: summaryMaxWidth, alignment: .topLeading)
-        .padding(.top, 10)
+      if let summary {
+        SemanticText(summary.text, identifier: summary.identifier, label: summary.label)
+          .font(.body)
+          .foregroundStyle(.secondary)
+          .lineLimit(summaryLineLimit)
+          .lineSpacing(summaryLineSpacing)
+          .frame(maxWidth: summaryMaxWidth, alignment: .topLeading)
+          .padding(.top, 10)
+      }
       card
         .padding(cardPadding)
         .frame(maxWidth: .infinity, alignment: cardAlignment)
@@ -83,21 +85,13 @@ struct OnboardingWelcomePage: View {
         label: "Application name",
       )
       .font(.largeTitle.weight(.semibold))
-      SemanticText(
-        "Hold a shortcut, speak, then release to paste.",
-        identifier: AccessibilityID.onboardingWelcomeSummary, label: "Welcome summary",
-      )
-      .font(.body)
-      .foregroundStyle(.secondary)
-      .padding(.top, 4)
       VStack(alignment: .leading, spacing: 12) {
+        profileChoice(lineup[0])
         HStack(spacing: 12) {
-          ForEach(lineup.prefix(3)) { profileChoice($0) }
-        }
-        HStack(spacing: 12) {
-          ForEach(lineup.suffix(2)) { profileChoice($0) }
+          ForEach(lineup.dropFirst()) { profileChoice($0) }
         }
       }
+      .frame(width: 660)
       .padding(.top, 24)
       Button(store.welcomeActionTitle) { store.send(.downloadModel) }
         .buttonStyle(.borderedProminent)
@@ -157,31 +151,36 @@ struct OnboardingWelcomePage: View {
   private func profileChoice(_ profile: Profile) -> some View {
     let selected = store.profile.id == profile.id
     return Button { store.send(.profileSelected(profile.id)) } label: {
-      VStack(alignment: .leading, spacing: 8) {
-        Label(profile.name, systemImage: profile.symbol)
-          .font(.headline)
-          .foregroundStyle(selected ? Color.accentColor : Color.primary)
-        Text(profile.id == .cerebras
-          ? "Speech stays on this Mac. Fast cleanup from Cerebras."
-          : profile.tagline)
+      VStack(alignment: .leading, spacing: 6) {
+        HStack {
+          Label(profile.name, systemImage: profile.symbol)
+            .font(profile.id == .haiku ? .title2.weight(.semibold) : .headline)
+          if profile.id == .haiku {
+            Text("Recommended").font(.caption).foregroundStyle(.tint)
+          }
+        }
+        .foregroundStyle(selected ? Color.accentColor : Color.primary)
+        Text(description(profile.id))
           .font(.callout)
           .lineLimit(nil)
           .multilineTextAlignment(.leading)
           .foregroundStyle(Color.secondary)
           .fixedSize(horizontal: false, vertical: true)
         Spacer(minLength: 0)
-        Text(profile.id == .haiku ? "Recommended · Anthropic key"
-          : profile.isCustom ? "No key needed without cleanup"
-          : profile.credentials.isEmpty ? "No key needed"
-          : "Needs \(OnboardingFeature.State.keysPhrase(profile.credentials))")
+        if !profile.credentials.isEmpty, !profile.isCustom {
+          VStack(alignment: .leading, spacing: 2) {
+            Text("Requires:")
+            ForEach(profile.credentials, id: \.self) { slot in
+              Text("\(slot.provider.displayName) key")
+            }
+          }
           .font(.callout)
-          .lineLimit(nil)
-          .multilineTextAlignment(.leading)
-          .fixedSize(horizontal: false, vertical: true)
-          .foregroundStyle(Color.secondary)
+          .foregroundStyle(.secondary)
+        }
       }
-      .frame(width: 174, height: 130, alignment: .topLeading)
-      .padding(8)
+      .frame(maxWidth: .infinity, alignment: .topLeading)
+      .frame(height: profile.id == .haiku ? 94 : 128, alignment: .topLeading)
+      .padding(10)
     }
     .buttonStyle(.bordered)
     .tint(selected ? Color.accentColor : Color.secondary)
@@ -198,6 +197,21 @@ struct OnboardingWelcomePage: View {
 
   private func choiceTitle(_ profile: Profile) -> String {
     profile.id == .haiku ? "\(profile.name) · Recommended" : profile.name
+  }
+
+  private func description(_ id: ProfileID) -> String {
+    switch id {
+    case .haiku:
+      "The best balance of speed and accuracy."
+    case .offline:
+      "The most private. Nothing leaves your Mac."
+    case .accurate:
+      "The fewest mistakes, a little slower."
+    case .cerebras:
+      "Gets your words in the quickest."
+    case .custom:
+      "Your choice."
+    }
   }
 
   private func select(offset: Int) -> Bool {
@@ -484,26 +498,20 @@ struct OnboardingPermissionsPage: View {
     OnboardingStepPage(
       symbol: "lock.shield",
       title: .init(
-        text: "Two permissions to dictate",
+        text: "Allow dictation access",
         identifier: AccessibilityID.onboardingPermissionsTitle, label: "Permissions heading",
       ),
-      summary: .init(
-        text: "First the microphone, then Accessibility.",
-        identifier: AccessibilityID.onboardingPermissionsSummary,
-        label: "Permissions information",
-      ),
-      summaryLineLimit: 2,
     ) {
       VStack(spacing: 0) {
         permissionRow(
           .microphone, title: "Microphone", symbol: "waveform",
-          explanation: "Records your voice during dictation.",
+          explanation: "Records your voice while you dictate",
         )
         Divider()
           .padding(.horizontal, 10)
         permissionRow(
           .accessibility, title: "Accessibility", symbol: "keyboard",
-          explanation: "Reads your shortcut and pastes the transcript where you’re typing.",
+          explanation: "Watches for your shortcut and pastes where you're typing",
         )
       }
     }
@@ -640,17 +648,16 @@ struct OnboardingModelPage: View {
   }
 
   private var summary: String {
-    let size = Self.size(store.profile.assets)
     guard store.profile.engineCredential == nil else {
-      return "Only the \(size) speech gate downloads; \(engineName) transcribes in the cloud."
+      return "Only the speech gate downloads; \(engineName) transcribes in the cloud."
     }
-    return "Downloads once (\(size)), then runs on this Mac."
+    return "Downloads once, then runs on this Mac."
   }
 
   @ViewBuilder private var cardContent: some View {
     switch store.engineReadiness {
     case let .downloading(fraction):
-      downloadProgress(title: "Downloading \(engineName)…", fraction: fraction)
+      downloadProgress(title: engineName, fraction: fraction)
     case .compiling:
       progressRow("Preparing Core ML models…", value: "Compiling")
     case .prewarming:
@@ -666,7 +673,8 @@ struct OnboardingModelPage: View {
     case let .failed(message):
       Label {
         SemanticText(
-          message,
+          message.hasPrefix("The network connection was lost.")
+            ? "The network connection was lost. Check your connection." : message,
           identifier: AccessibilityID.onboardingModelStatus,
           label: "Model status",
         )
@@ -675,7 +683,7 @@ struct OnboardingModelPage: View {
           .foregroundStyle(.orange)
           .accessibilityHidden(true)
       }
-      .font(.callout)
+      .font(.body.weight(.medium))
       .foregroundStyle(.primary)
       .fixedSize(horizontal: false, vertical: true)
     case .modelMissing:
@@ -712,7 +720,7 @@ struct OnboardingModelPage: View {
         SemanticText(
           title, identifier: AccessibilityID.onboardingModelStatus,
           label: "Model status",
-        ).font(.system(size: 13, weight: .medium))
+        ).font(.body.weight(.medium))
         Spacer()
         Text("\(DownloadProgress.percentage(fraction)) of \(Self.size(store.health.engine.assets))")
           .monospacedDigit()
