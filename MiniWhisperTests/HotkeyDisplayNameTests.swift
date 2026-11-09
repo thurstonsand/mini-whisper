@@ -43,32 +43,6 @@ struct HotkeyDisplayNameTests {
     )
   }
 
-  @Test func `onboarding copy uses the customized first binding`() throws {
-    let hotkeys = try [Hotkey(keyCode: 15, modifiers: [.rightControl]), .testRightOption]
-
-    #expect(
-      OnboardingCopy.tryItInstructions(hotkeys: hotkeys)
-        ==
-        "Hold Right ⌃ R and read the line aloud. Release when you're done.",
-    )
-    #expect(
-      OnboardingCopy.readySummary(hotkeys: hotkeys)
-        == "Hold Right ⌃ R to dictate into any text field. Release to paste.",
-    )
-  }
-
-  @Test func `onboarding copy is honest when no binding exists`() {
-    #expect(
-      OnboardingCopy.tryItInstructions(hotkeys: [])
-        == "Set an activation shortcut in Settings before reading the line aloud.",
-    )
-    #expect(
-      OnboardingCopy.readySummary(hotkeys: [])
-        ==
-        "Set a shortcut in Settings to dictate into other apps.",
-    )
-  }
-
   @Test func `no speech retry uses the customized first binding`() throws {
     let hotkey = try Hotkey(keyCode: 15, modifiers: [.rightControl])
 

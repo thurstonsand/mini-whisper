@@ -24,6 +24,12 @@ extension AppFeature {
     let wasWaiting = state.gestureMachine.awaitsDeadline
     let wasRecording = state.gestureMachine.isRecording
     let event = state.gestureMachine.receive(input)
+    if state.onboarding.isPresented {
+      state.onboarding.practicePhase = state.gestureMachine.phase
+    }
+    if state.gestureMachine.isCaptureOver {
+      state.isPracticingWithMouse = false
+    }
     var effects: [Effect<Action>] = []
     // Set here rather than from an effect: the very next key the tap sees may be the Return.
     if state.gestureMachine.isRecording != wasRecording {

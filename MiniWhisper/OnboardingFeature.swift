@@ -149,6 +149,7 @@ enum OnboardingStep: Int, Equatable {
     var requestedPermissions: Set<OnboardingPermission> = []
     var hasCompletedShortcut = false
     var tryItText = ""
+    var practicePhase = HotkeyGestureMachine.Phase.idle
     var completionIntent: CompletionIntent?
     var failureMessage: String?
 
@@ -272,7 +273,7 @@ enum OnboardingStep: Int, Equatable {
 
     /// Try It needs a dictation that can run, and a profile still missing its key cannot.
     var canTryDictation: Bool {
-      step == .tryIt && missingKeys.isEmpty
+      (step == .tryIt || step == .ready) && missingKeys.isEmpty
     }
 
     var welcomeActionTitle: String {
@@ -355,6 +356,7 @@ enum OnboardingStep: Int, Equatable {
     case keysCheckFailed(CredentialSlot, String)
     case useCustomTapped
     case useOfflineTapped
+    case practiceKeyChanged(Bool, Duration)
     case downloadModel
     case modelDownloadConsented
     case modelDownloadConsentFailed(String)
@@ -687,18 +689,21 @@ enum OnboardingStep: Int, Equatable {
         state.tryItText = text
         return .none
       case let .tryItFailed(message):
-        guard state.step == .tryIt else {
+        guard state.canTryDictation else {
           return .none
         }
         state.failureMessage = message
         return .none
       case let .dictationDelivered(transcript):
-        guard state.step == .tryIt, !state.isMarkingCompletion else {
+        guard state.canTryDictation, !state.isMarkingCompletion else {
           return .none
         }
         state.tryItText = transcript
-        state.completionIntent = .dictation
         state.failureMessage = nil
+        guard !state.snapshot.isCompleted else {
+          return .none
+        }
+        state.completionIntent = .dictation
         return markCompletion()
       case .skip:
         guard state.canSkip, !state.isMarkingCompletion else {
@@ -726,7 +731,8 @@ enum OnboardingStep: Int, Equatable {
         }
         state.isPresented = false
         return .merge(.cancel(id: CancelID.permissionPolling), .send(.delegate(.dismissed)))
-      case .delegate:
+      case .practiceKeyChanged,
+           .delegate:
         return .none
       }
     }

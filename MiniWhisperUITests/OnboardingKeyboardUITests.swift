@@ -1,3 +1,4 @@
+import CoreGraphics
 import XCTest
 
 /// Onboarding's keyboard grammar, asserted the way a user meets it: Return does the visible step's
@@ -6,6 +7,27 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
   // MARK: Internal
 
   static let surfaces: Set<Surface> = [.onboarding]
+
+  @MainActor func testPracticeKeyDeliversAndCanBeUsedAgainWithoutLeavingThePage() {
+    let app = launch("onboarding-practice")
+    defer { terminate(app) }
+    let key = app.buttons["miniwhisper.onboarding.try-it.key"]
+    let finish = app.buttons["miniwhisper.onboarding.ready.finish"]
+    XCTAssertTrue(key.awaitHittable())
+    XCTAssertFalse(finish.isEnabled)
+    key.click(forDuration: 0.4, thenDragTo: key)
+    assertValue("A future is not given to you.", of: app.tryItEditor)
+    XCTAssertTrue(poll { finish.isEnabled })
+    XCTAssertTrue(key.isHittable)
+    app.tryItEditor.click()
+    app.typeKey("a", modifierFlags: .command)
+    app.typeKey(.delete, modifierFlags: [])
+    key.click(forDuration: 0.4, thenDragTo: key)
+    assertValue("A future is not given to you.", of: app.tryItEditor)
+    recordScreenshot("practice-completed", screenshot: app.screenshot())
+    finish.click()
+    XCTAssertTrue(key.awaitNonExistence())
+  }
 
   @MainActor func testSkippedKeyOffersRecoveryInsteadOfDictationInstructions() {
     let app = launch("onboarding-try-it-key-skipped")
@@ -172,11 +194,6 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
           )
         },
       ),
-      ("onboarding-ready", "miniwhisper.onboarding.ready.finish", { app, _ in
-        let ready = app.groups["miniwhisper.onboarding.ready"]
-        app.typeKey(.return, modifierFlags: [])
-        XCTAssertTrue(ready.awaitNonExistence())
-      }),
     ]
 
     let app = launch(pages[0].scene)
@@ -390,16 +407,11 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
     let skip = app.buttons["miniwhisper.onboarding.try-it.skip"]
     let skipRing = app.staticTexts["miniwhisper.onboarding.try-it.skip.state"]
     XCTAssertTrue(editor.awaitExistence(timeout: 5))
-    XCTAssertEqual(editor.placeholderValue, "Your words appear here")
-    let quote = app.staticTexts["miniwhisper.onboarding.try-it.quote"]
-    assertValue(
-      "“A future is not given to you. It is something you must take for yourself.” — Pod 042",
-      of: quote,
-    )
+    XCTAssertEqual(editor.placeholderValue,
+                   "“A future is not given to you. It is something you must take for yourself.” — Pod 042")
     assertKeyboardFocus(on: editor)
     editor.typeText("Test words")
     assertValue("Test words", of: editor)
-    XCTAssertTrue(quote.exists, "The reading line must remain visible while dictating")
     assertValue("Ring off", of: skipRing)
     let entryScreenshot = app.screenshot()
     recordScreenshot("try-it-entry", screenshot: entryScreenshot)

@@ -34,6 +34,7 @@ enum PresentedWindow: Equatable {
     case onboardingModelDownloadFailed = "onboarding-model-download-failed"
     case onboardingModelOffline = "onboarding-model-offline"
     case onboardingTryIt = "onboarding-try-it"
+    case onboardingPractice = "onboarding-practice"
     case onboardingTryItKeySkipped = "onboarding-try-it-key-skipped"
     case onboardingReady = "onboarding-ready"
     case settings
@@ -298,6 +299,16 @@ enum PresentedWindow: Equatable {
         state.$health.withLock { $0.missingCleanupKey = .anthropic }
       case .onboardingTryIt:
         state.onboardingCompleted = false
+        present(&state.onboarding,
+                permissions: permissions(microphone: .granted, accessibility: true),
+                readiness: .ready, selectedStep: .tryIt, hasCompletedShortcut: true)
+      case .onboardingPractice:
+        state.onboardingCompleted = false
+        state.$settings.withLock {
+          $0.profiles.active = .custom
+          $0.profiles.custom.cleanupEnabled = false
+          $0.retention.audio = .never
+        }
         present(&state.onboarding,
                 permissions: permissions(microphone: .granted, accessibility: true),
                 readiness: .ready, selectedStep: .tryIt, hasCompletedShortcut: true)

@@ -11,20 +11,6 @@ import SwiftUI
 enum OnboardingCopy {
   static let tryItQuote =
     "“A future is not given to you. It is something you must take for yourself.” — Pod 042"
-
-  static func tryItInstructions(hotkeys: [Hotkey]) -> String {
-    guard let name = hotkeys.first?.displayName else {
-      return "Set an activation shortcut in Settings before reading the line aloud."
-    }
-    return "Hold \(name) and read the line aloud. Release when you're done."
-  }
-
-  static func readySummary(hotkeys: [Hotkey]) -> String {
-    guard let name = hotkeys.first?.displayName else {
-      return "Set a shortcut in Settings to dictate into other apps."
-    }
-    return "Hold \(name) to dictate into any text field. Release to paste."
-  }
 }
 
 // MARK: - OnboardingFocus
@@ -126,17 +112,16 @@ struct OnboardingView: View {
         + (shortcutWarningVisible ? [.shortcutSettings] : []) + [.shortcutContinue]
     case .model:
       store.needsModelSetup || store.canContinueFromModel ? [.modelAction] : []
-    case .tryIt:
-      tryItIsLive ? [.tryItEditor, .tryItSkip]
+    case .tryIt,
+         .ready:
+      tryItIsLive ? [.tryItEditor, store.snapshot.isCompleted ? .readyAction : .tryItSkip]
         : store.missingKeys.isEmpty ? [.tryItSkip]
         : [.tryItAddKey, .useOffline, .useCustom, .tryItSkip]
-    case .ready:
-      [.readyAction]
     }
   }
 
   private var tryItIsLive: Bool {
-    store.visibleStep == .tryIt && store.canTryDictation
+    (store.visibleStep == .tryIt || store.visibleStep == .ready) && store.canTryDictation
   }
 
   @ViewBuilder private var stepContent: some View {
@@ -149,10 +134,9 @@ struct OnboardingView: View {
       OnboardingShortcutPage(store: store, focus: $focus) { shortcutWarningVisible = $0 }
     case .model:
       OnboardingModelPage(store: store)
-    case .tryIt:
+    case .tryIt,
+         .ready:
       OnboardingTryItPage(store: store, focus: $focus)
-    case .ready:
-      OnboardingReadyPage(store: store)
     }
   }
 
@@ -232,7 +216,8 @@ struct OnboardingView: View {
           .keyboardShortcut(.defaultAction)
           .accessibilityIdentifier(AccessibilityID.onboardingModelContinue)
       }
-    case .tryIt:
+    case .tryIt,
+         .ready:
       if store.missingKeys.isEmpty, store.step != .ready, store.step != .tryIt {
         SemanticText(
           "Complete the earlier steps to try a dictation",
@@ -240,14 +225,14 @@ struct OnboardingView: View {
         )
         .font(.system(size: 12))
         .foregroundStyle(.secondary)
+      } else if store.missingKeys.isEmpty {
+        Button("Start Dictating") { store.send(.finish) }
+          .buttonStyle(.borderedProminent)
+          .focused($focus, equals: .readyAction)
+          .disabled(!store.snapshot.isCompleted)
+          .keyboardShortcut(.defaultAction)
+          .accessibilityIdentifier(AccessibilityID.onboardingReadyFinish)
       }
-    case .ready:
-      Button("Done") { store.send(.finish) }
-        .buttonStyle(.borderedProminent)
-        .focused($focus, equals: .readyAction)
-        .keyboardShortcut(.defaultAction)
-        .accessibilityIdentifier(AccessibilityID.onboardingReadyFinish)
-        .accessibilityLabel("Done")
     }
   }
 

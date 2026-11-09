@@ -577,6 +577,13 @@ struct OnboardingStepDerivationTests {
     await store.receive(.delegate(.completed))
     #expect(completions.value == 1)
     #expect(store.state.step == .ready)
+    #expect(store.state.canTryDictation)
+
+    await store.send(.dictationDelivered("Another practice dictation.")) {
+      $0.tryItText = "Another practice dictation."
+    }
+    #expect(store.state.isPresented)
+    #expect(completions.value == 1)
 
     await store.send(.finish) { $0.isPresented = false }
     await store.receive(.delegate(.dismissed))

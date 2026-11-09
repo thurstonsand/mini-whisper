@@ -1,5 +1,6 @@
 import AppSettings
 import ComposableArchitecture
+import HotkeyListener
 import SwiftUI
 
 // MARK: - OnboardingTryItPage
@@ -20,10 +21,7 @@ struct OnboardingTryItPage: View {
         identifier: AccessibilityID.onboardingTryItTitle,
         label: "Try it heading",
       ),
-      summary: store.missingKeys.isEmpty ? .init(
-        text: summary,
-        identifier: AccessibilityID.onboardingTryItInstructions, label: "Try it instructions",
-      ) : nil,
+      summary: nil,
       summaryLineSpacing: 3,
       cardAlignment: .topLeading,
     ) {
@@ -36,25 +34,36 @@ struct OnboardingTryItPage: View {
 
   // MARK: Private
 
-  private var title: String {
-    if store.step == .ready {
-      return "Test complete"
-    }
-    return store.canTryDictation || !store.missingKeys.isEmpty
-      ? "Give it a try" : "Set up dictation to try it"
-  }
+  @State private var mouseIsDown = false
 
-  private var summary: String {
-    if store.step == .ready {
-      return "Your test dictation is complete."
-    }
-    return store.canTryDictation
-      ? OnboardingCopy.tryItInstructions(hotkeys: store.hotkeys)
-      : "Finish the setup below to try a dictation."
+  private var title: String {
+    store.canTryDictation || !store.missingKeys.isEmpty
+      ? "Give it a try" : "Set up dictation to try it"
   }
 
   private var addKeyTitle: String {
     store.missingKeys.count == 1 ? "Add \(store.missingKeys[0].provider.displayName) Key…" : "Add Keys…"
+  }
+
+  private var keyIsDown: Bool {
+    switch store.practicePhase {
+    case .holding,
+         .secondPress:
+      true
+    default:
+      false
+    }
+  }
+
+  private var holdRecognized: Bool {
+    switch store.practicePhase {
+    case let .holding(startedAt),
+         let .secondPress(startedAt):
+      .seconds(ProcessInfo.processInfo.systemUptime) - startedAt
+        >= HotkeyGestureMachine.Timing.standard.tapMaximumDuration
+    default:
+      false
+    }
   }
 
   @ViewBuilder private var cardContent: some View {
@@ -75,34 +84,10 @@ struct OnboardingTryItPage: View {
         )
       case .model:
         unavailable("Wait for the speech model to finish before trying a dictation.", symbol: "cpu")
-      case .tryIt:
-        SemanticText(
-          OnboardingCopy.tryItQuote, identifier: AccessibilityID.onboardingTryItQuote,
-          label: "Read aloud",
-        )
-        .font(.title3)
-        .fixedSize(horizontal: false, vertical: true)
+      case .tryIt,
+           .ready:
         editor
-      case .ready:
-        HStack(alignment: .top, spacing: 12) {
-          Image(systemName: "checkmark.circle.fill")
-            .font(.system(size: 17))
-            .foregroundStyle(Color.green)
-            .frame(width: 22)
-            .accessibilityHidden(true)
-          VStack(alignment: .leading, spacing: 5) {
-            SemanticText(
-              "Your test dictation is complete",
-              identifier: AccessibilityID.onboardingTryItCompletion, label: "Test dictation status",
-            ).font(.system(size: 13, weight: .semibold))
-            SemanticText(
-              "\(Channel.name) is ready to use in any text field.",
-              identifier: AccessibilityID.onboardingTryItCompletionSummary, label: "Availability",
-            )
-            .font(.system(size: 12))
-            .foregroundStyle(.secondary)
-          }
-        }
+        practiceControls
       }
     }
   }
@@ -148,7 +133,7 @@ struct OnboardingTryItPage: View {
   private var editor: some View {
     TextField(
       text: Binding(get: { store.tryItText }, set: { store.send(.tryItTextChanged($0)) }),
-      prompt: Text("Your words appear here"),
+      prompt: Text(OnboardingCopy.tryItQuote),
       axis: .vertical,
     ) {
       Text("Try dictation")
@@ -176,6 +161,60 @@ struct OnboardingTryItPage: View {
       await Task.yield()
       focus.wrappedValue = .tryItEditor
     }
+  }
+
+  private var practiceControls: some View {
+    HStack(spacing: 12) {
+      Button {} label: {
+        HotkeyKeycaps(components: store.hotkeys.first?.displayComponents ?? ["Record"], scale: 1.5)
+          .scaleEffect(keyIsDown ? 0.94 : 1)
+      }
+      .buttonStyle(.bordered)
+      .focusable(false)
+      .simultaneousGesture(DragGesture(minimumDistance: 0)
+        .onChanged { _ in
+          guard !mouseIsDown else {
+            return
+          }
+          mouseIsDown = true
+          focus.wrappedValue = .tryItEditor
+          store.send(.practiceKeyChanged(
+            true, .seconds(NSApp.currentEvent!.timestamp),
+          ))
+        }
+        .onEnded { _ in
+          mouseIsDown = false
+          store.send(.practiceKeyChanged(
+            false, .seconds(NSApp.currentEvent!.timestamp),
+          ))
+        })
+      .accessibilityIdentifier("miniwhisper.onboarding.try-it.key")
+      .accessibilityLabel(store.hotkeys.first?.displayName ?? "Record")
+      .frame(width: 110, height: 64)
+      .overlay(alignment: .topTrailing) {
+        if store.practicePhase == .latched {
+          Image(systemName: "lock.fill")
+            .foregroundStyle(Color.accentColor)
+        }
+      }
+      TimelineView(.animation(minimumInterval: 0.05, paused: !keyIsDown)) { _ in
+        gestureTile("Hold", symbol: "hand.point.up.left.fill", active: holdRecognized)
+      }
+      gestureTile("Double-tap", symbol: "hand.tap.fill", active: store.practicePhase == .latched)
+    }
+  }
+
+  private func gestureTile(_ title: String, symbol: String, active: Bool) -> some View {
+    VStack(spacing: 8) {
+      Image(systemName: symbol).font(.title2).accessibilityHidden(true)
+      SemanticText(
+        title, identifier: "miniwhisper.onboarding.gesture.\(title)",
+        label: title, value: active ? "Active" : "Idle",
+      ).font(.callout)
+    }
+    .foregroundStyle(active ? Color.accentColor : .secondary)
+    .frame(maxWidth: .infinity, minHeight: 64)
+    .background(.quaternary, in: .rect(cornerRadius: 8))
   }
 
   private func unavailable(_ message: String, symbol: String) -> some View {

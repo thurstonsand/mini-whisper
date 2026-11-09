@@ -160,13 +160,15 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
         contract(
           .staticText, "miniwhisper.onboarding.try-it.title", "Try it heading", "Give it a try",
         ),
+        contract(.textField, "miniwhisper.onboarding.try-it.text", "Try dictation", ""),
+        contract(.button, "miniwhisper.onboarding.try-it.key", "Right ⌥", isEnabled: true),
+        contract(.staticText, "miniwhisper.onboarding.gesture.Hold", "Hold", "Idle"),
+        contract(.staticText, "miniwhisper.onboarding.gesture.Double-tap", "Double-tap", "Idle"),
         contract(
-          .staticText, "miniwhisper.onboarding.try-it.instructions", "Try it instructions",
-          "Hold Right ⌥ and read the line aloud. Release when you're done.",
-        ), contract(.textField, "miniwhisper.onboarding.try-it.text", "Try dictation", ""),
-        contract(
-          .staticText, "miniwhisper.onboarding.try-it.quote", "Read aloud",
-          "“A future is not given to you. It is something you must take for yourself.” — Pod 042",
+          .button,
+          "miniwhisper.onboarding.ready.finish",
+          "Start Dictating",
+          isEnabled: false,
         ),
         contract(
           .button, "miniwhisper.onboarding.try-it.skip", "Skip test dictation", isEnabled: true,
@@ -182,22 +184,28 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
     try assertManifest(
       in: app,
       elements: onboardingRail(["Complete", "Complete", "Complete", "Complete"]) + [
-        contract(.group, "miniwhisper.onboarding.ready", "\(appName) is ready"),
-        contract(.staticText, "miniwhisper.onboarding.ready.title", "Setup status", "Ready"),
+        contract(.group, "miniwhisper.onboarding.try-it", "Try \(appName)"),
         contract(
-          .staticText, "miniwhisper.onboarding.ready.summary", "Ready instructions",
-          "Hold Right ⌥ to dictate into any text field. Release to paste.",
+          .staticText, "miniwhisper.onboarding.try-it.title", "Try it heading", "Give it a try",
         ),
         contract(
-          .staticText, "miniwhisper.onboarding.ready.transcript", "Completed dictation",
+          .textField, "miniwhisper.onboarding.try-it.text", "Try dictation",
           "MiniWhisper is ready.",
         ),
+        contract(.button, "miniwhisper.onboarding.try-it.key", "Right ⌥", isEnabled: true),
+        contract(.staticText, "miniwhisper.onboarding.gesture.Hold", "Hold", "Idle"),
+        contract(.staticText, "miniwhisper.onboarding.gesture.Double-tap", "Double-tap", "Idle"),
         contract(
-          .button, "miniwhisper.onboarding.ready.finish", "Done", isEnabled: true,
+          .button, "miniwhisper.onboarding.ready.finish", "Start Dictating", isEnabled: true,
           isActionable: true,
         ),
       ],
     )
+    assertKeyboardFocus(on: app.tryItEditor)
+    app.typeKey(.tab, modifierFlags: [])
+    assertKeyboardFocus(on: app.buttons["miniwhisper.onboarding.ready.finish"])
+    app.typeKey(.return, modifierFlags: [])
+    XCTAssertTrue(app.groups["miniwhisper.onboarding.try-it"].awaitNonExistence())
   }
 
   // MARK: Private

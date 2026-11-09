@@ -126,6 +126,24 @@ import TranscriptCleanup
         throw AgentSceneRefusal.systemSettings
       }
       dependencies.workspace.reveal = { _ in }
+      if self == .onboardingPractice {
+        dependencies.audioCapture.start = { _ in
+          AudioCaptureSession(
+            id: UUID(),
+            inputDeviceName: "Practice Microphone",
+            events: AsyncStream {
+              $0.yield(.captureBecameLive)
+            },
+          )
+        }
+        dependencies.audioCapture.stop = { _ in
+          CanonicalRecording(samples: Array(repeating: 0.25, count: 16000))
+        }
+        dependencies.audioCapture.cancel = { _ in }
+        dependencies.asrEngine.prepareForActivation = { _ in AsyncStream { $0.finish() } }
+        dependencies.asrEngine.submit = { _, _, _ in .transcript("A future is not given to you.") }
+        dependencies.onboardingCompletion.markCompleted = {}
+      }
     }
   }
 

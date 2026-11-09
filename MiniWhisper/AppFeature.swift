@@ -92,6 +92,7 @@ private let performanceLogger = Logger(
     var dictationWasCancelled = false
     var gestureMachine = HotkeyGestureMachine()
     var gestureDeadlineGeneration = 0
+    var isPracticingWithMouse = false
     var inputDeviceName: String?
     var lastTranscript: String?
     var pendingDictation: PendingDictation?
@@ -143,7 +144,8 @@ private let performanceLogger = Logger(
       guard onboarding.isPresented else {
         return onboardingCompleted
       }
-      return onboarding.step == .tryIt && onboarding.visibleStep == .tryIt
+      return onboarding.canTryDictation
+        && (onboarding.visibleStep == .tryIt || onboarding.visibleStep == .ready)
     }
 
     var menuBar: MenuBarViewState {
@@ -418,6 +420,9 @@ private let performanceLogger = Logger(
         // tap.
         return reason == .invalidated ? diagnoseTapLoss(&state) : .none
       case let .hotkeyListenerEvent(.gestureInput(input)):
+        if case .mouseDown = input, state.isPracticingWithMouse {
+          return .none
+        }
         return receiveGestureInput(input, state: &state)
       case .hotkeyListenerEvent(.action(.pasteLastTranscript)):
         return .send(.pasteLastTranscript)
@@ -821,6 +826,15 @@ private let performanceLogger = Logger(
           ready,
           .send(.pill(.dismiss)), onboardingTryIt(.failed(failure.message), state),
           playSound(state.settings.sounds.error), history,
+        )
+      case let .onboarding(.practiceKeyChanged(isDown, time)):
+        guard state.onboarding.isPresented, state.canBeginDictation else {
+          return .none
+        }
+        state.isPracticingWithMouse = true
+        return receiveGestureInput(
+          isDown ? .activation(at: time) : .release(at: time),
+          state: &state,
         )
       case .onboarding(.delegate(.setupModelRequested)):
         return setUpModel(&state)
@@ -1252,7 +1266,7 @@ private let performanceLogger = Logger(
   }
 
   private func onboardingTryIt(_ result: OnboardingTryItResult, _ state: State) -> Effect<Action> {
-    guard state.onboarding.isPresented, state.onboarding.step == .tryIt else {
+    guard state.onboarding.isPresented, state.onboarding.canTryDictation else {
       return .none
     }
     switch result {
