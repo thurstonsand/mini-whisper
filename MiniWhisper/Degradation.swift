@@ -131,7 +131,7 @@ enum Degradation: String, Hashable {
     case .hotkeyTapDead:
       Presentation(
         title: "Restart Hotkey Listening",
-        reason: "Listening stopped, so the shortcut does nothing",
+        reason: "Required to listen for your shortcut",
       )
     case .microphoneAccessDenied:
       Presentation(title: "Grant Microphone Access…", reason: "Required to record audio")
@@ -147,19 +147,19 @@ enum Degradation: String, Hashable {
       )
     case .gateMissing:
       Presentation(
-        title: "Download the Speech Gate", reason: "Required before any speech leaves this Mac",
+        title: "Download the Speech Gate", reason: "Required to check for speech on this Mac",
       )
     case .modelSetupFailed:
       Presentation(
-        title: "Retry Speech Setup", reason: "Setup failed, so nothing can be transcribed",
+        title: "Retry Speech Setup", reason: "Required to transcribe speech",
       )
     case .engineKeyMissing:
       Presentation(
-        title: "Add an ElevenLabs Key…", reason: "Most accurate can’t transcribe without one",
+        title: "Add an ElevenLabs Key…", reason: "Required to transcribe speech",
       )
     case .cleanupKeyMissing:
       Presentation(
-        title: "Add Your API Key…", reason: "Dictation is off until the profile has its key",
+        title: "Add Your API Key…", reason: "Required to clean up dictation",
       )
     }
   }
