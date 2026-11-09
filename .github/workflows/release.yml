@@ -236,7 +236,6 @@ jobs:
         env:
           RELEASE_REF_TYPE: ${{ github.ref_type }}
           RELEASE_REF_NAME: ${{ github.ref_name }}
-          RELEASE_TAG: ${{ needs.resolve.outputs.release_tag }}
           ASSET_VERSION: ${{ needs.resolve.outputs.archive_version }}
         run: |
           set -euo pipefail
@@ -246,13 +245,17 @@ jobs:
           if [[ "${RELEASE_REF_TYPE}" == "tag" ]]; then
             cask="homebrew-tap/Casks/mini-whisper.rb"
             token="mini-whisper"
+            tag_prefix="v"
             cask_version="${RELEASE_REF_NAME#v}"
             app_name="MiniWhisper"
             bundle_id="com.thurstonsand.MiniWhisper"
-            livecheck=""
+            # Nightly tags outrank the stable one, so livecheck reads GitHub's latest release, which
+            # skips prereleases.
+            livecheck=$'\n  livecheck do\n    url :url\n    strategy :github_latest\n  end\n'
           else
             cask="homebrew-tap/Casks/mini-whisper-nightly.rb"
             token="mini-whisper-nightly"
+            tag_prefix="nightly-"
             cask_version="${ASSET_VERSION}"
             app_name="MiniWhisper Nightly"
             bundle_id="com.thurstonsand.MiniWhisper.nightly"
@@ -267,7 +270,7 @@ jobs:
             version "${cask_version}"
             sha256 "${arm64_sha}"
 
-            url "https://github.com/thurstonsand/mini-whisper/releases/download/${RELEASE_TAG}/MiniWhisper_${ASSET_VERSION}_darwin_arm64.zip"
+            url "https://github.com/thurstonsand/mini-whisper/releases/download/${tag_prefix}#{version}/MiniWhisper_#{version}_darwin_arm64.zip"
             name "${app_name}"
             desc "Local speech-to-text dictation"
             homepage "https://github.com/thurstonsand/mini-whisper"
@@ -309,9 +312,16 @@ jobs:
           git add Casks
 
           if [[ "${RELEASE_REF_TYPE}" == "tag" ]]; then
+            token="mini-whisper"
             git commit -m "mini-whisper ${RELEASE_REF_NAME#v}"
           else
+            token="mini-whisper-nightly"
             git commit -m "mini-whisper-nightly ${ASSET_VERSION}"
           fi
+
+          # brew audit reads casks from a tap, so audit the commit about to be pushed through one.
+          brew tap thurstonsand/tap "$PWD"
+          brew trust thurstonsand/tap
+          brew audit --strict --cask "thurstonsand/tap/${token}"
 
           git push
