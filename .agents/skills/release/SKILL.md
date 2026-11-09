@@ -14,6 +14,7 @@ Use this skill when preparing or publishing a MiniWhisper release.
 - Assume the release starts from a stable committed state. Do not repeat verification the user already performed.
 - Do not push the stable tag until the user explicitly approves stable publishing.
 - Stable releases are `vX.Y.Z` tags; release notes come from the matching `RELEASE.md` section.
+- Versions follow semantic versioning: a release with any new feature (an `Added` entry), a raised floor (a higher minimum Pi, Node, OS, or other dependency version), or anything breaking is at least minor, and breaking is major from 1.0 on; patch is only for fixes and dependency updates.
 - Binary nightly releases are unique prereleases named `nightly-<version>-nightly-<run>-<sha>`, using the latest stable version as their base.
 - Stable tags are immutable. Never force-push a stable release tag.
 
@@ -47,7 +48,7 @@ git diff --stat "${LATEST_TAG}..HEAD"
 git log --oneline "${LATEST_TAG}..HEAD"
 ```
 
-Summarize user-facing features and fixes, packaging or workflow changes, and the likely semver bump. Ask the user to confirm the target version unless they already specified it.
+Summarize user-facing features and fixes, packaging or workflow changes, and the likely bump, by the versioning rule above. Ask the user to confirm the target version unless they already specified it.
 
 ## 2. Local validation (optional)
 
