@@ -37,11 +37,13 @@ private let profilesPaneLogger = Logger(
 
   enum Row: Hashable {
     case profile
+    case engine
     case localCleanup
     case enabled
     case engineKey
     case engineEndpoint
     case engineModel
+    case speechAdvanced
     case advanced
     case endpoint
     case apiKey
@@ -56,8 +58,9 @@ private let profilesPaneLogger = Logger(
 
   enum Target: Equatable {
     case profile
-    case showModels
+    case download(ModelAsset)
     case enabled
+    case speechAdvanced
     case advanced
     case edit(Field)
     case reset(Field)
@@ -178,7 +181,8 @@ private let profilesPaneLogger = Logger(
     /// from settings, so the file and the keychain cannot disagree; nil until it has answered.
     var storedKeys: [CredentialSlot: String]?
     var editor: Editor?
-    var isAdvancedExpanded = false
+    var isCleanupExpanded = false
+    var isSpeechExpanded = false
     var cursor = Cursor()
     /// The field the user is typing in, if any. The window's letter keys are the pane's grammar
     /// everywhere except inside a field, where they are just letters.
@@ -231,30 +235,28 @@ private let profilesPaneLogger = Logger(
       return false
     }
 
-    var needsLocalCleanupModel: Bool {
-      profile.cleanup == .local && assets[.s1Mini]?.isInstalled == false
+    var showsCleanupConnection: Bool {
+      profile.isCustom || isCleanupExpanded || profile.isEndpointOverridden || profile
+        .isModelOverridden
+    }
+
+    var showsSpeechConnection: Bool {
+      isSpeechExpanded || settings.profiles.scribeOverride != nil
     }
 
     var rows: [Row] {
-      if isAdvancedExpanded {
-        var rows: [Row] = engineCredential == nil ? [] : [.engineEndpoint, .engineModel]
-        rows += [.endpoint, .model]
-        if editor?.modelChoice == .custom {
-          rows.append(.customModel)
-        }
-        if editor != nil {
-          rows.append(.actions)
-        }
-        return rows
-      }
       var rows: [Row] = [.profile]
+      if profile.engine.assets.contains(where: { assets[$0]?.isDownloadable == true }) {
+        rows.append(.engine)
+      }
       if engineCredential != nil {
         rows.append(.engineKey)
+        rows += showsSpeechConnection ? [.engineEndpoint, .engineModel] : [.speechAdvanced]
       }
       if profile.isCustom {
         rows.append(.boostsVocabulary)
       }
-      if needsLocalCleanupModel {
+      if profile.cleanup == .local, assets[.s1Mini]?.isDownloadable == true {
         rows.append(.localCleanup)
       }
       if profile.isCustom, isSetUp {
@@ -264,9 +266,10 @@ private let profilesPaneLogger = Logger(
         if profile.isCustom {
           rows += [.endpoint, .apiKey, .model]
         } else {
-          rows += [.apiKey, .advanced]
+          rows.append(.apiKey)
+          rows += showsCleanupConnection ? [.endpoint, .model] : [.advanced]
         }
-        if editor?.modelChoice == .custom, profile.isCustom {
+        if editor?.modelChoice == .custom, showsCleanupConnection {
           rows.append(.customModel)
         }
         if editor != nil {
@@ -296,10 +299,17 @@ private let profilesPaneLogger = Logger(
       switch cursorRow {
       case .profile:
         return [.profile]
+      case .engine:
+        return profile.engine
+          .assets
+          .filter { assets[$0]?.isDownloadable == true }
+          .map(Target.download)
       case .localCleanup:
-        return [.showModels]
+        return [.download(.s1Mini)]
       case .enabled:
         return [.enabled]
+      case .speechAdvanced:
+        return [.speechAdvanced]
       case .advanced:
         return [.advanced]
       case .engineKey:
@@ -345,19 +355,30 @@ private let profilesPaneLogger = Logger(
       targets[min(cursor.target, targets.count - 1)]
     }
 
+    mutating func revealConnection(for field: Field) {
+      switch field {
+      case .engineEndpoint,
+           .engineModel:
+        isSpeechExpanded = true
+      case .endpoint,
+           .model:
+        isCleanupExpanded = true
+      case .engineKey,
+           .apiKey:
+        break
+      }
+    }
+
     /// Speech assets block dictation; cleanup assets only prevent the cleanup pass.
     func status(of profile: Profile) -> Status {
       for asset in profile.assets {
-        if !profile.engine.assets.contains(asset), assets[asset]?.isInstalled == false {
-          return .note("Dictation without cleanup")
-        }
         switch assets[asset] {
         case .missing:
           return .problem("Needs \(asset.name)")
         case .failed:
           return .problem("\(asset.name) failed to download")
         case .downloading:
-          return .note("Dictation is available after the download")
+          return .problem("Downloading \(asset.name)")
         case .installed,
              nil:
           continue
@@ -433,7 +454,8 @@ private let profilesPaneLogger = Logger(
     case profileSelected(ProfileID)
     case enabledToggled(Bool)
     case boostsVocabularyToggled(Bool)
-    case advancedToggled(Bool)
+    case advancedRevealed
+    case speechAdvancedRevealed
     case timeoutSelected(TimeInterval)
     case instructionsEdited(String)
     case editTapped(Field)
@@ -446,7 +468,7 @@ private let profilesPaneLogger = Logger(
     case modelSelected(ModelChoice)
     case customModelEdited(String)
     case loadModelsTapped
-    case showModelsTapped
+    case downloadTapped(ModelAsset)
     case modelsListed(discovered: URL?, ModelListing)
     case listingRefreshed(URL, [String])
     case saveTapped
@@ -504,6 +526,8 @@ private let profilesPaneLogger = Logger(
         ))
       // Leaving the pane is leaving the edit: a draft nobody can see is not one to keep.
       case .paneDisappeared:
+        state.isCleanupExpanded = false
+        state.isSpeechExpanded = false
         return discardEditor(&state)
       case let .storedKeysRead(keys):
         state.storedKeys = keys
@@ -514,12 +538,17 @@ private let profilesPaneLogger = Logger(
         }
         let discard = discardEditor(&state)
         state.$settings.withLock { $0.profiles.active = id }
-        state.isAdvancedExpanded = false
+        state.isCleanupExpanded = false
+        state.isSpeechExpanded = false
         return .merge(discard, refreshListing(state))
-      case let .advancedToggled(expanded):
-        state.isAdvancedExpanded = expanded
-        state.cursor = Cursor(row: .advanced)
-        return expanded ? .none : discardEditor(&state)
+      case .advancedRevealed:
+        state.isCleanupExpanded = true
+        state.cursor = Cursor(row: .endpoint)
+        return .none
+      case .speechAdvancedRevealed:
+        state.isSpeechExpanded = true
+        state.cursor = Cursor(row: .engineEndpoint)
+        return .none
       case let .enabledToggled(enabled):
         state.$settings.withLock { $0.profiles.custom.cleanupEnabled = enabled }
         return clampTarget(&state)
@@ -537,7 +566,7 @@ private let profilesPaneLogger = Logger(
         if state.editor == nil {
           state.editor = state.makeEditor()
         }
-        state.isAdvancedExpanded = !state.profile.isCustom && field.isConnection
+        state.revealConnection(for: field)
         state.editor?.requestFocus(field)
         state.cursor = Cursor(row: state.row(for: field))
         return .none
@@ -546,6 +575,7 @@ private let profilesPaneLogger = Logger(
         guard let factory = state.profile.factory else {
           return .none
         }
+        state.revealConnection(for: field)
         var editor = state.makeEditor()
         switch field {
         case .engineEndpoint:
@@ -707,7 +737,7 @@ private let profilesPaneLogger = Logger(
         }
         state.editor?.isChecking = false
         state.editor?.failure = failure
-        state.isAdvancedExpanded = !state.profile.isCustom && failure.field.isConnection
+        state.revealConnection(for: failure.field)
         state.editor?.requestFocus(failure.field)
         state.cursor = Cursor(row: state.row(for: failure.field))
         return .none
@@ -745,12 +775,14 @@ private let profilesPaneLogger = Logger(
         case .profile:
           state.profileActivation += 1
           return .none
-        case .showModels:
-          return .send(.showModelsTapped)
+        case let .download(asset):
+          return .send(.downloadTapped(asset))
         case .enabled:
           return .send(.enabledToggled(!state.settings.profiles.custom.cleanupEnabled))
+        case .speechAdvanced:
+          return .send(.speechAdvancedRevealed)
         case .advanced:
-          return .send(.advancedToggled(!state.isAdvancedExpanded))
+          return .send(.advancedRevealed)
         case let .edit(field):
           return .send(.editTapped(field))
         case let .reset(field):
@@ -782,12 +814,15 @@ private let profilesPaneLogger = Logger(
           return .none
         }
       case let .cursorHovered(row):
+        guard state.rows.contains(row) else {
+          return .none
+        }
         state.cursor = Cursor(row: row)
         return .none
       case let .assetsUpdated(assets):
         state.assets = assets
         return .none
-      case .showModelsTapped,
+      case .downloadTapped,
            .delegate:
         return .none
       }
@@ -884,7 +919,7 @@ private let profilesPaneLogger = Logger(
       editor.failure = Failure(field: field, message: message)
       editor.requestFocus(field)
       state.editor = editor
-      state.isAdvancedExpanded = !state.profile.isCustom && field.isConnection
+      state.revealConnection(for: field)
       state.cursor = Cursor(row: state.row(for: field))
       return .none
     }
@@ -1083,21 +1118,6 @@ private extension Profile {
   /// Every slot the profile could hold a key in, whether or not its cleanup is on.
   var credentialSlots: [CredentialSlot] {
     [engineCredential, endpointLeg?.credential].compactMap(\.self)
-  }
-}
-
-private extension ProfilesFeature.Field {
-  var isConnection: Bool {
-    switch self {
-    case .engineEndpoint,
-         .engineModel,
-         .endpoint,
-         .model:
-      true
-    case .engineKey,
-         .apiKey:
-      false
-    }
   }
 }
 

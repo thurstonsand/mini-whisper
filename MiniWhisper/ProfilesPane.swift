@@ -17,79 +17,19 @@ struct ProfilesPane: View {
 
   var body: some View {
     Form {
-      Section {
-        PickerRow(store: store)
-      } footer: {
-        VStack(alignment: .leading, spacing: 6) {
-          if let status = profiles.status(of: profile).option {
-            Label(
-              status.text,
-              systemImage: status.isProblem ? "exclamationmark.triangle" : "info.circle",
-            )
-            .foregroundStyle(status.isProblem ? .primary : .secondary)
+      GroupBox {
+        VStack(alignment: .leading, spacing: 16) {
+          PickerRow(store: store)
+          Divider()
+          VStack(alignment: .leading, spacing: 12) {
+            Text("Speech recognition").font(.headline)
+            speechRows
           }
-          Text("Speech recognition, cleanup, and keys belong to this profile.")
-        }
-      }
-
-      Section("Speech recognition") {
-        LabeledContent("Engine") {
-          VStack(alignment: .trailing, spacing: 4) {
-            Text(profile.engine == .scribe && profiles.settings.profiles.scribeOverride != nil
-              ? profiles.settings.profiles.scribeConfiguration.model : profile.engine.name)
-            ForEach(profile.engine.assets, id: \.self) { asset in
-              if case let .downloading(fraction) = profiles.assets[asset] {
-                ProgressView(value: fraction) {
-                  Text(asset == .gate ? "Speech gate" : "Downloading")
-                } currentValueLabel: {
-                  Text(DownloadProgress.percentage(fraction))
-                }
-                .frame(width: 180)
-              } else if let status = assetStatus(asset) {
-                Text(status).font(.callout).foregroundStyle(.secondary)
-              }
-            }
+          Divider()
+          VStack(alignment: .leading, spacing: 12) {
+            Text("Cleanup").font(.headline)
+            cleanupRows
           }
-        }
-        .accessibilityIdentifier(AccessibilityID.profilesEngine)
-        if let slot = profiles.engineCredential {
-          if let editor = profiles.editor {
-            KeyFieldRow(
-              store: store, editor: editor, field: .engineKey, row: .engineKey, slot: slot,
-              text: editor.engineKeyText,
-            ) { store.send(.profiles(.engineKeyEdited($0))) }
-              .disabled(editor.isChecking)
-          } else {
-            StoredKeyRow(store: store, slot: slot, field: .engineKey)
-          }
-        }
-        if profile.isCustom {
-          BoostsVocabularyRow(store: store)
-        }
-      }
-
-      Section {
-        if profile.cleanup == .local {
-          LocalCleanupRow(store: store)
-        }
-        if profile.isCustom, profiles.isSetUp {
-          EnabledRow(store: store)
-        }
-        if profile.endpointLeg != nil {
-          if let editor = profiles.editor {
-            EditorRows(store: store, editor: editor)
-          } else if profiles.isSetUp {
-            RestingRows(store: store)
-              .disabled(profile.cleanup == .none)
-          } else {
-            NotSetUpRows(store: store)
-          }
-        }
-      } header: {
-        Text("Cleanup")
-      } footer: {
-        if profiles.needsLocalCleanupModel {
-          Text("Dictation works without cleanup. Download S1-mini in Models to enable cleanup.")
         }
       }
 
@@ -101,8 +41,6 @@ struct ProfilesPane: View {
           if profiles.hasPromptSurface {
             InstructionsRow(store: store)
           }
-        } header: {
-          Text("Shared across profiles")
         } footer: {
           if profiles.showsTimeout {
             Text("If cleanup takes too long, the original transcript is delivered.")
@@ -111,46 +49,6 @@ struct ProfilesPane: View {
       }
     }
     .formStyle(.grouped)
-    .sheet(isPresented: Binding(
-      get: { profiles.isAdvancedExpanded },
-      set: { store.send(.profiles(.advancedToggled($0))) },
-    )) {
-      VStack(alignment: .leading, spacing: 0) {
-        Text("Advanced · \(profile.name)").font(.headline).padding()
-        Form {
-          if profiles.engineCredential != nil {
-            Section {
-              SpeechConnectionRows(store: store)
-            } header: {
-              Text("Speech recognition · ElevenLabs-compatible")
-            } footer: {
-              Text(
-                "Other speech endpoints are checked with one second of silence. The provider may charge for it.",
-              )
-            }
-          }
-          Section("Cleanup · OpenAI-compatible") {
-            if let editor = profiles.editor {
-              EditorRows(store: store, editor: editor, inAdvanced: true)
-            } else {
-              RestingRows(store: store, inAdvanced: true)
-            }
-          }
-        }
-        .formStyle(.grouped)
-        HStack {
-          Spacer()
-          if let editor = profiles.editor {
-            ActionsRow(store: store, editor: editor)
-          } else {
-            Button("Done") { store.send(.profiles(.advancedToggled(false))) }
-              .keyboardShortcut(.cancelAction)
-          }
-        }
-        .padding()
-      }
-      .frame(width: 560, height: profiles.engineCredential == nil ? 360 : 520)
-    }
     .focusEffectDisabled()
     .keyboardCursorScroll(store: store, cursor: profiles.cursorRow)
     // Whether a field is being typed in decides whether the window's letters are the pane's
@@ -173,24 +71,72 @@ struct ProfilesPane: View {
     profiles.profile
   }
 
-  private func assetStatus(_ asset: ModelAsset) -> String? {
-    switch profiles.assets[asset] {
-    case let .downloading(fraction):
-      "\(asset.name) · downloading \(DownloadProgress.percentage(fraction))"
-    case .missing:
-      "\(asset.name) · not downloaded"
-    case .failed:
-      "\(asset.name) · download failed"
-    case .installed,
-         nil:
-      nil
+  @ViewBuilder private var speechRows: some View {
+    LabeledContent("Engine") {
+      HStack {
+        Text(profile.engine.name)
+        ForEach(profile.engine.assets, id: \.self) { asset in
+          ProfileAssetControl(store: store, asset: asset, row: .engine)
+        }
+      }
+    }
+    .accessibilityIdentifier(AccessibilityID.profilesEngine)
+    .modifier(ProfilesFormRow(store: store, row: .engine))
+    if let slot = profiles.engineCredential {
+      if let editor = profiles.editor {
+        KeyFieldRow(
+          store: store, editor: editor, field: .engineKey, row: .engineKey, slot: slot,
+          text: editor.engineKeyText,
+        ) { store.send(.profiles(.engineKeyEdited($0))) }
+          .disabled(editor.isChecking)
+      } else {
+        StoredKeyRow(store: store, slot: slot, field: .engineKey)
+      }
+      if profiles.showsSpeechConnection {
+        SpeechConnectionRows(store: store)
+        Text(
+          "Other speech endpoints are checked with one second of silence. The provider may charge for it.",
+        )
+        .font(.callout)
+        .foregroundStyle(.secondary)
+      } else {
+        AdvancedRow(store: store, speech: true)
+      }
+    }
+    if profile.isCustom {
+      BoostsVocabularyRow(store: store)
+    }
+  }
+
+  @ViewBuilder private var cleanupRows: some View {
+    if profile.cleanup == .local {
+      LabeledContent("Model") {
+        HStack {
+          Text("S1-mini")
+            .accessibilityIdentifier(AccessibilityID.profilesLocalCleanup)
+          ProfileAssetControl(store: store, asset: .s1Mini, row: .localCleanup)
+        }
+      }
+      .modifier(ProfilesFormRow(store: store, row: .localCleanup))
+    }
+    if profile.isCustom, profiles.isSetUp {
+      EnabledRow(store: store)
+    }
+    if profile.endpointLeg != nil {
+      if let editor = profiles.editor {
+        EditorRows(store: store, editor: editor)
+      } else if profiles.isSetUp {
+        RestingRows(store: store).disabled(profile.cleanup == .none)
+      } else {
+        NotSetUpRows(store: store)
+      }
     }
   }
 }
 
 // MARK: - PickerRow
 
-/// The picker names the profile; its section footer names anything it still needs.
+/// The picker names the profile and marks anything it still needs.
 private struct PickerRow: View {
   // MARK: Internal
 
@@ -247,49 +193,30 @@ private extension ProfilesFeature.Status {
   }
 }
 
-// MARK: - LocalCleanupRow
+// MARK: - ProfileAssetControl
 
-private struct LocalCleanupRow: View {
-  // MARK: Internal
-
+private struct ProfileAssetControl: View {
   let store: StoreOf<SettingsWindowFeature>
+  let asset: ModelAsset
+  let row: ProfilesFeature.Row
 
   var body: some View {
-    if store.profiles.needsLocalCleanupModel {
-      content.modifier(ProfilesFormRow(store: store, row: .localCleanup))
-    } else {
-      content
-    }
-  }
-
-  // MARK: Private
-
-  private var localCleanup: String {
-    switch store.profiles.assets[.s1Mini] {
+    switch store.profiles.assets[asset] {
+    case let .downloading(fraction):
+      ProgressView(value: fraction)
+        .frame(width: 100)
+        .accessibilityLabel("Downloading \(asset.name)")
+    case .missing,
+         .failed:
+      Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange)
+      Button(asset == .gate ? "Download Speech Gate" : "Download") {
+        store.send(.profiles(.downloadTapped(asset)))
+      }
+      .focusRing(store.state.showsProfilesRing(row, target: .download(asset)))
+      .accessibilityIdentifier("miniwhisper.profiles.\(asset.rawValue).download")
     case .installed,
          nil:
-      "S1-mini on this Mac"
-    case .missing:
-      "S1-mini · not downloaded"
-    case let .downloading(fraction):
-      "S1-mini · downloading \(DownloadProgress.percentage(fraction))"
-    case .failed:
-      "S1-mini · download failed"
-    }
-  }
-
-  private var content: some View {
-    LabeledContent("Model") {
-      HStack {
-        Text(localCleanup)
-          .foregroundStyle(.secondary)
-          .accessibilityIdentifier(AccessibilityID.profilesLocalCleanup)
-        if store.profiles.needsLocalCleanupModel {
-          Button("Show in Models") { store.send(.profiles(.showModelsTapped)) }
-            .focusRing(store.state.showsProfilesRing(.localCleanup, target: .showModels))
-            .accessibilityIdentifier(AccessibilityID.profilesShowModels)
-        }
-      }
+      EmptyView()
     }
   }
 }
@@ -300,14 +227,13 @@ private struct LocalCleanupRow: View {
 /// with its own field focused.
 private struct RestingRows: View {
   let store: StoreOf<SettingsWindowFeature>
-  var inAdvanced = false
 
   var body: some View {
     if let leg = store.profiles.profile.endpointLeg {
-      if !store.profiles.profile.isCustom, !inAdvanced {
+      if !store.profiles.profile.isCustom {
         StoredKeyRow(store: store, slot: leg.credential, field: .apiKey)
       }
-      ConnectionRows(store: store, inAdvanced: inAdvanced) {
+      ConnectionRows(store: store) {
         ValueRow(
           store: store, field: .endpoint, label: "Address",
           value: EndpointAddress.display(leg.endpoint), edit: "Edit",
@@ -330,20 +256,39 @@ private struct RestingRows: View {
 /// Factory profiles already know their endpoint and model; Custom asks for both up front.
 private struct ConnectionRows<Content: View>: View {
   let store: StoreOf<SettingsWindowFeature>
-  var inAdvanced = false
   @ViewBuilder let content: Content
 
   var body: some View {
-    if store.profiles.profile.isCustom || inAdvanced {
+    if store.profiles.showsCleanupConnection {
       content
     } else {
-      LabeledContent("Endpoint and model") {
-        Button("Advanced…") { store.send(.profiles(.advancedToggled(true))) }
-          .accessibilityIdentifier(AccessibilityID.profilesAdvanced)
-          .focusRing(store.state.showsProfilesRing(.advanced, target: .advanced))
-      }
-      .modifier(ProfilesFormRow(store: store, row: .advanced))
+      AdvancedRow(store: store, speech: false)
     }
+  }
+}
+
+// MARK: - AdvancedRow
+
+private struct AdvancedRow: View {
+  let store: StoreOf<SettingsWindowFeature>
+  let speech: Bool
+
+  var body: some View {
+    HStack {
+      Spacer()
+      Button("Advanced") {
+        store.send(.profiles(speech ? .speechAdvancedRevealed : .advancedRevealed))
+      }
+      .buttonStyle(.bordered)
+      .accessibilityIdentifier(speech ? "miniwhisper.profiles.speech-advanced" : AccessibilityID
+        .profilesAdvanced)
+      .focusRing(store.state.showsProfilesRing(
+        speech ? .speechAdvanced : .advanced,
+        target: speech ? .speechAdvanced : .advanced,
+      ))
+    }
+    .accessibilityElement(children: .contain)
+    .modifier(ProfilesFormRow(store: store, row: speech ? .speechAdvanced : .advanced))
   }
 }
 
@@ -416,7 +361,7 @@ private struct StoredKeyRow: View {
       edit: store.profiles.storedKeys?[slot] == nil ? "Add" : "Replace", isOverridden: false,
     )
     if store.profiles.health.rejectedKeys.contains(slot) {
-      Text("\(slot.provider.displayName) rejected this key. Replace it and try again.")
+      Text("\(slot.provider.displayName) rejected this key.")
         .font(.callout)
         .foregroundStyle(.secondary)
         .accessibilityIdentifier("miniwhisper.profiles.key-rejection")
@@ -517,14 +462,13 @@ private struct EditorRows: View {
 
   let store: StoreOf<SettingsWindowFeature>
   let editor: ProfilesFeature.Editor
-  var inAdvanced = false
 
   var body: some View {
     Group {
-      if !store.profiles.profile.isCustom, !inAdvanced {
+      if !store.profiles.profile.isCustom {
         key
       }
-      ConnectionRows(store: store, inAdvanced: inAdvanced) {
+      ConnectionRows(store: store) {
         LabeledContent("Address") {
           VStack(alignment: .leading, spacing: 4) {
             ProfilesTextField(
@@ -562,9 +506,7 @@ private struct EditorRows: View {
       }
     }
     .disabled(editor.isChecking)
-    if !inAdvanced, !store.profiles.isAdvancedExpanded {
-      ActionsRow(store: store, editor: editor)
-    }
+    ActionsRow(store: store, editor: editor)
   }
 
   // MARK: Private
@@ -705,9 +647,7 @@ private struct ActionsRow: View {
         )
         .foregroundStyle(.secondary)
       }
-      // The pane has its own Escape grammar; a sheet uses the native cancel action.
       Button("Cancel") { store.send(.profiles(.cancelTapped)) }
-        .keyboardShortcut(store.profiles.isAdvancedExpanded ? .cancelAction : nil)
         .focusRing(store.state.showsProfilesRing(.actions, target: .cancel))
         .accessibilityIdentifier(AccessibilityID.profilesCancel)
       Button("Save") { store.send(.profiles(.saveTapped)) }

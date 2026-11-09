@@ -98,7 +98,6 @@ enum AccessibilityID {
   static let profilesAdvanced = "miniwhisper.profiles.advanced"
   static let profilesEngine = "miniwhisper.profiles.engine"
   static let profilesLocalCleanup = "miniwhisper.profiles.local-cleanup"
-  static let profilesShowModels = "miniwhisper.profiles.show-models"
   static let profilesEnabled = "miniwhisper.profiles.enabled"
   static let profilesEnabledRing = "miniwhisper.profiles.enabled.ring"
   static let profilesBoostsVocabulary = "miniwhisper.profiles.boosts-vocabulary"

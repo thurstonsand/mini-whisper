@@ -169,7 +169,8 @@ final class ProfilesUITests: MiniWhisperUITestCase, SurfaceTagged {
         app.typeText("jj")
         self.assertValue("Bar on", of: app.staticTexts["miniwhisper.profiles.row.advanced.state"])
         app.typeKey(.return, modifierFlags: [])
-        try require(app.sheets.firstMatch.awaitExistence())
+        try require(advanced.awaitNonExistence())
+        XCTAssertFalse(app.sheets.firstMatch.exists)
         self.assertValue(
           "https://api.anthropic.com/v1",
           of: app.staticTexts["miniwhisper.profiles.endpoint.value"],
@@ -177,8 +178,9 @@ final class ProfilesUITests: MiniWhisperUITestCase, SurfaceTagged {
         self.assertValue(
           "claude-haiku-5-5", of: app.staticTexts["miniwhisper.profiles.model.value"],
         )
-        app.typeKey(.escape, modifierFlags: [])
-        try require(app.sheets.firstMatch.awaitNonExistence())
+        app.staticTexts["miniwhisper.settings.sidebar.history"].click()
+        app.staticTexts["miniwhisper.settings.sidebar.profiles"].click()
+        try require(advanced.awaitHittable())
         self.assertValue(
           "sk-ant••••••••••••", of: app.staticTexts["miniwhisper.profiles.apiKey.value"],
         )
@@ -248,9 +250,11 @@ final class ProfilesUITests: MiniWhisperUITestCase, SurfaceTagged {
         )
       },
       Law("Advanced saves an ElevenLabs-compatible speech URL and model") { app in
-        app.buttons["miniwhisper.profiles.advanced"].click()
+        app.buttons["miniwhisper.profiles.speech-advanced"].click()
         let edit = app.buttons["miniwhisper.profiles.engineEndpoint.edit"]
         try require(edit.awaitHittable())
+        XCTAssertTrue(app.buttons["miniwhisper.profiles.advanced"].exists)
+        XCTAssertFalse(app.staticTexts["miniwhisper.profiles.model.value"].exists)
         edit.click()
         let endpoint = app.textFields["miniwhisper.profiles.engineEndpoint.field"]
         self.assertKeyboardFocus(on: endpoint)
@@ -264,21 +268,27 @@ final class ProfilesUITests: MiniWhisperUITestCase, SurfaceTagged {
         self.assertValue("https://gateway.example/el/v1/speech-to-text",
                          of: app.staticTexts["miniwhisper.profiles.engineEndpoint.value"])
         self.assertValue("scribe_v1", of: app.staticTexts["miniwhisper.profiles.engineModel.value"])
-        self.assertValue(
-          "gemini-3.8-flash",
-          of: app.staticTexts["miniwhisper.profiles.model.value"],
-        )
+        XCTAssertTrue(app.buttons["miniwhisper.profiles.advanced"].exists)
         self.recordScreenshot("profiles-speech-overridden", screenshot: app.screenshot())
       },
-      Law("Resetting the speech model keeps the speech URL, and Escape closes Advanced") { app in
+      Law("Overrides stay visible across visits until both are reset") { app in
         let reset = app.buttons["miniwhisper.profiles.engineModel.reset"]
         try require(reset.awaitHittable())
         reset.click()
         self.assertValue("scribe_v2", of: app.staticTexts["miniwhisper.profiles.engineModel.value"])
         self.assertValue("https://gateway.example/el/v1/speech-to-text",
                          of: app.staticTexts["miniwhisper.profiles.engineEndpoint.value"])
-        app.typeKey(.escape, modifierFlags: [])
-        XCTAssertTrue(app.sheets.firstMatch.awaitNonExistence())
+        app.staticTexts["miniwhisper.settings.sidebar.history"].click()
+        app.staticTexts["miniwhisper.settings.sidebar.profiles"].click()
+        let resetURL = app.buttons["miniwhisper.profiles.engineEndpoint.reset"]
+        try require(resetURL.awaitHittable())
+        resetURL.click()
+        try require(resetURL.awaitNonExistence())
+        XCTAssertTrue(app.staticTexts["miniwhisper.profiles.engineEndpoint.value"].exists)
+        app.staticTexts["miniwhisper.settings.sidebar.history"].click()
+        app.staticTexts["miniwhisper.settings.sidebar.profiles"].click()
+        XCTAssertTrue(app.buttons["miniwhisper.profiles.speech-advanced"].awaitHittable())
+        XCTAssertFalse(app.staticTexts["miniwhisper.profiles.engineEndpoint.value"].exists)
       },
     ])
   }
@@ -287,13 +297,9 @@ final class ProfilesUITests: MiniWhisperUITestCase, SurfaceTagged {
     let app = launch("settings-profiles-overridden")
     defer { terminate(app) }
 
-    let advanced = app.buttons["miniwhisper.profiles.advanced"]
-    XCTAssertTrue(advanced.awaitHittable())
-    XCTAssertFalse(app.staticTexts["miniwhisper.profiles.endpoint.value"].exists)
-    app.typeText("ljj")
-    app.typeKey(.return, modifierFlags: [])
     let address = app.staticTexts["miniwhisper.profiles.endpoint.value"]
     XCTAssertTrue(address.awaitExistence(timeout: 5))
+    XCTAssertFalse(app.buttons["miniwhisper.profiles.advanced"].exists)
     assertValue("https://aig.thurstons.house/v1", of: address)
     let reset = app.buttons["miniwhisper.profiles.endpoint.reset"]
     XCTAssertTrue(reset.awaitHittable(timeout: 2))
@@ -315,22 +321,22 @@ final class ProfilesUITests: MiniWhisperUITestCase, SurfaceTagged {
     let picker = app.popUpButtons["miniwhisper.profiles.picker"]
     XCTAssertTrue(picker.awaitExistence(timeout: 5))
     assertValue("Everyday; Cleanup key rejected", of: picker)
-    assertValue("Anthropic rejected this key. Replace it and try again.",
+    assertValue("Anthropic rejected this key.",
                 of: app.staticTexts["miniwhisper.profiles.key-rejection"])
     recordScreenshot("profiles-rejected", screenshot: app.screenshot())
   }
 
-  @MainActor func testMissingOfflineCleanupRoutesToItsModel() {
+  @MainActor func testMissingOfflineCleanupDownloadsInline() {
     let app = launch("settings-profiles-offline")
     defer { terminate(app) }
 
-    let showModels = app.buttons["miniwhisper.profiles.show-models"]
-    XCTAssertTrue(showModels.awaitHittable(timeout: 5))
+    let download = app.buttons["miniwhisper.profiles.s1-mini.download"]
+    XCTAssertTrue(download.awaitHittable(timeout: 5))
     app.typeText("lj")
     assertValue("Bar on", of: app.staticTexts["miniwhisper.profiles.row.localCleanup.state"])
     app.typeKey(.return, modifierFlags: [])
-    let download = app.buttons["miniwhisper.models.asset.s1-mini.download"]
-    XCTAssertTrue(download.awaitHittable(timeout: 2))
-    assertValue("Models; Selected", of: app.staticTexts["miniwhisper.settings.sidebar.models"])
+    XCTAssertTrue(download.awaitNonExistence())
+    assertValue("Offline", of: app.popUpButtons["miniwhisper.profiles.picker"])
+    assertValue("Profiles; Selected", of: app.staticTexts["miniwhisper.settings.sidebar.profiles"])
   }
 }

@@ -500,7 +500,7 @@ struct EndpointAddressTests {
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
     await openPane(store, keys: [haikuSlot: "sk-ant-0123"])
-    await store.send(.advancedToggled(true))
+    await store.send(.advancedRevealed)
     #expect(targets(store.state, at: .model) == [.edit(.model), .reset(.model)])
 
     await store.send(.resetTapped(.model))
@@ -588,7 +588,7 @@ struct EndpointAddressTests {
 
     #expect(rows(.defaults) == [.profile, .apiKey, .advanced, .timeout, .instructions])
     #expect(rows(accurate) == [
-      .profile, .engineKey, .apiKey, .advanced, .timeout, .instructions,
+      .profile, .engineKey, .speechAdvanced, .apiKey, .advanced, .timeout, .instructions,
     ])
     // S1-mini reads no prompt, so only the limit applies.
     #expect(rows(offline) == [.profile, .timeout])
@@ -653,12 +653,12 @@ struct EndpointAddressTests {
     #expect(status(.accurate) == .problem("Needs an ElevenLabs key"))
 
     state.assets = [.gate: .installed(bytes: 1), .parakeet: .downloading(0.42), .s1Mini: .missing]
-    #expect(status(.haiku) == .note("Dictation is available after the download"))
-    #expect(status(.offline) == .note("Dictation is available after the download"))
+    #expect(status(.haiku) == .problem("Downloading Parakeet TDT v2"))
+    #expect(status(.offline) == .problem("Downloading Parakeet TDT v2"))
     state.assets[.parakeet] = .installed(bytes: 1)
-    #expect(status(.offline) == .note("Dictation without cleanup"))
+    #expect(status(.offline) == .problem("Needs S1-mini"))
     state.assets[.s1Mini] = .downloading(0.42)
-    #expect(status(.offline) == .note("Dictation without cleanup"))
+    #expect(status(.offline) == .problem("Downloading S1-mini"))
     state.assets[.s1Mini] = .installed(bytes: 1)
     #expect(status(.offline) == .ready)
     // Custom's key is optional, so a set-up Custom without one is ready.

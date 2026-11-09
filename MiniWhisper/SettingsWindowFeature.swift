@@ -185,12 +185,8 @@ struct SettingsWindowInteraction: Equatable {
         state.selection = .profiles
         state.interaction.focus = .detail
         return .none
-      case .profiles(.showModelsTapped):
-        state.models.cursor = .asset(.s1Mini)
-        state.models.highlightedProfile = .offline
-        state.selection = .models
-        state.interaction.focus = .detail
-        return .none
+      case let .profiles(.downloadTapped(asset)):
+        return .send(.models(.downloadTapped(asset)))
       case let .focusChanged(focus):
         state.interaction.focus = focus
         return .none
