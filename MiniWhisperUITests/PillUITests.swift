@@ -60,7 +60,7 @@ final class PillUITests: MiniWhisperUITestCase, SurfaceTagged {
     assertValue("Copied — ⌘V to paste", of: app.staticTexts["miniwhisper.pill.notice"])
     presentScene("pill-model-unavailable")
     assertValue(
-      "Dictation not started\nDownloading Parakeet v2 · 42%",
+      "Dictation not available\nDownloading Parakeet v2 · 42%",
       of: app.staticTexts["miniwhisper.pill.notice"],
     )
     presentScene("pill-polishing-skip")
@@ -72,12 +72,14 @@ final class PillUITests: MiniWhisperUITestCase, SurfaceTagged {
     XCTAssertTrue(poll { skip.frame.maxY < destination.frame.minY })
     XCTAssertTrue(poll { abs(skip.frame.midY - phase.frame.midY) < 2 })
     assertValue("Cleaning up", of: phase)
-    let submits = app.staticTexts["miniwhisper.pill.submits"]
+    let submits = app.images["miniwhisper.pill.submits"]
     XCTAssertTrue(submits.awaitExistence())
     XCTAssertTrue(poll { abs(submits.frame.midY - destination.frame.midY) < 2 })
+    let ordinaryWidth = app.dialogs["miniwhisper.pill"].frame.width
     presentScene("pill-polishing-long-shortcut")
     XCTAssertTrue(skip.awaitExistence())
     let panel = app.dialogs["miniwhisper.pill"]
+    XCTAssertTrue(poll { panel.frame.width > ordinaryWidth })
     XCTAssertTrue(poll {
       skip.frame.maxX <= panel.frame.maxX && phase.frame.minX >= panel.frame.minX
     })

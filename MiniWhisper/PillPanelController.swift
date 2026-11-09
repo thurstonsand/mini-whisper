@@ -24,7 +24,9 @@ private let performanceLogger = Logger(
     panel.setAccessibilityLabel("\(Channel.name) dictation")
     panel.setAccessibilityTitle("\(Channel.name) dictation")
 
-    let hostingView = NSHostingView(rootView: PillView(store: store))
+    let hostingView = NSHostingView(rootView: PillView(store: store) { [weak self] width in
+      self?.resizePanel(width: width)
+    })
     hostingView.frame = NSRect(origin: .zero, size: Self.panelSize)
     panel.contentView = hostingView
     panel.setContentSize(Self.panelSize)
@@ -52,6 +54,15 @@ private let performanceLogger = Logger(
   private let panel: NonactivatingPillPanel
   private var screenParametersObserver: (any NSObjectProtocol)?
   private var lastVisibility: Bool?
+  private var panelWidth = panelSize.width
+
+  private func resizePanel(width: CGFloat) {
+    guard width > 20, width != panelWidth else {
+      return
+    }
+    panelWidth = width
+    positionPanel()
+  }
 
   private func observeStore() {
     withObservationTracking {
@@ -92,8 +103,8 @@ private let performanceLogger = Logger(
     }
 
     let frame = NSRect(
-      x: screen.frame.midX - Self.panelSize.width / 2,
-      y: screen.visibleFrame.minY + Self.bottomMargin, width: Self.panelSize.width,
+      x: screen.frame.midX - panelWidth / 2,
+      y: screen.visibleFrame.minY + Self.bottomMargin, width: panelWidth,
       height: Self.panelSize.height,
     )
     panel.setFrame(frame, display: panel.isVisible)

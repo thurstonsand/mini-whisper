@@ -8,6 +8,8 @@ struct PillView: View {
 
   @Bindable var store: StoreOf<PillFeature>
 
+  var widthChanged: (CGFloat) -> Void = { _ in }
+
   var body: some View {
     ZStack {
       if let presentation = store.presentation {
@@ -21,13 +23,35 @@ struct PillView: View {
         .frame(minHeight: 38)
         .background(.thickMaterial, in: .capsule)
         .scaleEffect(bounceScale)
+        .keyframeAnimator(initialValue: CGFloat.zero,
+                          trigger: shakeTrigger)
+        { content, x in
+          content.offset(x: x)
+        } keyframes: { _ in
+          LinearKeyframe(CGFloat.zero, duration: 0.14)
+          LinearKeyframe(-7 * shakeAmplitude, duration: 0.06)
+          LinearKeyframe(6 * shakeAmplitude, duration: 0.06)
+          LinearKeyframe(-5 * shakeAmplitude, duration: 0.06)
+          LinearKeyframe(4 * shakeAmplitude, duration: 0.06)
+          LinearKeyframe(-2 * shakeAmplitude, duration: 0.06)
+          LinearKeyframe(shakeAmplitude, duration: 0.06)
+          LinearKeyframe(0, duration: 0.06)
+        }
+        .task(id: store.noticeGeneration) {
+          if copiedOnly {
+            shakeTrigger += 1
+          }
+        }
         .opacity(
           store.isFadingOut ? 0 : 1,
         )
         .transition(.opacity.combined(with: .scale(scale: 0.96)))
       }
     }
-    .frame(width: 420, height: 76)
+    .fixedSize(horizontal: true, vertical: false)
+    .padding(.horizontal, 10)
+    .frame(height: 76)
+    .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { widthChanged($0) }
     .animation(.easeOut(duration: 0.16), value: presentationKind)
     .animation(.easeIn(duration: 0.18), value: store.isFadingOut)
     .animation(.easeOut(duration: 0.16), value: store.destination)
@@ -55,6 +79,22 @@ struct PillView: View {
   }
 
   @State private var bounceScale = 1.0
+  @State private var shakeTrigger = 0
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+  private var shakeAmplitude: CGFloat {
+    copiedOnly && !reduceMotion ? 1 : 0
+  }
+
+  private var copiedOnly: Bool {
+    switch store.presentation {
+    case .notice(.copiedToClipboard),
+         .notice(.noReceiver):
+      true
+    default:
+      false
+    }
+  }
 
   private var presentationKind: PresentationKind {
     switch store.presentation {
@@ -73,8 +113,7 @@ struct PillView: View {
 
   @ViewBuilder private var submits: some View {
     if store.submits {
-      Label("Will submit", systemImage: "return")
-        .labelStyle(.titleAndIcon)
+      Image(systemName: "return")
         .font(.callout)
         .foregroundStyle(.secondary)
         .fixedSize()
@@ -84,22 +123,20 @@ struct PillView: View {
   }
 
   @ViewBuilder private var deliveryStatus: some View {
-    if store.destination != nil || store.submits {
+    if let destination = store.destination {
       HStack(spacing: 6) {
-        if let destination = store.destination {
-          Image(systemName: "arrow.right")
-            .accessibilityHidden(true)
-          SemanticText(
-            destination, identifier: AccessibilityID.pillDestination, label: "Delivers to",
-          )
-          .lineLimit(1)
-          .truncationMode(.middle)
-        }
+        Image(systemName: "arrow.right")
+          .accessibilityHidden(true)
+        SemanticText(
+          destination, identifier: AccessibilityID.pillDestination, label: "Delivers to",
+        )
+        .lineLimit(1)
+        .truncationMode(.middle)
         submits
       }
       .font(.callout)
       .foregroundStyle(.secondary)
-      .frame(maxWidth: store.destination == nil ? nil : 360)
+      .fixedSize()
     }
   }
 
@@ -130,22 +167,22 @@ struct PillView: View {
     case .transcribing:
       VStack(spacing: 6) {
         HStack(spacing: 9) {
-          ProgressView().controlSize(.mini).accessibilityHidden(true)
+          PillPhaseDot(color: .blue)
           SemanticText(
             "Transcribing…", identifier: AccessibilityID.pillPhase, label: "Dictation phase",
             value: "Transcribing",
           )
           .font(.callout.weight(.medium))
           .foregroundStyle(Color(nsColor: .labelColor))
+          if store.destination == nil {
+            submits
+          }
         }
         deliveryStatus
       }
     case let .polishing(polishing):
       VStack(spacing: 6) {
-        ViewThatFits(in: .horizontal) {
-          polishingRow(polishing, showsBinding: true)
-          polishingRow(polishing, showsBinding: false)
-        }
+        polishingRow(polishing)
         deliveryStatus
       }
     case let .notice(notice):
@@ -173,32 +210,30 @@ struct PillView: View {
   }
 
   private func polishingRow(
-    _ polishing: PillFeature.State.Presentation.Polishing, showsBinding: Bool,
+    _ polishing: PillFeature.State.Presentation.Polishing,
   ) -> some View {
     HStack(spacing: 9) {
-      ProgressView().controlSize(.mini).accessibilityHidden(true)
+      PillPhaseDot(color: .purple)
       SemanticText(
         "Cleaning up…", identifier: AccessibilityID.pillPhase, label: "Dictation phase",
         value: "Cleaning up",
       )
       .fontWeight(.medium)
       .foregroundStyle(Color(nsColor: .labelColor))
+      if store.destination == nil {
+        submits
+      }
       if polishing.isSkipRevealed {
         Divider().frame(height: 16)
         SemanticText(
-          showsBinding ? "Skip cleanup" : "Press shortcut to skip",
-          identifier: AccessibilityID.pillSkipAffordance, label: "Skip cleanup",
-          value: "\(polishing.skipComponents.joined(separator: " ")) to skip",
+          "Paste now",
+          identifier: AccessibilityID.pillSkipAffordance, label: "Paste now",
+          value: "\(polishing.skipComponents.joined(separator: " ")) to paste now",
         )
         .foregroundStyle(.secondary)
-        if showsBinding {
-          Text(polishing.skipComponents.joined(separator: " "))
-            .foregroundStyle(.secondary)
-            .padding(.horizontal, 5)
-            .padding(.vertical, 2)
-            .background(.fill.tertiary, in: .rect(cornerRadius: 3))
-            .accessibilityHidden(true)
-        }
+        HotkeyKeycaps(components: polishing.skipComponents)
+          .foregroundStyle(.secondary)
+          .accessibilityHidden(true)
       }
     }
     .font(.callout)
@@ -267,4 +302,26 @@ struct PillView: View {
       .frame(width: 1, height: 1)
       .clipped()
   }
+}
+
+// MARK: - PillPhaseDot
+
+private struct PillPhaseDot: View {
+  // MARK: Internal
+
+  let color: Color
+
+  var body: some View {
+    Circle()
+      .fill(color)
+      .frame(width: 6, height: 6)
+      .phaseAnimator([false, true]) { dot, dimmed in
+        dot.opacity(dimmed && !reduceMotion ? 0.3 : 1)
+      } animation: { _ in .easeInOut(duration: 0.6) }
+      .accessibilityHidden(true)
+  }
+
+  // MARK: Private
+
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
 }

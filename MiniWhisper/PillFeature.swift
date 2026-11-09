@@ -69,11 +69,11 @@ import ComposableArchitecture
             )
           case .cleanupUnavailable:
             Content(
-              text: "Cleanup unavailable — pasted as heard", phase: "Pasted without cleanup",
+              text: "Cleanup failed", phase: "Pasted without cleanup",
             )
           case let .speechModelUnavailable(status):
             Content(
-              text: "Dictation not started", detail: status, phase: status,
+              text: "Dictation not available", detail: status, phase: status,
             )
           case .dictionarySaveFailed:
             Content(
@@ -293,6 +293,14 @@ import ComposableArchitecture
   private func showNotice(
     _ notice: State.Presentation.Notice, state: inout State,
   ) -> Effect<Action> {
+    let duration: Duration =
+      switch notice {
+      case .noSpeechDetected,
+           .cancelledSavedToHistory:
+        .seconds(1)
+      default:
+        .seconds(3)
+      }
     state.noticeGeneration += 1
     let generation = state.noticeGeneration
     state.presentation = .notice(notice)
@@ -304,7 +312,7 @@ import ComposableArchitecture
       .cancel(id: CancelID.polishing),
       .cancel(id: CancelID.destination),
       .run { send in
-        try await clock.sleep(for: .seconds(3))
+        try await clock.sleep(for: duration)
         await send(.noticeDisplayElapsed(generation))
       }.cancellable(id: CancelID.notice, cancelInFlight: true),
     )

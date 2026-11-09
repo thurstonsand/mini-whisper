@@ -89,12 +89,17 @@ import Testing
   }
 
   @Test(arguments: [
-    (PillFeature.Action.noSpeechDetected, PillFeature.State.Presentation.Notice.noSpeechDetected),
-    (.noTranscriptToPaste, .noTranscriptToPaste),
-    (.cleanupUnavailable, .cleanupUnavailable),
+    (
+      PillFeature.Action.noSpeechDetected,
+      PillFeature.State.Presentation.Notice.noSpeechDetected,
+      1,
+    ),
+    (.cancelledSavedToHistory, .cancelledSavedToHistory, 1),
+    (.noTranscriptToPaste, .noTranscriptToPaste, 3),
+    (.cleanupUnavailable, .cleanupUnavailable, 3),
   ])
   func `explanatory notices remain readable before fading`(
-    action: PillFeature.Action, notice: PillFeature.State.Presentation.Notice,
+    action: PillFeature.Action, notice: PillFeature.State.Presentation.Notice, seconds: Int,
   ) async {
     let clock = TestClock()
     let store = TestStore(initialState: PillFeature.State()) {
@@ -107,10 +112,10 @@ import Testing
       $0.noticeGeneration = 1
       $0.presentation = .notice(notice)
     }
-    await clock.advance(by: .seconds(2))
+    await clock.advance(by: .milliseconds(seconds * 1000 - 1))
     await store.send(.destinationUpdated(nil))
     #expect(!store.state.isFadingOut)
-    await clock.advance(by: .seconds(1))
+    await clock.advance(by: .milliseconds(1))
     await store.receive(.noticeDisplayElapsed(1)) { $0.isFadingOut = true }
     await clock.advance(by: .milliseconds(180))
     await store.receive(.noticeFadeElapsed(1)) {
@@ -196,7 +201,7 @@ import Testing
       $0.noticeGeneration = 1
       $0.presentation = .notice(.noSpeechDetected)
     }
-    await clock.advance(by: .seconds(1))
+    await clock.advance(by: .milliseconds(500))
     await store.send(.copiedToClipboard) {
       $0.noticeGeneration = 2
       $0.presentation = .notice(.copiedToClipboard)
