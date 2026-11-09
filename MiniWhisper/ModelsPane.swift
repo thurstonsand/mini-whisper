@@ -21,6 +21,12 @@ struct ModelsPane: View {
         patchBay
       }
     }
+    .onHover { inside in
+      if !inside {
+        store.send(.models(.pointerExited))
+      }
+    }
+    .onDisappear { store.send(.models(.previewCleared)) }
     .alert(
       "Delete \(models.pendingDeletion?.name ?? "")?", isPresented: deletionPending,
       presenting: models.pendingDeletion,
@@ -157,9 +163,13 @@ struct ModelsPane: View {
   ) -> some View {
     VStack(alignment: .leading, spacing: 6) {
       LabeledContent {
-        Text(sends)
-          .font(.callout)
-          .foregroundStyle(.secondary)
+        if models.keyProblem(component) != nil {
+          ModelKeyControl(store: store, component: component)
+        } else {
+          Text(sends)
+            .font(.callout)
+            .foregroundStyle(.secondary)
+        }
       } label: {
         Text(title)
         Text(model)
@@ -169,6 +179,7 @@ struct ModelsPane: View {
       }
       dependents(of: component)
     }
+    .modifier(ModelsRow(store: store, row: .key(component)))
     .accessibilityElement(children: .contain)
     .accessibilityIdentifier(AccessibilityID.modelsComponent(component))
   }
@@ -184,7 +195,8 @@ struct ModelsPane: View {
         "\(profile.name)\(models.settings.profiles.active == profile.id ? " · Active" : "")",
       )
       .font(.callout)
-      .foregroundStyle(models.highlighted == profile.id ? Color.accentColor : Color.secondary)
+      .foregroundStyle(models.settings.profiles.active == profile.id ? Color.accentColor : Color
+        .secondary)
       .fixedSize(horizontal: false, vertical: true)
       if speech {
         label
@@ -193,7 +205,7 @@ struct ModelsPane: View {
           .accessibilityValue(
             [
               models.settings.profiles.active == profile.id ? "Active" : nil,
-              models.highlighted == profile.id ? "Highlighted" : nil,
+              models.previewProfile == profile.id ? "Preview" : nil,
             ]
             .compactMap(\.self)
             .joined(separator: "; "),
@@ -209,6 +221,7 @@ struct ModelsPane: View {
 
 private enum Port: Hashable {
   case card(ProfileID, ModelsFeature.Leg)
+  case cardEdge(ProfileID)
   case component(ModelsFeature.Component)
 }
 
@@ -227,7 +240,7 @@ private struct PortKey: PreferenceKey {
 
 // MARK: - Wires
 
-/// Only the highlighted profile's connections are drawn, so maintenance stays ahead of the wiring.
+/// The active chain stays solid while another profile's preview is drawn beneath it.
 private struct Wires: View {
   let store: StoreOf<SettingsWindowFeature>
   let ports: [Port: Anchor<CGPoint>]
@@ -237,38 +250,39 @@ private struct Wires: View {
     // Read here rather than inside the canvas: only a body's reads are observed, and a wire that
     // never hears the highlight move or a download fail would keep saying what used to be true.
     let models = store.models
-    let assets = models.assets
-    let highlighted = models.highlighted
-    Canvas { context, _ in
-      let profile = models.settings.profiles.profile(highlighted)
-      for leg in [ModelsFeature.Leg.speech, .cleanup] {
-        guard let component = models.component(leg, of: profile),
-              let from = ports[.card(profile.id, leg)].map({ proxy[$0] }),
-              let to = ports[.component(component)].map({ proxy[$0] })
-        else {
-          continue
+    let active = models.settings.profiles.active
+    let chains = [models.previewProfile, active].compactMap(\.self).map { id in
+      let profile = models.settings.profiles.profile(id)
+      return [ModelsFeature.Leg.speech, .cleanup].compactMap { leg -> (Port, Port, Bool, Bool)? in
+        guard let component = models.component(leg, of: profile) else {
+          return nil
         }
-        var path = Path()
-        path.move(to: from)
-        let bend = (to.x - from.x) * 0.5
-        path.addCurve(
-          to: to, control1: CGPoint(x: from.x + bend, y: from.y),
-          control2: CGPoint(x: to.x - bend, y: to.y),
-        )
-        let state = component.asset.flatMap { assets[$0] }
-        let isBroken = state?.isInstalled == false
-        let shading: GraphicsContext.Shading =
-          if case .failed = state {
-            .color(.orange)
-          } else {
-            .color(.accentColor)
+        return (.card(id, leg), .component(component), id == active, models.isBroken(component))
+      }
+    }
+    Canvas { context, _ in
+      for chain in chains {
+        for (source, destination, isActive, isBroken) in chain {
+          guard case let .card(id, _) = source,
+                let leg = ports[source].map({ proxy[$0] }),
+                let edge = ports[.cardEdge(id)].map({ proxy[$0] }),
+                let to = ports[destination].map({ proxy[$0] })
+          else {
+            continue
           }
-        context.stroke(
-          path, with: shading,
-          style: StrokeStyle(
-            lineWidth: 1, lineCap: .round, dash: isBroken ? [4, 3] : [],
-          ),
-        )
+          let from = CGPoint(x: edge.x, y: leg.y)
+          var path = Path()
+          path.move(to: from)
+          let bend = (to.x - from.x) * 0.5
+          path.addCurve(
+            to: to, control1: CGPoint(x: from.x + bend, y: from.y),
+            control2: CGPoint(x: to.x - bend, y: to.y),
+          )
+          context.stroke(
+            path, with: .color(isActive ? (isBroken ? .orange : .accentColor) : .secondary),
+            style: StrokeStyle(lineWidth: 1.5, lineCap: .round, dash: isActive ? [] : [5, 4]),
+          )
+        }
       }
     }
   }
@@ -297,6 +311,11 @@ private struct GateStrip: View {
     .padding(.horizontal, 12)
     .padding(.vertical, 8)
     .background(.quinary, in: .rect(cornerRadius: 8))
+    .overlay {
+      if store.models.isBroken(.asset(.gate)) {
+        RoundedRectangle(cornerRadius: 8).strokeBorder(.orange, lineWidth: 1.5)
+      }
+    }
     .modifier(ModelsRow(store: store, row: .asset(.gate)))
     .accessibilityElement(children: .contain)
     .accessibilityIdentifier(AccessibilityID.modelsComponent(.asset(.gate)))
@@ -326,7 +345,7 @@ private struct ColumnHeader: View {
 
 // MARK: - PatchCard
 
-/// The highlighted profile lights its symbol and wires; the active profile says so in words.
+/// Active and preview outlines use the same strokes as their connections.
 private struct PatchCard: View {
   // MARK: Internal
 
@@ -334,12 +353,12 @@ private struct PatchCard: View {
   let profile: Profile
 
   var body: some View {
-    let isLit = store.models.highlighted == profile.id
+    let isPreview = store.models.previewProfile == profile.id
     let isActive = store.models.settings.profiles.active == profile.id
     VStack(alignment: .leading, spacing: 6) {
       HStack(spacing: 6) {
         Image(systemName: profile.symbol)
-          .foregroundStyle(isLit ? Color.accentColor : Color.secondary)
+          .foregroundStyle(isActive ? Color.accentColor : Color.secondary)
         Text(profile.name)
           .fontWeight(.medium)
           .fixedSize(horizontal: false, vertical: true)
@@ -356,17 +375,23 @@ private struct PatchCard: View {
       leg(.cleanup, "Cleanup", cleanup)
     }
     .padding(10)
+    .transformAnchorPreference(key: PortKey.self, value: .trailing) { ports, edge in
+      ports[.cardEdge(profile.id)] = edge
+    }
     .background(.quinary, in: .rect(cornerRadius: 8))
     .overlay {
       RoundedRectangle(cornerRadius: 8)
-        .strokeBorder(.separator, lineWidth: 1)
+        .strokeBorder(
+          isActive ? Color.accentColor : isPreview ? .secondary : Color(nsColor: .separatorColor),
+          style: StrokeStyle(lineWidth: 1.5, dash: isPreview && !isActive ? [5, 4] : []),
+        )
     }
     .contentShape(.rect(cornerRadius: 8))
     .modifier(ModelsRow(store: store, row: .profile(profile.id)))
     .accessibilityElement(children: .combine)
     .accessibilityIdentifier(AccessibilityID.modelsCard(profile.id))
     .accessibilityValue(
-      [isActive ? "Active" : nil, isLit ? "Highlighted" : nil]
+      [isActive ? "Active" : nil, isPreview ? "Preview" : nil]
         .compactMap(\.self)
         .joined(separator: "; "),
     )
@@ -413,10 +438,12 @@ private struct ComponentRow: View {
   let component: ModelsFeature.Component
 
   var body: some View {
+    let isActive = store.models.uses(component, profile: store.models.settings.profiles.active)
+    let isPreview = store.models
+      .previewProfile
+      .map { store.models.uses(component, profile: $0) } == true
+    let isBroken = store.models.isBroken(component)
     let row = HStack(spacing: 8) {
-      Color.clear
-        .frame(width: 1, height: 1)
-        .anchorPreference(key: PortKey.self, value: .center) { [.component(component): $0] }
       Image(systemName: component.asset == nil ? "cloud" : "internaldrive")
         .foregroundStyle(.secondary)
       ViewThatFits(in: .horizontal) {
@@ -434,10 +461,15 @@ private struct ComponentRow: View {
     }
     .padding(.horizontal, 10)
     .padding(.vertical, 8)
+    .anchorPreference(key: PortKey.self, value: .leading) { [.component(component): $0] }
     .background(.quinary, in: .rect(cornerRadius: 8))
     .overlay {
       RoundedRectangle(cornerRadius: 8)
-        .strokeBorder(.separator, lineWidth: 1)
+        .strokeBorder(
+          isActive ? (isBroken ? Color.orange : .accentColor)
+            : isPreview ? .secondary : Color(nsColor: .separatorColor),
+          style: StrokeStyle(lineWidth: 1.5, dash: isPreview && !isActive ? [5, 4] : []),
+        )
     }
     .accessibilityElement(children: .contain)
     .accessibilityIdentifier(AccessibilityID.modelsComponent(component))
@@ -445,7 +477,7 @@ private struct ComponentRow: View {
     if let asset = component.asset {
       row.modifier(ModelsRow(store: store, row: .asset(asset)))
     } else {
-      row
+      row.modifier(ModelsRow(store: store, row: .key(component)))
     }
   }
 
@@ -488,10 +520,35 @@ private struct ComponentRow: View {
     if let asset = component.asset {
       AssetStatus(store: store, asset: asset)
         .fixedSize()
+    } else if store.models.keyProblem(component) != nil {
+      ModelKeyControl(store: store, component: component)
     } else {
       Image(systemName: component == .scribe ? "waveform" : "text.quote")
         .foregroundStyle(.secondary)
         .help(component == .scribe ? "Sent your audio" : "Sent your transcript")
+    }
+  }
+}
+
+// MARK: - ModelKeyControl
+
+private struct ModelKeyControl: View {
+  let store: StoreOf<SettingsWindowFeature>
+  let component: ModelsFeature.Component
+
+  var body: some View {
+    if let problem = store.models.keyProblem(component) {
+      Button {
+        store.send(.models(.keyTapped(component)))
+      } label: {
+        Label(problem, systemImage: "exclamationmark.triangle")
+      }
+      .buttonStyle(.borderless)
+      .foregroundStyle(store.models.uses(component, profile: store.models.settings.profiles.active)
+        ? Color.orange : .secondary)
+      .focusRing(store.interaction.showsKeyboardCursor(store.models.cursorRow == .key(component)))
+      .help("Open this key in Profiles")
+      .accessibilityIdentifier("\(AccessibilityID.modelsComponent(component)).key")
     }
   }
 }

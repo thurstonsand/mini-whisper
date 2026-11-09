@@ -24,6 +24,7 @@ private let modelsPaneLogger = Logger(
   enum Row: Hashable {
     case profile(ProfileID)
     case asset(ModelAsset)
+    case key(Component)
   }
 
   /// Something a profile's leg runs on: a model on this Mac, or a service off it.
@@ -60,24 +61,60 @@ private let modelsPaneLogger = Logger(
     /// What the last Delete or Download could not do.
     var assetFailure: String?
     var cursor: Row?
-    /// The profile whose wiring is lit. Pointing at a card lights it and it stays lit, so the
-    /// pointer can travel to the right-hand column without the wires going out under it.
-    var highlightedProfile: ProfileID?
-
-    var highlighted: ProfileID {
-      highlightedProfile ?? settings.profiles.active
-    }
+    var previewProfile: ProfileID?
+    var isKeyboardPreview = false
+    var storedKeys: Set<CredentialSlot>?
 
     var rows: [Row] {
       ProfileID.allCases.map(Row.profile)
         + ModelAsset.allCases.filter { isDeletable($0) || isDownloadable($0) }.map(Row.asset)
+        + ([Component.scribe] + settings.profiles
+          .lineup
+          .filter { $0.endpointLeg != nil }
+          .map { .endpoint($0.id) })
+        .filter { keyProblem($0) != nil }
+        .map(Row.key)
     }
 
     var cursorRow: Row {
       guard let cursor, rows.contains(cursor) else {
-        return .profile(highlighted)
+        return .profile(settings.profiles.active)
       }
       return cursor
+    }
+
+    func uses(_ component: Component, profile id: ProfileID) -> Bool {
+      let profile = settings.profiles.profile(id)
+      return [.speech, .cleanup].contains { self.component($0, of: profile) == component }
+    }
+
+    func keyProblem(_ component: Component) -> String? {
+      let slot: CredentialSlot
+      switch component {
+      case .asset:
+        return nil
+      case .scribe:
+        slot = CredentialSlot(profile: .accurate, provider: .elevenlabs)
+      case let .endpoint(id):
+        guard let leg = settings.profiles.profile(id).endpointLeg else {
+          return nil
+        }
+        slot = leg.credential
+      }
+      if health.rejectedKeys.contains(slot) {
+        return "Key rejected"
+      }
+      if slot.profile == .custom {
+        return nil
+      }
+      return storedKeys.map { $0.contains(slot) ? nil : "No key" } ?? nil
+    }
+
+    func isBroken(_ component: Component) -> Bool {
+      if case let .asset(asset) = component {
+        return assets[asset]?.isInstalled == false
+      }
+      return keyProblem(component) != nil
     }
 
     func component(_ leg: Leg, of profile: Profile) -> Component? {
@@ -135,9 +172,13 @@ private let modelsPaneLogger = Logger(
   enum Action: Equatable {
     case task
     case assetsUpdated([ModelAsset: AssetState])
+    case storedKeysRead(Set<CredentialSlot>)
     case cursorHovered(Row)
+    case pointerExited
+    case previewCleared
     case rowMoved(CursorMovement)
     case pressRequested
+    case keyTapped(Component)
     case deleteTapped(ModelAsset)
     case downloadTapped(ModelAsset)
     case deletionConfirmed
@@ -157,22 +198,55 @@ private let modelsPaneLogger = Logger(
   }
 
   @Dependency(\.modelLibrary) var modelLibrary
+  @Dependency(\.keychain) var keychain
 
   var body: some ReducerOf<Self> {
     Reduce { state, action in
       switch action {
       case .task:
-        return .run { send in
+        let slots = Set(state.settings.profiles.lineup.flatMap {
+          [$0.engineCredential, $0.endpointLeg?.credential].compactMap(\.self)
+        })
+        let assets = Effect<Action>.run { send in
           for await states in modelLibrary.states() {
             await send(.assetsUpdated(states))
           }
         }
         .cancellable(id: CancelID.assets, cancelInFlight: true)
+        return .merge(assets, .run { send in
+          var stored: Set<CredentialSlot> = []
+          for slot in slots {
+            do {
+              if try keychain.read(slot) != nil {
+                stored.insert(slot)
+              }
+            } catch {
+              modelsPaneLogger
+                .error("Key unreadable: \(error.localizedDescription, privacy: .public)")
+            }
+          }
+          await send(.storedKeysRead(stored))
+        })
       case let .assetsUpdated(assets):
         state.assets = assets
         return .none
+      case let .storedKeysRead(keys):
+        state.storedKeys = keys
+        return .none
       case let .cursorHovered(row):
+        guard state.rows.contains(row) else {
+          return .none
+        }
+        state.isKeyboardPreview = false
         move(&state, to: row)
+        return .none
+      case .pointerExited:
+        if !state.isKeyboardPreview {
+          state.previewProfile = nil
+        }
+        return .none
+      case .previewCleared:
+        state.previewProfile = nil
         return .none
       case let .rowMoved(movement):
         let rows = state.rows
@@ -180,13 +254,18 @@ private let modelsPaneLogger = Logger(
           return .none
         }
         let offset = movement == .next ? 1 : -1
+        state.isKeyboardPreview = true
         move(&state, to: rows[min(max(current + offset, 0), rows.count - 1)])
         return .none
       case .pressRequested:
-        guard case let .asset(asset) = state.cursorRow else {
+        switch state.cursorRow {
+        case .profile:
           return .none
+        case let .key(component):
+          return .send(.keyTapped(component))
+        case let .asset(asset):
+          return .send(state.isDownloadable(asset) ? .downloadTapped(asset) : .deleteTapped(asset))
         }
-        return .send(state.isDownloadable(asset) ? .downloadTapped(asset) : .deleteTapped(asset))
       case let .downloadTapped(asset):
         state.assetFailure = nil
         return .send(.delegate(.downloadAsset(asset)))
@@ -214,7 +293,8 @@ private let modelsPaneLogger = Logger(
         modelsPaneLogger.error("Model deletion failed: \(message, privacy: .public)")
         state.assetFailure = "Couldn’t delete the model."
         return .none
-      case .delegate:
+      case .keyTapped,
+           .delegate:
         return .none
       }
     }
@@ -229,7 +309,7 @@ private let modelsPaneLogger = Logger(
   private func move(_ state: inout State, to row: Row) {
     state.cursor = row
     if case let .profile(id) = row {
-      state.highlightedProfile = id
+      state.previewProfile = id == state.settings.profiles.active ? nil : id
     }
   }
 }

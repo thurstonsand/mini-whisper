@@ -60,6 +60,7 @@ enum PresentedWindow: Equatable {
     case settingsProfilesRejected = "settings-profiles-rejected"
     case settingsModels = "settings-models"
     case settingsModelsStates = "settings-models-states"
+    case settingsModelsKeyMissing = "settings-models-key-missing"
     case about
     case pillRecording = "pill-recording"
     case pillRecordingStarting = "pill-recording-starting"
@@ -119,7 +120,8 @@ enum PresentedWindow: Equatable {
            .settingsProfilesRejected:
         .settings(.profiles, initialFocus: nil)
       case .settingsModels,
-           .settingsModelsStates:
+           .settingsModelsStates,
+           .settingsModelsKeyMissing:
         .settings(.models, initialFocus: nil)
       case .settingsProfilesKeyboard:
         .settings(.profiles, initialFocus: .detail)
@@ -151,7 +153,8 @@ enum PresentedWindow: Equatable {
       // The scene's endpoint refuses this key, the way a revoked one is refused.
       case .settingsProfilesRejected:
         return [haiku: "sk-rejected-scene"]
-      case .settingsProfilesAccurate:
+      case .settingsProfilesAccurate,
+           .settingsModelsKeyMissing:
         return [CredentialSlot(profile: .accurate, provider: .google): "AIzaSyAgentScene"]
       // Past the key page, the default profile's key is in the Keychain the scene answers for.
       case .onboardingPermissionsMicrophone,
@@ -358,7 +361,8 @@ enum PresentedWindow: Equatable {
           _ = $0.rejectedKeys.insert(CredentialSlot(profile: .haiku, provider: .anthropic))
         }
       // Most accurate with only its Google key: the engine is installed and cannot hear yet.
-      case .settingsProfilesAccurate:
+      case .settingsProfilesAccurate,
+           .settingsModelsKeyMissing:
         state.$health.withLock {
           $0.engine = .scribe
           $0.engineReadiness = .credentialMissing
@@ -485,7 +489,8 @@ enum PresentedWindow: Equatable {
            .settingsProfilesRejected,
            .settingsModels:
         return settings
-      case .settingsProfilesAccurate:
+      case .settingsProfilesAccurate,
+           .settingsModelsKeyMissing:
         settings.profiles.active = .accurate
         return settings
       case .settingsProfilesOffline,

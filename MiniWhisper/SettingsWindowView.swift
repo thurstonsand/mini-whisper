@@ -176,6 +176,7 @@ struct SettingsWindowView: View {
         up: { store.send(.models(.rowMoved(.previous))) },
         right: { store.send(.models(.pressRequested)) },
         press: { store.send(.models(.pressRequested)) },
+        escape: { store.send(.models(.previewCleared)) },
       )
     }
   }

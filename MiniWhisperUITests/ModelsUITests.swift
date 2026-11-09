@@ -11,7 +11,7 @@ final class ModelsUITests: MiniWhisperUITestCase, SurfaceTagged {
       Law("The active profile is lit, and every model says what it weighs") { app in
         let haiku = app.descendants(matching: .any)["miniwhisper.models.card.haiku"]
         try require(haiku.awaitExistence(timeout: 5))
-        self.assertValue("Active; Highlighted", of: haiku)
+        self.assertValue("Active", of: haiku)
         self.assertValue("", of: app.descendants(matching: .any)["miniwhisper.models.card.offline"])
         self.assertValue(
           "567.2 MB", of: app.staticTexts["miniwhisper.models.asset.parakeet.state"],
@@ -26,13 +26,30 @@ final class ModelsUITests: MiniWhisperUITestCase, SurfaceTagged {
         let offline = app.descendants(matching: .any)["miniwhisper.models.card.offline"]
         try require(offline.awaitHittable(timeout: 2))
         self.hoverAfterEnteringWindow(offline, in: app)
-        self.assertValue("Highlighted", of: offline)
+        self.assertValue("Preview", of: offline)
         self.assertValue(
           "Active", of: app.descendants(matching: .any)["miniwhisper.models.card.haiku"],
         )
         app.buttons["miniwhisper.models.asset.s1-mini.delete"].hover()
-        self.assertValue("Highlighted", of: offline)
+        self.assertValue("Preview", of: offline)
         self.recordScreenshot("models-hover-offline", screenshot: app.screenshot())
+      },
+
+      Law("Leaving clears pointer preview; keyboard preview survives asset rows until Escape") { app in
+        let offline = app.descendants(matching: .any)["miniwhisper.models.card.offline"]
+        app.staticTexts["miniwhisper.settings.sidebar.history"].hover()
+        self.assertValue("", of: offline)
+        offline.hover()
+        self.assertValue("Preview", of: offline)
+        app.typeText("jjjj")
+        let custom = app.descendants(matching: .any)["miniwhisper.models.card.custom"]
+        self.assertValue("Preview", of: custom)
+        app.typeKey(.escape, modifierFlags: [])
+        self.assertValue("", of: custom)
+        self.assertValue(
+          "Active",
+          of: app.descendants(matching: .any)["miniwhisper.models.card.haiku"],
+        )
       },
 
       Law("Deleting what the active profile runs on asks first") { app in
@@ -91,5 +108,33 @@ final class ModelsUITests: MiniWhisperUITestCase, SurfaceTagged {
     assertValue("Failed", of: app.staticTexts["miniwhisper.models.asset.s1-mini.state"])
     assertLabel("Retry", of: app.buttons["miniwhisper.models.asset.s1-mini.download"])
     recordScreenshot("models-states", screenshot: app.screenshot())
+  }
+
+  @MainActor func testMissingKeyOpensItsProfileFieldAndRepairClearsTheProblem() {
+    assertLaws(on: "settings-models-key-missing", [
+      Law("Only the speech leg is broken") { app in
+        let key = app.buttons["miniwhisper.models.component.scribe.key"]
+        try require(key.awaitHittable())
+        XCTAssertFalse(app.buttons["miniwhisper.models.component.endpoint.accurate.key"].exists)
+        self.recordScreenshot("models-key-missing", screenshot: app.screenshot())
+        key.click()
+        self.assertKeyboardFocus(on: app.textFields["miniwhisper.profiles.engineKey.field"])
+      },
+      Law("Saving the key repairs the chain on return") { app in
+        app.textFields["miniwhisper.profiles.engineKey.field"].typeText("sk-speech-scene")
+        app.buttons["miniwhisper.profiles.save"].click()
+        self.assertValue(
+          "sk-spe••••••••••••",
+          of: app.staticTexts["miniwhisper.profiles.engineKey.value"],
+        )
+        app.staticTexts["miniwhisper.settings.sidebar.models"].click()
+        try require(app.descendants(matching: .any)["miniwhisper.models.card.accurate"]
+          .awaitExistence())
+        XCTAssertTrue(app.buttons["miniwhisper.models.component.scribe.key"].awaitNonExistence())
+        self.recordScreenshot("models-key-repaired", screenshot: app.screenshot())
+        app.buttons["miniwhisper.models.component.endpoint.haiku.key"].click()
+        self.assertKeyboardFocus(on: app.textFields["miniwhisper.profiles.apiKey.field"])
+      },
+    ])
   }
 }

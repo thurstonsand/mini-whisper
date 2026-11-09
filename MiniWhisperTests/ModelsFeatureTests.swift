@@ -36,24 +36,39 @@ import Testing
     #expect(loaded.rows == ProfileID.allCases.map(ModelsFeature.Row.profile) + [.asset(.s1Mini)])
   }
 
-  /// The wires follow the pointer, not the active profile, and stay where it left them so the
-  /// pointer can cross to the models without the light going out.
-  @Test func `pointing at a profile lights it until another is pointed at`() async {
+  @Test func `preview leaves the active profile intact and clears at the pane edge`() async {
     let store = modelsStore(assets: installed)
-    #expect(store.state.highlighted == .haiku)
 
     await store.send(.cursorHovered(.profile(.offline))) {
       $0.cursor = .profile(.offline)
-      $0.highlightedProfile = .offline
+      $0.previewProfile = .offline
     }
     await store.send(.cursorHovered(.asset(.s1Mini))) { $0.cursor = .asset(.s1Mini) }
-    #expect(store.state.highlighted == .offline)
+    #expect(store.state.previewProfile == .offline)
     #expect(store.state.settings.profiles.active == .haiku)
+    await store.send(.pointerExited) { $0.previewProfile = nil }
 
     // Return on a model row presses its one button.
     await store.send(.pressRequested)
     await store.receive(.deleteTapped(.s1Mini))
     await store.receive(.delegate(.deleteAsset(.s1Mini)))
+  }
+
+  @Test func `keyboard preview survives crossing to assets and clears on Escape`() async {
+    let store = modelsStore(assets: installed)
+    await store.send(.cursorHovered(.profile(.cerebras))) {
+      $0.cursor = .profile(.cerebras)
+      $0.previewProfile = .cerebras
+    }
+    await store.send(.rowMoved(.next)) {
+      $0.cursor = .profile(.custom)
+      $0.previewProfile = .custom
+      $0.isKeyboardPreview = true
+    }
+    await store.send(.rowMoved(.next)) { $0.cursor = .asset(.gate) }
+    await store.send(.pointerExited)
+    #expect(store.state.previewProfile == .custom)
+    await store.send(.previewCleared) { $0.previewProfile = nil }
   }
 
   @Test func `each leg plugs into what that profile runs on, and nothing when it has none`() {

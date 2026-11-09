@@ -187,6 +187,25 @@ struct SettingsWindowInteraction: Equatable {
         return .none
       case let .profiles(.downloadTapped(asset)):
         return .send(.models(.downloadTapped(asset)))
+      case let .models(.keyTapped(component)):
+        let profile: ProfileID
+        let field: ProfilesFeature.Field
+        switch component {
+        case .asset:
+          return .none
+        case .scribe:
+          profile = .accurate
+          field = .engineKey
+        case let .endpoint(id):
+          profile = id
+          field = .apiKey
+        }
+        state.selection = .profiles
+        state.interaction.focus = .detail
+        return .concatenate(
+          .send(.profiles(.profileSelected(profile))),
+          .send(.profiles(.editTapped(field))),
+        )
       case let .focusChanged(focus):
         state.interaction.focus = focus
         return .none
