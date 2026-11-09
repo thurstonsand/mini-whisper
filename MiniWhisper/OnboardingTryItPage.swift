@@ -20,10 +20,10 @@ struct OnboardingTryItPage: View {
         identifier: AccessibilityID.onboardingTryItTitle,
         label: "Try it heading",
       ),
-      summary: .init(
+      summary: store.missingKeys.isEmpty ? .init(
         text: summary,
         identifier: AccessibilityID.onboardingTryItInstructions, label: "Try it instructions",
-      ),
+      ) : nil,
       summaryLineSpacing: 3,
       cardAlignment: .topLeading,
     ) {
@@ -40,7 +40,8 @@ struct OnboardingTryItPage: View {
     if store.step == .ready {
       return "Test complete"
     }
-    return store.canTryDictation ? "Give it a try" : "Set up dictation to try it"
+    return store.canTryDictation || !store.missingKeys.isEmpty
+      ? "Give it a try" : "Set up dictation to try it"
   }
 
   private var summary: String {
@@ -52,54 +53,95 @@ struct OnboardingTryItPage: View {
       : "Finish the setup below to try a dictation."
   }
 
+  private var addKeyTitle: String {
+    store.missingKeys.count == 1 ? "Add \(store.missingKeys[0].provider.displayName) Key…" : "Add Keys…"
+  }
+
   @ViewBuilder private var cardContent: some View {
-    switch store.step {
-    case .keys:
-      unavailable("Add your keys to try a dictation.", symbol: "key")
-    case .permissions:
-      unavailable(
-        "Grant both permissions and wait for the speech model to try it.", symbol: "lock.shield",
-      )
-    case .shortcut:
-      unavailable(
-        "Choose your shortcut and wait for the speech model to try it.",
-        symbol: "command",
-      )
-    case .model:
-      unavailable("Wait for the speech model to finish before trying a dictation.", symbol: "cpu")
-    case .tryIt where !store.missingKeys.isEmpty:
-      unavailable(
-        "\(store.profile.name) needs \(OnboardingFeature.State.keysPhrase(store.missingKeys)) before you can dictate. Choose Add Key to return to the keys step.",
-        symbol: "key",
-      )
-    case .tryIt:
-      SemanticText(
-        OnboardingCopy.tryItQuote, identifier: AccessibilityID.onboardingTryItQuote,
-        label: "Read aloud",
-      )
-      .font(.title3)
-      .fixedSize(horizontal: false, vertical: true)
-      editor
-    case .ready:
-      HStack(alignment: .top, spacing: 12) {
-        Image(systemName: "checkmark.circle.fill")
-          .font(.system(size: 17))
-          .foregroundStyle(Color.green)
-          .frame(width: 22)
-          .accessibilityHidden(true)
-        VStack(alignment: .leading, spacing: 5) {
-          SemanticText(
-            "Your test dictation is complete",
-            identifier: AccessibilityID.onboardingTryItCompletion, label: "Test dictation status",
-          ).font(.system(size: 13, weight: .semibold))
-          SemanticText(
-            "\(Channel.name) is ready to use in any text field.",
-            identifier: AccessibilityID.onboardingTryItCompletionSummary, label: "Availability",
-          )
-          .font(.system(size: 12))
-          .foregroundStyle(.secondary)
+    if !store.missingKeys.isEmpty {
+      keylessRecovery
+    } else {
+      switch store.step {
+      case .keys:
+        unavailable("Add your keys to try a dictation.", symbol: "key")
+      case .permissions:
+        unavailable(
+          "Grant both permissions and wait for the speech model to try it.", symbol: "lock.shield",
+        )
+      case .shortcut:
+        unavailable(
+          "Choose your shortcut and wait for the speech model to try it.",
+          symbol: "command",
+        )
+      case .model:
+        unavailable("Wait for the speech model to finish before trying a dictation.", symbol: "cpu")
+      case .tryIt:
+        SemanticText(
+          OnboardingCopy.tryItQuote, identifier: AccessibilityID.onboardingTryItQuote,
+          label: "Read aloud",
+        )
+        .font(.title3)
+        .fixedSize(horizontal: false, vertical: true)
+        editor
+      case .ready:
+        HStack(alignment: .top, spacing: 12) {
+          Image(systemName: "checkmark.circle.fill")
+            .font(.system(size: 17))
+            .foregroundStyle(Color.green)
+            .frame(width: 22)
+            .accessibilityHidden(true)
+          VStack(alignment: .leading, spacing: 5) {
+            SemanticText(
+              "Your test dictation is complete",
+              identifier: AccessibilityID.onboardingTryItCompletion, label: "Test dictation status",
+            ).font(.system(size: 13, weight: .semibold))
+            SemanticText(
+              "\(Channel.name) is ready to use in any text field.",
+              identifier: AccessibilityID.onboardingTryItCompletionSummary, label: "Availability",
+            )
+            .font(.system(size: 12))
+            .foregroundStyle(.secondary)
+          }
         }
       }
+    }
+  }
+
+  private var keylessRecovery: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      TextField(
+        "Try dictation",
+        text: .constant(""),
+        prompt: Text(OnboardingCopy.tryItQuote),
+        axis: .vertical,
+      )
+      .labelsHidden()
+      .lineLimit(4, reservesSpace: true)
+      .textFieldStyle(.roundedBorder)
+      .disabled(true)
+      .overlay(alignment: .bottomTrailing) {
+        Label(
+          "No \(store.missingKeys.map(\.provider.displayName).joined(separator: " or ")) key",
+          systemImage: "key",
+        )
+        .font(.callout)
+        .padding(6)
+        .background(.regularMaterial, in: .rect(cornerRadius: 5))
+        .padding(4)
+      }
+      Button { store.send(.navigate(.keys)) } label: {
+        HStack {
+          Label(addKeyTitle, systemImage: "key")
+          Spacer()
+          Image(systemName: "chevron.right")
+        }
+        .frame(minHeight: 26)
+      }
+      .buttonStyle(.borderedProminent)
+      .focused(focus, equals: .tryItAddKey)
+      .keyboardShortcut(.defaultAction)
+      .accessibilityLabel(addKeyTitle)
+      OnboardingKeylessChoices(store: store, focus: focus)
     }
   }
 

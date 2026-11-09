@@ -13,11 +13,11 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
 
     let title = app.staticTexts["miniwhisper.onboarding.try-it.title"]
     XCTAssertTrue(title.awaitExistence(timeout: 5))
-    assertValue("Set up dictation to try it", of: title)
+    assertValue("Give it a try", of: title)
     XCTAssertFalse(app.tryItEditor.exists)
     assertLabel("Set Up Later", of: app.buttons["miniwhisper.onboarding.try-it.skip"])
     assertValue("Incomplete; Needs a key", of: app.buttons["miniwhisper.onboarding.rail.keys"])
-    XCTAssertTrue(app.buttons["Add Key…"].isHittable)
+    XCTAssertTrue(app.buttons["Add Anthropic Key…"].isHittable)
     app.typeKey(.return, modifierFlags: [])
     let field = app.secureTextFields["miniwhisper.onboarding.keys.anthropic"]
     XCTAssertTrue(field.awaitExistence(timeout: 2))
@@ -30,6 +30,15 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
     assertValue("Complete", of: app.buttons["miniwhisper.onboarding.rail.keys"])
     assertLabel("Skip test dictation", of: app.buttons["miniwhisper.onboarding.try-it.skip"])
     assertKeyboardFocus(on: app.tryItEditor)
+
+    for choice in ["use-custom", "use-offline"] {
+      presentScene("onboarding-try-it-key-skipped")
+      let button = app.buttons["miniwhisper.onboarding.keys.\(choice)"]
+      XCTAssertTrue(button.awaitHittable())
+      button.click()
+      XCTAssertTrue(app.tryItEditor.awaitExistence())
+      XCTAssertFalse(app.buttons["miniwhisper.onboarding.rail.keys"].exists)
+    }
   }
 
   @MainActor func testKeyHelpLinksParticipateInBothTabDirections() {
@@ -62,7 +71,7 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
         assertKeyboardFocus(on: stop)
       }
       assertLabel(
-        "Use on-device dictation",
+        providers.count == 1 ? "Skip cleanup" : "Use offline speech, skip cleanup",
         of: app.descendants(matching: .any)["miniwhisper.onboarding.keys.use-custom"],
       )
     }
@@ -86,10 +95,7 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
     XCTAssertGreaterThanOrEqual(window.frame.maxY - continueButton.frame.maxY, 24)
     XCTAssertLessThan(failure.frame.maxY, continueButton.frame.minY)
     recordScreenshot("two-keys-validation-error", screenshot: app.screenshot())
-    XCTAssertTrue(app.staticTexts[
-      "Parakeet on this Mac, without cleanup. Downloads its speech model if needed.",
-    ]
-    .awaitExistence())
+    XCTAssertTrue(app.buttons["miniwhisper.onboarding.keys.use-offline"].awaitExistence())
     app.descendants(matching: .any)["miniwhisper.onboarding.keys.use-custom"].click()
     XCTAssertTrue(app.groups["miniwhisper.onboarding.permissions"].awaitExistence())
     app.buttons["miniwhisper.onboarding.rail.model"].click()

@@ -36,6 +36,7 @@ enum OnboardingFocus: Hashable {
   case keyField(CredentialSlot)
   case keyHelp(CredentialSlot)
   case useCustom
+  case useOffline
   case keysContinue
   case permissionsAction
   case shortcutPreset(Int)
@@ -116,7 +117,7 @@ struct OnboardingView: View {
       store.missingKeys.flatMap { slot in
         slot.provider.keysURL == nil ? [OnboardingFocus.keyField(slot)]
           : [.keyField(slot), .keyHelp(slot)]
-      } + [.useCustom, .keysContinue]
+      } + [.useOffline, .useCustom, .keysContinue]
     case .permissions:
       store.activePermission == nil ? [] : [.permissionsAction]
     case .shortcut:
@@ -127,7 +128,8 @@ struct OnboardingView: View {
       store.needsModelSetup || store.canContinueFromModel ? [.modelAction] : []
     case .tryIt:
       tryItIsLive ? [.tryItEditor, .tryItSkip]
-        : store.missingKeys.isEmpty ? [.tryItSkip] : [.tryItAddKey, .tryItSkip]
+        : store.missingKeys.isEmpty ? [.tryItSkip]
+        : [.tryItAddKey, .useOffline, .useCustom, .tryItSkip]
     case .ready:
       [.readyAction]
     }
@@ -231,14 +233,7 @@ struct OnboardingView: View {
           .accessibilityIdentifier(AccessibilityID.onboardingModelContinue)
       }
     case .tryIt:
-      if !store.missingKeys.isEmpty {
-        Button(store.missingKeys.count == 1 ? "Add Key…" : "Add Keys…") {
-          store.send(.navigate(.keys))
-        }
-        .buttonStyle(.borderedProminent)
-        .focused($focus, equals: .tryItAddKey)
-        .keyboardShortcut(.defaultAction)
-      } else if store.step != .ready, store.step != .tryIt {
+      if store.missingKeys.isEmpty, store.step != .ready, store.step != .tryIt {
         SemanticText(
           "Complete the earlier steps to try a dictation",
           identifier: AccessibilityID.onboardingTryItGuidance, label: "Try it guidance",

@@ -841,7 +841,7 @@ struct OnboardingStepDerivationTests {
       }
       $0.storedKeys = []
     }
-    await store.receive(.delegate(.profileSelected))
+    await store.receive(.delegate(.keylessProfileSelected))
     #expect(store.state.step == .permissions)
   }
 

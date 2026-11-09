@@ -354,6 +354,7 @@ enum OnboardingStep: Int, Equatable {
     case keysVerified
     case keysCheckFailed(CredentialSlot, String)
     case useCustomTapped
+    case useOfflineTapped
     case downloadModel
     case modelDownloadConsented
     case modelDownloadConsentFailed(String)
@@ -384,6 +385,7 @@ enum OnboardingStep: Int, Equatable {
 
     enum Delegate: Equatable {
       case profileSelected
+      case keylessProfileSelected
       case keysStored
       case dismissed
       case setupModelRequested
@@ -553,20 +555,24 @@ enum OnboardingStep: Int, Equatable {
         state.failureMessage = nil
         state.selectedStep = nil
         return .send(.delegate(.keysStored))
-      case .useCustomTapped:
-        guard state.visibleStep == .keys else {
+      case .useCustomTapped,
+           .useOfflineTapped:
+        guard state.visibleStep == .keys || state.visibleStep == .tryIt else {
           return .none
         }
         state.$settings.withLock {
-          $0.profiles.active = .custom
-          $0.profiles.custom.cleanupEnabled = false
+          $0.profiles.active = action == .useOfflineTapped ? .offline : .custom
+          if action == .useCustomTapped {
+            $0.profiles.custom.cleanupEnabled = false
+          }
         }
         state.storedKeys = storedKeys(of: state.profile)
+        state.hasSkippedKeys = false
         state.keyDrafts = [:]
         state.keyFailure = nil
         state.failureMessage = nil
         state.selectedStep = nil
-        return .send(.delegate(.profileSelected))
+        return .send(.delegate(.keylessProfileSelected))
       case .downloadModel:
         guard !state.isRecordingModelDownloadConsent else {
           return .none

@@ -401,17 +401,7 @@ struct OnboardingKeysPage: View {
         ForEach(store.profile.credentials, id: \.self) { slot in
           keyRow(slot)
         }
-        Divider()
-        Button("Use on-device dictation") {
-          store.send(.useCustomTapped)
-        }
-        .buttonStyle(.bordered)
-        .focused(focus, equals: .useCustom)
-        .accessibilityIdentifier(AccessibilityID.onboardingKeysUseCustom)
-        Text("Parakeet on this Mac, without cleanup. Downloads its speech model if needed.")
-          .font(.callout)
-          .foregroundStyle(.secondary)
-          .fixedSize(horizontal: false, vertical: true)
+        OnboardingKeylessChoices(store: store, focus: focus)
       }
     }
     .accessibilityIdentifier(AccessibilityID.onboardingKeys)
@@ -483,6 +473,63 @@ struct OnboardingKeysPage: View {
       .accessibilityLabel("\(provider.displayName) key")
       .accessibilityValue("Saved")
     }
+  }
+}
+
+// MARK: - OnboardingKeylessChoices
+
+struct OnboardingKeylessChoices: View {
+  // MARK: Internal
+
+  let store: StoreOf<OnboardingFeature>
+  var focus: FocusState<OnboardingFocus?>.Binding
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      Text("or, without a key").font(.callout).foregroundStyle(.secondary)
+      choice(
+        hostedSpeech ? "Use offline speech and cleanup" : "Use offline cleanup",
+        symbol: "lock.laptopcomputer", assets: store.settings.profiles.profile(.offline).assets,
+        action: .useOfflineTapped,
+      )
+      .focused(focus, equals: .useOffline)
+      .accessibilityIdentifier("miniwhisper.onboarding.keys.use-offline")
+      choice(
+        hostedSpeech ? "Use offline speech, skip cleanup" : "Skip cleanup",
+        symbol: "waveform", assets: SpeechEngine.parakeet.assets, action: .useCustomTapped,
+      )
+      .focused(focus, equals: .useCustom)
+      .accessibilityIdentifier(AccessibilityID.onboardingKeysUseCustom)
+    }
+  }
+
+  // MARK: Private
+
+  private var hostedSpeech: Bool {
+    store.profile.engineCredential != nil
+  }
+
+  private func choice(
+    _ title: String, symbol: String, assets: [ModelAsset], action: OnboardingFeature.Action,
+  ) -> some View {
+    let bytes = assets.filter { store.assets[$0]?.isInstalled != true }
+      .map(\.pinnedBytes)
+      .reduce(0, +)
+    return Button { store.send(action) } label: {
+      HStack(spacing: 8) {
+        Label(title, systemImage: symbol)
+        Spacer()
+        if bytes > 0 {
+          Text(ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .file))
+            .font(.callout)
+            .foregroundStyle(.secondary)
+        }
+        Image(systemName: "chevron.right").foregroundStyle(.tertiary)
+      }
+      .frame(maxWidth: .infinity, minHeight: 26, alignment: .leading)
+    }
+    .buttonStyle(.bordered)
+    .accessibilityLabel(title)
   }
 }
 

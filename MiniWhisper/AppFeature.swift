@@ -827,6 +827,10 @@ private let performanceLogger = Logger(
       case .onboarding(.delegate(.profileSelected)):
         checkCleanupKey(&state)
         return .merge(activateEngine(&state), prepareLocalCleanup(state))
+      case .onboarding(.delegate(.keylessProfileSelected)):
+        checkCleanupKey(&state)
+        state.$health.withLock { $0.engine = state.settings.activeProfile.engine }
+        return .merge(setUpModel(&state), prepareLocalCleanup(state))
       // A hosted engine reads its key at the end of every prepare, so one already running will
       // find it; otherwise it is asked again now that there is something to find.
       case .onboarding(.delegate(.keysStored)):

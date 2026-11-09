@@ -289,6 +289,47 @@ import TranscriptCleanup
     #expect(installed.value == [.s1Mini])
   }
 
+  @Test(arguments: [OnboardingFeature.Action.useCustomTapped, .useOfflineTapped])
+  func `leaving hosted speech without keys downloads the chosen on device stack`(
+    action: OnboardingFeature.Action,
+  ) async {
+    var initial = state(engineReadiness: .modelMissing)
+    initial.$settings.withLock { $0.profiles.active = .accurate }
+    initial.$health.withLock {
+      $0.engine = .scribe
+      $0.engineReadiness = .ready
+    }
+    initial.onboarding.isPresented = true
+    initial.onboarding.selectedStep = .tryIt
+    initial.onboarding.storedKeys = []
+    initial.onboarding.hasSkippedKeys = true
+    initial.onboarding.hasCompletedShortcut = true
+    let assets = TestBox<[ModelAsset]>([])
+    let engines = TestBox<[SpeechEngine]>([])
+    let store = TestStore(initialState: initial) { AppFeature() } withDependencies: {
+      $0.keychain.read = { _ in nil }
+      $0.modelDownloadConsent.isConsented = { true }
+      $0.modelLibrary.isInstalled = { _ in false }
+      $0.modelLibrary.install = { assets.value.append($0) }
+      $0.cleanup.prepareLocal = {}
+      $0.asrEngine.installAndPrepare = { engine in
+        engines.value.append(engine)
+        return AsyncStream { $0.finish() }
+      }
+    }
+    store.exhaustivity = .off(showSkippedAssertions: false)
+
+    await store.send(.onboarding(action))
+    await store.finish()
+
+    #expect(store.state.health.engine == .parakeet)
+    #expect(engines.value == [.parakeet])
+    #expect(assets.value == (action == .useOfflineTapped ? [.s1Mini] : []))
+    #expect(store.state.onboarding.selectedStep == nil)
+    #expect(store.state.onboarding.missingKeys.isEmpty)
+    #expect(store.state.onboarding.hasCompletedShortcut)
+  }
+
   /// S1-mini is no engine's model, so its Download installs it directly rather than through
   /// model setup, and Offline warms it the moment it lands.
   @Test func `downloading the cleanup model installs it and warms it for offline`() async {
