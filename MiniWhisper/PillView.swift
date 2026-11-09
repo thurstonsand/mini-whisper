@@ -224,14 +224,20 @@ struct PillView: View {
         submits
       }
       if polishing.isSkipRevealed {
+        // Once the dictation submits, Return is the key that skips its cleanup, and submits it.
+        let skipComponents =
+          store.submits
+            ? HotkeyDisplayName.components(keyCodes: [36], modifiers: [])
+            : polishing.skipComponents
+        let skipAction = store.submits ? "Submit now" : "Paste now"
         Divider().frame(height: 16)
         SemanticText(
-          "Paste now",
-          identifier: AccessibilityID.pillSkipAffordance, label: "Paste now",
-          value: "\(polishing.skipComponents.joined(separator: " ")) to paste now",
+          skipAction,
+          identifier: AccessibilityID.pillSkipAffordance, label: skipAction,
+          value: "\(skipComponents.joined(separator: " ")) to \(skipAction.lowercased())",
         )
         .foregroundStyle(.secondary)
-        HotkeyKeycaps(components: polishing.skipComponents)
+        HotkeyKeycaps(components: skipComponents)
           .foregroundStyle(.secondary)
           .accessibilityHidden(true)
       }

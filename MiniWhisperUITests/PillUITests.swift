@@ -72,6 +72,7 @@ final class PillUITests: MiniWhisperUITestCase, SurfaceTagged {
     XCTAssertTrue(poll { skip.frame.maxY < destination.frame.minY })
     XCTAssertTrue(poll { abs(skip.frame.midY - phase.frame.midY) < 2 })
     assertValue("Cleaning up", of: phase)
+    assertValue("Return to submit now", of: skip)
     let submits = app.images["miniwhisper.pill.submits"]
     XCTAssertTrue(submits.awaitExistence())
     XCTAssertTrue(poll { abs(submits.frame.midY - destination.frame.midY) < 2 })

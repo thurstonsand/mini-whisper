@@ -160,6 +160,15 @@ extension AppFeature {
         gestureLogger.notice("Return arrived after delivery began; not submitted")
         return .none
       }
+      // A dictation already submitting has nothing left for Return to ask but to stop waiting.
+      if let dictation = state.pendingDictation, dictation.submits, dictation.cleanup != nil,
+         dictation.readyText == nil
+      {
+        return .merge(
+          .send(.hotkeyListenerEvent(.gestureInput(.cleanupEnded))),
+          skipCleanup(dictation.generation, &state),
+        )
+      }
       if state.pendingDictation == nil {
         state.recordingSubmits = true
       } else {

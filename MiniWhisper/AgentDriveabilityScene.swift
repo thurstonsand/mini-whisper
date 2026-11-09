@@ -392,7 +392,8 @@ enum PresentedWindow: Equatable {
         state.pill.presentation = .polishing(
           PillFeature.State.Presentation.Polishing(skipComponents: activateComponents(state)),
         )
-      // The widest the pill gets: a cleanup slow enough to offer its skip, bound for elsewhere.
+      // A cleanup slow enough to offer its skip, bound for elsewhere and submitting, so Return is
+      // the skip.
       case .pillPolishingSkip:
         state.pill.presentation = .polishing(
           PillFeature.State.Presentation.Polishing(
@@ -432,7 +433,6 @@ enum PresentedWindow: Equatable {
           ), isSkipRevealed: true),
         )
         state.pill.destination = "Safari · Pull request #482: Background delivery"
-        state.pill.submits = true
       }
       // An onboarding scene's permission truth is its snapshot; the app-level fields follow it, so
       // the seeded state and the seeded clients can never disagree about what has been granted.
