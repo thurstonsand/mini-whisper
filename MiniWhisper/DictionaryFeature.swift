@@ -82,13 +82,14 @@ enum DictionaryFieldCopy {
     var cursor: EntryID?
     var draft: Draft?
     var persistenceFailure: String?
+    var isVocabularyExpanded = false
 
     var loadFailure: String? {
       $dictionary.loadError?.localizedDescription
     }
 
     var refusalReason: String? {
-      loadFailure.map {
+      persistenceFailure ?? loadFailure.map {
         "dictionary.json couldn’t be read. Back it up before repairing or removing it. Removing it resets saved words and corrections. \($0)"
       }
     }
@@ -122,8 +123,13 @@ enum DictionaryFieldCopy {
       }
     }
 
+    var visibleEntries: [Entry] {
+      entries.filter { !usesReducedEmphasis($0) }
+        + (isVocabularyExpanded ? entries.filter { usesReducedEmphasis($0) } : [])
+    }
+
     var cursorEntry: Entry? {
-      entries.first { $0.id == cursor } ?? entries.first
+      visibleEntries.first { $0.id == cursor } ?? visibleEntries.first
     }
 
     func usesReducedEmphasis(_ entry: Entry) -> Bool {
@@ -138,11 +144,11 @@ enum DictionaryFieldCopy {
 
     mutating func advanceCursor(past id: EntryID) {
       guard cursorEntry?.id == id,
-            let index = entries.firstIndex(where: { $0.id == id })
+            let index = visibleEntries.firstIndex(where: { $0.id == id })
       else {
         return
       }
-      let survivors = entries.filter { $0.id != id }
+      let survivors = visibleEntries.filter { $0.id != id }
       cursor = survivors.isEmpty ? nil : survivors[min(index, survivors.count - 1)].id
     }
   }
@@ -171,9 +177,10 @@ enum DictionaryFieldCopy {
     case quickAddSubmitted(word: String, misspelling: String)
     case persistenceFailed(PersistenceContext, String)
     case persistenceSaved
-    case retrySaveRequested
     case revealFileRequested
     case reloadRequested
+    case reloaded
+    case vocabularyExpansionChanged(Bool)
     case showVocabularySettings
     case delegate(Delegate)
 
@@ -198,9 +205,10 @@ enum DictionaryFieldCopy {
       case .revealFileRequested:
         return .run { _ in await workspace.reveal(Channel.dictionaryFile) }
       case .reloadRequested:
-        return .run { [dictionary = state.$dictionary] _ in
+        return .run { [dictionary = state.$dictionary] send in
           do {
             try await dictionary.load()
+            await send(.reloaded)
           } catch {
             // Shared retains the load error, so the recovery surface stays available.
             dictionaryLogger
@@ -211,7 +219,7 @@ enum DictionaryFieldCopy {
         state.sort = sort
         return .none
       case let .cursorMoved(movement):
-        let entries = state.entries
+        let entries = state.visibleEntries
         guard let place = state.cursorEntry,
               let index = entries.firstIndex(where: { $0.id == place.id })
         else {
@@ -321,14 +329,13 @@ enum DictionaryFieldCopy {
         case .quickAdd:
           return .send(.delegate(.quickAddPersistenceFailed(message)))
         }
-      case .persistenceSaved:
+      case .persistenceSaved,
+           .reloaded:
         state.persistenceFailure = nil
         return .none
-      case .retrySaveRequested:
-        if let refusal = mutationsAreAllowed(&state, context: .pane).refusal {
-          return refusal
-        }
-        return save(state.$dictionary, context: .pane)
+      case let .vocabularyExpansionChanged(expanded):
+        state.isVocabularyExpanded = expanded
+        return .none
       case .showVocabularySettings,
            .delegate:
         return .none

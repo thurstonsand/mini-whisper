@@ -4,7 +4,7 @@ import SwiftUI
 
 // MARK: - WindowKeyMonitor
 
-private struct WindowKeyMonitor: NSViewRepresentable {
+struct WindowKeyMonitor: NSViewRepresentable {
   final class MonitorView: NSView {
     // MARK: Lifecycle
 

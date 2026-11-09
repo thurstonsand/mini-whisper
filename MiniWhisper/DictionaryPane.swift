@@ -12,27 +12,42 @@ struct DictionaryPane: View {
 
   var body: some View {
     Form {
-      Section {
-        ForEach(store.dictionary.entries) { entry in
-          DictionaryRow(store: store, entry: entry)
+      if store.dictionary.refusalReason == nil {
+        Section {
+          ForEach(store.dictionary
+            .entries
+            .filter { !store.dictionary.usesReducedEmphasis($0) })
+          { entry in
+            DictionaryRow(store: store, entry: entry)
+          }
         }
-      } footer: {
         if !store.dictionary.profiles.activeProfile.usesVocabulary,
            !store.dictionary.dictionary.vocabulary.isEmpty
         {
-          VStack(alignment: .leading, spacing: 8) {
-            Text(
-              "Vocabulary isn’t used by \(store.dictionary.profiles.activeProfile.name). Corrections still apply.",
-            )
-            .font(.callout.weight(.regular))
-            .foregroundStyle(.secondary)
-            .lineLimit(nil)
-            .fixedSize(horizontal: false, vertical: true)
-            Button("Open Vocabulary Settings…") {
-              store.send(.dictionary(.showVocabularySettings))
+          Section {
+            HStack(alignment: .top) {
+              DisclosureGroup(isExpanded: $store.dictionary
+                .isVocabularyExpanded
+                .sending(\.dictionary.vocabularyExpansionChanged))
+              {
+                ForEach(store.dictionary
+                  .entries
+                  .filter { store.dictionary.usesReducedEmphasis($0) })
+                { entry in
+                  DictionaryRow(store: store, entry: entry)
+                }
+              } label: {
+                Label(
+                  store.dictionary.dictionary.vocabulary.map(\.text).joined(separator: ", "),
+                  systemImage: "book.closed",
+                )
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+              }
+              Button("Boost…") { store.send(.dictionary(.showVocabularySettings)) }
+                .buttonStyle(.bordered)
+                .accessibilityIdentifier("miniwhisper.dictionary.vocabulary-settings")
             }
-            .buttonStyle(.bordered)
-            .accessibilityIdentifier("miniwhisper.dictionary.vocabulary-settings")
           }
         }
       }
@@ -59,19 +74,6 @@ struct DictionaryPane: View {
     .sheet(isPresented: draftPresented) {
       DictionaryEditSheet(store: store)
     }
-    .safeAreaBar(edge: .bottom) {
-      if let failure = store.dictionary.persistenceFailure, store.dictionary.loadFailure == nil {
-        HStack {
-          VStack(alignment: .leading, spacing: 4) {
-            Text("Changes haven’t been saved.")
-            Text(failure).font(.callout).foregroundStyle(.secondary)
-          }
-          Spacer()
-          Button("Retry Save") { store.send(.dictionary(.retrySaveRequested)) }
-        }
-        .padding()
-      }
-    }
   }
 
   // MARK: Private
@@ -88,13 +90,21 @@ struct DictionaryPane: View {
   }
 
   @ViewBuilder private var emptyState: some View {
-    if store.dictionary.loadFailure != nil {
+    if store.dictionary.refusalReason != nil {
       ContentUnavailableView {
-        Label("Dictionary Unavailable", systemImage: "exclamationmark.triangle")
-      } description: {
-        Text(
-          "dictionary.json couldn’t be read. Back it up before repairing or removing it. Removing it resets saved words and corrections.",
+        Label(
+          store.dictionary
+            .persistenceFailure == nil ? "Dictionary Unavailable" : "Dictionary entry not saved",
+          systemImage: "exclamationmark.triangle",
         )
+      } description: {
+        if let failure = store.dictionary.persistenceFailure {
+          Text(failure)
+        } else {
+          Text(
+            "dictionary.json couldn’t be read. Back it up before repairing or removing it. Removing it resets saved words and corrections.",
+          )
+        }
       } actions: {
         Button("Show in Finder") { store.send(.dictionary(.revealFileRequested)) }
         Button("Try Again") { store.send(.dictionary(.reloadRequested)) }
@@ -213,39 +223,45 @@ private struct DictionaryEditSheet: View {
       .pickerStyle(.segmented)
       .labelsHidden()
       .accessibilityIdentifier("miniwhisper.dictionary.entry-type")
+      HStack {
+        Text("⌘1").frame(maxWidth: .infinity)
+        Text("⌘2").frame(maxWidth: .infinity)
+      }
+      .font(.caption)
+      .foregroundStyle(.secondary)
       if store.dictionary.draft?.isCorrection == true {
-        VStack(alignment: .leading) {
-          Text("Replace")
-          TextField("Replace", text: misspellingBinding)
-            .labelsHidden()
-            .onSubmit { save() }
-            .focused($focus, equals: .misspelling)
-            .task {
-              await Task.yield()
-              focus = .misspelling
-            }
-            .accessibilityIdentifier(AccessibilityID.dictionaryMisspelling)
-        }
-        VStack(alignment: .leading) {
-          Text("With")
-          TextField("With", text: textBinding)
-            .labelsHidden()
-            .onSubmit { save() }
-            .accessibilityIdentifier(AccessibilityID.dictionaryText)
+        Grid(alignment: .leading, horizontalSpacing: 10, verticalSpacing: 10) {
+          GridRow {
+            Text("Replace").gridColumnAlignment(.trailing)
+            TextField("", text: misspellingBinding)
+              .onSubmit { save() }
+              .focused($focus, equals: .misspelling)
+              .task {
+                await Task.yield()
+                focus = .misspelling
+              }
+              .accessibilityLabel("Replace")
+              .accessibilityIdentifier(AccessibilityID.dictionaryMisspelling)
+          }
+          GridRow {
+            Text("With")
+            TextField("", text: textBinding)
+              .onSubmit { save() }
+              .focused($focus, equals: .word)
+              .accessibilityLabel("With")
+              .accessibilityIdentifier(AccessibilityID.dictionaryText)
+          }
         }
       } else {
-        VStack(alignment: .leading) {
-          Text(DictionaryFieldCopy.word)
-          TextField(DictionaryFieldCopy.word, text: textBinding)
-            .labelsHidden()
-            .onSubmit { save() }
-            .focused($focus, equals: .word)
-            .task {
-              await Task.yield()
-              focus = .word
-            }
-            .accessibilityIdentifier(AccessibilityID.dictionaryText)
-        }
+        TextField(DictionaryFieldCopy.word, text: textBinding)
+          .labelsHidden()
+          .onSubmit { save() }
+          .focused($focus, equals: .word)
+          .task {
+            await Task.yield()
+            focus = .word
+          }
+          .accessibilityIdentifier(AccessibilityID.dictionaryText)
       }
     }
     .textFieldStyle(.roundedBorder)
@@ -253,6 +269,24 @@ private struct DictionaryEditSheet: View {
     .padding(20)
     .frame(width: 420)
     .fixedSize(horizontal: false, vertical: true)
+    .background {
+      WindowTabKeys { _ in
+        focus = store.dictionary.draft?
+          .isCorrection == true && focus == .word ? .misspelling : .word
+        return true
+      }
+      WindowKeyMonitor { event in
+        guard event.modifierFlags
+          .intersection(.deviceIndependentFlagsMask)
+          .subtracting(.capsLock) == .command,
+          let key = event.charactersIgnoringModifiers, key == "1" || key == "2"
+        else {
+          return false
+        }
+        store.send(.dictionary(.draftCorrectionChanged(key == "2")))
+        return true
+      }
+    }
     .safeAreaBar(edge: .top) {
       Text(title)
         .font(.headline)

@@ -20,8 +20,17 @@ final class DictionaryUITests: MiniWhisperUITestCase, SurfaceTagged {
         let correction = app.descendants(matching: .any)[
           "miniwhisper.dictionary.row.correction.mini-whisperer",
         ]
-        try require(vocabulary.awaitExistence(timeout: 5))
-        try require(correction.exists)
+        try require(correction.awaitExistence(timeout: 5))
+        XCTAssertFalse(vocabulary.exists)
+        app.disclosureTriangles
+          .firstMatch
+          .coordinate(withNormalizedOffset: CGVector(
+            dx: 0,
+            dy: 0.5,
+          ))
+          .withOffset(CGVector(dx: 26, dy: 0))
+          .click()
+        try require(vocabulary.awaitExistence())
 
         // The scene's profile never reads the vocabulary, so only vocabulary fades.
         self.assertValue(
@@ -37,14 +46,7 @@ final class DictionaryUITests: MiniWhisperUITestCase, SurfaceTagged {
           ],
         )
 
-        app.typeText("l")
-        self.assertValue(
-          "Grey on; Cursor on; Emphasis reduced",
-          of: app.staticTexts[
-            "miniwhisper.dictionary.row.vocabulary.miniwhisper.state",
-          ],
-        )
-        app.typeText("j")
+        app.typeText("hl")
         self.assertValue(
           "Grey on; Cursor on; Emphasis normal",
           of: app.staticTexts[
@@ -63,6 +65,12 @@ final class DictionaryUITests: MiniWhisperUITestCase, SurfaceTagged {
         self.assertValue("mini whisperer", of: app.textFields["miniwhisper.dictionary.misspelling"])
         self.assertKeyboardFocus(on: app.textFields["miniwhisper.dictionary.misspelling"])
         self.assertValue("MiniWhisper", of: app.textFields["miniwhisper.dictionary.text"])
+        app.typeKey(.tab, modifierFlags: [])
+        self.assertKeyboardFocus(on: app.textFields["miniwhisper.dictionary.text"])
+        app.typeKey(.tab, modifierFlags: [])
+        self.assertKeyboardFocus(on: app.textFields["miniwhisper.dictionary.misspelling"])
+        app.typeKey(.tab, modifierFlags: .shift)
+        self.assertKeyboardFocus(on: app.textFields["miniwhisper.dictionary.text"])
         app.typeKey(.escape, modifierFlags: [])
         try require(sheet.awaitNonExistence())
 
@@ -79,11 +87,11 @@ final class DictionaryUITests: MiniWhisperUITestCase, SurfaceTagged {
         app.typeText("TCA")
         self.assertValue("TCA", of: text)
         XCTAssertTrue(poll { save.isEnabled })
-        sheet.radioButtons["Correction"].click()
+        app.typeKey("2", modifierFlags: .command)
         self.assertValue("TCA", of: text)
         self.assertKeyboardFocus(on: app.textFields["miniwhisper.dictionary.misspelling"])
         XCTAssertTrue(poll { !save.isEnabled })
-        sheet.radioButtons["Word"].click()
+        app.typeKey("1", modifierFlags: .command)
         self.assertKeyboardFocus(on: text)
         self.assertValue("TCA", of: text)
         XCTAssertTrue(poll { save.isEnabled })
@@ -128,15 +136,18 @@ final class DictionaryUITests: MiniWhisperUITestCase, SurfaceTagged {
         XCTAssertTrue(settings.awaitNonExistence())
       },
 
-      Law("A persistence failure stays available until a successful retry") { app in
+      Law("A failed save refuses edits until the dictionary is reloaded") { app in
         self.postAgentMutation("dictionary-save-failed", value: "disk full")
 
-        let retry = app.buttons["Retry Save"]
+        let retry = app.buttons["Try Again"]
         try require(retry.awaitHittable())
-        XCTAssertTrue(app.staticTexts["Changes haven’t been saved."].exists)
+        XCTAssertTrue(app.staticTexts["Dictionary entry not saved"].exists)
         XCTAssertTrue(app.staticTexts["disk full"].exists)
+        XCTAssertFalse(app.buttons["miniwhisper.dictionary.add"].isEnabled)
+        XCTAssertFalse(app.buttons["Retry Save"].exists)
         retry.click()
         XCTAssertTrue(retry.awaitNonExistence())
+        XCTAssertTrue(app.buttons["miniwhisper.dictionary.add"].isEnabled)
       },
     ])
   }

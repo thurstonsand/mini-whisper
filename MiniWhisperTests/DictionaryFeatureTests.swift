@@ -191,7 +191,7 @@ import Testing
     await store.receive(.persistenceSaved)
   }
 
-  @Test func `persistence failures keep entries available for retry`() async {
+  @Test func `persistence failures refuse editing until the file is reloaded`() async {
     let entry = VocabularyEntry(text: "AcmeOS", addedAt: .distantPast)
     let store = TestStore(
       initialState: makeRecognitionEnabledDictionaryState(
@@ -204,11 +204,16 @@ import Testing
     }
     await store.receive(.delegate(.quickAddPersistenceFailed("disk full")))
     #expect(store.state.entries.map(\.text) == ["AcmeOS"])
-    await store.send(.retrySaveRequested)
-    await store.receive(.persistenceSaved) {
+    await store.send(.addRequested)
+    #expect(store.state.draft == nil)
+    await store.send(.reloadRequested)
+    await store.receive(.reloaded) {
       $0.persistenceFailure = nil
     }
     #expect(store.state.entries.map(\.text) == ["AcmeOS"])
+    await store.send(.addRequested) {
+      $0.draft = .init()
+    }
   }
 
   @Test func `quick add persistence failures delegate to the app notice`() async {
