@@ -17,7 +17,7 @@ struct ProfilesPane: View {
 
   var body: some View {
     Form {
-      GroupBox {
+      Section {
         VStack(alignment: .leading, spacing: 16) {
           PickerRow(store: store)
           Divider()
