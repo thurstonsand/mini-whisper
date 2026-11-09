@@ -15,6 +15,8 @@ APP_PATH = "{{ env.DERIVED_DATA }}/Build/Products/Debug/MiniWhisper Dev.app"
 
 [settings]
 experimental = true
+# Every tool, and every package mise locks under it, waits 3 days after release, like Renovate.
+minimum_release_age = "3d"
 
 [hooks]
 enter = "mise bootstrap --yes --quiet && ([ -f buildServer.json ] || mise run bsp >/dev/null)"
