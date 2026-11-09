@@ -208,33 +208,6 @@ struct HotkeyGestureMachineTests {
     #expect(machine.receive(.deadlineElapsed) == .discardRecording)
   }
 
-  @Test func `the press that ends a recording decides whether it submits`() {
-    var hold = HotkeyGestureMachine()
-    #expect(hold.receive(.activation(at: .zero, submits: true)) == .startRecording)
-    #expect(hold.receive(.release(at: .seconds(1))) == .stopAndSubmit)
-
-    // Latched with activate, ended with a submit tap.
-    var latch = provisional()
-    _ = latch.receive(.activation(at: .milliseconds(200)))
-    #expect(latch.receive(.release(at: .milliseconds(250))) == .latchEngaged)
-    #expect(latch.receive(.activation(at: .seconds(2), submits: true)) == .stopAndSubmit)
-
-    // Latched with submit, ended with an activate tap.
-    var plain = HotkeyGestureMachine()
-    _ = plain.receive(.activation(at: .zero, submits: true))
-    _ = plain.receive(.release(at: .milliseconds(50)))
-    _ = plain.receive(.activation(at: .milliseconds(200), submits: true))
-    _ = plain.receive(.release(at: .milliseconds(250)))
-    #expect(plain.receive(.activation(at: .seconds(2))) == .stopAndTranscribe)
-  }
-
-  @Test func `a lone submit tap while polishing marks the detached dictation to submit`() {
-    var machine = cleanupPending()
-    #expect(machine.receive(.activation(at: .seconds(1), submits: true)) == .detachAndRecord)
-    #expect(machine.receive(.release(at: .seconds(1) + .milliseconds(80))) == nil)
-    #expect(machine.receive(.deadlineElapsed) == .submitDetached)
-  }
-
   @Test func `tap at two hundred milliseconds is A hold`() {
     var machine = HotkeyGestureMachine()
     #expect(machine.receive(.activation(at: .zero)) == .startRecording)

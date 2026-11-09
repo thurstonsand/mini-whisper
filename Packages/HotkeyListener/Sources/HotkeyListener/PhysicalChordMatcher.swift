@@ -46,8 +46,7 @@ public struct KeyTransition: Equatable, Sendable {
 // MARK: - GestureInput
 
 public enum GestureInput: Equatable, Sendable {
-  /// `submits` when the press came from a submit binding.
-  case activation(at: Duration, submits: Bool = false)
+  case activation(at: Duration)
   case release(at: Duration)
   case conflict(at: Duration)
   case mouseDown(at: Duration)

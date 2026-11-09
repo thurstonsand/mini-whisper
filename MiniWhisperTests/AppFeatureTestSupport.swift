@@ -13,7 +13,6 @@ extension HotkeyBindingsSettings {
   mutating func set(_ hotkeys: [Hotkey], for command: HotkeyCommand) {
     self = HotkeyBindingsSettings(
       activate: command == .activate ? hotkeys : self.hotkeys(for: .activate),
-      submit: command == .submit ? hotkeys : self.hotkeys(for: .submit),
       pasteLastTranscript: command == .pasteLastTranscript
         ? hotkeys : self.hotkeys(for: .pasteLastTranscript),
     )
@@ -25,15 +24,12 @@ extension Hotkey {
   static let testPasteLastTranscript = try! Hotkey(
     keyCode: 9, modifiers: [.leftOption, .leftCommand],
   )
-  static let testSubmit = try! Hotkey(modifiers: [.rightCommand])
 
   /// A binding for each command that none of the others claims.
   static func testBinding(for command: HotkeyCommand) -> Hotkey {
     switch command {
     case .activate:
       .testRightOption
-    case .submit:
-      .testSubmit
     case .pasteLastTranscript:
       .testPasteLastTranscript
     }

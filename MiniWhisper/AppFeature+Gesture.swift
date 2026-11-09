@@ -147,18 +147,6 @@ extension AppFeature {
       }
       state.detachedByPress = nil
       return .merge(discarded, skipCleanup(generation, &state))
-    case .submitDetached:
-      let discarded = performGesture(.discardRecording, state: &state)
-      guard let generation = state.detachedByPress,
-            var dictation = state.dictation(generation), !dictation.isDelivering
-      else {
-        return discarded
-      }
-      state.detachedByPress = nil
-      dictation.submits = true
-      state.updateDictation(dictation)
-      gestureLogger.notice("Dictation \(generation) will submit once it lands")
-      return discarded
     case .submitDictation:
       // The tap claimed this Return against the target the dictation had a moment ago; one whose
       // delivery started in between has already pasted without it.

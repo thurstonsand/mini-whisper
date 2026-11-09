@@ -54,7 +54,7 @@ import Testing
     #expect(store.state.history.entries.first?.targetApp?.bundleID == "com.example.Editor")
   }
 
-  @Test func `a recording ended by the submit binding delivers with Return`() async {
+  @Test func `a recording ended by Return delivers with Return`() async {
     let submitted = StringRecorder()
     var settings = MiniWhisperSettings.defaults
     settings.retention.audio = .never

@@ -81,13 +81,6 @@ enum AccessibilityID {
   static let settingsPasteLastShortcutRecording = "miniwhisper.settings.shortcut.paste-last.recording"
   static let settingsPasteLastShortcutRecordingError =
     "miniwhisper.settings.shortcut.paste-last.recording.error"
-  static let settingsSubmitShortcutRow = "miniwhisper.settings.shortcut.submit"
-  static let settingsSubmitShortcutRowState = "miniwhisper.settings.shortcut.submit.state"
-  static let settingsSubmitShortcutSet = "miniwhisper.settings.shortcut.submit.set"
-  static let settingsSubmitShortcutMenu = "miniwhisper.settings.shortcut.submit.menu"
-  static let settingsSubmitShortcutRecording = "miniwhisper.settings.shortcut.submit.recording"
-  static let settingsSubmitShortcutRecordingError =
-    "miniwhisper.settings.shortcut.submit.recording.error"
   static let settingsMicrophoneRow = "miniwhisper.settings.microphone"
   static let settingsMicrophoneRowState = "miniwhisper.settings.microphone.state"
   static let settingsMicrophonePicker = "miniwhisper.settings.microphone.picker"
@@ -309,10 +302,6 @@ enum AccessibilityID {
 
   static func settingsPasteLastShortcutBinding(_ index: Int) -> String {
     "miniwhisper.settings.shortcut.paste-last.binding.\(index)"
-  }
-
-  static func settingsSubmitShortcutBinding(_ index: Int) -> String {
-    "miniwhisper.settings.shortcut.submit.binding.\(index)"
   }
 
   static func settingsSound(_ cue: SoundCue, _ part: SettingsSoundPart) -> String {

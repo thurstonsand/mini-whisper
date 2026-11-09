@@ -66,7 +66,7 @@ import Testing
     let store = TestStore(initialState: state) { SettingsPaneFeature() }
 
     await store.send(.rowMoved(.next)) {
-      $0.cursor.row = .shortcut(.submit)
+      $0.cursor.row = .shortcut(.pasteLastTranscript)
       $0.cursor.target = 0
     }
     await store.send(.rightPressed)
@@ -118,7 +118,6 @@ import Testing
   @Test func `microphone row joins keyboard movement and Return activation`() async {
     let store = TestStore(initialState: makeState()) { SettingsPaneFeature() }
 
-    await store.send(.rowMoved(.next)) { $0.cursor.row = .shortcut(.submit) }
     await store.send(.rowMoved(.next)) {
       $0.cursor.row = .shortcut(.pasteLastTranscript)
     }
@@ -206,7 +205,6 @@ import Testing
   @Test func `sound rows join movement with popup and preview targets`() async {
     let store = TestStore(initialState: makeState()) { SettingsPaneFeature() }
 
-    await store.send(.rowMoved(.next)) { $0.cursor.row = .shortcut(.submit) }
     await store.send(.rowMoved(.next)) {
       $0.cursor.row = .shortcut(.pasteLastTranscript)
     }

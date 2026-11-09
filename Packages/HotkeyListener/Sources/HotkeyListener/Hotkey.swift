@@ -159,7 +159,5 @@ public struct HotkeyBinding<Action: Equatable & Sendable>: Equatable, Sendable {
 
 public enum HotkeyBindingRoute<Action: Equatable & Sendable>: Equatable, Sendable {
   case gesture
-  /// The same gestures, from a binding whose presses ask for Return after delivery.
-  case submittingGesture
   case action(Action)
 }

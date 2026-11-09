@@ -98,39 +98,6 @@ import TranscriptCleanup
     #expect(entry.original?.cleanup?.disposition == .skipped)
   }
 
-  @Test func `a submit tap while polishing keeps the cleanup and sends Return`() async {
-    let delivered = StringRecorder()
-    let clock = TestClock()
-    let store = skipStore {
-      $0.continuousClock = clock
-      $0.delivery.deliver = { text, _, submits in
-        await delivered.record("\(text) submits=\(submits)")
-        return .pasted(.restored)
-      }
-    }
-
-    await store.send(
-      .hotkeyListenerEvent(.gestureInput(.activation(at: .zero, submits: true))),
-    )
-    await store.send(
-      .hotkeyListenerEvent(.gestureInput(.release(at: .milliseconds(80)))),
-    )
-    await clock.advance(by: .milliseconds(300))
-    await store.skipReceivedActions()
-    #expect(await delivered.values.isEmpty)
-    #expect(store.state.recording.phase == .idle)
-
-    await store.send(
-      .cleanupResolved(
-        1, .attempted(skipConfiguration, .cleaned("deliver me as heard.", seconds: 4)),
-      ),
-    )
-    await store.skipReceivedActions()
-    await store.skipInFlightEffects()
-
-    #expect(await delivered.values == ["Deliver me as heard. submits=true"])
-  }
-
   @Test func `Return while polishing keeps the cleanup and sends Return after it`() async {
     let delivered = StringRecorder()
     let store = skipStore {

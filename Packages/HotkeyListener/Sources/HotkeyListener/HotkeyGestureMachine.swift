@@ -3,8 +3,7 @@
 public enum GestureEvent: String, Equatable, Sendable {
   case startRecording
   case stopAndTranscribe
-  /// The press that ended the recording came from a submit binding: the dictation sends Return
-  /// once it lands.
+  /// Return ended the recording: the dictation sends Return once it lands.
   case stopAndSubmit
   case latchEngaged
   case discardRecording
@@ -16,9 +15,6 @@ public enum GestureEvent: String, Equatable, Sendable {
   /// The press that detached a dictation turned out to be a lone tap: its recording is discarded,
   /// and the dictation it detached is delivered as heard.
   case skipCleanup
-  /// The same lone tap from a submit binding: the recording is discarded, and the dictation it
-  /// detached keeps its cleanup and sends Return once it lands.
-  case submitDetached
   /// Return pressed once the capture was over, which only reaches the machine when the user is
   /// at the target of the dictation still owed: it sends Return once it lands.
   case submitDictation
@@ -76,8 +72,6 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
   public let timing: Timing
   /// The press now in progress began while cleanup was pending, so a lone tap means skip.
   public private(set) var pressDetachedCleanup = false
-  /// The latest press came from a submit binding. Whichever press ends a recording decides.
-  public private(set) var pressSubmits = false
 
   /// A recording the user is still speaking into, which Return ends and submits. A tap that may
   /// yet be discarded is not one.
@@ -139,8 +133,8 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
       endCleanup()
     case .refused:
       refuse()
-    case let .activation(time, submits):
-      activate(at: time, submits: submits)
+    case let .activation(time):
+      activate(at: time)
     case let .release(time):
       release(at: time)
     case let .conflict(time):
@@ -152,12 +146,11 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
 
   // MARK: Private
 
-  private mutating func activate(at time: Duration, submits: Bool) -> GestureEvent? {
+  private mutating func activate(at time: Duration) -> GestureEvent? {
     switch phase {
     case .idle:
       phase = .holding(startedAt: time)
       pressDetachedCleanup = false
-      pressSubmits = submits
       return .startRecording
     case let .provisional(releasedAt):
       guard time - releasedAt < timing.doubleTapWindow else {
@@ -165,16 +158,13 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
         return lonelyTap()
       }
       phase = .secondPress(startedAt: time)
-      pressSubmits = submits
       return nil
     case .latched:
       phase = .blockedUntilRelease
-      pressSubmits = submits
-      return stop()
+      return .stopAndTranscribe
     case .cleanupPending:
       phase = .holding(startedAt: time)
       pressDetachedCleanup = true
-      pressSubmits = submits
       return .detachAndRecord
     case .holding,
          .secondPress,
@@ -188,14 +178,14 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
     case let .holding(startedAt):
       guard time - startedAt < timing.tapMaximumDuration else {
         phase = .idle
-        return stop()
+        return .stopAndTranscribe
       }
       phase = .provisional(releasedAt: time)
       return nil
     case let .secondPress(startedAt):
       guard time - startedAt < timing.tapMaximumDuration else {
         phase = .idle
-        return stop()
+        return .stopAndTranscribe
       }
       phase = .latched
       return .latchEngaged
@@ -315,11 +305,7 @@ public struct HotkeyGestureMachine: Equatable, Sendable {
     guard pressDetachedCleanup else {
       return .discardRecording
     }
-    return pressSubmits ? .submitDetached : .skipCleanup
-  }
-
-  private func stop() -> GestureEvent {
-    pressSubmits ? .stopAndSubmit : .stopAndTranscribe
+    return .skipCleanup
   }
 
   /// Only an idle machine can start waiting on cleanup: a press that already began the next

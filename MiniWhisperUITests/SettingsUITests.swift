@@ -66,21 +66,6 @@ final class SettingsUITests: MiniWhisperUITestCase, SurfaceTagged {
           .menuButton, "miniwhisper.settings.shortcut.paste-last.menu", "Shortcut actions",
           isEnabled: true, isActionable: true,
         ),
-        contract(
-          .group, "miniwhisper.settings.shortcut.submit", "Activate and submit shortcut",
-        ),
-        contract(
-          .staticText, "miniwhisper.settings.shortcut.submit.state",
-          "Activate and submit shortcut highlight", "Bar off",
-        ),
-        contract(
-          .button, "miniwhisper.settings.shortcut.submit.set", "Set…", "Ring off",
-          isEnabled: true, isActionable: true,
-        ),
-        contract(
-          .menuButton, "miniwhisper.settings.shortcut.submit.menu", "Shortcut actions",
-          isEnabled: true, isActionable: true,
-        ),
         contract(.group, "miniwhisper.settings.microphone", "Microphone"),
         contract(
           .staticText, "miniwhisper.settings.microphone.state", "Microphone highlight",

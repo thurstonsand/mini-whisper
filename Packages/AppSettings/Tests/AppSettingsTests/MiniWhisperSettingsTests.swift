@@ -18,7 +18,7 @@ struct MiniWhisperSettingsTests {
       ],
     )
     let bindings = try #require(object["bindings"] as? [String: Any])
-    #expect(Set(bindings.keys) == ["activate", "pasteLastTranscript", "submit"])
+    #expect(Set(bindings.keys) == ["activate", "pasteLastTranscript"])
     #expect(try SettingsCoding.decode(data) == .defaults)
     let text = try #require(String(data: data, encoding: .utf8))
     #expect(text.hasSuffix("}\n"))
@@ -53,7 +53,8 @@ struct MiniWhisperSettingsTests {
 
   @Test func `old and unknown keys are ignored`() throws {
     let data = Data(
-      #"{"hotkeys":[{"modifiers":[]}],"pasteLastTranscriptHotkey":{},"extra":1}"#.utf8,
+      #"{"hotkeys":[{"modifiers":[]}],"pasteLastTranscriptHotkey":{},"extra":1,"bindings":{"submit":[{"modifiers":["rightOption"]}]}}"#
+        .utf8,
     )
 
     let settings = try SettingsCoding.decode(data)
@@ -90,7 +91,6 @@ struct MiniWhisperSettingsTests {
     let settings = try MiniWhisperSettings(
       bindings: HotkeyBindingsSettings(
         activate: [Hotkey(keyCode: 0, modifiers: [.leftCommand])],
-        submit: [Hotkey(modifiers: [.rightCommand])],
         pasteLastTranscript: [
           Hotkey(keyCode: 9, modifiers: [.rightCommand]),
           Hotkey(keyCode: 8, modifiers: [.leftControl]),

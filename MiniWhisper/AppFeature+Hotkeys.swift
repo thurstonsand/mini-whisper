@@ -25,8 +25,6 @@ private extension HotkeyCommand {
     switch self {
     case .activate:
       .gesture
-    case .submit:
-      .submittingGesture
     case .pasteLastTranscript:
       .action(.pasteLastTranscript)
     }

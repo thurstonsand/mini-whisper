@@ -129,8 +129,6 @@ extension SoundSettings: Codable {
 
 public enum HotkeyCommand: String, CaseIterable, Codable, Equatable, Hashable, Sendable {
   case activate
-  /// Drives the same gestures as `activate`, and sends Return after the dictation it ends lands.
-  case submit
   case pasteLastTranscript
 }
 
@@ -139,13 +137,12 @@ public enum HotkeyCommand: String, CaseIterable, Codable, Equatable, Hashable, S
 public struct HotkeyBindingsSettings: Equatable, Sendable {
   // MARK: Lifecycle
 
-  public init(activate: [Hotkey], submit: [Hotkey], pasteLastTranscript: [Hotkey]) {
+  public init(activate: [Hotkey], pasteLastTranscript: [Hotkey]) {
     precondition(
-      Self.hasUniqueHotkeys(activate + submit + pasteLastTranscript),
+      Self.hasUniqueHotkeys(activate + pasteLastTranscript),
       "A hotkey can only belong to one command",
     )
     self.activate = activate
-    self.submit = submit
     self.pasteLastTranscript = pasteLastTranscript
   }
 
@@ -158,7 +155,7 @@ public struct HotkeyBindingsSettings: Equatable, Sendable {
   }
 
   public static let defaults = HotkeyBindingsSettings(
-    activate: [makeHotkey(modifiers: [.rightOption])], submit: [],
+    activate: [makeHotkey(modifiers: [.rightOption])],
     pasteLastTranscript: [makeHotkey(keyCode: 9, modifiers: [.leftOption, .leftCommand])],
   )
 
@@ -166,8 +163,6 @@ public struct HotkeyBindingsSettings: Equatable, Sendable {
     switch command {
     case .activate:
       activate
-    case .submit:
-      submit
     case .pasteLastTranscript:
       pasteLastTranscript
     }
@@ -209,7 +204,6 @@ public struct HotkeyBindingsSettings: Equatable, Sendable {
   // MARK: Private
 
   private var activate: [Hotkey]
-  private var submit: [Hotkey]
   private var pasteLastTranscript: [Hotkey]
 
   private static func hasUniqueHotkeys(_ hotkeys: [Hotkey]) -> Bool {
@@ -238,8 +232,6 @@ public struct HotkeyBindingsSettings: Equatable, Sendable {
     switch command {
     case .activate:
       operation(&activate)
-    case .submit:
-      operation(&submit)
     case .pasteLastTranscript:
       operation(&pasteLastTranscript)
     }
@@ -251,7 +243,6 @@ public struct HotkeyBindingsSettings: Equatable, Sendable {
 extension HotkeyBindingsSettings: Codable {
   private enum CodingKeys: String, CodingKey {
     case activate
-    case submit
     case pasteLastTranscript
   }
 
@@ -259,12 +250,10 @@ extension HotkeyBindingsSettings: Codable {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     let activate = try container.decodeIfPresent([Hotkey].self, forKey: .activate)
       ?? Self.defaults.hotkeys(for: .activate)
-    let submit = try container.decodeIfPresent([Hotkey].self, forKey: .submit)
-      ?? Self.defaults.hotkeys(for: .submit)
     let pasteLastTranscript = try container.decodeIfPresent(
       [Hotkey].self, forKey: .pasteLastTranscript,
     ) ?? Self.defaults.hotkeys(for: .pasteLastTranscript)
-    guard Self.hasUniqueHotkeys(activate + submit + pasteLastTranscript) else {
+    guard Self.hasUniqueHotkeys(activate + pasteLastTranscript) else {
       throw DecodingError.dataCorrupted(
         .init(
           codingPath: decoder.codingPath,
@@ -273,7 +262,6 @@ extension HotkeyBindingsSettings: Codable {
       )
     }
     self.activate = activate
-    self.submit = submit
     self.pasteLastTranscript = pasteLastTranscript
   }
 }
