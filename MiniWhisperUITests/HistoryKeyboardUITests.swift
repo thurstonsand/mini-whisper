@@ -8,6 +8,39 @@ final class HistoryKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
 
   static let surfaces: Set<Surface> = [.history]
 
+  @MainActor func testHistoryTipsTeachBothGesturesOnce() {
+    assertLaws(on: "settings-history-tips", [
+      Law("The first cleaned transcript teaches the raw reveal") { app in
+        let tip = app.staticTexts["Hold ⌥ for the raw transcript"]
+        try require(tip.awaitExistence(timeout: 5))
+        self.recordScreenshot("history-raw-tip", screenshot: app.screenshot())
+        XCUIElement.perform(withKeyModifiers: .option) {
+          self.assertLabel(
+            "um the history pane keeps every transcript close at hand",
+            of: self.historyRow(app, id: "11111111-1111-1111-1111-111111111111"),
+          )
+        }
+        XCTAssertTrue(tip.awaitNonExistence())
+      },
+      Law("The next tip teaches copying and stays dismissed on return") { app in
+        let tip = app.staticTexts["Click a dictation to copy it"]
+        try require(tip.awaitExistence(timeout: 5))
+        self.recordScreenshot("history-copy-tip", screenshot: app.screenshot())
+        app.buttons["xmark.circle.fill"].click()
+        try require(tip.awaitNonExistence())
+        self.historyRow(app, id: "11111111-1111-1111-1111-111111111111").click()
+        self.assertPasteboard("The history pane keeps every transcript close at hand.")
+        XCTAssertTrue(tip.awaitNonExistence())
+        app.staticTexts["miniwhisper.settings.sidebar.dictionary"].click()
+        app.staticTexts["miniwhisper.settings.sidebar.history"].click()
+        try require(self.historyRow(app, id: "11111111-1111-1111-1111-111111111111")
+          .awaitExistence())
+        XCTAssertFalse(app.staticTexts["Hold ⌥ for the raw transcript"].exists)
+        XCTAssertFalse(tip.exists)
+      },
+    ])
+  }
+
   @MainActor func testFirstRowsKeepTheirHeightWhenInsertedIntoOpenPane() {
     let app = launch("settings")
     defer { terminate(app) }

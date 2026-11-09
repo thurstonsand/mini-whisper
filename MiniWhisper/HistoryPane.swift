@@ -1,6 +1,7 @@
 import ComposableArchitecture
 import History
 import SwiftUI
+import TipKit
 
 // MARK: - HistoryPane
 
@@ -19,6 +20,11 @@ struct HistoryPane: View {
             ForEach(section.entries) { entry in
               HistoryRow(store: store, entry: entry, isCompact: geometry.size.width < 620)
                 .id(entry.id)
+                .background {
+                  if entry.id == tipEntry?.id {
+                    Color.clear.popoverTip(currentTip, arrowEdge: .top)
+                  }
+                }
             }
           } header: {
             Text(section.title).padding(.leading, 6)
@@ -44,6 +50,16 @@ struct HistoryPane: View {
       text: $store.history.search.sending(\.history.searchChanged), prompt: "Search transcripts",
     )
     .searchFocused(searchFocus)
+    .onChange(of: store.history.isRevealingRawText) { _, revealed in
+      if revealed, store.history.filteredEntries.contains(where: { $0.revealedText != nil }) {
+        HistoryRawTip().invalidate(reason: .actionPerformed)
+      }
+    }
+    .onChange(of: store.history.copiedEntryID) { _, copied in
+      if copied != nil {
+        HistoryCopyTip().invalidate(reason: .actionPerformed)
+      }
+    }
     .toolbar {
       Button("Keep Dictations…", systemImage: "clock.badge.xmark") {
         store.send(.history(.storagePresentationChanged(true)))
@@ -63,6 +79,16 @@ struct HistoryPane: View {
   }
 
   // MARK: Private
+
+  private var tipEntry: HistoryEntry? {
+    store.history.filteredEntries.first { $0.revealedText != nil }
+      ?? store.history.filteredEntries.first { $0.displayText != nil }
+  }
+
+  private var currentTip: (any Tip)? {
+    let group = HistoryTips.group
+    return tipEntry?.revealedText == nil ? HistoryCopyTip() : group.currentTip
+  }
 
   private var sections: [HistoryDaySection] {
     let calendar = Calendar.autoupdatingCurrent
@@ -96,6 +122,69 @@ struct HistoryPane: View {
       return "Yesterday"
     }
     return date.formatted(.dateTime.month(.wide).day().year())
+  }
+}
+
+// MARK: - HistoryTips
+
+private enum HistoryTips {
+  /// Configure only when History opens; neither launch nor activation waits for the tip store.
+  @MainActor static let group: TipGroup = {
+    #if DEBUG
+      if let scene = AgentDriveabilityScene.current {
+        let location = AgentSceneFiles.command.appendingPathExtension("tips")
+        if FileManager.default.fileExists(atPath: location.path) {
+          try! FileManager.default.removeItem(at: location)
+        }
+        try! Tips.configure([
+          .datastoreLocation(.url(location)),
+          .displayFrequency(.immediate),
+        ])
+        if scene != .settingsHistoryTips {
+          Tips.hideAllTipsForTesting()
+        }
+      } else {
+        try! Tips.configure([.displayFrequency(.immediate)])
+      }
+    #else
+      try! Tips.configure([.displayFrequency(.immediate)])
+    #endif
+    return TipGroup(.ordered) {
+      HistoryRawTip()
+      HistoryCopyTip()
+    }
+  }()
+}
+
+// MARK: - HistoryRawTip
+
+private struct HistoryRawTip: Tip {
+  var title: Text {
+    Text("Hold ⌥ for the raw transcript")
+  }
+
+  var image: Image? {
+    Image(systemName: "option")
+  }
+
+  var options: [any TipOption] {
+    MaxDisplayCount(1)
+  }
+}
+
+// MARK: - HistoryCopyTip
+
+private struct HistoryCopyTip: Tip {
+  var title: Text {
+    Text("Click a dictation to copy it")
+  }
+
+  var image: Image? {
+    Image(systemName: "doc.on.doc")
+  }
+
+  var options: [any TipOption] {
+    MaxDisplayCount(1)
   }
 }
 

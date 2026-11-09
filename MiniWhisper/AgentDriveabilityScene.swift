@@ -44,6 +44,7 @@ enum PresentedWindow: Equatable {
     case settingsDegraded = "settings-degraded"
     case settingsKeyMissing = "settings-key-missing"
     case settingsHistory = "settings-history"
+    case settingsHistoryTips = "settings-history-tips"
     case settingsHistoryEmpty = "settings-history-empty"
     case settingsDictionary = "settings-dictionary"
     case settingsDictionaryEmpty = "settings-dictionary-empty"
@@ -101,6 +102,7 @@ enum PresentedWindow: Equatable {
            .settingsKeyMissing:
         .settings(.settings, initialFocus: nil)
       case .settingsHistory,
+           .settingsHistoryTips,
            .settingsHistoryEmpty:
         .settings(.history, initialFocus: nil)
       case .settingsDictionary,
@@ -330,6 +332,7 @@ enum PresentedWindow: Equatable {
         }
         state.settingsWindow.settingsPane.launchAtLoginRegistered = true
       case .settingsHistory,
+           .settingsHistoryTips,
            .settingsHistoryEmpty,
            .settingsDictionary,
            .settingsDictionaryEmpty,
@@ -521,7 +524,7 @@ enum PresentedWindow: Equatable {
     /// Only the History scene needs entries; every other scene starts from an empty log so the
     /// pane it does show is not quietly seeded behind it.
     private var seededHistory: HistoryLog {
-      guard self == .settingsHistory else {
+      guard self == .settingsHistory || self == .settingsHistoryTips else {
         return HistoryLog()
       }
       let calendar = Calendar(identifier: .gregorian)
