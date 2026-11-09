@@ -23,7 +23,11 @@ enter = "mise bootstrap --yes --quiet && ([ -f buildServer.json ] || mise run bs
 
 [tools]
 "aqua:cpisciotta/xcbeautify" = "latest"
-hk = "2.5.0"
+hk = "2.11.1"
+# hk's check and fix hooks run jactionlint, which runs shellcheck over every `run:` script. Renovate
+# does not know mise's `jactionlint` shorthand, so the backend is spelled out.
+"aqua:jdx/jactionlint" = "2.5.0"
+shellcheck = "0.11.0"
 swiftformat = "0.63.1"
 markdownlint-cli2 = "0.23.3"
 ruff = "0.16.10"
@@ -176,9 +180,13 @@ run = [
     "ruff check --fix --unsafe-fixes --quiet .",
 ]
 
+[tasks."lint:actions"]
+description = "Lint GitHub Actions workflows"
+run = "hk check --all --step jactionlint"
+
 [tasks."lint:static"]
 description = "Run the checks that need no compilation"
-depends = ["format:check", "lint:markdown", "lint:python"]
+depends = ["format:check", "lint:actions", "lint:markdown", "lint:python"]
 
 [tasks.lint]
 description = "Run pre-commit checks"
