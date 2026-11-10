@@ -6,6 +6,9 @@ on:
 permissions:
   contents: read
 
+# The app and the packages build with different build systems that share no products, so they run
+# as parallel jobs. Each cache's key names its files rather than `**`, because actions/cache
+# re-evaluates its inputs after the job, when a glob over the workspace walks every build tree.
 jobs:
   checks:
     name: Lint and test
@@ -13,8 +16,51 @@ jobs:
     timeout-minutes: 40
     env:
       CODE_SIGNING_ALLOWED: "NO"
+      COMPILATION_CACHE_ENABLE_CACHING: "YES"
       # xcodebuild hands only TEST_RUNNER_-prefixed variables to the test host, minus the prefix.
       TEST_RUNNER_CI: "true"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up mise
+        uses: jdx/mise-action@f5be966e4a917d54244728e6a5fdcd1d93a35e6c # v5.2.6
+        with:
+          install: true
+          cache: true
+
+      - name: Cache Swift dependencies
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .build/DerivedData/SourcePackages
+          key: ci-xcode-${{ runner.os }}-${{ hashFiles('MiniWhisper.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved', 'Packages/*/Package.swift') }}
+          restore-keys: |
+            ci-xcode-${{ runner.os }}-
+
+      - name: Resolve Xcode version
+        id: xcode
+        run: echo "version=$(xcodebuild -version | tr -s '\n ' '-')" >> "${GITHUB_OUTPUT}"
+
+      # Saved once per toolchain and dependency set, so it never grows run over run. Modules edited
+      # since the save recompile; the dependencies, nearly all of the compile time, hit.
+      - name: Cache compilation results
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .build/DerivedData/CompilationCache.noindex
+          key: ci-cas-${{ runner.os }}-${{ steps.xcode.outputs.version }}-${{ hashFiles('MiniWhisper.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved', 'Packages/*/Package.resolved') }}
+
+      - name: Lint
+        run: mise run lint:static
+
+      # `test` builds the app and its test targets, so a separate build step would
+      # only recompile what the test run already covers.
+      - name: Test app and UI
+        run: mise run test
+
+  packages:
+    name: Test packages
+    runs-on: xcode-27
+    timeout-minutes: 40
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -31,20 +77,12 @@ jobs:
           path: |
             ~/Library/Caches/org.swift.swiftpm
             ~/Library/org.swift.swiftpm
-            .build/DerivedData/SourcePackages
             Packages/*/.build
-          key: ci-swift-${{ runner.os }}-${{ hashFiles('**/Package.resolved') }}-${{ hashFiles('**/Package.swift') }}
+          key: ci-packages-${{ runner.os }}-${{ hashFiles('Packages/*/Package.resolved', 'Packages/*/Package.swift') }}
           restore-keys: |
-            ci-swift-${{ runner.os }}-${{ hashFiles('**/Package.resolved') }}-
-            ci-swift-${{ runner.os }}-
+            ci-packages-${{ runner.os }}-
 
-      - name: Lint
-        run: mise run lint:static
-
-      # `test` builds the app and its test targets, so a separate build step would
-      # only recompile what the test run already covers.
-      - name: Test app and UI
-        run: mise run test
-
+      # Each package builds on its own, so a manifest missing a dependency fails here even though
+      # the app's shared build, which only warns, would pass.
       - name: Test packages
         run: mise run test:packages
