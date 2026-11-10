@@ -27,6 +27,7 @@ team_id="6JMB7W6NB4"
 name="MiniWhisper_${version}_darwin_arm64"
 work_dir=".build/release"
 derived_data="${work_dir}/DerivedData"
+compilation_cache="${work_dir}/CompilationCache"
 archive_path="${work_dir}/${app_name}.xcarchive"
 archived_app="${archive_path}/Products/Applications/${app_name}.app"
 export_path="${work_dir}/export"
@@ -149,6 +150,9 @@ fi
 # The archive is intentionally unsigned. The script seeds it with the requested entitlements, then
 # Xcode applies the pinned profile and local Developer ID identity during manual export. Local
 # validation takes the same archive path without requiring signing credentials.
+#
+# An archive reuses nothing from a previous DerivedData, so the compilation cache is what makes a
+# repeat archive cheap: it is keyed by each compile's exact inputs and lives outside DerivedData.
 xcodebuild \
   -scheme MiniWhisper \
   -configuration "${configuration}" \
@@ -167,6 +171,8 @@ xcodebuild \
   ENABLE_CODE_COVERAGE=NO \
   CLANG_ENABLE_CODE_COVERAGE=NO \
   SWIFT_ENABLE_CODE_COVERAGE=NO \
+  COMPILATION_CACHE_ENABLE_CACHING=YES \
+  COMPILATION_CACHE_CAS_PATH="${PWD}/${compilation_cache}" \
   archive
 
 if [[ "${RELEASE_SIGNING:-0}" == 1 ]]; then

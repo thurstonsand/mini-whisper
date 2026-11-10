@@ -6,3 +6,10 @@ ignores:
     reason: >-
       HOMEBREW_TAP_PRIVATE_KEY is a deploy key with write access to thurstonsand/homebrew-tap only, and
       a deploy-key push is what starts the tap's Casks audit; a GITHUB_TOKEN push would not.
+  - rule: cache-poisoning
+    file: .github/workflows/release.yml
+    job: build-macos
+    reason: >-
+      Only pushes to main write the caches this job restores: pull request caches stay in their merge
+      ref's scope, which main and tags never read, so no unreviewed code can seed a release. Anything
+      that could still write one already runs inside the build it would poison.

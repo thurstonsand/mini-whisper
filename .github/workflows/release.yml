@@ -76,7 +76,7 @@ jobs:
         uses: jdx/mise-action@f5be966e4a917d54244728e6a5fdcd1d93a35e6c # v5.2.6
         with:
           install: true
-          cache: false
+          cache: true
 
       - name: Validate signing secrets
         env:
@@ -123,6 +123,18 @@ jobs:
             echo "APPLE_NOTARY_KEY_ID=${APPLE_NOTARY_KEY_ID}"
             echo "APPLE_NOTARY_ISSUER_ID=${APPLE_NOTARY_ISSUER_ID}"
           } >> "${GITHUB_ENV}"
+
+      - name: Resolve Xcode version
+        id: xcode
+        run: echo "version=$(xcodebuild -version | tr -s '\n ' '-')" >> "${GITHUB_OUTPUT}"
+
+      # Saved once per toolchain and dependency set, so it never grows run over run. Modules edited
+      # since the save recompile; the dependencies, nearly all of the compile time, hit.
+      - name: Cache compilation results
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .build/release/CompilationCache
+          key: release-cas-${{ runner.os }}-${{ steps.xcode.outputs.version }}-${{ hashFiles('**/Package.resolved') }}
 
       - name: Build release archive
         env:
