@@ -28,6 +28,7 @@ name="MiniWhisper_${version}_darwin_arm64"
 work_dir=".build/release"
 derived_data="${work_dir}/DerivedData"
 compilation_cache="${work_dir}/CompilationCache"
+source_packages="${work_dir}/SourcePackages"
 archive_path="${work_dir}/${app_name}.xcarchive"
 archived_app="${archive_path}/Products/Applications/${app_name}.app"
 export_path="${work_dir}/export"
@@ -159,6 +160,7 @@ xcodebuild \
   -destination "generic/platform=macOS" \
   -archivePath "${archive_path}" \
   -derivedDataPath "${derived_data}" \
+  -clonedSourcePackagesDirPath "${source_packages}" \
   -skipMacroValidation \
   -skipPackagePluginValidation \
   CODE_SIGNING_ALLOWED=NO \

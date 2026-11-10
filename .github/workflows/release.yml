@@ -128,13 +128,26 @@ jobs:
         id: xcode
         run: echo "version=$(xcodebuild -version | tr -s '\n ' '-')" >> "${GITHUB_OUTPUT}"
 
-      # Saved once per toolchain and dependency set, so it never grows run over run. Modules edited
-      # since the save recompile; the dependencies, nearly all of the compile time, hit.
+      # Saved once per toolchain, dependency set, and build script, so it never grows run over run.
+      # Modules edited since the save recompile; the dependencies, nearly all of the compile time,
+      # hit. The script is in the key because its flags and paths are compile inputs too.
       - name: Cache compilation results
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .build/release/CompilationCache
-          key: release-cas-${{ runner.os }}-${{ steps.xcode.outputs.version }}-${{ hashFiles('MiniWhisper.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved', 'Packages/*/Package.resolved') }}
+          key: release-cas-${{ runner.os }}-${{ steps.xcode.outputs.version }}-${{ hashFiles('MiniWhisper.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved', 'Packages/*/Package.resolved', 'scripts/build-release-archive.sh') }}
+
+      # Restores the checkouts and binary artifacts at exactly the resolved versions, so the archive
+      # clones nothing. The bare repositories, most of the size, stay out: Xcode builds from the
+      # checkouts without them. With no restore-keys, a dependency bump resolves from scratch
+      # rather than updating checkouts whose repositories are gone.
+      - name: Cache Swift packages
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            .build/release/SourcePackages
+            !.build/release/SourcePackages/repositories
+          key: release-packages-${{ runner.os }}-${{ hashFiles('MiniWhisper.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved', 'Packages/*/Package.swift') }}
 
       - name: Build release archive
         env:

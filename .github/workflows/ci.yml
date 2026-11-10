@@ -29,13 +29,14 @@ jobs:
           install: true
           cache: true
 
+      # Checkouts and binary artifacts only, exactly as the release build caches them.
       - name: Cache Swift dependencies
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: .build/DerivedData/SourcePackages
+          path: |
+            .build/DerivedData/SourcePackages
+            !.build/DerivedData/SourcePackages/repositories
           key: ci-xcode-${{ runner.os }}-${{ hashFiles('MiniWhisper.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved', 'Packages/*/Package.swift') }}
-          restore-keys: |
-            ci-xcode-${{ runner.os }}-
 
       - name: Resolve Xcode version
         id: xcode
