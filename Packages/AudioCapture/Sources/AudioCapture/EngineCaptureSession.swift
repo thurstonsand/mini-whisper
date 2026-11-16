@@ -151,7 +151,7 @@ final class EngineCaptureSession: @unchecked Sendable {
   private let stateLock = NSLock()
 
   private var state = State.active
-  private var configurationObserver: (any NSObjectProtocol)?
+  private var configurationObserver: any NSObjectProtocol?
   private var engineWatchdog: Task<Void, Never>?
 
   private var isActive: Bool {

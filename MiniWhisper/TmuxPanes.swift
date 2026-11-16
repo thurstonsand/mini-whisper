@@ -211,9 +211,9 @@ enum TmuxPanes {
       var info = socket_fdinfo()
       let infoSize = Int32(MemoryLayout<socket_fdinfo>.size)
       guard proc_pidfdinfo(
-        processID, descriptor.proc_fd, PROC_PIDFDSOCKETINFO, &info, infoSize,
-      ) == infoSize,
-        info.psi.soi_family == AF_UNIX
+              processID, descriptor.proc_fd, PROC_PIDFDSOCKETINFO, &info, infoSize,
+            ) == infoSize,
+            info.psi.soi_family == AF_UNIX
       else {
         continue
       }

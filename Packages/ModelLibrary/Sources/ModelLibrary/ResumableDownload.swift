@@ -212,7 +212,7 @@ final class ProgressDownload: NSObject, URLSessionDataDelegate, @unchecked Senda
   }
 
   func urlSession(
-    _ session: URLSession, task _: URLSessionTask, didCompleteWithError error: (any Error)?,
+    _ session: URLSession, task _: URLSessionTask, didCompleteWithError error: any Error?,
   ) {
     let completion = lock.withLock {
       let continuation = self.continuation
@@ -254,7 +254,7 @@ final class ProgressDownload: NSObject, URLSessionDataDelegate, @unchecked Senda
   private var task: URLSessionDataTask?
   private var session: URLSession?
   private var fileHandle: FileHandle?
-  private var responseError: (any Error)?
+  private var responseError: any Error?
   private var isCancelled = false
   private var transferredBytes: Int
   private var lastReportedBytes: Int

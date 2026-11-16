@@ -36,10 +36,8 @@ import FieldContext
     else {
       return .unreachable
     }
-    guard await userPaused() else {
-      return .interrupted
-    }
-    guard let user = NSWorkspace.shared.frontmostApplication?.processIdentifier,
+    guard await userPaused(),
+          let user = NSWorkspace.shared.frontmostApplication?.processIdentifier,
           user != ProcessInfo.processInfo.processIdentifier
     else {
       return .interrupted

@@ -142,7 +142,7 @@ final class StubHub: @unchecked Sendable {
       let prefix = "/\(repository.repository)/resolve/\(repository.revision)/"
       if path.hasPrefix(prefix),
          let file = files(repository)
-         .first(where: { $0.path == String(path.dropFirst(prefix.count)) })
+           .first(where: { $0.path == String(path.dropFirst(prefix.count)) })
       {
         let holds = lock.withLock {
           if holdsFiles {

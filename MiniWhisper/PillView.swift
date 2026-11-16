@@ -6,7 +6,7 @@ import SwiftUI
 struct PillView: View {
   // MARK: Internal
 
-  @Bindable var store: StoreOf<PillFeature>
+  let store: StoreOf<PillFeature>
 
   var widthChanged: (CGFloat) -> Void = { _ in }
 

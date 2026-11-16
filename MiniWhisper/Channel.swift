@@ -26,9 +26,9 @@ enum Channel {
 
   static let version: String = {
     guard let shortVersion = Bundle.main.object(
-      forInfoDictionaryKey: "CFBundleShortVersionString",
-    ) as? String,
-      let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
+            forInfoDictionaryKey: "CFBundleShortVersionString",
+          ) as? String,
+          let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
     else {
       fatalError("The application version is missing from the bundle")
     }

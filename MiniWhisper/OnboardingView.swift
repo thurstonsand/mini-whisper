@@ -41,7 +41,7 @@ enum OnboardingFocus: Hashable {
 struct OnboardingView: View {
   // MARK: Internal
 
-  @Bindable var store: StoreOf<OnboardingFeature>
+  let store: StoreOf<OnboardingFeature>
 
   var body: some View {
     Group {

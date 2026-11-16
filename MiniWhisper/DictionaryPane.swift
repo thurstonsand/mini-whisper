@@ -8,9 +8,10 @@ import SwiftUI
 struct DictionaryPane: View {
   // MARK: Internal
 
-  @Bindable var store: StoreOf<SettingsWindowFeature>
+  let store: StoreOf<SettingsWindowFeature>
 
   var body: some View {
+    @Bindable var store = store
     Form {
       if store.dictionary.refusalReason == nil {
         Section {
@@ -212,7 +213,7 @@ private struct DictionaryRow: View {
 private struct DictionaryEditSheet: View {
   // MARK: Internal
 
-  @Bindable var store: StoreOf<SettingsWindowFeature>
+  let store: StoreOf<SettingsWindowFeature>
 
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {

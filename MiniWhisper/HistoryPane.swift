@@ -8,11 +8,12 @@ import TipKit
 struct HistoryPane: View {
   // MARK: Internal
 
-  @Bindable var store: StoreOf<SettingsWindowFeature>
+  let store: StoreOf<SettingsWindowFeature>
 
   var searchFocus: FocusState<Bool>.Binding
 
   var body: some View {
+    @Bindable var store = store
     GeometryReader { geometry in
       List {
         ForEach(sections) { section in
@@ -85,7 +86,7 @@ struct HistoryPane: View {
       ?? store.history.filteredEntries.first { $0.displayText != nil }
   }
 
-  private var currentTip: (any Tip)? {
+  private var currentTip: any Tip? {
     let group = HistoryTips.group
     return tipEntry?.revealedText == nil ? HistoryCopyTip() : group.currentTip
   }

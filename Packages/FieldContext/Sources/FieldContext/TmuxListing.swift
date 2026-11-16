@@ -73,11 +73,9 @@ public enum TmuxListing {
     return lines.compactMap { line in
       let fields = quotedFields(line)
       guard fields.count == 6, let processID = Int32(fields[0]), processIDs.contains(processID),
-            let panePID = Int32(fields[3])
+            let panePID = Int32(fields[3]),
+            fields[1].split(separator: ",").contains("focused")
       else {
-        return nil
-      }
-      guard fields[1].split(separator: ",").contains("focused") else {
         return nil
       }
       return TmuxClient(

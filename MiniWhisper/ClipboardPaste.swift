@@ -204,9 +204,13 @@ import HotkeyListener
     var events = [keyDown, keyUp]
     if flags.contains(.maskCommand) {
       guard let commandDown = CGEvent(
-        keyboardEventSource: source, virtualKey: commandKey, keyDown: true,
-      ),
-        let commandUp = CGEvent(keyboardEventSource: source, virtualKey: commandKey, keyDown: false)
+              keyboardEventSource: source, virtualKey: commandKey, keyDown: true,
+            ),
+            let commandUp = CGEvent(
+              keyboardEventSource: source,
+              virtualKey: commandKey,
+              keyDown: false,
+            )
       else {
         return nil
       }

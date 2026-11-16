@@ -6,7 +6,7 @@ import SwiftUI
 struct SettingsWindowView: View {
   // MARK: Internal
 
-  @Bindable var store: StoreOf<SettingsWindowFeature>
+  let store: StoreOf<SettingsWindowFeature>
 
   var initialFocus: SettingsWindowFocus?
 
