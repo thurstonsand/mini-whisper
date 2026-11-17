@@ -40,7 +40,9 @@ final class ProfilesUITests: MiniWhisperUITestCase, SurfaceTagged {
         app.typeText("j")
         self.assertValue("Bar on", of: app.staticTexts["miniwhisper.profiles.row.enabled.state"])
         self.assertValue("Ring on", of: app.staticTexts["miniwhisper.profiles.enabled.ring"])
-        for row in ["endpoint", "apiKey", "model", "reasoning", "timeout", "instructions"] {
+        for row in ["endpoint", "apiKey", "model", "reasoning", "expandedContext", "timeout",
+                    "instructions"]
+        {
           app.typeText("j")
           self.assertValue(
             "Bar on", of: app.staticTexts["miniwhisper.profiles.row.\(row).state"],
@@ -63,7 +65,7 @@ final class ProfilesUITests: MiniWhisperUITestCase, SurfaceTagged {
       // Edit on any row opens every fact Save proves together, with that row's field taking the
       // keys, so the keyboard press and the click land in the same place.
       Law("Return on Edit opens the editor with that field focused") { app in
-        app.typeText("kkkk")
+        app.typeText("kkkkk")
         self.assertValue("Bar on", of: app.staticTexts["miniwhisper.profiles.row.endpoint.state"])
         app.typeKey(.return, modifierFlags: [])
         let endpoint = app.textFields["miniwhisper.profiles.endpoint.field"]
