@@ -217,7 +217,40 @@ private struct SettingsListRowHeight: ViewModifier {
   }
 }
 
+// MARK: - SettingsRowHighlight
+
+/// The hover and keyboard-cursor paint every list row in the window shares. `outset` lets a row
+/// whose container already insets its content — a grouped `Form` — paint into that inset, so the
+/// highlight fills the row without moving the text off the container's alignment.
+private struct SettingsRowHighlight: ViewModifier {
+  let isVisible: Bool
+  let outset: EdgeInsets
+
+  func body(content: Content) -> some View {
+    content.background {
+      RoundedRectangle(cornerRadius: 8)
+        .fill(.quaternary)
+        .padding(EdgeInsets(
+          top: -outset.top, leading: -outset.leading, bottom: -outset.bottom,
+          trailing: -outset.trailing,
+        ))
+        .opacity(isVisible ? 1 : 0)
+    }
+  }
+}
+
+extension EdgeInsets {
+  /// A grouped `Form` row's own inset — about 7.5pt beside the content and 5.5pt above and below
+  /// it at the window's row height — less a 2.5pt gutter that keeps the highlight off the card
+  /// edge and the separators.
+  static let groupedFormRowHighlight = EdgeInsets(top: 3, leading: 5, bottom: 3, trailing: 5)
+}
+
 extension View {
+  func settingsRowHighlight(_ isVisible: Bool, outset: EdgeInsets = EdgeInsets()) -> some View {
+    modifier(SettingsRowHighlight(isVisible: isVisible, outset: outset))
+  }
+
   func windowKeys(
     store: StoreOf<SettingsWindowFeature>, _ actions: WindowKeyActions,
     isActive: @escaping () -> Bool,

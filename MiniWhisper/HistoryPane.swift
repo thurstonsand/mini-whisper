@@ -263,10 +263,8 @@ private struct HistoryRow: View {
     }
     .settingsListRowHeight(grows: true)
     .padding(.horizontal, 6)
+    .settingsRowHighlight(showsGrey)
     .background {
-      RoundedRectangle(cornerRadius: 8)
-        .fill(.quaternary)
-        .opacity(showsGrey ? 1 : 0)
       RoundedRectangle(cornerRadius: 8)
         .fill(.tint)
         .opacity(isCopied ? 0.18 : 0)

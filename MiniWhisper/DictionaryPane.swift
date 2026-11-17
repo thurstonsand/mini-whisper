@@ -26,18 +26,13 @@ struct DictionaryPane: View {
            !store.dictionary.dictionary.vocabulary.isEmpty
         {
           Section {
-            HStack(alignment: .top) {
+            HStack {
+              // The rows follow as the section's own rows rather than the group's content, which
+              // clips them and the highlight they share with every other row.
               DisclosureGroup(isExpanded: $store.dictionary
                 .isVocabularyExpanded
                 .sending(\.dictionary.vocabularyExpansionChanged))
-              {
-                ForEach(store.dictionary
-                  .entries
-                  .filter { store.dictionary.usesReducedEmphasis($0) })
-                { entry in
-                  DictionaryRow(store: store, entry: entry)
-                }
-              } label: {
+              {} label: {
                 Label(
                   store.dictionary.dictionary.vocabulary.map(\.text).joined(separator: ", "),
                   systemImage: "book.closed",
@@ -48,6 +43,14 @@ struct DictionaryPane: View {
               Button("Boost…") { store.send(.dictionary(.showVocabularySettings)) }
                 .buttonStyle(.bordered)
                 .accessibilityIdentifier("miniwhisper.dictionary.vocabulary-settings")
+            }
+            if store.dictionary.isVocabularyExpanded {
+              ForEach(store.dictionary
+                .entries
+                .filter { store.dictionary.usesReducedEmphasis($0) })
+              { entry in
+                DictionaryRow(store: store, entry: entry)
+              }
             }
           }
         }
@@ -157,11 +160,7 @@ private struct DictionaryRow: View {
       }
     }
     .settingsListRowHeight()
-    .background {
-      RoundedRectangle(cornerRadius: 8)
-        .fill(.quaternary)
-        .opacity(showsGrey ? 1 : 0)
-    }
+    .settingsRowHighlight(showsGrey, outset: .groupedFormRowHighlight)
     .contentShape(.rect)
     .onTapGesture {
       store.send(.pointerMoved)
