@@ -31,6 +31,8 @@ extension AppFeature {
     /// the cleanup prompt and then adjusts the joined text.
     var capture: ContextCapture?
     var isCapturingContext = false
+    /// What Expanded context read of the screen at the press; nil when it was off.
+    var screen: AppFeature.ScreenRead?
     /// The configuration a request actually went out with, so a pane edit mid-flight cannot
     /// rewrite history — and so that a non-nil value means a request is genuinely in flight.
     var cleanup: CleanupConfiguration?
@@ -46,6 +48,17 @@ extension AppFeature {
 
     var fieldContext: FocusedTextContext? {
       capture?.focusedTextContext
+    }
+
+    var screenCapture: ScreenCapture? {
+      guard case let .captured(capture) = screen else {
+        return nil
+      }
+      return capture
+    }
+
+    var screenContext: ScreenContext? {
+      screenCapture?.context
     }
 
     var targetApp: TargetApp? {
@@ -117,6 +130,7 @@ extension AppFeature {
     let id = uuid()
     return .run { send in
       let audio: AudioMetadata?
+      var screenshot: ScreenshotMetadata?
       if !storesAudio {
         audio = nil
       } else {
@@ -132,6 +146,16 @@ extension AppFeature {
           }
           audio = nil
         }
+        // The screenshot lives and expires with the audio, so it is kept only where audio is.
+        if audio != nil, let capture = terminal.screenCapture, let jpeg = capture.screenshot {
+          do {
+            screenshot = try await historyClient.writeScreenshot(jpeg, id, capture.showsScreenshot)
+          } catch {
+            historyLogger.error(
+              "History screenshot write failed: \(error.localizedDescription, privacy: .public)",
+            )
+          }
+        }
       }
       // Cleanup's record joins the transcription it polished only here, at the write: in flight
       // the two are separate facts about the dictation, and the entry is where they meet.
@@ -140,7 +164,8 @@ extension AppFeature {
       let entry = HistoryEntry(
         id: id, createdAt: terminal.createdAt, targetApp: targetApp,
         original: original, fieldContext: terminal.fieldContext,
-        delivery: delivery, audio: audio,
+        screenContext: terminal.screenContext, delivery: delivery, audio: audio,
+        screenshot: screenshot,
       )
       await send(completion(entry))
     }
@@ -243,8 +268,8 @@ extension CleanupFailure {
     switch self {
     case .unreachable:
       "unreachable"
-    case let .httpStatus(code, _):
-      "httpStatus \(code)"
+    case let .httpStatus(code, message):
+      message.map { "httpStatus \(code): \($0)" } ?? "httpStatus \(code)"
     case let .timedOut(timeout):
       "timedOut \(Int(timeout.rounded()))s"
     case .malformedResponse:

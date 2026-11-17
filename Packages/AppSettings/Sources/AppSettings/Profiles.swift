@@ -7,7 +7,7 @@ import TranscriptCleanup
 /// The lineup, in the order it is shown. Factory profiles are compiled in; Custom is the one the
 /// user fills.
 public enum ProfileID: String, CaseIterable, Codable, CodingKeyRepresentable, Hashable, Sendable {
-  case haiku
+  case everyday
   case offline
   case accurate
   case cerebras
@@ -43,12 +43,39 @@ public enum SpeechEngine: CaseIterable, Hashable, Sendable {
   }
 }
 
+// MARK: - ScreenContextMode
+
+/// What a profile's cleanup pass is shown of the screen around the target. Text is read from the
+/// target itself — its tmux pane, else its window's Accessibility tree, else Vision's reading of
+/// a screenshot — and Screenshot sends the window's image instead, which only a model that reads
+/// images can use.
+public enum ScreenContextMode: String, CaseIterable, Codable, Sendable {
+  case off
+  case text
+  case screenshot
+
+  // MARK: Public
+
+  /// Every profile's, until the user picks another.
+  public static let profileDefault = ScreenContextMode.text
+
+  public var title: String {
+    switch self {
+    case .off:
+      "Off"
+    case .text:
+      "Text"
+    case .screenshot:
+      "Screenshot"
+    }
+  }
+}
+
 // MARK: - CredentialProvider
 
 /// Who issued a key. It names the key in the pane and in onboarding; the slot it lives in belongs
 /// to the profile.
 public enum CredentialProvider: String, Equatable, Sendable {
-  case anthropic
   case elevenlabs
   case google
   case cerebras
@@ -58,8 +85,6 @@ public enum CredentialProvider: String, Equatable, Sendable {
 
   public var displayName: String {
     switch self {
-    case .anthropic:
-      "Anthropic"
     case .elevenlabs:
       "ElevenLabs"
     case .google:
@@ -74,8 +99,6 @@ public enum CredentialProvider: String, Equatable, Sendable {
   /// The key as a sentence names it: "Needs an Anthropic key".
   public var keyPhrase: String {
     switch self {
-    case .anthropic:
-      "an Anthropic key"
     case .elevenlabs:
       "an ElevenLabs key"
     case .google:
@@ -89,8 +112,6 @@ public enum CredentialProvider: String, Equatable, Sendable {
 
   public var keyPrompt: String {
     switch self {
-    case .anthropic:
-      "sk-ant-…"
     case .elevenlabs:
       "sk_…"
     case .google:
@@ -106,8 +127,6 @@ public enum CredentialProvider: String, Equatable, Sendable {
   /// nowhere to send them.
   public var keysURL: URL? {
     switch self {
-    case .anthropic:
-      URL(string: "https://console.anthropic.com/settings/keys")
     case .elevenlabs:
       URL(string: "https://elevenlabs.io/app/settings/api-keys")
     case .google:
@@ -149,6 +168,7 @@ public struct CredentialSlot: Hashable, Sendable {
 public struct EndpointLeg: Equatable, Sendable {
   public let endpoint: URL?
   public let model: String?
+  public let reasoningEffort: ReasoningEffort
   public let credential: CredentialSlot
 }
 
@@ -167,6 +187,7 @@ public enum CleanupLeg: Equatable, Sendable {
 public struct FactoryEndpoint: Equatable, Sendable {
   public let endpoint: URL
   public let model: String
+  public let reasoningEffort: ReasoningEffort
   public let provider: CredentialProvider
 }
 
@@ -287,12 +308,19 @@ public struct ProfileSettings: Codable, Equatable, Sendable {
 
   // MARK: Public
 
-  public static let defaults = ProfileSettings(active: .haiku, overrides: [:], custom: .defaults)
+  public static let defaults = ProfileSettings(active: .everyday, overrides: [:], custom: .defaults)
 
   public var active: ProfileID
   public private(set) var overrides: [ProfileID: EndpointOverride]
   public var custom: CustomProfileSettings
   public var scribeOverride: EndpointOverride?
+  /// Each profile's reasoning effort, where the user chose one other than the profile's own:
+  /// the factory's for a factory profile, letting the model decide for Custom.
+  public private(set) var reasoning: [ProfileID: ReasoningEffort] = [:]
+  /// Each profile's Expanded context, where the user chose one other than the default.
+  public private(set) var screenContext: [ProfileID: ScreenContextMode] = [:]
+  /// Set while a user upgraded from Everyday on Claude Haiku has not yet chosen what replaces it.
+  public private(set) var haikuRetirement: HaikuRetirement?
 
   public var lineup: [Profile] {
     ProfileID.allCases.map(profile)
@@ -315,6 +343,7 @@ public struct ProfileSettings: Codable, Equatable, Sendable {
     guard let factory = definition.factory else {
       let leg = EndpointLeg(
         endpoint: custom.endpoint, model: custom.model,
+        reasoningEffort: reasoning[id] ?? ownReasoningEffort(id),
         credential: CredentialSlot(profile: id, provider: .endpoint),
       )
       return Profile(
@@ -327,6 +356,7 @@ public struct ProfileSettings: Codable, Equatable, Sendable {
     let override = overrides[id]
     let leg = EndpointLeg(
       endpoint: override?.endpoint ?? factory.endpoint, model: override?.model ?? factory.model,
+      reasoningEffort: reasoning[id] ?? ownReasoningEffort(id),
       credential: CredentialSlot(profile: id, provider: factory.provider),
     )
     return Profile(
@@ -359,6 +389,41 @@ public struct ProfileSettings: Codable, Equatable, Sendable {
     updateOverride(id) { $0.model = model == factory.model ? nil : model }
   }
 
+  /// Like an override, kept only while it differs from what the profile would use without it.
+  public mutating func setReasoningEffort(_ effort: ReasoningEffort, for id: ProfileID) {
+    reasoning[id] = effort == ownReasoningEffort(id) ? nil : effort
+  }
+
+  public func screenContextMode(for id: ProfileID) -> ScreenContextMode {
+    screenContext[id] ?? .profileDefault
+  }
+
+  public mutating func setScreenContextMode(_ mode: ScreenContextMode, for id: ProfileID) {
+    screenContext[id] = mode == .profileDefault ? nil : mode
+  }
+
+  /// Haiku goes on as the user had it, in Custom, which it replaces. It reads the screen from a
+  /// screenshot, where Haiku gains the most. Activating Custom is the
+  /// caller's, so it switches the way any other choice of profile does.
+  public mutating func keepHaikuInCustom() {
+    guard let retired = haikuRetirement else {
+      preconditionFailure("No Haiku setup is waiting to be kept")
+    }
+    custom = CustomProfileSettings(
+      cleanupEnabled: true, endpoint: retired.endpoint, model: retired.model,
+      boostsVocabulary: false,
+    )
+    setReasoningEffort(retired.reasoningEffort, for: .custom)
+    setScreenContextMode(.screenshot, for: .custom)
+    haikuRetirement = nil
+  }
+
+  /// Everyday stays on Hydrogen, and the Haiku setup is forgotten.
+  public mutating func acceptHydrogen() {
+    precondition(haikuRetirement != nil, "No Haiku setup is waiting to be replaced")
+    haikuRetirement = nil
+  }
+
   // MARK: Private
 
   private struct Definition {
@@ -373,14 +438,14 @@ public struct ProfileSettings: Codable, Equatable, Sendable {
 
   private static func definition(_ id: ProfileID) -> Definition {
     switch id {
-    case .haiku:
+    case .everyday:
       Definition(
         name: "Everyday",
-        tagline: "Speech stays on this Mac; transcripts go to Anthropic for cleanup.",
+        tagline: "Speech stays on this Mac; transcripts go to Google for cleanup.",
         symbol: "sparkles",
         factory: FactoryEndpoint(
-          endpoint: URL(string: "https://api.anthropic.com/v1")!, model: "claude-haiku-5-5",
-          provider: .anthropic,
+          endpoint: URL(string: "https://generativelanguage.googleapis.com/v1beta/openai")!,
+          model: "gemini-4-hydrogen", reasoningEffort: .off, provider: .google,
         ),
       )
     case .offline:
@@ -396,7 +461,7 @@ public struct ProfileSettings: Codable, Equatable, Sendable {
         symbol: "scope", engine: .scribe, engineProvider: .elevenlabs,
         factory: FactoryEndpoint(
           endpoint: URL(string: "https://generativelanguage.googleapis.com/v1beta/openai")!,
-          model: "gemini-3.8-flash", provider: .google,
+          model: "gemini-4-hydrogen", reasoningEffort: .off, provider: .google,
         ),
       )
     case .cerebras:
@@ -405,8 +470,8 @@ public struct ProfileSettings: Codable, Equatable, Sendable {
         tagline: "The quickest cleanup measured, at some cost to accuracy.",
         symbol: "bolt",
         factory: FactoryEndpoint(
-          endpoint: URL(string: "https://api.cerebras.ai/v1")!, model: "gpt-oss-120b",
-          provider: .cerebras,
+          endpoint: URL(string: "https://api.cerebras.ai/v1")!, model: "qwen-3.8-27b",
+          reasoningEffort: .low, provider: .cerebras,
         ),
       )
     case .custom:
@@ -415,6 +480,15 @@ public struct ProfileSettings: Codable, Equatable, Sendable {
         symbol: "slider.horizontal.3",
       )
     }
+  }
+
+  /// The factory's level was measured on the factory's model; a model the user picked may not
+  /// reason at all, so it starts from letting the model decide.
+  private func ownReasoningEffort(_ id: ProfileID) -> ReasoningEffort {
+    guard let factory = Self.definition(id).factory, overrides[id]?.model == nil else {
+      return .modelDecides
+    }
+    return factory.reasoningEffort
   }
 
   private mutating func updateOverride(_ id: ProfileID, _ edit: (inout EndpointOverride) -> Void) {
@@ -432,18 +506,82 @@ extension ProfileSettings {
     case overrides
     case custom
     case scribeOverride
+    case reasoning
+    case screenContext
+    case haikuRetirement
   }
 
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
-    active = try container.decodeIfPresent(ProfileID.self, forKey: .active) ?? .haiku
-    overrides = try container.decodeIfPresent(
-      [ProfileID: EndpointOverride].self, forKey: .overrides,
+    var overrides = try container.decodeIfPresent(
+      [String: EndpointOverride].self, forKey: .overrides,
+    ) ?? [:]
+    var reasoning = try container.decodeIfPresent(
+      [String: ReasoningEffort].self, forKey: .reasoning,
+    ) ?? [:]
+    let haikuOverride = overrides.removeValue(forKey: HaikuRetirement.profileID)
+    let haikuReasoning = reasoning.removeValue(forKey: HaikuRetirement.profileID)
+    self.overrides = try Self.keyedByProfile(overrides, forKey: .overrides, in: container)
+    self.reasoning = try Self.keyedByProfile(reasoning, forKey: .reasoning, in: container)
+    screenContext = try container.decodeIfPresent(
+      [ProfileID: ScreenContextMode].self, forKey: .screenContext,
     ) ?? [:]
     custom = try container.decodeIfPresent(CustomProfileSettings.self, forKey: .custom)
       ?? .defaults
     scribeOverride = try container.decodeIfPresent(EndpointOverride.self, forKey: .scribeOverride)
+    haikuRetirement = try container.decodeIfPresent(
+      HaikuRetirement.self, forKey: .haikuRetirement,
+    )
+    let active = try container.decodeIfPresent(String.self, forKey: .active)
+    if active == HaikuRetirement.profileID {
+      self.active = .everyday
+      haikuRetirement = HaikuRetirement(
+        endpoint: haikuOverride?.endpoint ?? HaikuRetirement.endpoint,
+        model: haikuOverride?.model ?? HaikuRetirement.model,
+        reasoningEffort: haikuReasoning ?? .modelDecides,
+      )
+    } else if let active {
+      guard let id = ProfileID(rawValue: active) else {
+        throw DecodingError.dataCorruptedError(
+          forKey: .active, in: container, debugDescription: "No profile \(active)",
+        )
+      }
+      self.active = id
+    } else {
+      self.active = .everyday
+    }
   }
+
+  private static func keyedByProfile<Value>(
+    _ values: [String: Value], forKey key: CodingKeys,
+    in container: KeyedDecodingContainer<CodingKeys>,
+  ) throws -> [ProfileID: Value] {
+    try Dictionary(uniqueKeysWithValues: values.map { raw, value in
+      guard let id = ProfileID(rawValue: raw) else {
+        throw DecodingError.dataCorruptedError(
+          forKey: key, in: container, debugDescription: "No profile \(raw)",
+        )
+      }
+      return (id, value)
+    })
+  }
+}
+
+// MARK: - HaikuRetirement
+
+/// Everyday cleaned with Claude Haiku until Gemini 4 Hydrogen replaced it. A settings file from
+/// before then that still names the Haiku profile active is read as Everyday plus this: what the
+/// user had Haiku set to, held until they choose Hydrogen or keep Haiku in Custom.
+public struct HaikuRetirement: Codable, Equatable, Sendable {
+  public static let profileID = "haiku"
+  public static let endpoint = URL(string: "https://api.anthropic.com/v1")!
+  public static let model = "claude-haiku-5-5"
+  /// The Keychain account the Haiku profile's key was stored under.
+  public static let keyAccount = "profile.haiku.anthropic"
+
+  public let endpoint: URL
+  public let model: String
+  public let reasoningEffort: ReasoningEffort
 }
 
 // MARK: - CleanupTarget
@@ -472,7 +610,8 @@ public struct CleanupTarget: Equatable, Sendable {
         endpoint: URL(
           string: "https://huggingface.co/\(repository.repository)/blob/\(repository.revision)/s1-mini-q4_k_m.gguf",
         )!,
-        model: "s1-mini", timeout: timeout, additionalInstructions: "",
+        model: "s1-mini", reasoningEffort: .modelDecides, timeout: timeout,
+        additionalInstructions: "",
       ),
       credential: nil,
     )

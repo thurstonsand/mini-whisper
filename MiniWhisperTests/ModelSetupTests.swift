@@ -154,7 +154,7 @@ import TranscriptCleanup
         AppFeature.StartupFacts(
           onboardingCompleted: true, modelDownloadConsented: true,
           permissions: OnboardingPermissionStatuses(
-            microphoneStatus: .granted, hasAccessibilityPermission: true,
+            microphoneStatus: .granted, hasAccessibilityPermission: true, hasScreenRecording: false,
           ),
           engineReadiness: readiness,
         ),
@@ -188,7 +188,7 @@ import TranscriptCleanup
         AppFeature.StartupFacts(
           onboardingCompleted: true, modelDownloadConsented: scenario.consented,
           permissions: OnboardingPermissionStatuses(
-            microphoneStatus: .granted, hasAccessibilityPermission: true,
+            microphoneStatus: .granted, hasAccessibilityPermission: true, hasScreenRecording: false,
           ),
           engineReadiness: scenario.readiness,
         ),
@@ -424,7 +424,7 @@ import TranscriptCleanup
     #expect(store.state.health.readinessByEngine[.parakeet] == .failed("network down"))
     #expect(sounds.value == 0)
 
-    await store.send(.settingsWindow(.profiles(.profileSelected(.haiku))))
+    await store.send(.settingsWindow(.profiles(.profileSelected(.everyday))))
     await store.receive(.engineReadinessUpdated(.parakeet, .failed("network down")))
     #expect(store.state.health.degradations == [.modelSetupFailed])
     #expect(sounds.value == 0)

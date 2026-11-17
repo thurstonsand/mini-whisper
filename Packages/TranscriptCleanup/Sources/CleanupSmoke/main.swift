@@ -15,7 +15,8 @@ let request = CleanupRequest(
     role: "AXTextArea", before: "$ ", selected: "", after: "", selectedRange: 2 ..< 2,
     beforeWasTruncated: false, selectionWasTruncated: false, afterWasTruncated: false,
   ),
-  vocabulary: ["MiniWhisper", "swift test"], targetBundleID: "com.apple.Terminal",
+  screenContext: nil, screenshot: nil, vocabulary: ["MiniWhisper", "swift test"],
+  targetBundleID: "com.apple.Terminal",
 )
 
 if CommandLine.arguments.count == 3 {
@@ -27,7 +28,8 @@ if CommandLine.arguments.count == 3 {
   }
   let client = OpenAICompatibleCleanup(
     configuration: CleanupConfiguration(
-      endpoint: base, model: CommandLine.arguments[2], additionalInstructions: "",
+      endpoint: base, model: CommandLine.arguments[2], reasoningEffort: .modelDecides,
+      additionalInstructions: "",
     ),
     apiKey: key, session: URLSession(configuration: .ephemeral),
   )
@@ -38,7 +40,7 @@ if CommandLine.arguments.count == 3 {
       "a question that must stay a question",
       CleanupRequest(
         transcript: "why does the uh the silence gate reject clips under five hundred milliseconds",
-        focusedTextContext: nil, vocabulary: ["Silero"],
+        focusedTextContext: nil, screenContext: nil, screenshot: nil, vocabulary: ["Silero"],
         targetBundleID: "com.tinyspeck.slackmacgap",
       ),
     ),
@@ -46,14 +48,16 @@ if CommandLine.arguments.count == 3 {
       "self-correction keeps the final wording",
       CleanupRequest(
         transcript: "the timeout defaults to five seconds actually no ten seconds comma configurable in settings",
-        focusedTextContext: nil, vocabulary: [], targetBundleID: nil,
+        focusedTextContext: nil, screenContext: nil, screenshot: nil, vocabulary: [],
+        targetBundleID: nil,
       ),
     ),
     (
       "dictionary near-miss must not be forced",
       CleanupRequest(
         transcript: "we should whisper the announcement quietly before mini whisper ships",
-        focusedTextContext: nil, vocabulary: ["MiniWhisper"], targetBundleID: nil,
+        focusedTextContext: nil, screenContext: nil, screenshot: nil, vocabulary: ["MiniWhisper"],
+        targetBundleID: nil,
       ),
     ),
   ]
@@ -81,7 +85,7 @@ let endpoint = MockEndpoint.start()
 defer { endpoint.stop() }
 
 let configuration = CleanupConfiguration(
-  endpoint: endpoint.baseURL, model: "mock-small", timeout: 10,
+  endpoint: endpoint.baseURL, model: "mock-small", reasoningEffort: .modelDecides, timeout: 10,
   additionalInstructions: "Prefer American spelling.",
 )
 let client = OpenAICompatibleCleanup(
@@ -89,7 +93,10 @@ let client = OpenAICompatibleCleanup(
 )
 
 print("=== SYSTEM MESSAGE ===")
-print(CleanupPrompt.systemMessage(additionalInstructions: configuration.additionalInstructions))
+print(CleanupPrompt.systemMessage(
+  additionalInstructions: configuration.additionalInstructions,
+  carriesScreenContext: request.carriesScreenContext,
+))
 print("\n=== USER MESSAGE ===")
 print(CleanupPrompt.userMessage(request))
 
@@ -115,7 +122,9 @@ await print(client.listModels())
 print("\n=== SKIP (task cancelled mid-flight) ===")
 let slowClient = OpenAICompatibleCleanup(
   configuration: CleanupConfiguration(
-    endpoint: endpoint.slowBaseURL, model: "mock-small", timeout: 10, additionalInstructions: "",
+    endpoint: endpoint.slowBaseURL, model: "mock-small", reasoningEffort: .modelDecides,
+    timeout: 10,
+    additionalInstructions: "",
   ), apiKey: "sk-smoke", session: URLSession(configuration: .ephemeral),
 )
 let pending = Task { await slowClient.clean(request) }

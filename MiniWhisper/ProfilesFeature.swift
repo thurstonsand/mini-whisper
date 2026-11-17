@@ -51,9 +51,11 @@ private let profilesPaneLogger = Logger(
     case customModel
     /// Set Up at rest, Cancel and Save while editing.
     case actions
+    case reasoning
     case boostsVocabulary
     case timeout
     case instructions
+    case expandedContext
   }
 
   enum Target: Equatable {
@@ -70,9 +72,13 @@ private let profilesPaneLogger = Logger(
     case setUp
     case cancel
     case save
+    case reasoning
     case boostsVocabulary
     case timeout
     case instructions
+    case screenContextInfo
+    case grantScreenRecording
+    case expandedContext
   }
 
   /// `GET /v1/models` is a convenience. A gateway that does not serve it is not broken, so a
@@ -191,8 +197,23 @@ private let profilesPaneLogger = Logger(
     /// a view cannot be told to do the same thing twice by a value that stays the same.
     var profileActivation = 0
     var timeoutActivation = 0
+    var reasoningActivation = 0
+    /// Set by the app while a recording runs, which holds the profile picker still.
+    var isRecording = false
+    var screenContextActivation = 0
+    /// Read when the pane opens and whenever the app comes back to the front, which is how the
+    /// user returns from granting it in System Settings.
+    var hasScreenRecording = true
+    var isScreenContextInfoPresented = false
+
     var modelActivation = 0
     var instructionsActivation = 0
+
+    /// Without Screen Recording nothing is read, so every profile shows Off until the grant
+    /// brings back what the profile would read.
+    var screenContextMode: ScreenContextMode {
+      hasScreenRecording ? settings.profiles.screenContextMode(for: profile.id) : .off
+    }
 
     var profile: Profile {
       settings.activeProfile
@@ -240,6 +261,12 @@ private let profilesPaneLogger = Logger(
         .isModelOverridden
     }
 
+    /// Reasoning is written straight through, like the timeout, so it waits out an edit in
+    /// progress rather than sitting under a Save it is not part of.
+    var showsReasoning: Bool {
+      hasPromptSurface && isSetUp && editor == nil
+    }
+
     var showsSpeechConnection: Bool {
       isSpeechExpanded || settings.profiles.scribeOverride != nil
     }
@@ -277,6 +304,9 @@ private let profilesPaneLogger = Logger(
         }
       } else if profile.endpointLeg != nil {
         rows.append(.actions)
+      }
+      if showsReasoning {
+        rows += [.reasoning, .expandedContext]
       }
       if showsTimeout {
         rows.append(.timeout)
@@ -342,12 +372,17 @@ private let profilesPaneLogger = Logger(
         return [.customModel]
       case .actions:
         return isEditing ? [.cancel, .save] : [.setUp]
+      case .reasoning:
+        return [.reasoning]
       case .boostsVocabulary:
         return [.boostsVocabulary]
       case .timeout:
         return [.timeout]
       case .instructions:
         return [.instructions]
+      case .expandedContext:
+        return [.screenContextInfo] + (hasScreenRecording ? [] : [.grantScreenRecording])
+          + [.expandedContext]
       }
     }
 
@@ -457,7 +492,15 @@ private let profilesPaneLogger = Logger(
     case advancedRevealed
     case speechAdvancedRevealed
     case timeoutSelected(TimeInterval)
+    case reasoningSelected(ReasoningEffort)
     case instructionsEdited(String)
+    case screenContextSelected(ScreenContextMode)
+    case screenContextInfoPresented(Bool)
+    case screenRecordingRefreshed
+    case screenRecordingObserved(Bool)
+    case grantScreenRecordingTapped
+    case haikuRetirementAnswered(keepsHaiku: Bool)
+    case haikuKeyMoved(keepsHaiku: Bool)
     case editTapped(Field)
     case resetTapped(Field)
     case endpointEdited(String)
@@ -496,6 +539,7 @@ private let profilesPaneLogger = Logger(
   @Dependency(\.cleanup) var cleanupClient
   @Dependency(\.keychain) var keychain
   @Dependency(\.modelLibrary) var modelLibrary
+  @Dependency(\.screenContext) var screenContext
 
   var body: some ReducerOf<Self> {
     Reduce { state, action in
@@ -509,6 +553,7 @@ private let profilesPaneLogger = Logger(
         }
         .cancellable(id: CancelID.assets, cancelInFlight: true)
         return .merge(assets, .concatenate(
+          observeScreenRecording(),
           .run { send in
             var stored: [CredentialSlot: String] = [:]
             for slot in slots {
@@ -558,10 +603,82 @@ private let profilesPaneLogger = Logger(
       case let .timeoutSelected(timeout):
         state.$settings.withLock { $0.setCleanupTimeout(timeout) }
         return .none
+      case let .reasoningSelected(effort):
+        let id = state.profile.id
+        state.$settings.withLock { $0.profiles.setReasoningEffort(effort, for: id) }
+        return .none
       case let .instructionsEdited(text):
         state.instructions = text
         state.$settings.withLock { $0.additionalInstructions = text }
         return .none
+      // Without the grant Off is the only mode on offer, and choosing it is not choosing it over
+      // Text: the profile goes back to its default once the grant arrives.
+      case let .screenContextSelected(mode):
+        guard state.hasScreenRecording else {
+          return .none
+        }
+        let id = state.profile.id
+        state.$settings.withLock { $0.profiles.setScreenContextMode(mode, for: id) }
+        return .none
+      case let .screenContextInfoPresented(isPresented):
+        state.isScreenContextInfoPresented = isPresented
+        return .none
+      case .screenRecordingRefreshed:
+        return observeScreenRecording()
+      case let .screenRecordingObserved(granted):
+        state.hasScreenRecording = granted
+        return .none
+      // Every mode but Off waits on this button rather than asking when it is picked.
+      case .grantScreenRecordingTapped:
+        return .run { _ in await screenContext.requestScreenRecording() }
+      // Haiku's key follows it into Custom, or is forgotten with it. Settings change only once
+      // it has, so a failed move leaves the question standing rather than a Custom without a key.
+      // Switching reuses a Google key the user gave Most accurate, copied rather than shared, as
+      // keys belong to their profile.
+      case let .haikuRetirementAnswered(keepsHaiku):
+        let slot = keepsHaiku ? Self.customSlot : nil
+        return .run { send in
+          try keychain.adopt(HaikuRetirement.keyAccount, slot)
+          if !keepsHaiku, try keychain.read(Self.everydaySlot) == nil,
+             let google = try keychain.read(Self.accurateGoogleSlot)
+          {
+            try keychain.store(google, Self.everydaySlot)
+          }
+          await send(.haikuKeyMoved(keepsHaiku: keepsHaiku))
+        } catch: { error, _ in
+          profilesPaneLogger.error(
+            "Haiku's key did not move: \(error.localizedDescription, privacy: .public)",
+          )
+        }
+      // The pane then shows what is left to do: Custom running Haiku, Everyday ready on the key
+      // it was given, or Everyday asking for one.
+      case let .haikuKeyMoved(keepsHaiku):
+        state.$settings.withLock {
+          keepsHaiku ? $0.profiles.keepHaikuInCustom() : $0.profiles.acceptHydrogen()
+        }
+        let slot = keepsHaiku ? Self.customSlot : Self.everydaySlot
+        let stored = state.storedKeys ?? [:]
+        let readKey = Effect<Action>.run { send in
+          let key = try keychain.read(slot)
+          var keys = stored
+          keys[slot] = key.map(Self.prefix)
+          await send(.storedKeysRead(keys))
+          guard key != nil else {
+            await send(.editTapped(.apiKey))
+            return
+          }
+          await send(.delegate(.keysStored([slot])))
+        } catch: { error, _ in
+          profilesPaneLogger
+            .error("Key unreadable: \(error.localizedDescription, privacy: .public)")
+        }
+        guard keepsHaiku else {
+          return readKey
+        }
+        return .merge(
+          .concatenate(readKey, .send(.profileSelected(.custom))),
+          .run { _ in await screenContext.requestScreenRecording() },
+        )
       case let .editTapped(field):
         if state.editor == nil {
           state.editor = state.makeEditor()
@@ -806,12 +923,23 @@ private let profilesPaneLogger = Logger(
           return .send(.saveTapped)
         case .boostsVocabulary:
           return .send(.boostsVocabularyToggled(!state.settings.profiles.custom.boostsVocabulary))
+        case .reasoning:
+          state.reasoningActivation += 1
+          return .none
         case .timeout:
           state.timeoutActivation += 1
           return .none
         case .instructions:
           state.instructionsActivation += 1
           return .none
+        case .expandedContext:
+          state.screenContextActivation += 1
+          return .none
+        case .screenContextInfo:
+          state.isScreenContextInfoPresented.toggle()
+          return .none
+        case .grantScreenRecording:
+          return .send(.grantScreenRecordingTapped)
         }
       case let .cursorHovered(row):
         guard state.rows.contains(row) else {
@@ -853,6 +981,10 @@ private let profilesPaneLogger = Logger(
     case assets
   }
 
+  private static let customSlot = CredentialSlot(profile: .custom, provider: .endpoint)
+  private static let everydaySlot = CredentialSlot(profile: .everyday, provider: .google)
+  private static let accurateGoogleSlot = CredentialSlot(profile: .accurate, provider: .google)
+
   private static func prefix(of key: String) -> String {
     String(key.prefix(6))
   }
@@ -861,7 +993,8 @@ private let profilesPaneLogger = Logger(
   /// the user's own time limit, and the prompt's instructions have no bearing on it.
   private static func configuration(endpoint: URL, model: String) -> CleanupConfiguration {
     CleanupConfiguration(
-      endpoint: endpoint, model: model, timeout: CleanupConfiguration.verificationTimeout,
+      endpoint: endpoint, model: model, reasoningEffort: .modelDecides,
+      timeout: CleanupConfiguration.verificationTimeout,
       additionalInstructions: "",
     )
   }
@@ -1106,6 +1239,10 @@ private let profilesPaneLogger = Logger(
     state.editingField = nil
     _ = clampTarget(&state)
     return .merge(.cancel(id: CancelID.verification), .cancel(id: CancelID.listing))
+  }
+
+  private func observeScreenRecording() -> Effect<Action> {
+    .run { send in await send(.screenRecordingObserved(screenContext.hasScreenRecording())) }
   }
 
   private func clampTarget(_ state: inout State) -> Effect<Action> {

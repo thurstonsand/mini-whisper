@@ -67,8 +67,10 @@ public struct HistoryEntry: Equatable, Codable, Sendable, Identifiable {
     retranscriptions: [Transcription] = [],
     reference: String? = nil,
     fieldContext: FocusedTextContext? = nil,
+    screenContext: ScreenContext? = nil,
     delivery: Delivery?,
     audio: AudioMetadata?,
+    screenshot: ScreenshotMetadata? = nil,
   ) {
     self.id = id
     self.createdAt = createdAt
@@ -77,8 +79,10 @@ public struct HistoryEntry: Equatable, Codable, Sendable, Identifiable {
     self.retranscriptions = retranscriptions
     self.reference = reference
     self.fieldContext = fieldContext
+    self.screenContext = screenContext
     self.delivery = delivery
     self.audio = audio
+    self.screenshot = screenshot
   }
 
   // MARK: Public
@@ -98,8 +102,15 @@ public struct HistoryEntry: Equatable, Codable, Sendable, Identifiable {
   /// re-transcription's cleanup pass can be conditioned exactly as the dictation's was; nil when
   /// the capture failed or delivery was never reached.
   public var fieldContext: FocusedTextContext?
+  /// What was on screen around the target at the press, read with Expanded context on, and
+  /// persisted for the same replay the field context is; nil when it was off or found nothing.
+  public var screenContext: ScreenContext?
   public var delivery: Delivery?
   public var audio: AudioMetadata?
+  /// The target window at the press: what the screen context's recognized text came from, or
+  /// what cleanup was shown in its place. It is kept beside the audio and shares its retention,
+  /// so a replay can hand a model the pixels themselves.
+  public var screenshot: ScreenshotMetadata?
 
   /// The newest opinion on the audio, original included. Every question the pane asks of an
   /// entry's text is a question about this one transcription.
@@ -216,4 +227,24 @@ public struct AudioMetadata: Equatable, Codable, Sendable {
 
   public let durationSeconds: Double
   public let byteCount: Int
+}
+
+// MARK: - ScreenshotMetadata
+
+/// Facts about the entry's stored screenshot. Like audio, its location is the entry id and its
+/// format is fixed: a JPEG of the target window at its point size.
+public struct ScreenshotMetadata: Equatable, Codable, Sendable {
+  // MARK: Lifecycle
+
+  public init(byteCount: Int, shownToCleanup: Bool) {
+    self.byteCount = byteCount
+    self.shownToCleanup = shownToCleanup
+  }
+
+  // MARK: Public
+
+  public let byteCount: Int
+  /// Whether cleanup was shown the image itself, in Screenshot mode, rather than text read from
+  /// the screen.
+  public let shownToCleanup: Bool
 }

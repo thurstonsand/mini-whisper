@@ -29,6 +29,9 @@ import TranscriptCleanup
           return true
         },
       )
+      dependencies.screenContext.hasScreenRecording = { sceneState.screenRecordingGranted }
+      dependencies.screenContext
+        .requestScreenRecording = { sceneState.screenRecordingGranted = true }
       dependencies.modelDownloadConsent.markConsented = {}
       dependencies.asrEngine.installAndPrepare = { _ in AsyncStream { $0.finish() } }
       dependencies.asrEngine.unload = { _ in }
@@ -75,6 +78,7 @@ import TranscriptCleanup
         store: { secret, slot in sceneState.keys[slot] = secret },
         read: { slot in sceneState.keys[slot] },
         delete: { slot in sceneState.keys[slot] = nil },
+        adopt: { _, _ in },
       )
       dependencies.cleanup = CleanupClient(
         clean: { _, _, _ in .cleaned("Agent scenes never dictate.") },
@@ -92,7 +96,7 @@ import TranscriptCleanup
           if endpoint.host() == "needs-key.example", apiKey == nil {
             return .failed(.httpStatus(code: 401, message: nil))
           }
-          if apiKey?.hasPrefix("sk-rejected") == true {
+          if apiKey?.contains("rejected") == true {
             return .failed(.httpStatus(code: 401, message: "invalid x-api-key"))
           }
           if configuration.model == "qwen3:32b" {
@@ -105,7 +109,7 @@ import TranscriptCleanup
           case "api.anthropic.com":
             .models(["claude-haiku-5-5", "claude-sonnet-5-5"])
           case "generativelanguage.googleapis.com":
-            .models(["gemini-3.8-flash", "gemini-3.5-flash-lite"])
+            .models(["gemini-4-hydrogen", "gemini-3.8-flash"])
           default:
             .models(["gpt-oss-120b", "gpt-oss-20b"])
           }
@@ -172,6 +176,7 @@ import TranscriptCleanup
       let seeded = scene.initialState
       _microphoneStatus = seeded.health.micStatus
       _accessibilityGranted = seeded.health.accessibilityGranted
+      _screenRecordingGranted = Self.screenRecordingGranted(in: seeded)
       _launchAtLoginRegistered = seeded.settingsWindow.settingsPane.launchAtLoginRegistered
       _keys = scene.seededKeys
       _assets = scene.seededAssets
@@ -193,6 +198,11 @@ import TranscriptCleanup
       set { lock.withLock { _accessibilityGranted = newValue } }
     }
 
+    var screenRecordingGranted: Bool {
+      get { lock.withLock { _screenRecordingGranted } }
+      set { lock.withLock { _screenRecordingGranted = newValue } }
+    }
+
     var launchAtLoginRegistered: Bool {
       get { lock.withLock { _launchAtLoginRegistered } }
       set { lock.withLock { _launchAtLoginRegistered = newValue } }
@@ -208,6 +218,7 @@ import TranscriptCleanup
       lock.withLock {
         _microphoneStatus = seeded.health.micStatus
         _accessibilityGranted = seeded.health.accessibilityGranted
+        _screenRecordingGranted = Self.screenRecordingGranted(in: seeded)
         _launchAtLoginRegistered = seeded.settingsWindow.settingsPane.launchAtLoginRegistered
         _keys = scene.seededKeys
         _assets = scene.seededAssets
@@ -245,10 +256,17 @@ import TranscriptCleanup
     private let lock = NSLock()
     private var _microphoneStatus: MicPermissionStatus
     private var _accessibilityGranted: Bool
+    private var _screenRecordingGranted: Bool
     private var _launchAtLoginRegistered: Bool
     private var _keys: [CredentialSlot: String]
     private var _assets: [ModelAsset: AssetState]
     private var _assetObservers: [AsyncStream<[ModelAsset: AssetState]>.Continuation] = []
+
+    /// An onboarding scene's grant is its snapshot's; every other scene's machine has granted
+    /// it, which is how the settings scenes show Expanded context's modes.
+    private static func screenRecordingGranted(in seeded: AppFeature.State) -> Bool {
+      !seeded.onboarding.isPresented || seeded.onboarding.snapshot.permissions.hasScreenRecording
+    }
 
     private func broadcastAssets() {
       let (assets, observers) = lock.withLock { (_assets, _assetObservers) }

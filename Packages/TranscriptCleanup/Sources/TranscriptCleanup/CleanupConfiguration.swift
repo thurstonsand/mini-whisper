@@ -12,12 +12,13 @@ public struct CleanupConfiguration: Equatable, Sendable {
   // MARK: Lifecycle
 
   public init(
-    endpoint: URL, model: String, timeout: TimeInterval = Self.defaultTimeout,
-    additionalInstructions: String,
+    endpoint: URL, model: String, reasoningEffort: ReasoningEffort,
+    timeout: TimeInterval = Self.defaultTimeout, additionalInstructions: String,
   ) {
     precondition(timeout > 0)
     self.endpoint = endpoint
     self.model = model
+    self.reasoningEffort = reasoningEffort
     self.timeout = timeout
     self.additionalInstructions = additionalInstructions
   }
@@ -32,6 +33,7 @@ public struct CleanupConfiguration: Equatable, Sendable {
 
   public let endpoint: URL
   public let model: String
+  public let reasoningEffort: ReasoningEffort
   public let timeout: TimeInterval
 
   /// Appended to the built-in prompt, never substituted for it. Empty means the built-in prompt

@@ -1,3 +1,4 @@
+import AppSettings
 import ComposableArchitecture
 import HotkeyListener
 import OSLog
@@ -69,6 +70,7 @@ import SwiftUI
     }
 
     store.send(.task)
+    askAboutHaikuOnceStarted()
 
     if ProcessInfo.processInfo.environment["MINIWHISPER_BENCHMARK_ACTIVATION"] == "1" {
       _ = Task {
@@ -111,5 +113,18 @@ import SwiftUI
 
   private var isDrivingTheRealApp: Bool {
     agentScene != nil || ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil
+  }
+
+  /// An upgrade from Everyday on Claude Haiku asks what replaces it in the pane that answers it.
+  private func askAboutHaikuOnceStarted() {
+    guard store.asksAboutHaiku else {
+      withObservationTracking {
+        _ = store.asksAboutHaiku
+      } onChange: { [weak self] in
+        Task { @MainActor in self?.askAboutHaikuOnceStarted() }
+      }
+      return
+    }
+    menuBarController.presentSettings(destination: .profiles)
   }
 }

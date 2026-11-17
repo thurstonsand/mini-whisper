@@ -66,12 +66,56 @@ import TranscriptCleanup
     )
   }
 
+  /// A short dictation can be transcribed and its field read before the screen read that started
+  /// at the press has finished; its cleanup waits for it rather than running without it. Text mode
+  /// keeps its screenshot for History only; Screenshot mode shows cleanup the image instead.
+  @Test(arguments: [
+    ScreenCapture(
+      context: ScreenContext(
+        windowTitle: "agent", structured: .init(source: .tmux, text: "CleanupPlan.keyUnreadable"),
+        recognizedText: nil,
+      ),
+      screenshot: Data([0xFF, 0xD8]), showsScreenshot: false,
+    ),
+    ScreenCapture(context: nil, screenshot: Data([0xFF, 0xD8]), showsScreenshot: true),
+  ])
+  func `cleanup waits for the screen read still in flight, then conditions on it`(
+    screen: ScreenCapture,
+  ) async throws {
+    let requests = RequestRecorder()
+    let store = cleanupStore(cleanup: .configured, screen: .pending) {
+      $0.asrEngine.submit = { _, _, _ in .transcript("clean up plan dot key unreadable") }
+      $0.cleanup.clean = { request, _, _ in
+        await requests.record(request)
+        return .cleaned("CleanupPlan.keyUnreadable")
+      }
+      $0.delivery.deliver = { _, _, _ in .pasted(.restored) }
+    }
+
+    await store.send(.recording(.delegate(.completed(CanonicalRecording(samples: [0.25])))))
+    await store.receive(.contextCaptured(1, .available(fieldContext), .inApp(ghostty)))
+    await store.finish()
+    #expect(await requests.values.isEmpty)
+    #expect(store.state.pendingDictation?.readyText == nil)
+
+    await store.send(.screenCaptured(1, screen))
+    await store.finish()
+
+    #expect(await requests.values.map(\.screenContext) == [screen.context])
+    #expect(await requests.values
+      .map(\.screenshot) == [screen.showsScreenshot ? screen.screenshot : nil])
+    #expect(await requests.values.map(\.focusedTextContext) == [fieldContext])
+    let entry = try #require(store.state.history.entries.first)
+    #expect(entry.original?.cleanup?.cleanedText == "CleanupPlan.keyUnreadable")
+    #expect(entry.screenContext == screen.context)
+  }
+
   /// The engine heard the dictation under one profile, so that profile cleans it, whatever the
   /// pane says by the time the transcript arrives.
   @Test func `a profile switch after the recording ends leaves that dictation's cleanup alone`(
   ) async {
     let slots = SlotRecorder()
-    let store = cleanupStore(cleanup: .configured, switchingTo: .haiku) {
+    let store = cleanupStore(cleanup: .configured, switchingTo: .everyday) {
       $0.keychain.read = { slot in
         slots.record(slot)
         return "sk-test"
@@ -192,7 +236,7 @@ import TranscriptCleanup
     _ configuration: CleanupConfigurationCase,
   ) async throws {
     let store = cleanupStore(
-      cleanup: configuration, active: configuration == .keyless ? .haiku : .custom,
+      cleanup: configuration, active: configuration == .keyless ? .everyday : .custom,
     ) {
       $0.cleanup.clean = { _, _, _ in
         Issue.record("An incomplete cleanup configuration must never send a request")
@@ -295,6 +339,16 @@ import TranscriptCleanup
   }
 }
 
+// MARK: - RequestRecorder
+
+private actor RequestRecorder {
+  private(set) var values: [CleanupRequest] = []
+
+  func record(_ request: CleanupRequest) {
+    values.append(request)
+  }
+}
+
 // MARK: - DeliveredTexts
 
 private actor DeliveredTexts {
@@ -318,7 +372,8 @@ enum CleanupConfigurationCase {
 private let endpoint = URL(string: "https://gateway.example/v1")!
 /// What `.configured` settings resolve to, and so what every resolution they produce carries.
 private let configuration = CleanupConfiguration(
-  endpoint: endpoint, model: "gpt-oss-120b", timeout: 10, additionalInstructions: "",
+  endpoint: endpoint, model: "gpt-oss-120b", reasoningEffort: .modelDecides, timeout: 10,
+  additionalInstructions: "",
 )
 /// The default activation binding, which is what the skip chip has to speak.
 private let skipChord = ["Right ⌥"]
@@ -330,7 +385,8 @@ private let fieldContext = FocusedTextContext(
 
 @MainActor private func cleanupStore(
   cleanup configurationCase: CleanupConfigurationCase, active: ProfileID = .custom,
-  switchingTo laterProfile: ProfileID? = nil, _ dependencies: (inout DependencyValues) -> Void,
+  switchingTo laterProfile: ProfileID? = nil, screen: AppFeature.ScreenRead? = nil,
+  _ dependencies: (inout DependencyValues) -> Void,
 ) -> TestStoreOf<AppFeature> {
   var settings = MiniWhisperSettings.defaults
   settings.retention.audio = .never
@@ -350,6 +406,8 @@ private let fieldContext = FocusedTextContext(
     createdAt: Date(timeIntervalSince1970: 100), engine: "test-engine@revision", original: nil,
     cleanupTarget: settings.cleanupTarget,
   )
+  // A read that started at the press, which the recording hands to its dictation as it ends.
+  state.activationScreen = screen.map { AppFeature.ActivationScreen(generation: 1, read: $0) }
   // The pane moving on after the recording ended, before the transcript arrives.
   if let laterProfile {
     state.$settings.withLock { $0.profiles.active = laterProfile }

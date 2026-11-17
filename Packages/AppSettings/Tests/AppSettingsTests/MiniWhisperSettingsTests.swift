@@ -13,8 +13,8 @@ struct MiniWhisperSettingsTests {
     let object = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
     #expect(
       Set(object.keys) == [
-        "additionalInstructions", "bindings", "cleanupTimeout", "microphone", "profiles",
-        "retention", "sounds",
+        "additionalInstructions", "bindings", "cleanupTimeout", "microphone",
+        "profiles", "retention", "sounds",
       ],
     )
     let bindings = try #require(object["bindings"] as? [String: Any])
@@ -145,7 +145,7 @@ struct MiniWhisperSettingsTests {
 
     let object = try #require(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
     let profiles = try #require(object["profiles"] as? [String: Any])
-    #expect(profiles["active"] as? String == "haiku")
+    #expect(profiles["active"] as? String == "everyday")
     #expect((profiles["overrides"] as? [String: Any])?.isEmpty == true)
     let custom = try #require(profiles["custom"] as? [String: Any])
     #expect(Set(custom.keys) == ["boostsVocabulary", "cleanupEnabled"])

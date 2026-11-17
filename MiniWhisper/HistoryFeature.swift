@@ -230,8 +230,9 @@ import TranscriptCleanup
         historyLogger.error("History deletion failed: \(message, privacy: .public)")
         return .none
       // A re-run is the same processing a dictation gets — the engine, then the cleanup pass —
-      // conditioned by the facts the entry kept: the field the words were meant for and the
-      // application they were bound for, against today's vocabulary and today's profile.
+      // conditioned by the facts the entry kept: the field the words were meant for, the screen
+      // around it, and the application they were bound for, against today's vocabulary and
+      // today's profile.
       case let .retranscribeTapped(id):
         guard let entry = state.log.entries.first(where: { $0.id == id }), entry.audio != nil
         else {
@@ -241,7 +242,7 @@ import TranscriptCleanup
           boostsVocabulary: state.settings.activeProfile.boostsVocabulary,
         )
         let conditioning = CleanupConditioning(
-          fieldContext: entry.fieldContext,
+          fieldContext: entry.fieldContext, screenContext: entry.screenContext, screenshot: nil,
           vocabulary: state.dictionary.vocabulary.map(\.text),
           targetBundleID: entry.targetApp?.bundleID,
         )
@@ -252,6 +253,11 @@ import TranscriptCleanup
         return .run { send in
           do {
             let recording = try await historyClient.loadAudio(id)
+            var conditioning = conditioning
+            // A lost screenshot costs the cleanup its context, as a failed read does live.
+            if entry.screenshot?.shownToCleanup == true {
+              conditioning.screenshot = try? await historyClient.loadScreenshot(id)
+            }
             let processed = try await TranscriptPipeline().process(
               recording, engine: engine, dictionary: dictionary, conditioning: conditioning,
               target: target,

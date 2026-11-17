@@ -66,6 +66,8 @@ import Testing
       $0.recording.captureGeneration = 1
       $0.recording.phase = .starting(nil)
     }
+    // The profile picker holds still from the start of the capture to its end.
+    #expect(store.state.settingsWindow.profiles.isRecording)
     await store.receive(.recording(.captureSessionStarted(1, sessionID))) {
       $0.recording.captureSessionID = sessionID
     }
@@ -90,6 +92,7 @@ import Testing
       $0.recording.captureSessionID = nil
       $0.recording.phase = .idle
     }
+    #expect(!store.state.settingsWindow.profiles.isRecording)
     await store.receive(.recording(.delegate(.completed(recording))))
     await store
       .receive(.pill(.transcribingStarted(target: DeliveryTarget.none))) {
@@ -109,7 +112,7 @@ import Testing
   @Test func `completed startup starts the listener without presenting onboarding`() async {
     let (events, continuation) = AsyncStream.makeStream(of: HotkeyListenerEvent<HotkeyAction>.self)
     let permissions = OnboardingPermissionStatuses(
-      microphoneStatus: .granted, hasAccessibilityPermission: true,
+      microphoneStatus: .granted, hasAccessibilityPermission: true, hasScreenRecording: false,
     )
     let facts = AppFeature.StartupFacts(
       onboardingCompleted: true, modelDownloadConsented: true, permissions: permissions,
@@ -333,7 +336,7 @@ import Testing
     }
     state.onboarding.isPresented = true
     state.onboarding.snapshot.permissions = OnboardingPermissionStatuses(
-      microphoneStatus: .granted, hasAccessibilityPermission: true,
+      microphoneStatus: .granted, hasAccessibilityPermission: true, hasScreenRecording: false,
     )
     state.onboarding.selectedStep = .shortcut
     let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
@@ -454,6 +457,46 @@ import Testing
     await store.send(.hotkeyListenerFailed("cancelled"))
   }
 
+  /// An upgrade from Everyday on Haiku is asked about only past onboarding. A user still in it
+  /// answers by the profile they finish with, so the question never follows a fresh choice.
+  @Test(arguments: [true, false])
+  func `the haiku question is asked past onboarding and answered by finishing it`(
+    onboardingCompleted: Bool,
+  ) async throws {
+    let legacy = try SettingsCoding.decode(Data(#"{"profiles": {"active": "haiku"}}"#.utf8))
+    let moved = TestBox<[String]>([])
+    let store = TestStore(initialState: AppFeature.State()) {
+      AppFeature()
+    } withDependencies: {
+      $0.accessibilityPermission.hasPermission = { false }
+      $0.hotkeyListener.events = { _ in AsyncStream { $0.finish() } }
+      $0.keychain.read = { _ in nil }
+      $0.keychain.adopt = { account, slot in
+        moved.value.append("\(account) → \(slot?.account ?? "nowhere")")
+      }
+    }
+    store.exhaustivity = .off(showSkippedAssertions: false)
+    store.state.$settings.withLock { $0 = legacy }
+
+    await store.send(.startupResolved(AppFeature.StartupFacts(
+      onboardingCompleted: onboardingCompleted, modelDownloadConsented: true,
+      permissions: OnboardingPermissionStatuses(
+        microphoneStatus: .granted, hasAccessibilityPermission: false, hasScreenRecording: false,
+      ),
+      engineReadiness: .ready,
+    )))
+    #expect(store.state.asksAboutHaiku == onboardingCompleted)
+
+    guard !onboardingCompleted else {
+      return
+    }
+    await store.send(.onboarding(.delegate(.completed)))
+    await store.finish()
+    #expect(store.state.settings.profiles.haikuRetirement == nil)
+    #expect(moved.value == ["profile.haiku.anthropic → nowhere"])
+    #expect(!store.state.asksAboutHaiku)
+  }
+
   @Test func `startup join forwards engine readiness after its initial snapshot`() async {
     let store = TestStore(initialState: AppFeature.State()) {
       AppFeature()
@@ -468,6 +511,7 @@ import Testing
       }
       $0.microphonePermission.status = { .granted }
       $0.accessibilityPermission.hasPermission = { false }
+      $0.screenContext.hasScreenRecording = { false }
       $0.onboardingCompletion.isCompleted = { true }
       $0.modelDownloadConsent.isConsented = { true }
       $0.date.now = Date(timeIntervalSince1970: 1000)
@@ -476,7 +520,7 @@ import Testing
     let facts = AppFeature.StartupFacts(
       onboardingCompleted: true, modelDownloadConsented: true,
       permissions: OnboardingPermissionStatuses(
-        microphoneStatus: .granted, hasAccessibilityPermission: false,
+        microphoneStatus: .granted, hasAccessibilityPermission: false, hasScreenRecording: false,
       ),
       engineReadiness: .compiling,
     )
@@ -510,6 +554,7 @@ import Testing
       $0.hotkeyListener.events = { _ in AsyncStream { $0.finish() } }
       $0.microphonePermission.status = { .undetermined }
       $0.accessibilityPermission.hasPermission = { false }
+      $0.screenContext.hasScreenRecording = { false }
       $0.onboardingCompletion.isCompleted = { false }
       $0.modelDownloadConsent.isConsented = { false }
       $0.continuousClock = TestClock()
@@ -518,7 +563,7 @@ import Testing
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
     let permissions = OnboardingPermissionStatuses(
-      microphoneStatus: .undetermined, hasAccessibilityPermission: false,
+      microphoneStatus: .undetermined, hasAccessibilityPermission: false, hasScreenRecording: false,
     )
     let facts = AppFeature.StartupFacts(
       onboardingCompleted: false, modelDownloadConsented: false, permissions: permissions,
@@ -534,7 +579,7 @@ import Testing
       $0.onboarding.isPresented = true
       $0.onboarding.snapshot = snapshot
       $0.onboarding.isShowingWelcome = true
-      $0.onboarding.storedKeys = [CredentialSlot(profile: .haiku, provider: .anthropic)]
+      $0.onboarding.storedKeys = [CredentialSlot(profile: .everyday, provider: .google)]
     }
     await store
       .receive(.engineReadinessUpdated(.parakeet, .ready)) {
@@ -543,18 +588,12 @@ import Testing
     #expect(store.state.onboarding.step == .permissions)
 
     let granted = OnboardingPermissionStatuses(
-      microphoneStatus: .granted, hasAccessibilityPermission: true,
+      microphoneStatus: .granted, hasAccessibilityPermission: true, hasScreenRecording: true,
     )
-    await store.send(
-      .onboarding(
-        .permissionStatusesObserved(
-          OnboardingPermissionStatuses(
-            microphoneStatus: .granted,
-            hasAccessibilityPermission: true,
-          ),
-        ),
-      ),
-    ) { $0.onboarding.snapshot.permissions = granted }
+    await store
+      .send(.onboarding(.permissionStatusesObserved(granted))) {
+        $0.onboarding.snapshot.permissions = granted
+      }
     await store.finish()
   }
 
@@ -581,6 +620,7 @@ import Testing
     let snapshot = OnboardingSnapshot(
       permissions: OnboardingPermissionStatuses(
         microphoneStatus: .undetermined, hasAccessibilityPermission: false,
+        hasScreenRecording: false,
       ),
       hasModelDownloadConsent: false, isCompleted: false,
     )
@@ -597,7 +637,7 @@ import Testing
       $0.onboarding.isPresented = true
       $0.onboarding.snapshot = snapshot
       $0.onboarding.isShowingWelcome = true
-      $0.onboarding.storedKeys = [CredentialSlot(profile: .haiku, provider: .anthropic)]
+      $0.onboarding.storedKeys = [CredentialSlot(profile: .everyday, provider: .google)]
     }
     await store.send(.onboarding(.downloadModel)) {
       $0.onboarding.isRecordingModelDownloadConsent = true
@@ -615,18 +655,9 @@ import Testing
 
     // Observed grants advance the flow in place when macOS exposes them to the running process.
     let granted = OnboardingPermissionStatuses(
-      microphoneStatus: .granted, hasAccessibilityPermission: true,
+      microphoneStatus: .granted, hasAccessibilityPermission: true, hasScreenRecording: true,
     )
-    await store.send(
-      .onboarding(
-        .permissionStatusesObserved(
-          OnboardingPermissionStatuses(
-            microphoneStatus: .granted,
-            hasAccessibilityPermission: true,
-          ),
-        ),
-      ),
-    ) {
+    await store.send(.onboarding(.permissionStatusesObserved(granted))) {
       $0.onboarding.snapshot.permissions = granted
       $0.$health.withLock {
         $0.hotkeyTap = .starting
@@ -653,6 +684,7 @@ import Testing
     state.onboarding.snapshot = OnboardingSnapshot(
       permissions: OnboardingPermissionStatuses(
         microphoneStatus: .undetermined, hasAccessibilityPermission: false,
+        hasScreenRecording: false,
       ),
       hasModelDownloadConsent: true, isCompleted: false,
     )
@@ -695,6 +727,7 @@ import Testing
     state.recording.captureGeneration = 1
     state.recording.captureSessionID = sessionID
     state.recording.phase = .recording
+    state.settingsWindow.profiles.isRecording = true
     state.$health.withLock { $0 = .healthy }
     state.onboardingCompleted = true
     state.dictationInFlight = true
@@ -720,6 +753,7 @@ import Testing
     await store.receive(.recording(.captureCancelled(1))) {
       $0.recording.captureSessionID = nil
       $0.recording.phase = .idle
+      $0.settingsWindow.profiles.isRecording = false
       $0.recording.latestLevel = 0
     }
     await store.finish()
@@ -737,6 +771,7 @@ import Testing
     state.recording.captureGeneration = 1
     state.recording.captureSessionID = sessionID
     state.recording.phase = .recording
+    state.settingsWindow.profiles.isRecording = true
     state.dictationInFlight = true
     state.pill.presentation = .recording(
       PillFeature.State.Presentation.Recording(
@@ -769,6 +804,7 @@ import Testing
     await store.receive(.recording(.captureCancelled(1))) {
       $0.recording.captureSessionID = nil
       $0.recording.phase = .idle
+      $0.settingsWindow.profiles.isRecording = false
       $0.recording.latestLevel = 0
     }
     await store.finish()
@@ -784,7 +820,7 @@ import Testing
     state.onboarding.isPresented = true
     state.onboarding.snapshot = OnboardingSnapshot(
       permissions: OnboardingPermissionStatuses(
-        microphoneStatus: .granted, hasAccessibilityPermission: true,
+        microphoneStatus: .granted, hasAccessibilityPermission: true, hasScreenRecording: false,
       ),
       hasModelDownloadConsent: true, isCompleted: false,
     )
@@ -1526,6 +1562,8 @@ import Testing
     state.recording.phase = .recording
     state.$health.withLock { $0 = .healthy }
     state.onboardingCompleted = true
+    // The cues are the subject; the screen read every endpoint profile starts is not.
+    state.$settings.withLock { $0.profiles.setScreenContextMode(.off, for: .everyday) }
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {

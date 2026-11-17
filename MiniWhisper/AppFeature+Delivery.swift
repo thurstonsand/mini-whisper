@@ -18,9 +18,17 @@ extension AppFeature {
   }
 
   /// The press is the only moment that names where the user meant the words to go, so the target
-  /// is captured beside it — before the user has had a chance to look anywhere else.
-  func captureTargetEffect(generation: Int) -> Effect<Action> {
-    .run { send in await send(.targetCaptured(generation, deliveryTarget.capture())) }
+  /// is captured beside it — before the user has had a chance to look anywhere else. The screen
+  /// around it is read from the same target right after, while the user is still speaking.
+  func captureTargetEffect(generation: Int, screen: ScreenContextMode) -> Effect<Action> {
+    .run { send in
+      let target = await deliveryTarget.capture()
+      await send(.targetCaptured(generation, target))
+      guard screen != .off else {
+        return
+      }
+      await send(.screenCaptured(generation, screenContext.capture(target, screen)))
+    }
   }
 
   /// The field's text is read as late as it can be, because it is the one fact the user keeps

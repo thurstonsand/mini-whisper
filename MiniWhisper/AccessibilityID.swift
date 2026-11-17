@@ -103,6 +103,7 @@ enum AccessibilityID {
   static let profilesBoostsVocabulary = "miniwhisper.profiles.boosts-vocabulary"
   static let profilesBoostWarning = "miniwhisper.profiles.boosts-vocabulary.warning"
   static let profilesTimeout = "miniwhisper.profiles.timeout"
+  static let profilesReasoning = "miniwhisper.profiles.reasoning"
   static let profilesModel = "miniwhisper.profiles.model"
   static let profilesModelListing = "miniwhisper.profiles.model.listing"
   static let profilesLoadModels = "miniwhisper.profiles.model.load"
@@ -113,6 +114,9 @@ enum AccessibilityID {
   static let profilesChecking = "miniwhisper.profiles.checking"
   static let profilesFailure = "miniwhisper.profiles.failure"
   static let profilesInstructions = "miniwhisper.profiles.instructions"
+  static let profilesExpandedContext = "miniwhisper.profiles.expanded-context"
+  static let profilesExpandedContextInfo = "miniwhisper.profiles.expanded-context.info"
+  static let profilesGrantScreenRecording = "miniwhisper.profiles.expanded-context.grant"
   static let profilesEditing = "miniwhisper.profiles.editing"
   static let modelsFailure = "miniwhisper.models.failure"
   static let dictionaryAdd = "miniwhisper.dictionary.add"
@@ -169,7 +173,14 @@ enum AccessibilityID {
     "miniwhisper.onboarding.permission.accessibility.status"
   static let onboardingPermissionAccessibilityAction =
     "miniwhisper.onboarding.permission.accessibility.action"
+  static let onboardingPermissionScreenRecording =
+    "miniwhisper.onboarding.permission.screen-recording"
+  static let onboardingPermissionScreenRecordingStatus =
+    "miniwhisper.onboarding.permission.screen-recording.status"
+  static let onboardingPermissionScreenRecordingAction =
+    "miniwhisper.onboarding.permission.screen-recording.action"
   static let onboardingPermissionsGuidance = "miniwhisper.onboarding.permissions.guidance"
+  static let onboardingPermissionsContinue = "miniwhisper.onboarding.permissions.continue"
 
   static let onboardingShortcut = "miniwhisper.onboarding.shortcut"
   static let onboardingShortcutTitle = "miniwhisper.onboarding.shortcut.title"

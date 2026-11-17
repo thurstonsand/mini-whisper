@@ -28,6 +28,7 @@ enum PresentedWindow: Equatable {
     case onboardingPermissionsAccessibility = "onboarding-permissions-accessibility"
     case onboardingPermissionsAccessibilitySettings =
       "onboarding-permissions-accessibility-settings"
+    case onboardingPermissionsScreenRecording = "onboarding-permissions-screen-recording"
     case onboardingShortcut = "onboarding-shortcut"
     case onboardingModel = "onboarding-model"
     case onboardingModelActionable = "onboarding-model-actionable"
@@ -58,6 +59,7 @@ enum PresentedWindow: Equatable {
     case settingsProfilesAccurate = "settings-profiles-accurate"
     case settingsProfilesOffline = "settings-profiles-offline"
     case settingsProfilesRejected = "settings-profiles-rejected"
+    case settingsProfilesHaikuRetired = "settings-profiles-haiku-retired"
     case settingsModels = "settings-models"
     case settingsModelsStates = "settings-models-states"
     case settingsModelsKeyMissing = "settings-models-key-missing"
@@ -117,7 +119,8 @@ enum PresentedWindow: Equatable {
            .settingsProfilesDownloading,
            .settingsProfilesAccurate,
            .settingsProfilesOffline,
-           .settingsProfilesRejected:
+           .settingsProfilesRejected,
+           .settingsProfilesHaikuRetired:
         .settings(.profiles, initialFocus: nil)
       case .settingsModels,
            .settingsModelsStates,
@@ -140,33 +143,35 @@ enum PresentedWindow: Equatable {
     /// does not are different screens, and only the Keychain can say which one this is.
     var seededKeys: [CredentialSlot: String] {
       let custom = CredentialSlot(profile: .custom, provider: .endpoint)
-      let haiku = CredentialSlot(profile: .haiku, provider: .anthropic)
+      let everyday = CredentialSlot(profile: .everyday, provider: .google)
       switch self {
       case .settingsProfiles,
            .settingsProfilesKeyboard:
-        return [custom: "sk-agent-000000000000", haiku: "sk-ant-agent-scene"]
+        return [custom: "sk-agent-000000000000", everyday: "AIzaSyAgentScene"]
       case .settingsProfilesOverridden,
            .settingsProfilesDownloading,
            .settingsModels,
            .settingsModelsStates:
-        return [haiku: "sk-ant-agent-scene"]
+        return [everyday: "AIzaSyAgentScene"]
       // The scene's endpoint refuses this key, the way a revoked one is refused.
       case .settingsProfilesRejected:
-        return [haiku: "sk-rejected-scene"]
+        return [everyday: "AIza-rejected-scene"]
       case .settingsProfilesAccurate,
-           .settingsModelsKeyMissing:
+           .settingsModelsKeyMissing,
+           .settingsProfilesHaikuRetired:
         return [CredentialSlot(profile: .accurate, provider: .google): "AIzaSyAgentScene"]
       // Past the key page, the default profile's key is in the Keychain the scene answers for.
       case .onboardingPermissionsMicrophone,
            .onboardingPermissionsAccessibility,
            .onboardingPermissionsAccessibilitySettings,
+           .onboardingPermissionsScreenRecording,
            .onboardingShortcut,
            .onboardingModel,
            .onboardingModelActionable,
            .onboardingModelDownloadFailed,
            .onboardingTryIt,
            .onboardingReady:
-        return [haiku: "sk-ant-agent-scene"]
+        return [everyday: "AIzaSyAgentScene"]
       default:
         return [:]
       }
@@ -258,6 +263,11 @@ enum PresentedWindow: Equatable {
         present(&state.onboarding,
                 permissions: permissions(microphone: .granted), readiness: .downloading(0.42),
                 requestedPermissions: [.accessibility])
+      case .onboardingPermissionsScreenRecording:
+        state.onboardingCompleted = false
+        present(&state.onboarding,
+                permissions: permissions(microphone: .granted, accessibility: true),
+                readiness: .downloading(0.42), selectedStep: .permissions)
       case .onboardingShortcut:
         state.onboardingCompleted = false
         present(&state.onboarding,
@@ -266,7 +276,9 @@ enum PresentedWindow: Equatable {
       case .onboardingModel:
         state.onboardingCompleted = false
         present(&state.onboarding,
-                permissions: permissions(microphone: .granted, accessibility: true),
+                permissions: permissions(
+                  microphone: .granted, accessibility: true, screenRecording: true,
+                ),
                 readiness: .downloading(0.42), selectedStep: .model, hasCompletedShortcut: true)
       case .onboardingModelActionable:
         state.onboardingCompleted = false
@@ -298,10 +310,10 @@ enum PresentedWindow: Equatable {
                 readiness: .ready, selectedStep: .tryIt, hasCompletedShortcut: true)
         state.onboarding.storedKeys = []
         state.onboarding.hasSkippedKeys = true
-        state.$health.withLock { $0.missingCleanupKey = .anthropic }
+        state.$health.withLock { $0.missingCleanupKey = .google }
       case .settingsKeyMissing:
         state.settingsWindow.settingsPane.launchAtLoginRegistered = true
-        state.$health.withLock { $0.missingCleanupKey = .anthropic }
+        state.$health.withLock { $0.missingCleanupKey = .google }
       case .onboardingTryIt:
         state.onboardingCompleted = false
         present(&state.onboarding,
@@ -350,7 +362,8 @@ enum PresentedWindow: Equatable {
            .settingsProfilesOverridden,
            .settingsProfilesOffline:
         break
-      case .settingsModels:
+      case .settingsModels,
+           .settingsProfilesHaikuRetired:
         break
       case .settingsProfilesDownloading,
            .settingsModelsStates:
@@ -358,7 +371,7 @@ enum PresentedWindow: Equatable {
       // The last dictation's cleanup was refused with this key.
       case .settingsProfilesRejected:
         state.$health.withLock {
-          _ = $0.rejectedKeys.insert(CredentialSlot(profile: .haiku, provider: .anthropic))
+          _ = $0.rejectedKeys.insert(CredentialSlot(profile: .everyday, provider: .google))
         }
       // Most accurate with only its Google key: the engine is installed and cannot hear yet.
       case .settingsProfilesAccurate,
@@ -493,6 +506,17 @@ enum PresentedWindow: Equatable {
            .settingsModelsKeyMissing:
         settings.profiles.active = .accurate
         return settings
+      // Upgraded from Everyday on Haiku, with a Google key Most accurate already holds.
+      case .settingsProfilesHaikuRetired:
+        do {
+          settings.profiles = try SettingsCoding.decode(
+            Data(#"{"profiles": {"active": "haiku"}}"#.utf8),
+          )
+          .profiles
+        } catch {
+          preconditionFailure("The seeded Haiku settings are invalid: \(error)")
+        }
+        return settings
       case .settingsProfilesOffline,
            .settingsModelsStates,
            .onboardingWelcomeOffline,
@@ -510,7 +534,7 @@ enum PresentedWindow: Equatable {
         return settings
       case .settingsProfilesOverridden:
         settings.profiles.setEndpoint(
-          URL(string: "https://aig.thurstons.house/v1")!, for: .haiku,
+          URL(string: "https://aig.thurstons.house/v1")!, for: .everyday,
         )
         return settings
       default:
@@ -686,9 +710,11 @@ enum PresentedWindow: Equatable {
 
     private func permissions(
       microphone: MicPermissionStatus = .undetermined, accessibility: Bool = false,
+      screenRecording: Bool = false,
     ) -> OnboardingPermissionStatuses {
       OnboardingPermissionStatuses(
         microphoneStatus: microphone, hasAccessibilityPermission: accessibility,
+        hasScreenRecording: screenRecording,
       )
     }
   }

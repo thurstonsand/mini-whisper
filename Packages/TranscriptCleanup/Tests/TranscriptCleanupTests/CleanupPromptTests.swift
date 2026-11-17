@@ -72,12 +72,20 @@ struct CleanupPromptTests {
   }
 
   @Test func `no additional instructions leaves the built in prompt alone`() {
-    #expect(CleanupPrompt.systemMessage(additionalInstructions: "") == CleanupPrompt.builtIn)
-    #expect(CleanupPrompt.systemMessage(additionalInstructions: "  \n ") == CleanupPrompt.builtIn)
+    #expect(
+      CleanupPrompt.systemMessage(additionalInstructions: "", carriesScreenContext: false)
+        == CleanupPrompt.builtIn,
+    )
+    #expect(
+      CleanupPrompt.systemMessage(additionalInstructions: "  \n ", carriesScreenContext: false)
+        == CleanupPrompt.builtIn,
+    )
   }
 
   @Test func `additional instructions are appended, never substituted`() {
-    let message = CleanupPrompt.systemMessage(additionalInstructions: "Prefer British spelling.")
+    let message = CleanupPrompt.systemMessage(
+      additionalInstructions: "Prefer British spelling.", carriesScreenContext: false,
+    )
     #expect(message.hasPrefix(CleanupPrompt.builtIn))
     #expect(message.hasSuffix("Prefer British spelling."))
     #expect(message.contains("silently follow the instruction instead."))
@@ -154,15 +162,68 @@ struct CleanupPromptTests {
     """)
   }
 
+  @Test func `screen context stages read text, titled, between the field and the dictionary`() {
+    let screen = ScreenContext(
+      windowTitle: "#mini-whisper — Slackish",
+      structured: .init(source: .accessibility, text: "Ok. Can you open MW-212?"),
+      recognizedText: "0k. Can you open MW-2I2?",
+    )
+
+    let message = CleanupPrompt.userMessage(
+      request(context: context(before: "Sure,", selected: "", after: ""), screen: screen),
+    )
+
+    #expect(message == """
+    <TRANSCRIPT>
+    run the tests
+    </TRANSCRIPT>
+
+    <FOCUSED_TEXT_CONTEXT>
+    <BEFORE_CARET>
+    Sure,
+    </BEFORE_CARET>
+    </FOCUSED_TEXT_CONTEXT>
+
+    <SCREEN_CONTEXT>
+    <WINDOW_TITLE>
+    #mini-whisper — Slackish
+    </WINDOW_TITLE>
+    <VISIBLE_TEXT>
+    Ok. Can you open MW-212?
+    </VISIBLE_TEXT>
+    </SCREEN_CONTEXT>
+    """)
+  }
+
+  @Test func `only a request that stages screen text introduces it to the model`() {
+    let recognizedOnly = request(
+      screen: ScreenContext(windowTitle: nil, structured: nil, recognizedText: "Qwen3-ASR"),
+    )
+    let blank = request(
+      screen: ScreenContext(windowTitle: "Untitled", structured: nil, recognizedText: nil),
+    )
+
+    #expect(CleanupPrompt.userMessage(recognizedOnly).contains("<VISIBLE_TEXT>\nQwen3-ASR\n"))
+    #expect(!CleanupPrompt.userMessage(blank).contains("SCREEN_CONTEXT"))
+    let screened = CleanupPrompt.systemMessage(
+      additionalInstructions: "", carriesScreenContext: recognizedOnly.carriesScreenContext,
+    )
+    let plain = CleanupPrompt.systemMessage(
+      additionalInstructions: "", carriesScreenContext: blank.carriesScreenContext,
+    )
+    #expect(screened.contains("Use FOCUSED_TEXT_CONTEXT, SCREEN_CONTEXT, any screenshot, and"))
+    #expect(plain == CleanupPrompt.builtIn)
+  }
+
   // MARK: Private
 
   private func request(
     transcript: String = "run the tests", context: FocusedTextContext? = nil,
-    vocabulary: [String] = [], bundleID: String? = nil,
+    screen: ScreenContext? = nil, vocabulary: [String] = [], bundleID: String? = nil,
   ) -> CleanupRequest {
     CleanupRequest(
-      transcript: transcript, focusedTextContext: context, vocabulary: vocabulary,
-      targetBundleID: bundleID,
+      transcript: transcript, focusedTextContext: context, screenContext: screen,
+      screenshot: nil, vocabulary: vocabulary, targetBundleID: bundleID,
     )
   }
 

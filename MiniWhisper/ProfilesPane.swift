@@ -59,9 +59,46 @@ struct ProfilesPane: View {
     )
     .task { store.send(.profiles(.task)) }
     .onDisappear { store.send(.profiles(.paneDisappeared)) }
+    // Asked once the Keychain has been read, so the question does not change under the reader.
+    .alert(
+      "Everyday now cleans up with Gemini",
+      isPresented: Binding(
+        get: { haikuRetirement != nil && profiles.storedKeys != nil }, set: { _ in },
+      ),
+    ) {
+      Button(hasGoogleKey ? "Switch to Gemini" : "Add a Google Key") {
+        store.send(.profiles(.haikuRetirementAnswered(keepsHaiku: false)))
+      }
+      .keyboardShortcut(.defaultAction)
+      Button("Keep Claude Haiku") {
+        store.send(.profiles(.haikuRetirementAnswered(keepsHaiku: true)))
+      }
+    } message: {
+      Text(haikuRetirementMessage)
+    }
   }
 
   // MARK: Private
+
+  private var haikuRetirement: HaikuRetirement? {
+    profiles.settings.profiles.haikuRetirement
+  }
+
+  /// Everyday's own, or one Most accurate has that switching would reuse.
+  private var hasGoogleKey: Bool {
+    [ProfileID.everyday, .accurate].contains {
+      profiles.storedKeys?[CredentialSlot(profile: $0, provider: .google)] != nil
+    }
+  }
+
+  private var haikuRetirementMessage: String {
+    let needs = hasGoogleKey ? "" : " It needs a Google key to switch, but"
+    let keep = hasGoogleKey ? " You can" : ""
+    let replaces = profiles.settings.profiles.custom == .defaults
+      ? "" : " It replaces what Custom has now."
+    return "Gemini 4 Hydrogen makes fewer mistakes than Claude Haiku.\(needs)\(keep) keep using "
+      + "Haiku by migrating to a Custom profile.\(replaces)"
+  }
 
   private var profiles: ProfilesFeature.State {
     store.profiles
@@ -131,6 +168,10 @@ struct ProfilesPane: View {
         NotSetUpRows(store: store)
       }
     }
+    if profiles.showsReasoning, let leg = profile.endpointLeg {
+      ReasoningRow(store: store, leg: leg)
+      ExpandedContextRow(store: store)
+    }
   }
 }
 
@@ -151,6 +192,7 @@ private struct PickerRow: View {
         onSelection: { store.send(.profiles(.profileSelected($0))) },
       )
       .fixedSize()
+      .disabled(store.profiles.isRecording)
       .accessibilityIdentifier(AccessibilityID.profilesPicker)
       .accessibilityLabel("Profile")
       .accessibilityValue(summary(store.profiles.profile))
@@ -763,6 +805,38 @@ private struct TimeoutRow: View {
   }
 }
 
+// MARK: - ReasoningRow
+
+/// Written straight through, like the timeout. Which levels a model accepts is the endpoint's
+/// call, and one it refuses fails that dictation's cleanup the way any rejected request does.
+private struct ReasoningRow: View {
+  // MARK: Internal
+
+  let store: StoreOf<SettingsWindowFeature>
+  let leg: EndpointLeg
+
+  var body: some View {
+    LabeledContent("Reasoning") {
+      SettingsPopUpButton(
+        options: options, selection: leg.reasoningEffort,
+        activation: store.profiles.reasoningActivation,
+        isRinged: store.state.showsProfilesRing(.reasoning, target: .reasoning),
+        onSelection: { store.send(.profiles(.reasoningSelected($0))) },
+      )
+      .fixedSize()
+      .accessibilityIdentifier(AccessibilityID.profilesReasoning)
+      .accessibilityLabel("Reasoning")
+    }
+    .modifier(ProfilesFormRow(store: store, row: .reasoning))
+  }
+
+  // MARK: Private
+
+  private var options: [SettingsPopUpButton<ReasoningEffort>.Option] {
+    ReasoningEffort.levels(for: leg.endpoint).map { .init(value: $0, title: $0.title) }
+  }
+}
+
 // MARK: - InstructionsRow
 
 private struct InstructionsRow: View {
@@ -790,6 +864,107 @@ private struct InstructionsRow: View {
       .multilineTextAlignment(.leading)
     }
     .modifier(ProfilesFormRow(store: store, row: .instructions))
+  }
+}
+
+// MARK: - ExpandedContextRow
+
+/// Text is one mode for every way the screen can be read as text: which source answers is the
+/// target's business, so the row says what leaves the Mac rather than how it was read.
+private struct ExpandedContextRow: View {
+  // MARK: Internal
+
+  let store: StoreOf<SettingsWindowFeature>
+
+  var body: some View {
+    LabeledContent {
+      HStack(spacing: 8) {
+        if !store.profiles.hasScreenRecording {
+          Button("Allow Screen Recording…") {
+            store.send(.profiles(.grantScreenRecordingTapped))
+          }
+          .focusRing(store.state.showsProfilesRing(.expandedContext, target: .grantScreenRecording))
+          .accessibilityIdentifier(AccessibilityID.profilesGrantScreenRecording)
+        }
+        SettingsPopUpButton(
+          options: options,
+          selection: store.profiles.screenContextMode,
+          activation: store.profiles.screenContextActivation,
+          isRinged: store.state.showsProfilesRing(.expandedContext, target: .expandedContext),
+          onSelection: { store.send(.profiles(.screenContextSelected($0))) },
+        )
+        .fixedSize()
+        .accessibilityIdentifier(AccessibilityID.profilesExpandedContext)
+        .accessibilityLabel("Expanded context")
+      }
+    } label: {
+      HStack(spacing: 4) {
+        Text("Expanded context")
+        Button {
+          store.send(.profiles(.screenContextInfoPresented(true)))
+        } label: {
+          Image(systemName: "info.circle")
+        }
+        .buttonStyle(.borderless)
+        .foregroundStyle(.secondary)
+        .focusRing(store.state.showsProfilesRing(.expandedContext, target: .screenContextInfo))
+        .accessibilityIdentifier(AccessibilityID.profilesExpandedContextInfo)
+        .accessibilityLabel("About Expanded context")
+        .popover(
+          isPresented: Binding(
+            get: { store.profiles.isScreenContextInfoPresented },
+            set: { store.send(.profiles(.screenContextInfoPresented($0))) },
+          ),
+          arrowEdge: .bottom,
+        ) {
+          ScreenContextInfo()
+        }
+      }
+    }
+    .onReceive(
+      NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification),
+    ) { _ in
+      store.send(.profiles(.screenRecordingRefreshed))
+    }
+    .modifier(ProfilesFormRow(store: store, row: .expandedContext))
+  }
+
+  // MARK: Private
+
+  /// Every mode but Off waits on the grant. Text could read the pane and the Accessibility tree
+  /// without it, but a mode that works on some windows and not others is harder to trust than
+  /// one that asks once.
+  private var options: [SettingsPopUpButton<ScreenContextMode>.Option] {
+    let granted = store.profiles.hasScreenRecording
+    return ScreenContextMode.allCases.map { mode in
+      let needsGrant = mode != .off && !granted
+      return .init(
+        value: mode, title: mode == .profileDefault ? "\(mode.title) (default)" : mode.title,
+        status: needsGrant ? .init(text: "Needs Screen Recording", isProblem: true) : nil,
+        isEnabled: !needsGrant,
+      )
+    }
+  }
+}
+
+// MARK: - ScreenContextInfo
+
+private struct ScreenContextInfo: View {
+  var body: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      Text(
+        "Send what is on the screen to the cleanup model, alongside the transcript. Adds more context for it when making spelling decisions.",
+      )
+      Text("**Text** takes a screenshot of the window and extracts the text with OCR.")
+      Text(
+        "**Screenshot** simply sends a screenshot of the window to the model directly. The chosen model must be able to read images.",
+      )
+      Text("When enabled, a screenshot is included with the transcript in the history.")
+        .foregroundStyle(.secondary)
+    }
+    .fixedSize(horizontal: false, vertical: true)
+    .frame(width: 320, alignment: .leading)
+    .padding()
   }
 }
 

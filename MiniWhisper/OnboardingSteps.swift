@@ -154,8 +154,8 @@ struct OnboardingWelcomePage: View {
       VStack(alignment: .leading, spacing: 6) {
         HStack {
           Label(profile.name, systemImage: profile.symbol)
-            .font(profile.id == .haiku ? .title2.weight(.semibold) : .headline)
-          if profile.id == .haiku {
+            .font(profile.id == .everyday ? .title2.weight(.semibold) : .headline)
+          if profile.id == .everyday {
             Text("Recommended").font(.caption).foregroundStyle(.tint)
           }
         }
@@ -179,7 +179,7 @@ struct OnboardingWelcomePage: View {
         }
       }
       .frame(maxWidth: .infinity, alignment: .topLeading)
-      .frame(height: profile.id == .haiku ? 94 : 128, alignment: .topLeading)
+      .frame(height: profile.id == .everyday ? 94 : 128, alignment: .topLeading)
       .padding(10)
     }
     .buttonStyle(.bordered)
@@ -196,12 +196,12 @@ struct OnboardingWelcomePage: View {
   }
 
   private func choiceTitle(_ profile: Profile) -> String {
-    profile.id == .haiku ? "\(profile.name) · Recommended" : profile.name
+    profile.id == .everyday ? "\(profile.name) · Recommended" : profile.name
   }
 
   private func description(_ id: ProfileID) -> String {
     switch id {
-    case .haiku:
+    case .everyday:
       "The best balance of speed and accuracy."
     case .offline:
       "The most private. Nothing leaves your Mac."
@@ -313,7 +313,7 @@ struct OnboardingStepRail: View {
       case .keys:
         store.storedKeys != nil && store.missingKeys.isEmpty
       case .permissions:
-        store.snapshot.permissions.allGranted
+        store.snapshot.permissions.requiredGranted
       case .shortcut:
         store.hasCompletedShortcut
       case .model:
@@ -560,6 +560,12 @@ struct OnboardingPermissionsPage: View {
           .accessibility, title: "Accessibility", symbol: "keyboard",
           explanation: "Watches for your shortcut and pastes where you're typing",
         )
+        Divider()
+          .padding(.horizontal, 10)
+        permissionRow(
+          .screenRecording, title: "Screen Recording", symbol: "rectangle.dashed.badge.record",
+          explanation: "Lets cleanup read the current window to pick up context for spelling",
+        )
       }
     }
     .animation(.easeInOut(duration: 0.2), value: store.snapshot.permissions)
@@ -575,7 +581,9 @@ struct OnboardingPermissionsPage: View {
     _ permission: OnboardingPermission, title: String, symbol: String, explanation: String,
   ) -> some View {
     let isGranted = store.snapshot.permissions.isGranted(permission)
-    let ownsAction = store.activePermission == permission
+    let ownsAction = permission.isRequired ? store.activePermission == permission : !isGranted
+    let actionFocus: OnboardingFocus =
+      permission.isRequired ? .permissionsAction : .screenRecordingAction
     return HStack(spacing: 8) {
       Image(systemName: isGranted ? "checkmark.circle.fill" : symbol)
         .font(.system(size: 15))
@@ -603,7 +611,8 @@ struct OnboardingPermissionsPage: View {
         if !(ownsAction && showsSettings) {
           SemanticText(
             OnboardingAccessibility.permissionStatus(
-              isGranted: isGranted, isRequesting: store.requestingPermission == permission,
+              isGranted: isGranted, isRequired: permission.isRequired,
+              isRequesting: store.requestingPermission == permission,
               showsSettings: showsSettings,
             ),
             identifier: OnboardingAccessibility.permissionStatusIdentifier(permission),
@@ -617,12 +626,20 @@ struct OnboardingPermissionsPage: View {
           // "do the one thing this page is asking for".
           if showsSettings {
             Button("Open Settings") { store.send(.openSystemSettings(permission)) }
-              .focused(focus, equals: .permissionsAction)
-              .keyboardShortcut(.defaultAction)
+              .focused(focus, equals: actionFocus)
+              .keyboardShortcut(permission.isRequired ? .defaultAction : nil)
               .accessibilityIdentifier(
                 OnboardingAccessibility.permissionActionIdentifier(permission),
               )
               .accessibilityLabel("Open \(title) Settings")
+          } else if !permission.isRequired {
+            // Optional, so it never takes Return from the page's Continue.
+            Button("Grant") { store.send(.requestPermission(permission)) }
+              .focused(focus, equals: actionFocus)
+              .accessibilityIdentifier(
+                OnboardingAccessibility.permissionActionIdentifier(permission),
+              )
+              .accessibilityLabel("Grant \(title)")
           } else {
             Button("Grant") { store.send(.requestPermission(permission)) }
               .buttonStyle(.borderedProminent)

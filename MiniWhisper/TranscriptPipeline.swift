@@ -16,11 +16,14 @@ private let pipelineLogger = Logger(
 // MARK: - CleanupConditioning
 
 /// Everything the cleanup pass reads besides the transcript: the field the words were meant for,
-/// the vocabulary they must not be corrected out of, and the application they were bound for. A
-/// dictation captures it at delivery time; a re-transcription reads the same three facts back off
-/// the entry, which is why the entry persists them.
+/// what was on screen around it, the vocabulary they must not be corrected out of, and the
+/// application they were bound for. A dictation captures it as it goes; a re-transcription reads
+/// the same facts back off the entry, which is why the entry persists them.
 struct CleanupConditioning: Equatable {
   var fieldContext: FocusedTextContext?
+  var screenContext: ScreenContext?
+  /// A JPEG cleanup is shown in place of `screenContext`.
+  var screenshot: Data?
   var vocabulary: [String]
   var targetBundleID: String?
 }
@@ -157,7 +160,9 @@ struct TranscriptPipeline {
   ) async -> CleanupResolution? {
     let request = CleanupRequest(
       transcript: transcript, focusedTextContext: conditioning.fieldContext,
-      vocabulary: conditioning.vocabulary, targetBundleID: conditioning.targetBundleID,
+      screenContext: conditioning.screenContext, screenshot: conditioning.screenshot,
+      vocabulary: conditioning.vocabulary,
+      targetBundleID: conditioning.targetBundleID,
     )
     let started = date.now
     let outcome = await cleanupClient.clean(request, configuration, apiKey)

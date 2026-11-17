@@ -12,13 +12,14 @@ struct SettingsPopUpButton<Value: Equatable>: NSViewRepresentable {
 
     init(
       value: Value, title: String, isSecondary: Bool = false, symbol: String? = nil,
-      status: Status? = nil,
+      status: Status? = nil, isEnabled: Bool = true,
     ) {
       self.value = value
       self.title = title
       self.isSecondary = isSecondary
       self.symbol = symbol
       self.status = status
+      self.isEnabled = isEnabled
     }
 
     // MARK: Internal
@@ -34,6 +35,8 @@ struct SettingsPopUpButton<Value: Equatable>: NSViewRepresentable {
     let isSecondary: Bool
     let symbol: String?
     let status: Status?
+    /// A disabled option stays in the menu, greyed, so the user sees what is waiting on them.
+    let isEnabled: Bool
   }
 
   @MainActor final class Coordinator: NSObject {
@@ -94,12 +97,14 @@ struct SettingsPopUpButton<Value: Equatable>: NSViewRepresentable {
     // chevron instead of stranded at the far end of the button.
     button.alignment = .right
     button.focusRingType = .none
+    button.autoenablesItems = false
     button.target = context.coordinator
     button.action = #selector(Coordinator.selectionChanged(_:))
     return button
   }
 
   func updateNSView(_ button: Control, context: Context) {
+    button.isEnabled = context.environment.isEnabled
     button.isRinged = isRinged
     button.needsDisplay = true
     context.coordinator.options = options
@@ -112,6 +117,9 @@ struct SettingsPopUpButton<Value: Equatable>: NSViewRepresentable {
     }
     if let selectedIndex = options.firstIndex(where: { $0.value == selection }) {
       button.selectItem(at: selectedIndex)
+    }
+    for (index, option) in options.enumerated() {
+      button.item(at: index)?.isEnabled = option.isEnabled
     }
     // A secondary choice dims only while it is the selection, so the collapsed control reads
     // quiet without the open menu ever showing a greyed row that looks disabled.

@@ -73,6 +73,29 @@ enum TmuxPanes {
     return run(pane.executable, arguments, input: text).status == 0 ? .delivered : .gone
   }
 
+  /// The pane's visible screen as text, wrapped lines joined, with the newest rows kept when it
+  /// runs past `budget`; nil when the pane is gone or blank.
+  static func capture(_ pane: TmuxPane, budget: Int) -> String? {
+    let answer = run(
+      pane.executable, ["-S", pane.socket, "capture-pane", "-p", "-J", "-t", pane.paneID],
+    )
+    guard answer.status == 0 else {
+      return nil
+    }
+    // `-J` keeps each row's trailing spaces so the join is exact; they are padding here.
+    var rows = answer.output.split(separator: "\n", omittingEmptySubsequences: false).map {
+      $0.replacing(#/\s+$/#, with: "")
+    }
+    while rows.last?.isEmpty == true {
+      rows.removeLast()
+    }
+    while rows.reduce(0, { $0 + $1.utf16.count + 1 }) > budget + 1, !rows.isEmpty {
+      rows.removeFirst()
+    }
+    let text = rows.joined(separator: "\n")
+    return text.allSatisfy(\.isWhitespace) ? nil : text
+  }
+
   // MARK: Private
 
   private struct Output {

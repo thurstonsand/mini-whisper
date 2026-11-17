@@ -50,7 +50,7 @@ On a Mac without a usable microphone, such as one with its lid closed, real dict
 - `Packages/ModelLibrary` — pinned model assets: per-asset resumable download, validation, provenance, and deletion
 - `Packages/LocalCleanup` — S1-mini in process through the pinned llama.cpp xcframework
 - `Packages/SpeechDictionary` — the `dictionary.json` entry model and codec
-- `Packages/FieldContext` — focused-field capture payload, fallback taxonomy, and the transcript join rules
+- `Packages/FieldContext` — focused-field capture payload, fallback taxonomy, the transcript join rules, and Expanded context's screen-text model and budget
 - `Packages/TranscriptCleanup` — the OpenAI-compatible client
 - `Packages/HotkeyListener` — event pipeline routing action-bound bindings and the chord recorder
 - `Packages/History` — history log model, retention policy, and the audio vault

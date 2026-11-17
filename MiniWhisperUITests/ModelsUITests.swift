@@ -9,7 +9,7 @@ final class ModelsUITests: MiniWhisperUITestCase, SurfaceTagged {
   @MainActor func testModelsPaneLaws() {
     assertLaws(on: "settings-models", [
       Law("The active profile is lit, and every model says what it weighs") { app in
-        let haiku = app.descendants(matching: .any)["miniwhisper.models.card.haiku"]
+        let haiku = app.descendants(matching: .any)["miniwhisper.models.card.everyday"]
         try require(haiku.awaitExistence(timeout: 5))
         self.assertValue("Active", of: haiku)
         self.assertValue("", of: app.descendants(matching: .any)["miniwhisper.models.card.offline"])
@@ -28,7 +28,7 @@ final class ModelsUITests: MiniWhisperUITestCase, SurfaceTagged {
         self.hoverAfterEnteringWindow(offline, in: app)
         self.assertValue("Preview", of: offline)
         self.assertValue(
-          "Active", of: app.descendants(matching: .any)["miniwhisper.models.card.haiku"],
+          "Active", of: app.descendants(matching: .any)["miniwhisper.models.card.everyday"],
         )
         app.buttons["miniwhisper.models.asset.s1-mini.delete"].hover()
         self.assertValue("Preview", of: offline)
@@ -48,7 +48,7 @@ final class ModelsUITests: MiniWhisperUITestCase, SurfaceTagged {
         self.assertValue("", of: custom)
         self.assertValue(
           "Active",
-          of: app.descendants(matching: .any)["miniwhisper.models.card.haiku"],
+          of: app.descendants(matching: .any)["miniwhisper.models.card.everyday"],
         )
       },
 
@@ -132,7 +132,7 @@ final class ModelsUITests: MiniWhisperUITestCase, SurfaceTagged {
           .awaitExistence())
         XCTAssertTrue(app.buttons["miniwhisper.models.component.scribe.key"].awaitNonExistence())
         self.recordScreenshot("models-key-repaired", screenshot: app.screenshot())
-        app.buttons["miniwhisper.models.component.endpoint.haiku.key"].click()
+        app.buttons["miniwhisper.models.component.endpoint.everyday.key"].click()
         self.assertKeyboardFocus(on: app.textFields["miniwhisper.profiles.apiKey.field"])
       },
     ])

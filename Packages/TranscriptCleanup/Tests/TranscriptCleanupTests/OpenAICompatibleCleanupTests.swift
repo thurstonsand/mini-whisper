@@ -36,6 +36,62 @@ struct OpenAICompatibleCleanupTests {
     #expect(entry.messages[1].content == CleanupPrompt.userMessage(request))
   }
 
+  @Test func `a screenshot rides the user message as an image part the system message introduces`(
+  ) async throws {
+    let (session, log) = StubURLProtocol.session(reply: .response(
+      status: 200,
+      body: completion("Run the tests."),
+    ))
+    let jpeg = Data([0xFF, 0xD8, 0xFF, 0x01])
+    let shot = CleanupRequest(
+      transcript: "run the tests", focusedTextContext: nil, screenContext: nil, screenshot: jpeg,
+      vocabulary: [], targetBundleID: nil,
+    )
+    _ = await client(session: session).clean(shot)
+
+    let entry = try #require(log.entries.first)
+    let body = try #require(JSONSerialization.jsonObject(with: entry.body) as? [String: Any])
+    let messages = try #require(body["messages"] as? [[String: Any]])
+    let system = try #require(messages[0]["content"] as? String)
+    #expect(system.contains(CleanupPrompt.screenContextRule))
+    let parts = try #require(messages[1]["content"] as? [[String: Any]])
+    #expect(parts.map { $0["type"] as? String } == ["text", "image_url"])
+    #expect(parts[0]["text"] as? String == CleanupPrompt.userMessage(shot))
+    #expect(
+      (parts[1]["image_url"] as? [String: String])?["url"] == "data:image/jpeg;base64,/9j/AQ==",
+    )
+  }
+
+  /// Anthropic's compatibility layer ignores `reasoning_effort`, and every other endpoint rejects
+  /// Anthropic's `thinking`, so Off is the one level spelled two ways.
+  @Test(arguments: [
+    ("https://gateway.example/v1", ReasoningEffort.modelDecides, nil, nil),
+    ("https://gateway.example/v1", .low, "low", nil),
+    ("https://gateway.example/v1", .off, "none", nil),
+    ("https://api.anthropic.com/v1", .off, nil, "disabled"),
+  ] as [(String, ReasoningEffort, String?, String?)])
+  func `reasoning effort is sent the way the endpoint reads it`(
+    endpoint: String, effort: ReasoningEffort, sentEffort: String?, sentThinking: String?,
+  ) async throws {
+    let (session, log) = StubURLProtocol.session(reply: .response(
+      status: 200,
+      body: completion("Run the tests."),
+    ))
+    _ = await client(session: session, endpoint: endpoint, reasoningEffort: effort).clean(request)
+
+    let entry = try #require(log.entries.first)
+    let body = try #require(JSONSerialization.jsonObject(with: entry.body) as? [String: Any])
+    #expect(body["reasoning_effort"] as? String == sentEffort)
+    #expect((body["thinking"] as? [String: String])?["type"] == sentThinking)
+  }
+
+  @Test func `Anthropic is offered only the levels it reads`() throws {
+    let anthropic = try #require(URL(string: "https://api.anthropic.com/v1"))
+    let gateway = try #require(URL(string: "https://gateway.example/v1"))
+    #expect(ReasoningEffort.levels(for: anthropic) == [.modelDecides, .off])
+    #expect(ReasoningEffort.levels(for: gateway).contains(.low))
+  }
+
   @Test func `a non 2xx status surfaces its code and the gateway's message`() async {
     let body = #"{"error": {"message": "model not found"}}"#
     let (session, _) = StubURLProtocol.session(reply: .response(status: 404, body: body))
@@ -45,14 +101,23 @@ struct OpenAICompatibleCleanupTests {
     )
   }
 
-  @Test func `a status without a parseable body still reports its code`() async {
-    let (session, _) = StubURLProtocol.session(reply: .response(
-      status: 502,
-      body: "<html>bad gateway</html>",
-    ))
+  /// Cerebras says why at the top level, Google inside a one-element array, and a Custom endpoint
+  /// in whatever shape it likes, which is passed on as it came, cut short.
+  @Test(arguments: [
+    (
+      #"{"message": "Content type 'image_url' is not supported", "type": "invalid_request_error"}"#,
+      "Content type 'image_url' is not supported",
+    ),
+    (#"[{"error": {"message": "API key not valid"}}]"#, "API key not valid"),
+    ("<html>bad gateway</html>", "<html>bad gateway</html>"),
+    (String(repeating: "x", count: 400), String(repeating: "x", count: 300) + "…"),
+    ("  ", nil),
+  ] as [(String, String?)])
+  func `an error body says why in any shape it comes`(body: String, message: String?) async {
+    let (session, _) = StubURLProtocol.session(reply: .response(status: 400, body: body))
     #expect(
       await client(session: session).clean(request)
-        == .failed(.httpStatus(code: 502, message: nil)),
+        == .failed(.httpStatus(code: 400, message: message)),
     )
   }
 
@@ -283,6 +348,7 @@ struct OpenAICompatibleCleanupTests {
   @Test func `a trailing slash on the endpoint composes the same paths`() throws {
     let configuration = try CleanupConfiguration(
       endpoint: #require(URL(string: "https://gateway.example/v1/")), model: "m",
+      reasoningEffort: .modelDecides,
       additionalInstructions: "",
     )
     #expect(configuration.chatCompletionsURL
@@ -293,6 +359,7 @@ struct OpenAICompatibleCleanupTests {
   @Test func `the timeout defaults to ten seconds`() throws {
     let configuration = try CleanupConfiguration(
       endpoint: #require(URL(string: "https://gateway.example/v1")), model: "m",
+      reasoningEffort: .modelDecides,
       additionalInstructions: "",
     )
     #expect(configuration.timeout == 10)
@@ -301,7 +368,8 @@ struct OpenAICompatibleCleanupTests {
   // MARK: Private
 
   private let request = CleanupRequest(
-    transcript: "run the tests", focusedTextContext: nil, vocabulary: [], targetBundleID: nil,
+    transcript: "run the tests", focusedTextContext: nil, screenContext: nil, screenshot: nil,
+    vocabulary: [], targetBundleID: nil,
   )
 
   private static func models(_ ids: [String]) -> String {
@@ -311,10 +379,12 @@ struct OpenAICompatibleCleanupTests {
 
   private func client(
     session: URLSession, timeout: TimeInterval = 10, apiKey: String? = "sk-test",
+    endpoint: String = "https://gateway.example/v1",
+    reasoningEffort: ReasoningEffort = .modelDecides,
   ) -> OpenAICompatibleCleanup {
     OpenAICompatibleCleanup(
       configuration: CleanupConfiguration(
-        endpoint: URL(string: "https://gateway.example/v1")!, model: "gateway-small",
+        endpoint: URL(string: endpoint)!, model: "gateway-small", reasoningEffort: reasoningEffort,
         timeout: timeout, additionalInstructions: "",
       ), apiKey: apiKey, session: session,
     )

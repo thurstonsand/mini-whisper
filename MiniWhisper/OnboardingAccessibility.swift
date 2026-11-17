@@ -62,6 +62,8 @@ enum OnboardingAccessibility {
       AccessibilityID.onboardingPermissionMicrophone
     case .accessibility:
       AccessibilityID.onboardingPermissionAccessibility
+    case .screenRecording:
+      AccessibilityID.onboardingPermissionScreenRecording
     }
   }
 
@@ -71,6 +73,8 @@ enum OnboardingAccessibility {
       AccessibilityID.onboardingPermissionMicrophoneStatus
     case .accessibility:
       AccessibilityID.onboardingPermissionAccessibilityStatus
+    case .screenRecording:
+      AccessibilityID.onboardingPermissionScreenRecordingStatus
     }
   }
 
@@ -80,11 +84,13 @@ enum OnboardingAccessibility {
       AccessibilityID.onboardingPermissionMicrophoneAction
     case .accessibility:
       AccessibilityID.onboardingPermissionAccessibilityAction
+    case .screenRecording:
+      AccessibilityID.onboardingPermissionScreenRecordingAction
     }
   }
 
   static func permissionStatus(
-    isGranted: Bool, isRequesting: Bool, showsSettings: Bool,
+    isGranted: Bool, isRequired: Bool, isRequesting: Bool, showsSettings: Bool,
   ) -> String {
     if isGranted {
       return "Granted"
@@ -95,6 +101,6 @@ enum OnboardingAccessibility {
     if showsSettings {
       return "Needs settings"
     }
-    return "Required"
+    return isRequired ? "Required" : "Optional"
   }
 }

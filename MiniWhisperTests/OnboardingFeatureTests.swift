@@ -34,6 +34,7 @@ struct OnboardingStepDerivationTests {
     var snapshot = OnboardingSnapshot(
       permissions: OnboardingPermissionStatuses(
         microphoneStatus: .undetermined, hasAccessibilityPermission: false,
+        hasScreenRecording: false,
       ),
       hasModelDownloadConsent: false, isCompleted: false,
     )
@@ -109,7 +110,7 @@ struct OnboardingStepDerivationTests {
   func `every non granted microphone state stops at permissions`(_ status: MicPermissionStatus) {
     let snapshot = OnboardingSnapshot(
       permissions: OnboardingPermissionStatuses(
-        microphoneStatus: status, hasAccessibilityPermission: true,
+        microphoneStatus: status, hasAccessibilityPermission: true, hasScreenRecording: false,
       ),
       hasModelDownloadConsent: true, isCompleted: true,
     )
@@ -132,6 +133,7 @@ struct OnboardingStepDerivationTests {
     let snapshot = OnboardingSnapshot(
       permissions: OnboardingPermissionStatuses(
         microphoneStatus: .undetermined, hasAccessibilityPermission: false,
+        hasScreenRecording: false,
       ),
       hasModelDownloadConsent: false, isCompleted: false,
     )
@@ -164,6 +166,7 @@ struct OnboardingStepDerivationTests {
     let snapshot = OnboardingSnapshot(
       permissions: OnboardingPermissionStatuses(
         microphoneStatus: .undetermined, hasAccessibilityPermission: false,
+        hasScreenRecording: false,
       ),
       hasModelDownloadConsent: true, isCompleted: false,
     )
@@ -193,6 +196,7 @@ struct OnboardingStepDerivationTests {
       $0.continuousClock = clock
       $0.microphonePermission.status = { statuses.value.microphoneStatus }
       $0.accessibilityPermission.hasPermission = { statuses.value.hasAccessibilityPermission }
+      $0.screenContext.hasScreenRecording = { statuses.value.hasScreenRecording }
       $0.asrEngine.installAndPrepare = { _ in AsyncStream { $0.finish() } }
       $0.keychain.read = { _ in "sk-ant-test" }
     }
@@ -200,13 +204,14 @@ struct OnboardingStepDerivationTests {
     let initialSnapshot = OnboardingSnapshot(
       permissions: OnboardingPermissionStatuses(
         microphoneStatus: .undetermined, hasAccessibilityPermission: false,
+        hasScreenRecording: false,
       ),
       hasModelDownloadConsent: true, isCompleted: false,
     )
     await store.send(.present(initialSnapshot)) {
       $0.isPresented = true
       $0.snapshot = initialSnapshot
-      $0.storedKeys = [CredentialSlot(profile: .haiku, provider: .anthropic)]
+      $0.storedKeys = [CredentialSlot(profile: .everyday, provider: .google)]
     }
     await store.receive(.delegate(.setupModelRequested))
 
@@ -219,14 +224,76 @@ struct OnboardingStepDerivationTests {
     await store.receive(.delegate(.permissionsUpdated(statuses.value)))
     #expect(store.state.step == .permissions)
 
+    // Dictation is set up, but the page waits for Screen Recording, the optional grant.
     statuses.withValue { $0.hasAccessibilityPermission = true }
     await clock.advance(by: .seconds(1))
     await store.receive(.refreshPermissionStatuses)
     await store.receive(.permissionStatusesObserved(statuses.value)) {
       $0.snapshot.permissions.hasAccessibilityPermission = true
+      $0.selectedStep = .permissions
     }
     await store.receive(.delegate(.permissionsUpdated(statuses.value)))
     #expect(store.state.step == .shortcut)
+    #expect(store.state.visibleStep == .permissions)
+
+    statuses.withValue { $0.hasScreenRecording = true }
+    await clock.advance(by: .seconds(1))
+    await store.receive(.refreshPermissionStatuses)
+    await store.receive(.permissionStatusesObserved(statuses.value)) {
+      $0.snapshot.permissions.hasScreenRecording = true
+      $0.selectedStep = nil
+    }
+    await store.receive(.delegate(.permissionsUpdated(statuses.value)))
+    #expect(store.state.visibleStep == .shortcut)
+  }
+
+  /// Screen Recording is granted in System Settings, so its request leaves the page polling and
+  /// asking it twice changes nothing; Continue leaves it ungranted.
+  @Test func `screen recording is offered without holding up dictation`() async {
+    let requests = SynchronousCounter()
+    var state = presentedPermissionsState()
+    state.snapshot.permissions.microphoneStatus = .granted
+    state.snapshot.permissions.hasAccessibilityPermission = true
+    state.selectedStep = .permissions
+    let store = TestStore(initialState: state) {
+      OnboardingFeature()
+    } withDependencies: {
+      $0.continuousClock = TestClock()
+      $0.screenContext.requestScreenRecording = { requests.increment() }
+    }
+
+    #expect(store.state.activePermission == nil)
+    await store.send(.requestPermission(.screenRecording)) {
+      $0.requestedPermissions = [.screenRecording]
+    }
+    await store.send(.requestPermission(.screenRecording))
+    await store.finish()
+    #expect(requests.value == 1)
+    #expect(store.state.needsSystemSettings(for: .screenRecording))
+
+    await store.send(.permissionsContinueTapped) { $0.selectedStep = nil }
+    #expect(store.state.visibleStep == .shortcut)
+    #expect(!store.state.snapshot.permissions.hasScreenRecording)
+  }
+
+  /// Only the page that asked for the grants waits on Continue; one the user has moved past
+  /// stays where they are.
+  @Test func `required grants arriving elsewhere do not pull the user back`() async {
+    var state = presentedPermissionsState()
+    state.snapshot.permissions.microphoneStatus = .granted
+    state.selectedStep = .model
+    let store = TestStore(initialState: state) {
+      OnboardingFeature()
+    } withDependencies: {
+      $0.continuousClock = TestClock()
+    }
+    let statuses = OnboardingPermissionStatuses(
+      microphoneStatus: .granted, hasAccessibilityPermission: true, hasScreenRecording: false,
+    )
+
+    await store.send(.permissionStatusesObserved(statuses)) { $0.snapshot.permissions = statuses }
+    await store.receive(.delegate(.permissionsUpdated(statuses)))
+    #expect(store.state.visibleStep == .model)
   }
 
   @Test func `an accessibility prompt suspends checks and cannot be requested twice`() async {
@@ -244,6 +311,7 @@ struct OnboardingStepDerivationTests {
         probes.increment()
         return false
       }
+      $0.screenContext.hasScreenRecording = { false }
       $0.accessibilityPermission.requestPermission = {
         requests.increment()
         return false
@@ -265,7 +333,7 @@ struct OnboardingStepDerivationTests {
     await store.receive(
       .permissionStatusesObserved(
         OnboardingPermissionStatuses(
-          microphoneStatus: .granted, hasAccessibilityPermission: false,
+          microphoneStatus: .granted, hasAccessibilityPermission: false, hasScreenRecording: false,
         ),
       ),
     )
@@ -341,7 +409,11 @@ struct OnboardingStepDerivationTests {
 
     await store.send(
       .permissionStatusesObserved(
-        OnboardingPermissionStatuses(microphoneStatus: .denied, hasAccessibilityPermission: false),
+        OnboardingPermissionStatuses(
+          microphoneStatus: .denied,
+          hasAccessibilityPermission: false,
+          hasScreenRecording: false,
+        ),
       ),
     )
     #expect(store.state.requestingPermission == .microphone)
@@ -361,6 +433,7 @@ struct OnboardingStepDerivationTests {
       $0.continuousClock = clock
       $0.microphonePermission.status = { .granted }
       $0.accessibilityPermission.hasPermission = { true }
+      $0.screenContext.hasScreenRecording = { false }
     }
 
     await store.send(.navigate(.tryIt)) { $0.selectedStep = .tryIt }
@@ -690,7 +763,7 @@ struct OnboardingStepDerivationTests {
   private func modelSnapshot() -> OnboardingSnapshot {
     OnboardingSnapshot(
       permissions: OnboardingPermissionStatuses(
-        microphoneStatus: .granted, hasAccessibilityPermission: true,
+        microphoneStatus: .granted, hasAccessibilityPermission: true, hasScreenRecording: false,
       ),
       hasModelDownloadConsent: true, isCompleted: false,
     )
@@ -767,7 +840,7 @@ struct OnboardingStepDerivationTests {
     await store.receive(.delegate(.keysStored))
 
     #expect(verified.value?.0.endpoint.host() == "generativelanguage.googleapis.com")
-    #expect(verified.value?.0.model == "gemini-3.8-flash")
+    #expect(verified.value?.0.model == "gemini-4-hydrogen")
     #expect(verified.value?.1 == "AIzaGoogle")
     #expect(engineChecked.value?.0 == .scribe)
     #expect(engineChecked.value?.1 == "sk_eleven")
@@ -780,7 +853,7 @@ struct OnboardingStepDerivationTests {
     state.isShowingWelcome = false
     state.snapshot.hasModelDownloadConsent = true
     state.storedKeys = []
-    let haiku = CredentialSlot(profile: .haiku, provider: .anthropic)
+    let haiku = CredentialSlot(profile: .everyday, provider: .google)
     let store = TestStore(initialState: state) {
       OnboardingFeature()
     } withDependencies: {
@@ -790,9 +863,9 @@ struct OnboardingStepDerivationTests {
 
     await store.send(.keyEdited(haiku, "sk-ant-wrong")) { $0.keyDrafts[haiku] = "sk-ant-wrong" }
     await store.send(.keysContinueTapped) { $0.isCheckingKeys = true }
-    await store.receive(.keysCheckFailed(haiku, "Invalid Anthropic key.")) {
+    await store.receive(.keysCheckFailed(haiku, "Invalid Google key.")) {
       $0.isCheckingKeys = false
-      $0.keyFailure = .init(slot: haiku, message: "Invalid Anthropic key.")
+      $0.keyFailure = .init(slot: haiku, message: "Invalid Google key.")
     }
     #expect(store.state.step == .keys)
     #expect(store.state.canContinueFromKeys)
@@ -893,7 +966,7 @@ struct OnboardingStepDerivationTests {
     state = store.state
     state.isShowingWelcome = false
     let later = TestStore(initialState: state) { OnboardingFeature() }
-    await later.send(.profileSelected(.haiku))
+    await later.send(.profileSelected(.everyday))
   }
 
   /// Offline's cleanup model is part of its setup, so the engine being ready is not the end of the
@@ -929,7 +1002,7 @@ struct OnboardingStepDerivationTests {
 }
 
 private let grantedPermissionStatuses = OnboardingPermissionStatuses(
-  microphoneStatus: .granted, hasAccessibilityPermission: true,
+  microphoneStatus: .granted, hasAccessibilityPermission: true, hasScreenRecording: true,
 )
 
 // MARK: - SynchronousStatuses
@@ -949,7 +1022,7 @@ private final class SynchronousStatuses: @unchecked Sendable {
 
   private let lock = NSLock()
   private var statuses = OnboardingPermissionStatuses(
-    microphoneStatus: .undetermined, hasAccessibilityPermission: false,
+    microphoneStatus: .undetermined, hasAccessibilityPermission: false, hasScreenRecording: false,
   )
 }
 

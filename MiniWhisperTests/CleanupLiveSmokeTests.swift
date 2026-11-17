@@ -238,7 +238,8 @@ private extension TestStoreOf<AppFeature> {
 /// What the smoke settings resolve to, and so what every resolution they produce carries.
 private func smokeConfiguration(_ endpoint: URL, timeout: TimeInterval) -> CleanupConfiguration {
   CleanupConfiguration(
-    endpoint: endpoint, model: "mock-small", timeout: timeout, additionalInstructions: "",
+    endpoint: endpoint, model: "mock-small", reasoningEffort: .modelDecides, timeout: timeout,
+    additionalInstructions: "",
   )
 }
 

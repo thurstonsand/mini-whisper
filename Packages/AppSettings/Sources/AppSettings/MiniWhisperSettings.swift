@@ -310,6 +310,20 @@ public struct MiniWhisperSettings: Equatable, Sendable {
     profiles.activeProfile
   }
 
+  /// What the active profile's dictations show cleanup of the screen. Expanded context reaches
+  /// only a cleanup pass that reads a prompt; S1-mini reads none, so under Offline, Custom with
+  /// its cleanup off, or an endpoint not yet set up, the screen is never read at all.
+  public var screenContextMode: ScreenContextMode {
+    guard case .endpoint = activeProfile.cleanup, cleanupTarget != nil else {
+      return .off
+    }
+    return profiles.screenContextMode(for: profiles.active)
+  }
+
+  public var readsScreen: Bool {
+    screenContextMode != .off
+  }
+
   /// What the active profile's cleanup pass runs with, or nil when there is nothing to run — the
   /// one place "needs setup is the same as off" is decided.
   public var cleanupTarget: CleanupTarget? {
@@ -323,8 +337,8 @@ public struct MiniWhisperSettings: Equatable, Sendable {
     }
     return CleanupTarget(
       configuration: CleanupConfiguration(
-        endpoint: endpoint, model: model, timeout: cleanupTimeout,
-        additionalInstructions: additionalInstructions,
+        endpoint: endpoint, model: model, reasoningEffort: leg.reasoningEffort,
+        timeout: cleanupTimeout, additionalInstructions: additionalInstructions,
       ),
       credential: leg.credential,
     )

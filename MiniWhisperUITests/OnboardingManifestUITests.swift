@@ -21,7 +21,7 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
           .staticText, "miniwhisper.onboarding.welcome.title", "Application name", appName,
         ),
         contract(
-          .button, "miniwhisper.profiles.card.haiku", "Everyday · Recommended",
+          .button, "miniwhisper.profiles.card.everyday", "Everyday · Recommended",
           "Selected", isEnabled: true, isActionable: true,
         ),
         contract(
@@ -269,6 +269,18 @@ final class OnboardingManifestUITests: MiniWhisperUITestCase, SurfaceTagged {
         "Accessibility status", statuses[1],
       ),
       contract(
+        .staticText, "miniwhisper.onboarding.permission.screen-recording", "Screen Recording",
+        "Lets cleanup read the current window to pick up context for spelling",
+      ),
+      contract(
+        .staticText, "miniwhisper.onboarding.permission.screen-recording.status",
+        "Screen Recording status", "Optional",
+      ),
+      contract(
+        .button, "miniwhisper.onboarding.permission.screen-recording.action",
+        "Grant Screen Recording", isEnabled: true, isActionable: true,
+      ),
+      contract(
         .staticText, "miniwhisper.onboarding.permissions.guidance", "Permissions guidance",
         manifest.guidance,
       ),
@@ -343,7 +355,7 @@ private enum PermissionManifest: CaseIterable {
   }
 
   var guidance: String {
-    "Continue after granting both"
+    "Continue after granting the required permissions"
   }
 
   var railValues: [String] {

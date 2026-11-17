@@ -41,7 +41,7 @@ import Testing
     var state = AppFeature.State()
     state.$health.withLock {
       $0 = .healthy
-      $0.missingCleanupKey = .anthropic
+      $0.missingCleanupKey = .google
     }
     state.onboardingCompleted = true
     #expect(state.health.degradations == [.cleanupKeyMissing])
@@ -56,7 +56,7 @@ import Testing
     store.exhaustivity = .off(showSkippedAssertions: false)
 
     await store.send(.hotkeyListenerEvent(.gesture(.startRecording)))
-    await store.receive(.pill(.speechModelUnavailable("Needs an Anthropic key")))
+    await store.receive(.pill(.speechModelUnavailable("Needs a Google key")))
     #expect(!store.state.dictationInFlight)
   }
 

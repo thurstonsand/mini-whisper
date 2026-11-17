@@ -45,7 +45,7 @@ import Testing
     }
     await store.send(.cursorHovered(.asset(.s1Mini))) { $0.cursor = .asset(.s1Mini) }
     #expect(store.state.previewProfile == .offline)
-    #expect(store.state.settings.profiles.active == .haiku)
+    #expect(store.state.settings.profiles.active == .everyday)
     await store.send(.pointerExited) { $0.previewProfile = nil }
 
     // Return on a model row presses its one button.
@@ -79,7 +79,7 @@ import Testing
     func plug(_ id: ProfileID, _ leg: ModelsFeature.Leg) -> ModelsFeature.Component? {
       state.component(leg, of: lineup.first { $0.id == id }!)
     }
-    #expect(plug(.haiku, .speech) == .asset(.parakeet))
+    #expect(plug(.everyday, .speech) == .asset(.parakeet))
     #expect(plug(.accurate, .speech) == .scribe)
     #expect(plug(.offline, .cleanup) == .asset(.s1Mini))
     #expect(plug(.cerebras, .cleanup) == .endpoint(.cerebras))

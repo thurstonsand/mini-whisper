@@ -17,6 +17,8 @@ private let onboardingLogger = Logger(
 enum OnboardingPermission: Int, CaseIterable, Equatable, Hashable {
   case microphone
   case accessibility
+  /// Only Expanded context needs it, so dictation is set up without it.
+  case screenRecording
 
   // MARK: Internal
 
@@ -26,7 +28,13 @@ enum OnboardingPermission: Int, CaseIterable, Equatable, Hashable {
       SystemSettingsPane.microphone
     case .accessibility:
       SystemSettingsPane.accessibility
+    case .screenRecording:
+      SystemSettingsPane.screenRecording
     }
+  }
+
+  var isRequired: Bool {
+    self != .screenRecording
   }
 }
 
@@ -35,8 +43,9 @@ enum OnboardingPermission: Int, CaseIterable, Equatable, Hashable {
 struct OnboardingPermissionStatuses: Equatable {
   var microphoneStatus: MicPermissionStatus
   var hasAccessibilityPermission: Bool
+  var hasScreenRecording: Bool
 
-  var allGranted: Bool {
+  var requiredGranted: Bool {
     microphoneStatus == .granted && hasAccessibilityPermission
   }
 
@@ -46,6 +55,8 @@ struct OnboardingPermissionStatuses: Equatable {
       microphoneStatus == .granted
     case .accessibility:
       hasAccessibilityPermission
+    case .screenRecording:
+      hasScreenRecording
     }
   }
 }
@@ -77,7 +88,7 @@ enum OnboardingStep: Int, Equatable {
     guard !isMissingKeys else {
       return .keys
     }
-    guard snapshot.permissions.allGranted else {
+    guard snapshot.permissions.requiredGranted else {
       return .permissions
     }
     guard hasCompletedShortcut else {
@@ -138,6 +149,7 @@ enum OnboardingStep: Int, Equatable {
     var snapshot = OnboardingSnapshot(
       permissions: OnboardingPermissionStatuses(
         microphoneStatus: .undetermined, hasAccessibilityPermission: false,
+        hasScreenRecording: false,
       ),
       hasModelDownloadConsent: false, isCompleted: false,
     )
@@ -312,8 +324,14 @@ enum OnboardingStep: Int, Equatable {
       !snapshot.isCompleted && !snapshot.hasModelDownloadConsent
     }
 
+    /// Dictation is set up and Screen Recording, being optional, waits on the page's Continue.
+    var isOfferingScreenRecording: Bool {
+      snapshot.permissions.requiredGranted && !snapshot.permissions.hasScreenRecording
+    }
+
+    /// The required permission the page is asking for, which owns its default action.
     var activePermission: OnboardingPermission? {
-      OnboardingPermission.allCases.first { !snapshot.permissions.isGranted($0) }
+      OnboardingPermission.allCases.first { $0.isRequired && !snapshot.permissions.isGranted($0) }
     }
 
     /// The keys as a sentence names them: "an Anthropic key", "ElevenLabs and Google keys".
@@ -341,7 +359,9 @@ enum OnboardingStep: Int, Equatable {
     }
 
     func canRequest(_ permission: OnboardingPermission) -> Bool {
-      activePermission == permission && !requestedPermissions.contains(permission)
+      let isAsked = permission.isRequired ? activePermission == permission
+        : !snapshot.permissions.isGranted(permission)
+      return isAsked && !requestedPermissions.contains(permission)
     }
   }
 
@@ -363,6 +383,7 @@ enum OnboardingStep: Int, Equatable {
     case navigate(OnboardingStep)
     case shortcutBindings(HotkeyBindingsFeature.Action)
     case shortcutContinueTapped
+    case permissionsContinueTapped
     case requestPermission(OnboardingPermission)
     case microphonePermissionRequested(MicPermissionStatus)
     case accessibilityPermissionRequested(Bool)
@@ -406,6 +427,7 @@ enum OnboardingStep: Int, Equatable {
   @Dependency(\.microphonePermission) var microphonePermission
   @Dependency(\.modelLibrary) var modelLibrary
   @Dependency(\.onboardingCompletion) var onboardingCompletion
+  @Dependency(\.screenContext) var screenContext
   @Dependency(\.workspace) var workspace
 
   var body: some ReducerOf<Self> {
@@ -477,7 +499,8 @@ enum OnboardingStep: Int, Equatable {
           cleanupKey = (
             leg.credential, state.draft(for: leg.credential),
             CleanupConfiguration(
-              endpoint: endpoint, model: model, timeout: CleanupConfiguration.verificationTimeout,
+              endpoint: endpoint, model: model, reasoningEffort: .modelDecides,
+              timeout: CleanupConfiguration.verificationTimeout,
               additionalInstructions: "",
             ),
           )
@@ -609,8 +632,22 @@ enum OnboardingStep: Int, Equatable {
         state.hasCompletedShortcut = true
         state.selectedStep = nil
         return .none
+      case .permissionsContinueTapped:
+        guard state.visibleStep == .permissions, state.isOfferingScreenRecording else {
+          return .none
+        }
+        state.selectedStep = nil
+        return permissionPollingEffect(for: state)
       case .shortcutBindings:
         return .none
+      // Screen Recording is granted in System Settings, which its request opens; the polling
+      // carries on meanwhile, so the grant brings the page back to the front by itself.
+      case .requestPermission(.screenRecording):
+        guard state.canRequest(.screenRecording) else {
+          return .none
+        }
+        state.requestedPermissions.insert(.screenRecording)
+        return .run { _ in await screenContext.requestScreenRecording() }
       case let .requestPermission(permission):
         guard state.requestingPermission == nil, state.canRequest(permission) else {
           return .none
@@ -635,6 +672,8 @@ enum OnboardingStep: Int, Equatable {
               onboardingLogger.notice("Accessibility request returned granted=\(granted)")
               await send(.accessibilityPermissionRequested(granted))
             }
+          case .screenRecording:
+            preconditionFailure("Screen Recording is requested above")
           }
         return .concatenate(.cancel(id: CancelID.permissionPolling), request)
       case let .microphonePermissionRequested(status):
@@ -746,20 +785,31 @@ enum OnboardingStep: Int, Equatable {
     _ statuses: OnboardingPermissionStatuses, to state: inout State,
   ) -> Effect<Action> {
     let previous = state.snapshot.permissions
+    let wasOnPermissions = state.visibleStep == .permissions
     state.snapshot.permissions = statuses
     guard statuses != previous else {
       return .none
     }
 
-    let update = Effect<Action>.send(.delegate(.permissionsUpdated(statuses)))
-    return statuses.allGranted && !previous.allGranted
-      ? .merge(update, .cancel(id: CancelID.permissionPolling)) : update
+    // The required grants would move the page on before Screen Recording, which is optional, had
+    // its turn, so the page waits for Continue; that grant itself moves it on like the others.
+    if wasOnPermissions, statuses.requiredGranted {
+      if !statuses.hasScreenRecording, !previous.requiredGranted {
+        state.selectedStep = .permissions
+      } else if statuses.hasScreenRecording, !previous.hasScreenRecording {
+        state.selectedStep = nil
+      }
+    }
+    return .merge(
+      .send(.delegate(.permissionsUpdated(statuses))), permissionPollingEffect(for: state),
+    )
   }
 
-  private func observePermissionStatuses() -> OnboardingPermissionStatuses {
-    OnboardingPermissionStatuses(
+  private func observePermissionStatuses() async -> OnboardingPermissionStatuses {
+    await OnboardingPermissionStatuses(
       microphoneStatus: microphonePermission.status(),
       hasAccessibilityPermission: accessibilityPermission.hasPermission(),
+      hasScreenRecording: screenContext.hasScreenRecording(),
     )
   }
 

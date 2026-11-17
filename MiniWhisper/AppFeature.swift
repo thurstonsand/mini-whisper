@@ -53,6 +53,19 @@ private let performanceLogger = Logger(
     var target: DeliveryTarget
   }
 
+  /// Expanded context's read of the screen, which starts at the press and can outlast the
+  /// recording; a cleanup pass waits for it to settle.
+  enum ScreenRead: Equatable {
+    case pending
+    case captured(ScreenCapture)
+  }
+
+  /// The screen read of a recording that has no dictation to hold it yet.
+  struct ActivationScreen: Equatable {
+    var generation: Int
+    var read: ScreenRead
+  }
+
   @ObservableState struct State: Equatable {
     // MARK: Lifecycle
 
@@ -97,6 +110,7 @@ private let performanceLogger = Logger(
     var lastTranscript: String?
     var pendingDictation: PendingDictation?
     var activationTarget: ActivationTarget?
+    var activationScreen: ActivationScreen?
     /// Dictations that stepped aside for a newer one. The press that moved one here handed the
     /// pill and the generation to its successor, so it is no longer the dictation in flight — but
     /// it is still owed a paste and an entry, and waits here under the generation it was until it
@@ -113,6 +127,9 @@ private let performanceLogger = Logger(
     @Shared var dictionary: DictionaryContents
     @Shared var health: AppHealth
     var onboardingCompleted = false
+    /// Startup found a user past onboarding who has not yet said what replaces Haiku. The shell
+    /// opens the pane that asks.
+    var asksAboutHaiku = false
 
     /// History maintenance rewrites the whole log, so it waits for every dictation still owed an
     /// entry, not only the one in the pill.
@@ -195,6 +212,7 @@ private let performanceLogger = Logger(
     case transcriptionFailed(Int, String)
     case targetCaptured(Int, DeliveryTarget)
     case contextCaptured(Int, ContextCapture, DeliveryTarget)
+    case screenCaptured(Int, ScreenCapture)
     case cleanupStarted(Int, CleanupConfiguration)
     case cleanupResolved(Int, CleanupResolution)
     case deliveryCompleted(Int, DeliveryResult)
@@ -215,6 +233,7 @@ private let performanceLogger = Logger(
   @Dependency(\.asrEngine) var asrEngine
   @Dependency(\.audioCapture) var audioCapture
   @Dependency(\.contextCapture) var contextCapture
+  @Dependency(\.screenContext) var screenContext
   @Dependency(\.continuousClock) var clock
   @Dependency(\.date.now) var now
   @Dependency(\.delivery) var delivery
@@ -233,6 +252,12 @@ private let performanceLogger = Logger(
 
   var body: some ReducerOf<Self> {
     Scope(state: \.recording, action: \.recording) { RecordingFeature() }
+      // The press reads the screen for the active profile and the recording's end picks the
+      // profile that cleans it, so the profile holds still in between.
+      .onChange(of: \.recording.phase) { _, state in
+        state.settingsWindow.profiles.isRecording = state.recording.phase != .idle
+        return Effect<Action>.none
+      }
     Scope(state: \.pill, action: \.pill) { PillFeature() }
     Scope(state: \.onboarding, action: \.onboarding) { OnboardingFeature() }
     Scope(state: \.settingsWindow, action: \.settingsWindow) { SettingsWindowFeature() }
@@ -371,6 +396,8 @@ private let performanceLogger = Logger(
         return .none
       case let .startupResolved(facts):
         state.onboardingCompleted = facts.onboardingCompleted
+        state.asksAboutHaiku =
+          facts.onboardingCompleted && state.settings.profiles.haikuRetirement != nil
         state.$health.withLock { $0.micStatus = facts.permissions.microphoneStatus }
         state.$health.withLock { $0.engineReadiness = facts.engineReadiness }
         logEngineReadiness(facts.engineReadiness, state.health.engine)
@@ -581,6 +608,10 @@ private let performanceLogger = Logger(
           state.pendingDictation?.target = activation.target
         }
         state.activationTarget = nil
+        if let activation = state.activationScreen, activation.generation == generation {
+          state.pendingDictation?.screen = activation.read
+        }
+        state.activationScreen = nil
         let dictionary = state.dictionary.transcriptionDictionary(
           boostsVocabulary: state.settings.activeProfile.boostsVocabulary,
         )
@@ -688,8 +719,7 @@ private let performanceLogger = Logger(
         state.updateDictation(dictation)
         return .none
       case let .contextCaptured(generation, capture, target):
-        guard var dictation = state.dictation(generation), let transcript = dictation.original?.text
-        else {
+        guard var dictation = state.dictation(generation), dictation.original != nil else {
           return .none
         }
         dictation.capture = capture
@@ -697,18 +727,24 @@ private let performanceLogger = Logger(
         state.updateDictation(dictation)
         // Whether a pass is worth attempting at all. Whether one actually runs is the pipeline's
         // to decide, and it says so by starting one.
-        guard let cleanupTarget = dictation.cleanupTarget else {
+        guard dictation.cleanupTarget != nil else {
           return .send(.cleanupResolved(generation, .passedThrough))
         }
-        return cleanupEffect(
-          generation: generation, transcript: transcript,
-          conditioning: CleanupConditioning(
-            fieldContext: capture.focusedTextContext,
-            vocabulary: state.dictionary.vocabulary.map(\.text),
-            targetBundleID: target.app?.bundleID,
-          ),
-          target: cleanupTarget,
-        )
+        return startCleanup(generation, state)
+      case let .screenCaptured(generation, screen):
+        guard var dictation = state.dictation(generation) else {
+          if let activation = state.activationScreen, activation.generation == generation {
+            state.activationScreen?.read = .captured(screen)
+          }
+          return .none
+        }
+        dictation.screen = .captured(screen)
+        state.updateDictation(dictation)
+        // A field read that finished first left its cleanup waiting on this.
+        guard dictation.capture != nil, dictation.cleanupTarget != nil else {
+          return .none
+        }
+        return startCleanup(generation, state)
       case let .cleanupStarted(generation, configuration):
         guard var dictation = state.dictation(generation) else {
           return .none
@@ -858,9 +894,19 @@ private let performanceLogger = Logger(
       case let .onboarding(.delegate(.permissionsUpdated(permissions))):
         state.$health.withLock { $0.micStatus = permissions.microphoneStatus }
         return reconcileAccessibility(permissions.hasAccessibilityPermission, &state)
+      // The profile chosen in onboarding is the answer to what replaces Haiku.
       case .onboarding(.delegate(.completed)):
         state.onboardingCompleted = true
-        return .none
+        guard state.settings.profiles.haikuRetirement != nil else {
+          return .none
+        }
+        state.$settings.withLock { $0.profiles.acceptHydrogen() }
+        return .run { _ in
+          try keychain.adopt(HaikuRetirement.keyAccount, nil)
+        } catch: { error, _ in
+          settingsLogger
+            .error("Haiku's key was not deleted: \(error.localizedDescription, privacy: .public)")
+        }
       case .onboarding,
            .pill:
         return .none
@@ -904,6 +950,27 @@ private let performanceLogger = Logger(
     dictation.isCapturingContext = true
     state.updateDictation(dictation)
     return captureContextEffect(generation: generation, target: dictation.target)
+  }
+
+  /// The cleanup pass, once the field has been read and the screen read, if one was asked for,
+  /// has settled: a pass that started without it would condition on less than the user could see.
+  func startCleanup(_ generation: Int, _ state: State) -> Effect<Action> {
+    guard let dictation = state.dictation(generation), dictation.screen != .pending,
+          dictation.readyText == nil, let transcript = dictation.original?.text,
+          let capture = dictation.capture, let cleanupTarget = dictation.cleanupTarget
+    else {
+      return .none
+    }
+    return cleanupEffect(
+      generation: generation, transcript: transcript,
+      conditioning: CleanupConditioning(
+        fieldContext: capture.focusedTextContext, screenContext: dictation.screenContext,
+        screenshot: dictation.screenCapture?.cleanupScreenshot,
+        vocabulary: state.dictionary.vocabulary.map(\.text),
+        targetBundleID: dictation.target?.app?.bundleID,
+      ),
+      target: cleanupTarget,
+    )
   }
 
   func playSound(_ name: String?) -> Effect<Action> {
@@ -1140,6 +1207,7 @@ private let performanceLogger = Logger(
       let modelDownloadConsented = modelDownloadConsent.isConsented()
       let hasAccessibilityPermission = accessibilityPermission.hasPermission()
       let microphoneStatus = microphonePermission.status()
+      let hasScreenRecording = await screenContext.hasScreenRecording()
 
       var readinessIterator = asrEngine.prepareInstalled(engine).makeAsyncIterator()
       let engineReadiness = await readinessIterator.next() ?? .modelMissing
@@ -1151,6 +1219,7 @@ private let performanceLogger = Logger(
             permissions: OnboardingPermissionStatuses(
               microphoneStatus: microphoneStatus,
               hasAccessibilityPermission: hasAccessibilityPermission,
+              hasScreenRecording: hasScreenRecording,
             ),
             engineReadiness: engineReadiness,
           ),

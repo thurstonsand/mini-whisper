@@ -7,7 +7,10 @@ import History
 
 @DependencyClient struct HistoryClient {
   var writeAudio: @Sendable (CanonicalRecording, UUID) async throws -> AudioMetadata
+  /// The Bool is whether cleanup was shown the screenshot.
+  var writeScreenshot: @Sendable (Data, UUID, Bool) async throws -> ScreenshotMetadata
   var loadAudio: @Sendable (UUID) async throws -> CanonicalRecording
+  var loadScreenshot: @Sendable (UUID) async throws -> Data
   var deleteAudio: @Sendable ([UUID]) async throws -> Void
   var reconcile: @Sendable (HistoryLog) async throws -> HistoryLog
 }
@@ -17,7 +20,9 @@ import History
 extension HistoryClient: DependencyKey {
   static let testValue = Self(
     writeAudio: { _, _ in throw HistoryClientError.unimplementedAudioWrite },
+    writeScreenshot: { _, _, _ in throw HistoryClientError.unimplementedAudioWrite },
     loadAudio: { _ in throw HistoryClientError.unimplementedAudioRead },
+    loadScreenshot: { _ in throw HistoryClientError.unimplementedAudioRead },
     deleteAudio: { _ in }, reconcile: { $0 },
   )
 
@@ -25,7 +30,11 @@ extension HistoryClient: DependencyKey {
     let vault = AudioVaultAccess(directoryURL: Channel.historyAudioDirectory)
     return Self(
       writeAudio: { recording, id in try await vault.write(recording, id: id) },
+      writeScreenshot: { jpeg, id, shown in
+        try await vault.writeScreenshot(jpeg, id: id, shownToCleanup: shown)
+      },
       loadAudio: { id in try await vault.read(id) },
+      loadScreenshot: { id in try await vault.readScreenshot(id) },
       deleteAudio: { ids in try await vault.delete(ids) },
       reconcile: { log in try await vault.reconcile(log) },
     )
@@ -52,6 +61,14 @@ private actor AudioVaultAccess {
 
   func write(_ recording: CanonicalRecording, id: UUID) throws -> AudioMetadata {
     try vault.write(recording, id: id)
+  }
+
+  func writeScreenshot(_ jpeg: Data, id: UUID, shownToCleanup: Bool) throws -> ScreenshotMetadata {
+    try vault.writeScreenshot(jpeg, id: id, shownToCleanup: shownToCleanup)
+  }
+
+  func readScreenshot(_ id: UUID) throws -> Data {
+    try vault.readScreenshot(id: id)
   }
 
   func read(_ id: UUID) throws -> CanonicalRecording {

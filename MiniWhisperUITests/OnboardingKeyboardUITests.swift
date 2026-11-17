@@ -39,9 +39,9 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
     XCTAssertFalse(app.tryItEditor.exists)
     assertLabel("Set Up Later", of: app.buttons["miniwhisper.onboarding.try-it.skip"])
     assertValue("Incomplete; Needs a key", of: app.buttons["miniwhisper.onboarding.rail.keys"])
-    XCTAssertTrue(app.buttons["Add Anthropic Key…"].isHittable)
+    XCTAssertTrue(app.buttons["Add Google Key…"].isHittable)
     app.typeKey(.return, modifierFlags: [])
-    let field = app.secureTextFields["miniwhisper.onboarding.keys.anthropic"]
+    let field = app.secureTextFields["miniwhisper.onboarding.keys.google"]
     XCTAssertTrue(field.awaitExistence(timeout: 2))
     XCTAssertFalse(app.buttons["miniwhisper.onboarding.keys.skip"].exists)
     field.click()
@@ -68,7 +68,7 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
     defer { terminate(app) }
 
     for (scene, providers) in [
-      ("onboarding-keys", ["anthropic"]),
+      ("onboarding-keys", ["google"]),
       ("onboarding-keys-accurate", ["elevenlabs", "google"]),
     ] {
       if scene != "onboarding-keys" {
@@ -148,6 +148,11 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
           ]
           XCTAssertTrue(accessibility.awaitExistence(timeout: 2))
           XCTAssertEqual(accessibility.label, "Grant Accessibility")
+          app.typeKey(.return, modifierFlags: [])
+          // Screen Recording is optional, so the page waits on Continue, which Return presses.
+          XCTAssertTrue(
+            app.buttons["miniwhisper.onboarding.permissions.continue"].awaitExistence(timeout: 2),
+          )
           app.typeKey(.return, modifierFlags: [])
           XCTAssertTrue(app.groups["miniwhisper.onboarding.shortcut"].awaitExistence(timeout: 2))
         },
@@ -390,7 +395,7 @@ final class OnboardingKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
     app.typeKey("1", modifierFlags: [.command])
     XCTAssertTrue(app.groups["miniwhisper.onboarding.keys"].awaitExistence(timeout: 2))
     presentScene("onboarding-keys")
-    let field = app.secureTextFields["miniwhisper.onboarding.keys.anthropic"]
+    let field = app.secureTextFields["miniwhisper.onboarding.keys.google"]
     XCTAssertTrue(field.awaitExistence(timeout: 2))
     field.click()
     app.typeKey("3", modifierFlags: [.command])

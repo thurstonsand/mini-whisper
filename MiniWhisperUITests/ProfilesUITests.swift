@@ -40,7 +40,7 @@ final class ProfilesUITests: MiniWhisperUITestCase, SurfaceTagged {
         app.typeText("j")
         self.assertValue("Bar on", of: app.staticTexts["miniwhisper.profiles.row.enabled.state"])
         self.assertValue("Ring on", of: app.staticTexts["miniwhisper.profiles.enabled.ring"])
-        for row in ["endpoint", "apiKey", "model", "timeout", "instructions"] {
+        for row in ["endpoint", "apiKey", "model", "reasoning", "timeout", "instructions"] {
           app.typeText("j")
           self.assertValue(
             "Bar on", of: app.staticTexts["miniwhisper.profiles.row.\(row).state"],
@@ -63,7 +63,7 @@ final class ProfilesUITests: MiniWhisperUITestCase, SurfaceTagged {
       // Edit on any row opens every fact Save proves together, with that row's field taking the
       // keys, so the keyboard press and the click land in the same place.
       Law("Return on Edit opens the editor with that field focused") { app in
-        app.typeText("kkk")
+        app.typeText("kkkk")
         self.assertValue("Bar on", of: app.staticTexts["miniwhisper.profiles.row.endpoint.state"])
         app.typeKey(.return, modifierFlags: [])
         let endpoint = app.textFields["miniwhisper.profiles.endpoint.field"]
@@ -172,17 +172,17 @@ final class ProfilesUITests: MiniWhisperUITestCase, SurfaceTagged {
         try require(advanced.awaitNonExistence())
         XCTAssertFalse(app.sheets.firstMatch.exists)
         self.assertValue(
-          "https://api.anthropic.com/v1",
+          "https://generativelanguage.googleapis.com/v1beta/openai",
           of: app.staticTexts["miniwhisper.profiles.endpoint.value"],
         )
         self.assertValue(
-          "claude-haiku-5-5", of: app.staticTexts["miniwhisper.profiles.model.value"],
+          "gemini-4-hydrogen", of: app.staticTexts["miniwhisper.profiles.model.value"],
         )
         app.staticTexts["miniwhisper.settings.sidebar.history"].click()
         app.staticTexts["miniwhisper.settings.sidebar.profiles"].click()
         try require(advanced.awaitHittable())
         self.assertValue(
-          "sk-ant••••••••••••", of: app.staticTexts["miniwhisper.profiles.apiKey.value"],
+          "AIzaSy••••••••••••", of: app.staticTexts["miniwhisper.profiles.apiKey.value"],
         )
         XCTAssertTrue(app.switches["miniwhisper.profiles.enabled"].awaitNonExistence())
         XCTAssertTrue(app.switches["miniwhisper.profiles.boosts-vocabulary"].awaitNonExistence())
@@ -310,7 +310,7 @@ final class ProfilesUITests: MiniWhisperUITestCase, SurfaceTagged {
     recordScreenshot("profiles-overridden", screenshot: app.screenshot())
 
     reset.click()
-    assertValue("https://api.anthropic.com/v1", of: address)
+    assertValue("https://generativelanguage.googleapis.com/v1beta/openai", of: address)
     XCTAssertTrue(reset.awaitNonExistence())
   }
 
@@ -321,7 +321,7 @@ final class ProfilesUITests: MiniWhisperUITestCase, SurfaceTagged {
     let picker = app.popUpButtons["miniwhisper.profiles.picker"]
     XCTAssertTrue(picker.awaitExistence(timeout: 5))
     assertValue("Everyday; Cleanup key rejected", of: picker)
-    assertValue("Anthropic rejected this key.",
+    assertValue("Google rejected this key.",
                 of: app.staticTexts["miniwhisper.profiles.key-rejection"])
     recordScreenshot("profiles-rejected", screenshot: app.screenshot())
   }

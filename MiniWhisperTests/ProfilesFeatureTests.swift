@@ -49,10 +49,91 @@ struct EndpointAddressTests {
 
 @MainActor struct ProfilesFeatureTests {
   @Test func `the pane reads which keys exist from the Keychain, never from settings`() async {
-    let store = profilesStore(keys: [customSlot: storedKey, haikuSlot: "sk-ant-0123"])
+    let store = profilesStore(keys: [customSlot: storedKey, everydaySlot: "sk-ant-0123"])
 
-    await openPane(store, keys: [customSlot: storedKey, haikuSlot: "sk-ant-0123"])
-    #expect(store.state.storedKeys == [customSlot: "sk-liv", haikuSlot: "sk-ant"])
+    await openPane(store, keys: [customSlot: storedKey, everydaySlot: "sk-ant-0123"])
+    #expect(store.state.storedKeys == [customSlot: "sk-liv", everydaySlot: "sk-ant"])
+  }
+
+  /// Upgraded from Everyday on Haiku: keeping Haiku carries its key into Custom and runs Custom;
+  /// choosing Hydrogen forgets the key and opens Everyday's for typing.
+  @Test func `the haiku question moves its key into custom, or forgets it for hydrogen`(
+  ) async throws {
+    let legacy = try SettingsCoding.decode(
+      Data(#"{"profiles": {"active": "haiku", "reasoning": {"haiku": "none"}}}"#.utf8),
+    )
+    let moved = TestBox<[String]>([])
+    let screenRecordingAsked = TestBox(0)
+    func store() -> TestStoreOf<ProfilesFeature> {
+      let store = profilesStore(settings: legacy) {
+        $0.screenContext.requestScreenRecording = { screenRecordingAsked.value += 1 }
+        $0.keychain.adopt = { account, slot in
+          moved.value.append("\(account) → \(slot?.account ?? "nowhere")")
+        }
+        // Custom holds the key only once it has moved there.
+        $0.keychain.read = { slot in
+          slot == customSlot && !moved.value.isEmpty ? "sk-ant-moved-0123" : nil
+        }
+      }
+      store.exhaustivity = .off(showSkippedAssertions: false)
+      return store
+    }
+
+    let keeping = store()
+    await keeping.send(.haikuRetirementAnswered(keepsHaiku: true))
+    await keeping.receive(.haikuKeyMoved(keepsHaiku: true))
+    await keeping.receive(.delegate(.keysStored([customSlot])))
+    await keeping.receive(.profileSelected(.custom))
+
+    #expect(moved.value == ["profile.haiku.anthropic → profile.custom.endpoint"])
+    #expect(keeping.state.storedKeys?[customSlot] == "sk-ant")
+    let target = try #require(keeping.state.settings.cleanupTarget)
+    #expect(keeping.state.settings.profiles.active == .custom)
+    #expect(target.configuration.endpoint == URL(string: "https://api.anthropic.com/v1"))
+    #expect(target.configuration.model == "claude-haiku-5-5")
+    #expect(target.configuration.reasoningEffort == .off)
+    await keeping.finish()
+    #expect(keeping.state.settings.screenContextMode == .screenshot)
+    #expect(screenRecordingAsked.value == 1)
+
+    moved.value = []
+    let switching = store()
+    await switching.send(.haikuRetirementAnswered(keepsHaiku: false))
+    await switching.receive(.haikuKeyMoved(keepsHaiku: false))
+    await switching.receive(.editTapped(.apiKey))
+
+    #expect(moved.value == ["profile.haiku.anthropic → nowhere"])
+    #expect(switching.state.settings.profiles.active == .everyday)
+    #expect(switching.state.settings.profiles.haikuRetirement == nil)
+    #expect(switching.state.settings.profiles.custom == .defaults)
+    #expect(switching.state.editor != nil)
+
+    // A Google key already given to Most accurate is copied in, and nothing is left to type.
+    let copied = TestBox<[CredentialSlot: String]>([:])
+    let reusing = profilesStore(settings: legacy) {
+      $0.keychain.adopt = { _, _ in }
+      $0.keychain
+        .read = { slot in copied.value[slot] ?? (slot == googleSlot ? "AIzaMostAccurate" : nil) }
+      $0.keychain.store = { secret, slot in copied.value[slot] = secret }
+    }
+    reusing.exhaustivity = .off(showSkippedAssertions: false)
+    await reusing.send(.haikuRetirementAnswered(keepsHaiku: false))
+    await reusing.receive(.haikuKeyMoved(keepsHaiku: false))
+    await reusing.receive(.delegate(.keysStored([everydaySlot])))
+    await reusing.finish()
+
+    #expect(copied.value == [everydaySlot: "AIzaMostAccurate"])
+    #expect(reusing.state.storedKeys?[everydaySlot] == "AIzaMo")
+    #expect(reusing.state.editor == nil)
+
+    // A key that cannot move leaves the question standing, not a Custom without its key.
+    let stuck = profilesStore(settings: legacy) {
+      $0.keychain.adopt = { _, _ in throw KeychainError(operation: .store, status: errSecIO) }
+    }
+    await stuck.send(.haikuRetirementAnswered(keepsHaiku: true))
+    await stuck.finish()
+    #expect(stuck.state.settings.profiles.haikuRetirement != nil)
+    #expect(stuck.state.settings.profiles.active == .everyday)
   }
 
   @Test func `Save proves the draft, then stores the key, then the address and model`() async {
@@ -99,12 +180,12 @@ struct EndpointAddressTests {
   @Test func `a draft the endpoint refuses changes nothing anywhere`() async {
     let stored = TestBox<Int>(0)
     var settings = MiniWhisperSettings.defaults
-    let store = profilesStore(settings: settings, keys: [haikuSlot: "sk-ant-old"]) {
+    let store = profilesStore(settings: settings, keys: [everydaySlot: "sk-ant-old"]) {
       $0.keychain.store = { _, _ in stored.value += 1 }
       $0.cleanup.verify = { _, _ in .failed(.httpStatus(code: 401, message: "invalid x-api-key")) }
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
-    await openPane(store, keys: [haikuSlot: "sk-ant-old"])
+    await openPane(store, keys: [everydaySlot: "sk-ant-old"])
     settings = store.state.settings
 
     await store.send(.editTapped(.apiKey))
@@ -115,7 +196,7 @@ struct EndpointAddressTests {
 
     #expect(stored.value == 0)
     #expect(store.state.settings == settings)
-    #expect(store.state.storedKeys?[haikuSlot] == "sk-ant")
+    #expect(store.state.storedKeys?[everydaySlot] == "sk-ant")
     // The draft stays to be fixed, and the blamed field is asked to take the keys.
     #expect(store.state.editor?.keyText == "sk-ant-new")
     #expect(store.state.editor?.isChecking == false)
@@ -193,7 +274,7 @@ struct EndpointAddressTests {
 
     await store.send(.editTapped(.apiKey))
     await store.send(.saveTapped)
-    await store.receive(.saveFailed(.init(field: .apiKey, message: "Paste your Anthropic key.")))
+    await store.receive(.saveFailed(.init(field: .apiKey, message: "Paste your Google key.")))
   }
 
   /// Ollama and its kin take no key, so Custom proves itself without one and stores nothing.
@@ -330,7 +411,7 @@ struct EndpointAddressTests {
     await store.send(.editTapped(.model))
     await store.send(.customModelEdited("gpt-oss-20b"))
     await store.send(.saveTapped)
-    await store.send(.profileSelected(.haiku))
+    await store.send(.profileSelected(.everyday))
     release.finish()
     await store.finish()
 
@@ -354,25 +435,25 @@ struct EndpointAddressTests {
   /// A key the endpoint just answered with is valid, whatever the last dictation was told.
   @Test func `a successful Save clears the key's invalid mark`() async throws {
     var health = AppHealth()
-    health.rejectedKeys = [haikuSlot]
+    health.rejectedKeys = [everydaySlot]
     let store = profilesStore(
-      settings: .defaults, keys: [haikuSlot: "sk-ant-0123"], health: health,
+      settings: .defaults, keys: [everydaySlot: "sk-ant-0123"], health: health,
     ) {
       $0.cleanup.verify = { _, _ in .verified }
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
-    await openPane(store, keys: [haikuSlot: "sk-ant-0123"])
+    await openPane(store, keys: [everydaySlot: "sk-ant-0123"])
     #expect(store.state.status(of: store.state.profile) == .problem("Cleanup key rejected"))
 
     await store.send(.editTapped(.apiKey))
     await store.send(.keyEdited("sk-ant-fresh"))
     await store.send(.saveTapped)
     try await store.receive(.saveSucceeded(.init(
-      endpoint: #require(URL(string: "https://api.anthropic.com/v1")),
-      model: "claude-haiku-5-5",
-      storedKeys: [haikuSlot: "sk-ant"],
+      endpoint: #require(URL(string: "https://generativelanguage.googleapis.com/v1beta/openai")),
+      model: "gemini-4-hydrogen",
+      storedKeys: [everydaySlot: "sk-ant"],
     )))
-    await store.receive(.delegate(.keysStored([haikuSlot])))
+    await store.receive(.delegate(.keysStored([everydaySlot])))
 
     #expect(store.state.health.rejectedKeys.isEmpty)
     #expect(store.state.status(of: store.state.profile) == .ready)
@@ -420,7 +501,7 @@ struct EndpointAddressTests {
       endpoint: #require(
         URL(string: "https://generativelanguage.googleapis.com/v1beta/openai"),
       ),
-      model: "gemini-3.8-flash", storedKeys: [elevenLabsSlot: "sk_ele"], speech: .scribe,
+      model: "gemini-4-hydrogen", storedKeys: [elevenLabsSlot: "sk_ele"], speech: .scribe,
     )))
     await store.receive(.delegate(.keysStored([elevenLabsSlot])))
 
@@ -488,29 +569,29 @@ struct EndpointAddressTests {
     var settings = MiniWhisperSettings.defaults
     try settings.profiles.setEndpoint(
       #require(URL(string: "https://aig.thurstons.house/v1")),
-      for: .haiku,
+      for: .everyday,
     )
-    settings.profiles.setModel("claude-sonnet-5-5", for: .haiku)
+    settings.profiles.setModel("claude-sonnet-5-5", for: .everyday)
     let verified = TestBox<CleanupConfiguration?>(nil)
-    let store = profilesStore(settings: settings, keys: [haikuSlot: "sk-ant-0123"]) {
+    let store = profilesStore(settings: settings, keys: [everydaySlot: "sk-ant-0123"]) {
       $0.cleanup.verify = { configuration, _ in
         verified.value = configuration
         return .verified
       }
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
-    await openPane(store, keys: [haikuSlot: "sk-ant-0123"])
+    await openPane(store, keys: [everydaySlot: "sk-ant-0123"])
     await store.send(.advancedRevealed)
     #expect(targets(store.state, at: .model) == [.edit(.model), .reset(.model)])
 
     await store.send(.resetTapped(.model))
     try await store.receive(.saveSucceeded(.init(
       endpoint: #require(URL(string: "https://aig.thurstons.house/v1")),
-      model: "claude-haiku-5-5",
+      model: "gemini-4-hydrogen",
       storedKeys: [:],
     )))
 
-    #expect(verified.value?.model == "claude-haiku-5-5")
+    #expect(verified.value?.model == "gemini-4-hydrogen")
     #expect(verified.value?.endpoint == URL(string: "https://aig.thurstons.house/v1"))
     #expect(!store.state.profile.isModelOverridden)
     #expect(store.state.profile.isEndpointOverridden)
@@ -586,9 +667,18 @@ struct EndpointAddressTests {
     var customOff = configuredCustom
     customOff.profiles.custom.cleanupEnabled = false
 
-    #expect(rows(.defaults) == [.profile, .apiKey, .advanced, .timeout, .instructions])
+    #expect(rows(.defaults) == [
+      .profile,
+      .apiKey,
+      .advanced,
+      .reasoning,
+      .expandedContext,
+      .timeout,
+      .instructions,
+    ])
     #expect(rows(accurate) == [
-      .profile, .engineKey, .speechAdvanced, .apiKey, .advanced, .timeout, .instructions,
+      .profile, .engineKey, .speechAdvanced, .apiKey, .advanced, .reasoning,
+      .expandedContext, .timeout, .instructions,
     ])
     // S1-mini reads no prompt, so only the limit applies.
     #expect(rows(offline) == [.profile, .timeout])
@@ -597,6 +687,53 @@ struct EndpointAddressTests {
     #expect(rows(customOff) == [
       .profile, .boostsVocabulary, .enabled, .endpoint, .apiKey, .model,
     ])
+  }
+
+  @Test func `a reasoning level is written at once for the profile on screen`() async {
+    var settings = MiniWhisperSettings.defaults
+    settings.profiles.active = .cerebras
+    let store = profilesStore(settings: settings)
+    store.exhaustivity = .off(showSkippedAssertions: false)
+
+    await store.send(.reasoningSelected(.high))
+
+    #expect(store.state.settings.cleanupTarget?.configuration.reasoningEffort == .high)
+  }
+
+  /// Picking a mode never asks for Screen Recording; the row's grant button does, and the pane
+  /// rereads the grant when the user comes back from System Settings. Until then the row is Off
+  /// and stays that way, so the grant brings back the profile's default.
+  @Test func `a screen context mode is written for the profile on screen`() async {
+    let asked = TestBox(0)
+    let granted = TestBox(false)
+    var settings = MiniWhisperSettings.defaults
+    settings.profiles.active = .cerebras
+    let store = profilesStore(settings: settings) {
+      $0.screenContext.requestScreenRecording = { asked.value += 1 }
+      $0.screenContext.hasScreenRecording = { granted.value }
+    }
+    store.exhaustivity = .off(showSkippedAssertions: false)
+
+    await store.send(.screenRecordingRefreshed)
+    await store.receive(.screenRecordingObserved(false))
+    await store.send(.cursorHovered(.expandedContext))
+    #expect(store.state.targets == [.screenContextInfo, .grantScreenRecording, .expandedContext])
+    #expect(store.state.screenContextMode == .off)
+    await store.send(.screenContextSelected(.screenshot))
+    #expect(store.state.settings.profiles.screenContextMode(for: .cerebras) == .text)
+    #expect(asked.value == 0)
+
+    await store.send(.grantScreenRecordingTapped)
+    await store.finish()
+    #expect(asked.value == 1)
+    granted.value = true
+    await store.send(.screenRecordingRefreshed)
+    await store.receive(.screenRecordingObserved(true))
+    #expect(store.state.targets == [.screenContextInfo, .expandedContext])
+    #expect(store.state.screenContextMode == .text)
+    await store.send(.screenContextSelected(.screenshot))
+    #expect(store.state.settings.screenContextMode == .screenshot)
+    #expect(store.state.settings.profiles.screenContextMode(for: .everyday) == .text)
   }
 
   @Test func `the cursor walks the editor's rows and lands Cancel before Save`() async {
@@ -620,16 +757,16 @@ struct EndpointAddressTests {
   }
 
   @Test func `a failed factory override opens Advanced to its error`() async {
-    let store = profilesStore(settings: .defaults, keys: [haikuSlot: "sk-ant-test"]) {
+    let store = profilesStore(settings: .defaults, keys: [everydaySlot: "sk-ant-test"]) {
       $0.cleanup.verify = { _, _ in .failed(.unreachable("refused")) }
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
-    await openPane(store, keys: [haikuSlot: "sk-ant-test"])
+    await openPane(store, keys: [everydaySlot: "sk-ant-test"])
     await store.send(.editTapped(.apiKey))
     #expect(!store.state.rows.contains(.endpoint))
     await store.send(.saveTapped)
     await store.receive(.saveFailed(.init(
-      field: .endpoint, message: "Couldn’t reach api.anthropic.com.",
+      field: .endpoint, message: "Couldn’t reach generativelanguage.googleapis.com.",
     )))
     #expect(store.state.rows.contains(.endpoint))
     #expect(store.state.editor?.focus == .endpoint)
@@ -645,15 +782,15 @@ struct EndpointAddressTests {
       state.status(of: lineup.first { $0.id == id }!)
     }
     // Unread keys are not missing.
-    #expect(status(.haiku) == .ready)
+    #expect(status(.everyday) == .ready)
 
-    state.storedKeys = [haikuSlot: "sk-ant"]
-    #expect(status(.haiku) == .ready)
+    state.storedKeys = [everydaySlot: "sk-ant"]
+    #expect(status(.everyday) == .ready)
     #expect(status(.cerebras) == .problem("Needs a Cerebras key"))
     #expect(status(.accurate) == .problem("Needs an ElevenLabs key"))
 
     state.assets = [.gate: .installed(bytes: 1), .parakeet: .downloading(0.42), .s1Mini: .missing]
-    #expect(status(.haiku) == .problem("Downloading Parakeet TDT v2"))
+    #expect(status(.everyday) == .problem("Downloading Parakeet TDT v2"))
     #expect(status(.offline) == .problem("Downloading Parakeet TDT v2"))
     state.assets[.parakeet] = .installed(bytes: 1)
     #expect(status(.offline) == .problem("Needs S1-mini"))
@@ -703,7 +840,7 @@ final class TestBox<Value>: @unchecked Sendable {
 private let storedKey = "sk-liv-test-0123"
 private let gateway = URL(string: "https://gateway.example/v1")!
 private let customSlot = CredentialSlot(profile: .custom, provider: .endpoint)
-private let haikuSlot = CredentialSlot(profile: .haiku, provider: .anthropic)
+private let everydaySlot = CredentialSlot(profile: .everyday, provider: .google)
 private let elevenLabsSlot = CredentialSlot(profile: .accurate, provider: .elevenlabs)
 private let googleSlot = CredentialSlot(profile: .accurate, provider: .google)
 
@@ -746,6 +883,7 @@ private var configuredCustom: MiniWhisperSettings {
   _ store: TestStoreOf<ProfilesFeature>, keys: [CredentialSlot: String] = [:],
 ) async {
   await store.send(.task)
+  await store.receive(.screenRecordingObserved(true))
   let slots = Set(store.state.settings.profiles.lineup.flatMap {
     [$0.engineCredential, $0.endpointLeg?.credential].compactMap(\.self)
   })

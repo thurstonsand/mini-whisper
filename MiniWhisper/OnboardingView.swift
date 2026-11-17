@@ -25,6 +25,8 @@ enum OnboardingFocus: Hashable {
   case useOffline
   case keysContinue
   case permissionsAction
+  case screenRecordingAction
+  case permissionsContinue
   case shortcutPreset(Int)
   case shortcutKeycap
   case shortcutSettings
@@ -105,7 +107,9 @@ struct OnboardingView: View {
           : [.keyField(slot), .keyHelp(slot)]
       } + [.useOffline, .useCustom, .keysContinue]
     case .permissions:
-      store.activePermission == nil ? [] : [.permissionsAction]
+      // The optional row joins the keyboard path only once it is the page's question.
+      store.activePermission != nil ? [.permissionsAction]
+        : store.isOfferingScreenRecording ? [.screenRecordingAction, .permissionsContinue] : []
     case .shortcut:
       store.isRecordingShortcut ? []
         : (0 ..< 4).map(OnboardingFocus.shortcutPreset) + [.shortcutKeycap]
@@ -187,12 +191,20 @@ struct OnboardingView: View {
         .keyboardShortcut(.defaultAction)
         .accessibilityIdentifier(AccessibilityID.onboardingKeysContinue)
     case .permissions:
-      SemanticText(
-        "Continue after granting both",
-        identifier: AccessibilityID.onboardingPermissionsGuidance, label: "Permissions guidance",
-      )
-      .font(.system(size: 12))
-      .foregroundStyle(.secondary)
+      if store.isOfferingScreenRecording {
+        Button("Continue") { store.send(.permissionsContinueTapped) }
+          .buttonStyle(.borderedProminent)
+          .focused($focus, equals: .permissionsContinue)
+          .keyboardShortcut(.defaultAction)
+          .accessibilityIdentifier(AccessibilityID.onboardingPermissionsContinue)
+      } else {
+        SemanticText(
+          "Continue after granting the required permissions",
+          identifier: AccessibilityID.onboardingPermissionsGuidance, label: "Permissions guidance",
+        )
+        .font(.system(size: 12))
+        .foregroundStyle(.secondary)
+      }
     case .shortcut:
       Button("Continue") { store.send(.shortcutContinueTapped) }
         .buttonStyle(.borderedProminent)

@@ -23,9 +23,12 @@ public struct OpenAICompatibleCleanup: Sendable {
         role: "system",
         content: CleanupPrompt.systemMessage(
           additionalInstructions: configuration.additionalInstructions,
+          carriesScreenContext: request.carriesScreenContext,
         ),
       ),
-      ChatMessage(role: "user", content: CleanupPrompt.userMessage(request)),
+      ChatMessage(
+        role: "user", content: CleanupPrompt.userMessage(request), image: request.screenshot,
+      ),
     ]
     switch await completion(messages: messages, timeout: configuration.timeout) {
     case let .succeeded(content):
@@ -110,6 +113,27 @@ public struct OpenAICompatibleCleanup: Sendable {
     }
   }
 
+  // MARK: Internal
+
+  /// What a non-2xx body says: `error.message` for OpenAI and Anthropic, wrapped in a
+  /// one-element array by Google, or a top-level `message` for Cerebras. Anything else is the body
+  /// itself, cut short: a Custom endpoint can answer in any shape, and its own words still say more
+  /// than a status code.
+  static func errorMessage(in data: Data) -> String? {
+    let object = try? JSONSerialization.jsonObject(with: data)
+    if let body = ((object as? [Any])?.first ?? object) as? [String: Any],
+       let message = ((body["error"] as? [String: Any])?["message"] ?? body["message"]) as? String,
+       !message.isEmpty
+    {
+      return message
+    }
+    let raw = String(decoding: data, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !raw.isEmpty else {
+      return nil
+    }
+    return raw.count > rawErrorLimit ? "\(raw.prefix(rawErrorLimit))…" : raw
+  }
+
   // MARK: Private
 
   private enum Transport<Value: Sendable> {
@@ -118,21 +142,11 @@ public struct OpenAICompatibleCleanup: Sendable {
     case failed(CleanupFailure)
   }
 
+  private static let rawErrorLimit = 300
+
   private let configuration: CleanupConfiguration
   private let apiKey: String?
   private let session: URLSession
-
-  /// Google wraps its OpenAI-compatible errors in a one-element array.
-  private static func errorMessage(in data: Data) -> String? {
-    let decoder = JSONDecoder()
-    guard let response = (try? decoder.decode(ErrorResponse.self, from: data))
-      ?? (try? decoder.decode([ErrorResponse].self, from: data))?.first,
-      let message = response.error.message, !message.isEmpty
-    else {
-      return nil
-    }
-    return message
-  }
 
   /// The smallest completion that can fail for endpoint, key, and model separately. What comes
   /// back is irrelevant — that it came back is the point, and grading a micro-completion's text
@@ -166,10 +180,10 @@ public struct OpenAICompatibleCleanup: Sendable {
     }
     do {
       request.httpBody = try JSONEncoder().encode(
-        ChatCompletionRequest(model: configuration.model, messages: messages),
+        ChatCompletionRequest(configuration: configuration, messages: messages),
       )
     } catch {
-      // Two strings and a bool; an encoder that cannot manage that is a broken runtime.
+      // Strings and a bool; an encoder that cannot manage that is a broken runtime.
       preconditionFailure("Chat completion request failed to encode: \(error)")
     }
 

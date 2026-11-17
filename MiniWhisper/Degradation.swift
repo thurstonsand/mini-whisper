@@ -212,6 +212,9 @@ enum SystemSettingsPane {
   static let accessibility = URL(
     string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
   )!
+  static let screenRecording = URL(
+    string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture",
+  )!
 }
 
 extension SpeechEngine {

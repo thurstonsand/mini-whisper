@@ -14,6 +14,9 @@ import Security
   var store: @Sendable (String, CredentialSlot) throws -> Void
   var read: @Sendable (CredentialSlot) throws -> String?
   var delete: @Sendable (CredentialSlot) throws -> Void
+  /// Moves the item under an account no slot names any more into a slot, or deletes it when
+  /// nothing takes it over. The slot keeps nothing of its own: an empty account empties it.
+  var adopt: @Sendable (_ account: String, _ into: CredentialSlot?) throws -> Void
 }
 
 // MARK: DependencyKey
@@ -25,6 +28,7 @@ extension KeychainClient: DependencyKey {
       store: { secret, slot in try keychain.store(secret, slot: slot) },
       read: { slot in try keychain.read(slot) },
       delete: { slot in try keychain.delete(slot) },
+      adopt: { account, slot in try keychain.adopt(account, into: slot) },
     )
   }()
 
@@ -107,7 +111,30 @@ struct KeychainStore {
   }
 
   func read(_ slot: CredentialSlot) throws -> String? {
-    var item = query(for: slot)
+    try read(account: slot.account)
+  }
+
+  func delete(_ slot: CredentialSlot) throws {
+    try delete(account: slot.account)
+  }
+
+  func adopt(_ account: String, into slot: CredentialSlot?) throws {
+    if let slot {
+      if let secret = try read(account: account) {
+        try store(secret, slot: slot)
+      } else {
+        try delete(slot)
+      }
+    }
+    try delete(account: account)
+  }
+
+  // MARK: Private
+
+  private let service: String
+
+  private func read(account: String) throws -> String? {
+    var item = query(account: account)
     item[kSecReturnData as String] = true
     item[kSecMatchLimit as String] = kSecMatchLimitOne
     var result: CFTypeRef?
@@ -125,23 +152,23 @@ struct KeychainStore {
     }
   }
 
-  func delete(_ slot: CredentialSlot) throws {
-    let status = SecItemDelete(query(for: slot) as CFDictionary)
+  private func delete(account: String) throws {
+    let status = SecItemDelete(query(account: account) as CFDictionary)
     guard status == errSecSuccess || status == errSecItemNotFound else {
       throw KeychainError(operation: .delete, status: status)
     }
   }
 
-  // MARK: Private
-
-  private let service: String
-
   private func query(for slot: CredentialSlot) -> [String: Any] {
+    query(account: slot.account)
+  }
+
+  private func query(account: String) -> [String: Any] {
     [
       kSecClass as String: kSecClassGenericPassword,
       kSecUseDataProtectionKeychain as String: true,
       kSecAttrService as String: service,
-      kSecAttrAccount as String: slot.account,
+      kSecAttrAccount as String: account,
     ]
   }
 }

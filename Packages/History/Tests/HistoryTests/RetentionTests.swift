@@ -28,6 +28,18 @@ struct RetentionTests {
     #expect(outcome.audioToDelete == [aged.id])
   }
 
+  @Test func `a screenshot ages out on the audio TTL, even where its audio was never kept`() {
+    let both = entry(age: 2 * 86400, audio: true, screenshot: true)
+    let screenshotOnly = entry(age: 2 * 86400, screenshot: true)
+    let outcome = Retention.apply(
+      RetentionPolicy(transcripts: .forever, audio: .oneDay),
+      to: HistoryLog(entries: [both, screenshotOnly]),
+    )
+
+    #expect(outcome.log.entries.map(\.screenshot) == [nil, nil])
+    #expect(outcome.audioToDelete == [both.id, screenshotOnly.id])
+  }
+
   @Test func `TTL presets compare from shortest to longest`() {
     #expect(RetentionTTL.allCases.sorted() == RetentionTTL.allCases)
     #expect(RetentionTTL.never < .oneDay)
@@ -60,9 +72,10 @@ struct RetentionTests {
   }
 }
 
-func entry(text: String = "hello world", age: TimeInterval = 0, audio: Bool = false)
-  -> HistoryEntry
-{
+func entry(
+  text: String = "hello world", age: TimeInterval = 0, audio: Bool = false,
+  screenshot: Bool = false,
+) -> HistoryEntry {
   let createdAt = Date().addingTimeInterval(-age)
   return HistoryEntry(
     id: UUID(),
@@ -71,5 +84,6 @@ func entry(text: String = "hello world", age: TimeInterval = 0, audio: Bool = fa
     original: Transcription(text: text, engine: "parakeet-tdt-0.6b-v2", transcribedAt: createdAt),
     delivery: Delivery(text: text, method: .pasted, detail: nil),
     audio: audio ? AudioMetadata(durationSeconds: 1, byteCount: 64044) : nil,
+    screenshot: screenshot ? ScreenshotMetadata(byteCount: 48000, shownToCleanup: false) : nil,
   )
 }

@@ -303,7 +303,8 @@ private final class ArmingRecorder: @unchecked Sendable {
 private let editor = DeliveryTarget.inApp(TargetApp(bundleID: "com.example.Editor", name: "Editor"))
 
 private let skipConfiguration = CleanupConfiguration(
-  endpoint: URL(string: "https://gateway.example/v1")!, model: "gpt-oss-120b", timeout: 10,
+  endpoint: URL(string: "https://gateway.example/v1")!, model: "gpt-oss-120b",
+  reasoningEffort: .modelDecides, timeout: 10,
   additionalInstructions: "",
 )
 

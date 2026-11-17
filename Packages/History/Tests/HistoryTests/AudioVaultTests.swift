@@ -86,6 +86,32 @@ struct AudioVaultTests {
     #expect(log.entries[1] == withMissingFile)
   }
 
+  @Test func `a screenshot is deleted with its entry's audio and reconciled like it`() throws {
+    let vault = freshVault()
+    let jpeg = Data([0xFF, 0xD8, 0xFF, 0xD9])
+    var kept = entry(audio: true)
+    kept.audio = try vault.write(
+      CanonicalRecording(samples: .init(repeating: 0.1, count: 160)), id: kept.id,
+    )
+    kept.screenshot = try vault.writeScreenshot(jpeg, id: kept.id, shownToCleanup: true)
+    var lost = entry()
+    lost.screenshot = ScreenshotMetadata(byteCount: 4, shownToCleanup: false)
+    let dropped = UUID()
+    _ = try vault.writeScreenshot(jpeg, id: dropped, shownToCleanup: false)
+    let orphan = UUID()
+    _ = try vault.writeScreenshot(jpeg, id: orphan, shownToCleanup: false)
+
+    try vault.delete([dropped])
+    let log = try vault.reconcile(HistoryLog(entries: [kept, lost]))
+
+    #expect(kept.screenshot == ScreenshotMetadata(byteCount: 4, shownToCleanup: true))
+    #expect(try Data(contentsOf: vault.screenshotURL(id: kept.id)) == jpeg)
+    #expect(log.entries.map(\.screenshot) == [kept.screenshot, nil])
+    #expect(log.entries[0].audio == kept.audio)
+    #expect(!FileManager.default.fileExists(atPath: vault.screenshotURL(id: dropped).path))
+    #expect(!FileManager.default.fileExists(atPath: vault.screenshotURL(id: orphan).path))
+  }
+
   @Test func `reconcile of an audioless log against a missing directory is a no-op`() throws {
     let vault = freshVault(create: false)
     let log = HistoryLog(entries: [entry()])

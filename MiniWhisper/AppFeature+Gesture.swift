@@ -78,6 +78,8 @@ extension AppFeature {
       state.dictationWasCancelled = false
       state.pendingDictation = nil
       state.activationTarget = nil
+      state.activationScreen = state.settings.readsScreen
+        ? ActivationScreen(generation: state.transcriptionGeneration, read: .pending) : nil
       state.recordingSubmits = false
       state.dictationInFlight = true
       state.pill.showsInputDeviceName = state.settings.microphone != .systemDefault
@@ -99,7 +101,10 @@ extension AppFeature {
           replaced.map { .cancel(id: CancelID.delivery($0)) } ?? .none,
           .cancel(id: CancelID.recoveryDelivery), .cancel(id: CancelID.historyMaintenance),
           .send(.recording(.startRecording)),
-          captureTargetEffect(generation: state.transcriptionGeneration),
+          captureTargetEffect(
+            generation: state.transcriptionGeneration,
+            screen: state.settings.screenContextMode,
+          ),
           // The machine emits this exactly once per interaction, so the onset cue needs no
           // suppression flag: one interaction, one sound, at the moment the user acted.
           playSound(state.settings.sounds.activate),

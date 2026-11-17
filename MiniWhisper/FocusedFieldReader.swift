@@ -546,6 +546,28 @@ enum AXRead {
     return .success(string)
   }
 
+  static func bounds(_ element: AXUIElement, _ range: CFRange) -> Result<CGRect, Failure> {
+    var requested = range
+    guard let parameter = AXValueCreate(.cfRange, &requested) else {
+      return .failure(.wrongType)
+    }
+    var value: CFTypeRef?
+    let error = AXUIElementCopyParameterizedAttributeValue(
+      element, kAXBoundsForRangeParameterizedAttribute as CFString, parameter, &value,
+    )
+    guard error == .success else {
+      return .failure(.ax(error))
+    }
+    guard let value, CFGetTypeID(value) == AXValueGetTypeID() else {
+      return .failure(.wrongType)
+    }
+    var bounds = CGRect.zero
+    guard AXValueGetValue(value as! AXValue, .cgRect, &bounds) else {
+      return .failure(.wrongType)
+    }
+    return .success(bounds)
+  }
+
   static func children(_ element: AXUIElement) -> Result<[AXUIElement], Failure> {
     value(element, kAXChildrenAttribute).flatMap { value in
       guard let children = value as? [AnyObject] else {
