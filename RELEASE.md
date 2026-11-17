@@ -2,6 +2,27 @@
 
 # Release notes
 
+## 0.4.0
+
+MiniWhisper now reads the window you dictate into to spell what's on screen, delivers to where you started even after you've moved on, and sends what you said with Return.
+
+### Added
+
+- Expanded context: cleanup can see the window you're dictating into, as its text or as a screenshot, so names and terms on screen come out spelled the way they appear. It is chosen per profile and needs Screen Recording, which onboarding now offers as an optional step.
+- Return submits: press Return during a recording to end it and send it, or at the same app before it has been delivered.
+- A dictation is delivered to the app, field, or tmux pane it started in, even after you've switched away, without pulling that app to the front.
+- Pressing the shortcut while a dictation is being cleaned up moves it to the background so you can start the next one; a single tap still skips cleanup.
+- A reasoning effort for each profile's cleanup model.
+- Most accurate can use any ElevenLabs-compatible speech service.
+- When cleanup fails, History shows the error the endpoint gave.
+
+### Changed
+
+- Everyday cleans up with Gemini 4 Hydrogen instead of Claude Haiku, and makes fewer mistakes for it; Most accurate uses Hydrogen too. If you were on Everyday with Haiku, MiniWhisper asks once: switch to Hydrogen, or keep Haiku as your Custom profile with its endpoint, model, and key.
+- Fastest cleanup runs Qwen 3.8 27B on Cerebras.
+- The separate submit shortcut is gone; Return does its job.
+- Onboarding lets you practice holding and double-tapping the shortcut, and offers Offline or Custom when you don't have a key.
+
 ## 0.3.0
 
 MiniWhisper now cleans up what you say, learns your words, keeps a history of every dictation, and lets you choose the whole dictation stack as a profile.
