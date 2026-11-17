@@ -1,0 +1,274 @@
+[
+  {
+    "confidence" : 1,
+    "height" : 14.878706812858603,
+    "text" : "thurstonsand - n - [C]onsolidate settings-source_1147 unification - mini-whisper - pi --session-dir /tmp/pi-scenes --fork ~/.pi/agent/sessions/--Users-thurstonsand-Develop-mini-w.….",
+    "width" : 1164.6511994949494,
+    "x" : 100.46509783178557,
+    "y" : 41.159029341677304
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.018867433071101,
+    "text" : "$ cd /Users/thurstonsand/Develop/mini-whisper && osascript -e 'quit app \"MiniWhisper Dev\"' 2>/dev/null; mise run lint 2>&1 | rg -n \"ERROR error: did not pass\" head; echo",
+    "width" : 1200,
+    "x" : 16.744185952761658,
+    "y" : 70.91644229322901
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.500000342726723,
+    "text" : "gate clean",
+    "width" : 72.55813889765713,
+    "x" : 16.744186280309602,
+    "y" : 113.37499973047076
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.257159143686295,
+    "text" : "M .agents/skills/native-macos-ui/SKILL.md",
+    "width" : 290.23255559062846,
+    "x" : 22.325582576178622,
+    "y" : 126.71159053802494
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.175791710615147,
+    "text" : "M docs/wayfinding/finishing-mini-whisper/tickets/16-settings-ui.md",
+    "width" : 465.1162668350168,
+    "x" : 22.325587404921524,
+    "y" : 139.73045846371105
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.284281849861186,
+    "text" : "?? MiniWhisper/HistoryPlaybackClient.swift",
+    "width" : 295.8139555274972,
+    "x" : 16.744184932725524,
+    "y" : 154.3437502452241
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.1590294241905,
+    "text" : "Both addressed.",
+    "width" : 106.04651111812571,
+    "x" : 16.744186203211054,
+    "y" : 197.38544484630546
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.093749999999984,
+    "text" : "Player. finish now stops the player before releasing it, so replacement and explicit stop do the same thing instead of one leaning on ARC timing. That made stop() collapse to",
+    "width" : 1220.4651550224467,
+    "x" : 16.744166552730025,
+    "y" : 223.34374994291196
+  },
+  {
+    "confidence" : 1,
+    "height" : 32.34375,
+    "text" : ". Verified by driving real audio in the dev and clicking tom ones",
+    "width" : 496.00001753647587,
+    "x" : 735.9999909650955,
+    "y" : 226.21875029924152
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.144675314426493,
+    "text" : "a single finish(.success(.interrupted)) - the symmetry the reviewer wanted,",
+    "width" : 526.5859988776656,
+    "x" : 16.716152864865506,
+    "y" : 237.21170805949868
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.018867433071177,
+    "text" : "waveform shows the stop glyph on that row alone; clicking row two's while it plays moves the stop glyph to row two and returns row one to a waveform, so the replacement path",
+    "width" : 1211.1627560325476,
+    "x" : 16.744203302662967,
+    "y" : 251.32075495938858
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.20678859949112,
+    "text" : "runs through the actor and settles correctly.",
+    "width" : 316.27906670875427,
+    "x" : 16.744187509188762,
+    "y" : 266.19946115674617
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.656250000000066,
+    "text" : "Documentation. The reviewer is right that the rule and the code couldn't both stand as written. The amendment narrows the constraint to what it actually covers rather than",
+    "width" : 1201.860444725028,
+    "x" : 14.883731031213214,
+    "y" : 293.781250324143
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.003484696149815,
+    "text" : "softening it: a value-scoped .animation on the row is still ignored for an async change,",
+    "width" : 617.7483164983165,
+    "x" : 16.713597753791184,
+    "y" : 307.02232937846287
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.837490022182497,
+    "text" : "but on a leaf view inside the row it works,",
+    "width" : 307.14054608585855,
+    "x" : 636.2112060934753,
+    "y" : 305.2279945022487
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.259096920490286,
+    "text" : "because animating a child's opacity",
+    "width" : 249.30231130751963,
+    "x" : 945.1162875555426,
+    "y" : 307.1159030479523
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.200976639986049,
+    "text" : "inside the row's own body instead",
+    "width" : 236.27906670875421,
+    "x" : 78.1395363200415,
+    "y" : 321.81250019802656
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.49999999999996,
+    "text" : "of the transaction List hands its rows. That line is the whole rule. withAnimation at the mutation site stays documented as the",
+    "width" : 894.8837331649831,
+    "x" : 314.41859842779934,
+    "y" : 321.8125000682641
+  },
+  {
+    "confidence" : 1,
+    "height" : 17.250000000000014,
+    "text" : "fallback for anything the row animates as a whole, and the leaf spelling is now the preferred one where it applies, since it keeps presentation timing out of the reducer.",
+    "width" : 1192.5581334175083,
+    "x" : 16.744189009132345,
+    "y" : 334.75000027357834
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.148669004440332,
+    "text" : "I added the value-dependent animation idiom to the skill too - isCopied ? nil : easeOut(duration: 0.5) - since that's how one piece of state gets instant arrival and slow",
+    "width" : 1200,
+    "x" : 16.744185965846544,
+    "y" : 362.78124988572506
+  },
+  {
+    "confidence" : 1,
+    "height" : 18.6077180206776,
+    "text" : "exit, and it's the thing that let the two-case enum die.",
+    "width" : 394.5232270622896,
+    "x" : 16.678280925145952,
+    "y" : 374.24468712135535
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.878706812858603,
+    "text" : "Ticket 16 got the same correction in its own voice, marked as what building the real pane found that the spike couldn't see, with the mid-fade captures as the evidence. Its",
+    "width" : 1205.5814218574637,
+    "x" : 16.7441726985975,
+    "y" : 405.6873312285341
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.231300622224829,
+    "text" : "stagger paragraph now records that the shipped version spells the delay in the view rather than holding a second state.",
+    "width" : 835.3488005050503,
+    "x" : 16.744204366079448,
+    "y" : 418.7061991418187
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.093749999999984,
+    "text" : "Gate green, tests green.",
+    "width" : 171.16278891343995,
+    "x" : 16.74418683674625,
+    "y" : 448.31249991169756
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.036303997039841,
+    "text" : "On the two observations I'm leaving alone: agreed on the dangling cursor UUID - it self-heals on the next move and costs nothing. The isPointed gate was deliberate; hover",
+    "width" : 1190.6976886924801,
+    "x" : 16.744178810646797,
+    "y" : 476.3437496644708
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.878706812858525,
+    "text" : "shouldn't mean anything while the keyboard is driving, and the lingering ellipsis was the same fault as the lingering grey.",
+    "width" : 861.3953773849606,
+    "x" : 16.744171543769188,
+    "y" : 487.5202153149159
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.1590294241905,
+    "text" : "Package Updates Available",
+    "width" : 178.60465549593152,
+    "x" : 14.883718671618082,
+    "y" : 532.1563343386354
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.106047511100769,
+    "text" : "Package updates are available. Run pi update --extensions",
+    "width" : 400,
+    "x" : 16.744185916641552,
+    "y" : 545.175202397836
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.159029424190578,
+    "text" : "Packages:",
+    "width" : 63.25581114969136,
+    "x" : 16.744187250735713,
+    "y" : 560.0539084336257
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.239723265171081,
+    "text" : "- pi-sessions",
+    "width" : 93.02325555906286,
+    "x" : 16.744186080933684,
+    "y" : 573.0727765010157
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.500000342726723,
+    "text" : "- @thurstonsand/pi-agent-switchboard",
+    "width" : 253.02326651936028,
+    "x" : 16.74418060659893,
+    "y" : 587.7499997258939
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.018867433071177,
+    "text" : "pi-doppelclaude",
+    "width" : 111.62791105499439,
+    "x" : 26.046509439944664,
+    "y" : 600.9703506283431
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.249410092830683,
+    "text" : "Claude Opus 5 / Emini-whisper / Emain /",
+    "width" : 295.81395552749717,
+    "x" : 29.767440770093852,
+    "y" : 641.6562500290836
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.1590294241905,
+    "text" : "97%1",
+    "width" : 37.20930277164001,
+    "x" : 450.2325578185864,
+    "y" : 643.7466308110995
+  }
+]

@@ -1,0 +1,29 @@
+{
+  "appName" : "Code",
+  "axCapped" : false,
+  "axUnplaced" : 2417,
+  "axVisited" : 518,
+  "bundleID" : "com.microsoft.VSCode",
+  "capturedAt" : 816034807.498173,
+  "focusedFrame" : [
+    1008,
+    591,
+    240,
+    21
+  ],
+  "focusedRole" : "AXTextArea",
+  "screenshotCandidates" : 1,
+  "screenshotTitle" : "SpeechGate.swift",
+  "timingsMs" : {
+    "ax" : 67.646333,
+    "ocr" : 210.889875,
+    "screenshot" : 126.459333
+  },
+  "windowFrame" : [
+    0,
+    30,
+    1280,
+    690
+  ],
+  "windowTitle" : "SpeechGate.swift"
+}

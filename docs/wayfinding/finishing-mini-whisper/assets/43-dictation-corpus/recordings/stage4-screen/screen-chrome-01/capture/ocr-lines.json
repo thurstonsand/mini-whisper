@@ -1,0 +1,442 @@
+[
+  {
+    "confidence" : 0.5,
+    "height" : 13.152543872594787,
+    "text" : "rfc-editor.org/rfc/rfc4120.htm ×",
+    "width" : 191.62791105499437,
+    "x" : 156.27906763713554,
+    "y" : 44.878706438744544
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.018867433071101,
+    "text" : "+",
+    "width" : 14.883720834648528,
+    "x" : 370.23255809430367,
+    "y" : 44.87870633669896
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.100235551595699,
+    "text" : "• Ask Gemini",
+    "width" : 93.02325555906279,
+    "x" : 1172.0930232922153,
+    "y" : 42.93750003788247
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.73854482173928,
+    "text" : "G",
+    "width" : 14.883720834648564,
+    "x" : 87.44186040128037,
+    "y" : 85.7951479069201
+  },
+  {
+    "confidence" : 0.5,
+    "height" : 14.878705441951777,
+    "text" : "-- rfc-editor.org/rfc/rfc4120.html#section-3.3",
+    "width" : 314.4186000631313,
+    "x" : 130.23255961592517,
+    "y" : 85.79514858757852
+  },
+  {
+    "confidence" : 0.5,
+    "height" : 15.349227398633998,
+    "text" : "@ ChatGPT",
+    "width" : 85.66199100378796,
+    "x" : 919.0294689315425,
+    "y" : 128.3361675088803
+  },
+  {
+    "confidence" : 0.5,
+    "height" : 15.093749999999984,
+    "text" : "7 x",
+    "width" : 44.65116113390849,
+    "x" : 1218.6046514795576,
+    "y" : 128.468749899005
+  },
+  {
+    "confidence" : 1,
+    "height" : 17.72457435727122,
+    "text" : "\"ChatGPT\" started debugging this browser",
+    "width" : 268.1177004419192,
+    "x" : 278.95273459545626,
+    "y" : 137.78990160679095
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.296835720539036,
+    "text" : "Cancel",
+    "width" : 44.68542576371355,
+    "x" : 573.0061242385422,
+    "y" : 139.66155516101924
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.8787054419517,
+    "text" : "3.3.",
+    "width" : 35.34883612601711,
+    "x" : 13.023256233950303,
+    "y" : 175.06738576627276
+  },
+  {
+    "confidence" : 1,
+    "height" : 18.085068702697686,
+    "text" : "The Ticket-Granting Service (TGS) Exchange",
+    "width" : 331.3733471871493,
+    "x" : 61.29539923597842,
+    "y" : 172.01244621064447
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.8787054419517,
+    "text" : "Chat",
+    "width" : 37.209300031565675,
+    "x" : 1028.8372100772406,
+    "y" : 175.06738563751472
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.8787054419517,
+    "text" : "Work",
+    "width" : 37.209300031565675,
+    "x" : 1116.2790705423567,
+    "y" : 175.06738563751472
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.615592539310516,
+    "text" : "Summary",
+    "width" : 58.56006900603255,
+    "x" : 241.41763898653846,
+    "y" : 204.45635428955478
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.199039548635431,
+    "text" : "Message direction",
+    "width" : 135.8139555274972,
+    "x" : 85.58139422317004,
+    "y" : 234.58221047814524
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.199039548635431,
+    "text" : "Message type",
+    "width" : 96.74418885030863,
+    "x" : 273.48837056382973,
+    "y" : 234.5822104711861
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.018867433071101,
+    "text" : "Section",
+    "width" : 55.813955527497185,
+    "x" : 407.44185932152277,
+    "y" : 234.5822104573189
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.261034011840902,
+    "text" : "1. Client to Kerberos",
+    "width" : 165.58139993686868,
+    "x" : 85.5813929408352,
+    "y" : 249.21875009983913
+  },
+  {
+    "confidence" : 0.5,
+    "height" : 19.059757411479904,
+    "text" : "KRB_TGS_REQ",
+    "width" : 91.25585827897024,
+    "x" : 271.5813730912344,
+    "y" : 249.2302290911177
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.018867433071101,
+    "text" : "5.4.1",
+    "width" : 40.93023332281142,
+    "x" : 407.44185998975706,
+    "y" : 249.46091665818878
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.045990139246069,
+    "text" : "2. Kerberos to client",
+    "width" : 167.44185562219417,
+    "x" : 85.58139767622978,
+    "y" : 264.3125001737492
+  },
+  {
+    "confidence" : 0.5,
+    "height" : 18.68750000000001,
+    "text" : "KRB_TGS_REP or",
+    "width" : 113.48836674031986,
+    "x" : 271.6279095600726,
+    "y" : 264.3124998794431
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.018867433071177,
+    "text" : "5.4.2",
+    "width" : 40.93023332281142,
+    "x" : 407.44185998975706,
+    "y" : 264.33962285764966
+  },
+  {
+    "confidence" : 0.5,
+    "height" : 18.427608966827357,
+    "text" : "KRB_ERROR",
+    "width" : 76.68157815130468,
+    "x" : 271.3826465131634,
+    "y" : 278.0537105338185
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.878706812858603,
+    "text" : "5.9.1",
+    "width" : 42.79069722835999,
+    "x" : 405.5813954788432,
+    "y" : 279.2183285019264
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.093749999999908,
+    "text" : "The TGS exchange between a client and the Kerberos TGS is initiated",
+    "width" : 526.5116442199776,
+    "x" : 39.06975919233681,
+    "y" : 308.8749998421556
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.20805278420439,
+    "text" : "by a client when it seeks to obtain authentication credentials for a",
+    "width" : 535.8139555274972,
+    "x" : 39.06976632927459,
+    "y" : 323.8544471300531
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.860596656799373,
+    "text" : "given server (which might be registered in a remote realm), when it",
+    "width" : 526.5116442199776,
+    "x" : 39.069759214975164,
+    "y" : 338.73315346143795
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.600524663925167,
+    "text" : "seeks to renew or validate an existing ticket, or when it seeks to",
+    "width" : 515.4472678170595,
+    "x" : 40.88100131743066,
+    "y" : 352.75587107126165
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.868809998035426,
+    "text" : "obtain a proxy ticket.",
+    "width" : 173.3466939358866,
+    "x" : 40.790207727475824,
+    "y" : 367.623907717592
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.134434401989008,
+    "text" : "In the first case, the client must already",
+    "width" : 338.60464453563407,
+    "x" : 217.67442178179533,
+    "y" : 368.4905657211179
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.19322758913036,
+    "text" : "have acquired a ticket for the Ticket-Granting Service using the AS",
+    "width" : 524.6511556537598,
+    "x" : 39.06977096012637,
+    "y" : 383.36927247948125
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.126684665679948,
+    "text" : "exchange (the TGT is usually obtained when a client initially",
+    "width" : 480,
+    "x" : 39.069767363616606,
+    "y" : 398.00000027366127
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.771479487419164,
+    "text" : "authenticates to the system, such as when a user logs in).",
+    "width" : 457.6744002525253,
+    "x" : 39.069776528193024,
+    "y" : 413.0937497930626
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.878706812858525,
+    "text" : "message format for the TGS exchange is almost identical to that for",
+    "width" : 526.5116442199776,
+    "x" : 39.06975920202673,
+    "y" : 428.0053905257809
+  },
+  {
+    "confidence" : 1,
+    "height" : 18.291046082973523,
+    "text" : "the AS exchange.",
+    "width" : 127.19818628998314,
+    "x" : 38.771936518267395,
+    "y" : 441.6293534997252
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.200303733348857,
+    "text" : "The primary difference is that encryption and",
+    "width" : 355.3488443462402,
+    "x" : 178.60464750197258,
+    "y" : 442.5624998024606
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.847034960985162,
+    "text" : "decryption in the TGS exchange does not take place under the client's",
+    "width" : 543.2558221099887,
+    "x" : 39.06976973570311,
+    "y" : 455.9029652621175
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.738543450832378,
+    "text" : "Neuman, et al.",
+    "width" : 111.62790009469697,
+    "x" : 14.883725735597205,
+    "y" : 517.2776282651498
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.159029424190578,
+    "text" : "Standards Track",
+    "width" : 120.93023332281142,
+    "x" : 234.4186041743501,
+    "y" : 519.1374664112623
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.268783748149888,
+    "text" : "[Page 34]",
+    "width" : 70.69767225203421,
+    "x" : 509.76744285072704,
+    "y" : 519.1374665358761
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.1590294241905,
+    "text" : "RFC 4120",
+    "width" : 65.11627779531425,
+    "x" : 14.88372147717187,
+    "y" : 576.7924529264809
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.1590294241905,
+    "text" : "Kerberos V5",
+    "width" : 89.30232774796579,
+    "x" : 249.30232440706612,
+    "y" : 576.79245293102
+  },
+  {
+    "confidence" : 1,
+    "height" : 18.036158174276363,
+    "text" : "July 2005",
+    "width" : 74.80914286090069,
+    "x" : 505.9224799851429,
+    "y" : 575.4903279771258
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.80635124444959,
+    "text" : "Ask ChatGPT",
+    "width" : 100.46511118125707,
+    "x" : 932.0930259209993,
+    "y" : 615.7812499550824
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.040178179740922,
+    "text" : "Instead, the session key from the TGT or renewable ticket, or",
+    "width" : 485.5813780162739,
+    "x" : 78.13954351872755,
+    "y" : 621.4285716686885
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.878706812858603,
+    "text" : "sub-session key from an Authenticator is used.",
+    "width" : 362.7906890081369,
+    "x" : 39.06977169927086,
+    "y" : 636.3072773165648
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.153806686401389,
+    "text" : "As is the case for",
+    "width" : 154.4186000631313,
+    "x" : 401.8604692397522,
+    "y" : 632.3124999644937
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.093749999999984,
+    "text" : "all application servers, expired tickets are not accepted by the TGS,",
+    "width" : 537.6744002525253,
+    "x" : 40.93024170468016,
+    "y" : 651.0000001267238
+  },
+  {
+    "confidence" : 1,
+    "height" : 22.318058848381078,
+    "text" : "+",
+    "width" : 22.325580566954244,
+    "x" : 935.8139537962572,
+    "y" : 647.4663073436186
+  },
+  {
+    "confidence" : 1,
+    "height" : 17.031454831361806,
+    "text" : "Medium v",
+    "width" : 81.91989337822676,
+    "x" : 1069.7377274940338,
+    "y" : 652.8993665245766
+  },
+  {
+    "confidence" : 0.5,
+    "height" : 14.8787054419517,
+    "text" : "•lt•",
+    "width" : 20.465116661405744,
+    "x" : 1216.7441857357421,
+    "y" : 653.045822374904
+  },
+  {
+    "confidence" : 1,
+    "height" : 20.73011142015455,
+    "text" : "so once a renewable or TGT expires, the client must use a separate",
+    "width" : 515.520614127385,
+    "x" : 40.85021507525699,
+    "y" : 662.499188390995
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.1590294241905,
+    "text" : "exchange to obtain valid tickets",
+    "width" : 253.02326651936028,
+    "x" : 39.06976200328946,
+    "y" : 680.9433963343489
+  },
+  {
+    "confidence" : 0.5,
+    "height" : 13.018867433071177,
+    "text" : "https://www.rfc-editor.org/rfc/rfc4120.html#section-3.3",
+    "width" : 318.13953335437714,
+    "x" : 11.162791931338585,
+    "y" : 693.9622643695494
+  }
+]

@@ -47,7 +47,7 @@ BUILT_IN = re.compile(r'public static let builtIn = """\n(.*?)\n  """', re.DOTAL
 # instructions. Lifted rather than copied for the same reason the prompt is: a sentence duplicated
 # into Python is a sentence that silently stops matching the app.
 ADDITIONAL_FRAME = re.compile(
-    r'return """\n\s*\\\(builtIn\)\n(.*?)\\\(instructions\)\n\s*"""', re.DOTALL
+    r'return """\n\s*\\\(rules\)\n(.*?)\\\(instructions\)\n\s*"""', re.DOTALL
 )
 
 
@@ -312,6 +312,11 @@ def arguments() -> argparse.Namespace:
         stage.add_argument("--model", action="append")
         stage.add_argument("--timeout", type=float, default=60.0)
         stage.add_argument(
+            "--reasoning-effort",
+            help="Sent as `reasoning_effort`, as a profile's reasoning setting sends it. "
+            "Omitted, the provider's own default applies.",
+        )
+        stage.add_argument(
             "--retries",
             type=int,
             default=3,
@@ -377,7 +382,7 @@ def clean(
             args.prompt_source,
         )
         user = user_message(transcript, context_before, vocabulary)
-        extra_body = {}
+        extra_body = reasoning_body(args.endpoint, args.reasoning_effort)
     content, latency, throttled = complete(
         args.endpoint,
         api_key,
@@ -391,10 +396,25 @@ def clean(
     return shape(content), latency, throttled
 
 
-# Round 4's standing rule: the Anthropic key pays for transcription and nothing else. This harness
-# reaches Haiku over the Claude subscription instead, so a request aimed at the metered endpoint is
-# a mistake rather than a choice, and it is refused here rather than discovered on an invoice.
+# Round 4's standing rule: the Anthropic key pays for transcription and nothing else. Round 8 gave
+# evals their own key, funded by the Max plan's API credit (results/prompt-tuning-r8/README.md), so
+# the metered endpoint is reached with that key and refused with any other.
 METERED_ANTHROPIC = "api.anthropic.com"
+EVAL_ANTHROPIC_KEY = "ANTHROPIC_CREDITS_APIKEY"
+
+
+def reasoning_body(endpoint: str | None, effort: str | None) -> dict[str, Any]:
+    """The app's mapping: Anthropic ignores `reasoning_effort`, and turns thinking off only by
+    `thinking`."""
+    if not effort:
+        return {}
+    if endpoint and METERED_ANTHROPIC in endpoint:
+        if effort != "none":
+            sys.exit(
+                f"Anthropic reads only an off switch; --reasoning-effort {effort} is ignored."
+            )
+        return {"thinking": {"type": "disabled"}}
+    return {"reasoning_effort": effort}
 
 
 def prepare(
@@ -412,10 +432,14 @@ def prepare(
     )
     if not args.no_api_key and args.prompt != "none" and not api_key:
         sys.exit(f"No API key in ${args.api_key_env}.")
-    if args.endpoint and METERED_ANTHROPIC in args.endpoint:
+    if (
+        args.endpoint
+        and METERED_ANTHROPIC in args.endpoint
+        and args.api_key_env != EVAL_ANTHROPIC_KEY
+    ):
         sys.exit(
-            f"Refusing {args.endpoint}: the Anthropic key is the transcription key. Score Haiku "
-            "over the subscription with results/prompt-tuning-haiku/tune.py --provider sdk-haiku."
+            f"Refusing {args.endpoint} with ${args.api_key_env}: the metered endpoint takes only "
+            f"${EVAL_ANTHROPIC_KEY}, the evals' own key."
         )
     if args.prompt == "none":
         args.model = ["none"]

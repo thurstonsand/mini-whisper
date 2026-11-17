@@ -1,0 +1,25 @@
+ScreenContextClient.swift
+UTmuxPanes.swift
+MAppFeature+Delivery.swift
+M
+CleanupPrompt.swift
+M
+Retention.swift
+M
+Profiles.swift
+HotkeyListener.swift
+AudioVault.swift
+M
+UsersthurstonsandDevelopmini-whisper-expanded-contextPackagesHistorySourcesHistory
+AudioVault.swift
+17
+public struct AudioVault: Sendable {
+Chat
+Sessions
+Tip: Try the Plan agent to research and plan before implementing changes.
+AudioVault.swift
+Agent
+Auto
+Local
+Default permissions
+0  0

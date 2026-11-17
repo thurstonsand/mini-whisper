@@ -1,0 +1,19 @@
+{
+ "id": "screen-pi-term-02",
+ "tags": [
+  "pi",
+  "terminal",
+  "identifier"
+ ],
+ "scene": {
+  "kind": "pi",
+  "tmux": false,
+  "session": "019fe1d6"
+ },
+ "say": "Yes, make the cursor visible from the sidebar too, and fold assert single grey history row into the new test. Check is hittable after that.",
+ "expect": "Yes, make the cursor visible from the sidebar too, and fold assertSingleGreyHistoryRow into the new test. Check isHittable after that.",
+ "must": [
+  "assertSingleGreyHistoryRow",
+  "isHittable"
+ ]
+}

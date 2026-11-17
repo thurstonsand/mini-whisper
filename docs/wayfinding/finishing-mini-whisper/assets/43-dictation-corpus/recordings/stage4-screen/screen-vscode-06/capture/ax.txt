@@ -1,0 +1,23 @@
+ScreenContextClient.swift
+UTmuxPanes.swift
+M
+AppFeature+Delivery.swift
+M
+CleanupPrompt.swift
+M
+Retention.swift
+M
+Profiles.swift
+UsersthurstonsandDevelopmini-whisper-expanded-contextPackagesAppSettingsSourcesAppSettings
+Profiles.swift
+177
+public struct Profile: Equatable, Identifiable, Sendable {
+Chat
+Sessions
+Tip: Try the Plan agent to research and plan before implementing changes.
+Profiles.swift
+Agent
+Auto
+Local
+Default permissions
+0  0

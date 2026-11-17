@@ -1,0 +1,26 @@
+{
+  "appName" : "Terminal",
+  "axCapped" : false,
+  "axVisited" : 18,
+  "bundleID" : "com.apple.Terminal",
+  "capturedAt" : 816030750.981613,
+  "focusedFrame" : [
+    0,
+    -557.3466796875,
+    1259,
+    1277.3466796875
+  ],
+  "focusedRole" : "AXTextArea",
+  "timingsMs" : {
+    "ax" : 30.056916,
+    "ocr" : 278.925583,
+    "screenshot" : 108.437083
+  },
+  "windowFrame" : [
+    0,
+    30,
+    1280,
+    690
+  ],
+  "windowTitle" : "thurstonsand — π - [QN]ueue custom-icon-audit_0417 - mini-whisper — pi --session-dir /tmp/pi-scenes --fork ~/.pi/agent/sessions/--Users-thurstonsand-Develop-mini-whisper--/2026-08-02T16-43-24-158Z_019fc35b-d87e-7d02-838b-36076df91062.jsonl — 177×45"
+}

@@ -1,0 +1,42 @@
+{
+ "audio": {
+  "byteCount": 548096,
+  "durationSeconds": 8.5
+ },
+ "createdAt": 816030509.998776,
+ "delivery": {
+  "detail": "untouched",
+  "method": "pasted",
+  "text": "So, where does AudioInputRoute.resolving get called from, and does isExplicitlySelectable ever read lastKnownName?"
+ },
+ "id": "EE3E666C-A2E0-470F-9956-D99A39A48A5A",
+ "original": {
+  "cleanup": {
+   "disposition": {
+    "kind": "cleaned",
+    "text": "So, where does AudioInputRoute.resolving get called from, and does isExplicitlySelectable ever read lastKnownName?"
+   },
+   "durationSeconds": 3.186838984489441,
+   "endpoint": "https://api.anthropic.com/v1",
+   "model": "claude-haiku-5-5"
+  },
+  "engine": "FluidInference/parakeet-tdt-0.6b-v2-coreml@ee09c569f73759e6d44c9bd16766f477b2b36d39",
+  "text": "So, where does audio input root.resolving get called from, and does is explicitly selectable ever read last known name?",
+  "transcribedAt": 816030510.143225
+ },
+ "retranscriptions": [],
+ "screenContext": {
+  "structured": {
+   "source": "tmux",
+   "text": " The report covers what changed and why, the two defects the work uncovered (the exhaustive manifest had been failing; the pointer-parking fragility), the one\n restructuring I tried and reverted against the parked-pointer law, the UI coverage on both input paths, and the real-hardware evidence. Nothing is staged, so\n the whole thing arrives as one reviewable surface.\n\n\n - remind me why AudioInputDevice and MicrophoneSelection must be 2 separate entities\n\n\n Thinking...\n\n Different tense. One is a durable intent, the other an observation with a lifetime of one snapshot.\n\n MicrophoneSelection has to survive the thing it names. Its whole point is being able to say \"the Studio Mic\" while the Studio Mic is in a drawer — that is\n what makes the fallback heal instead of overwrite. An AudioInputDevice? cannot express that: nil would mean both \"user chose system default\" and \"the device\n is gone,\" and those must stay distinct or the selection gets rewritten the first time someone unplugs something.\n\n It also carries .systemDefault, which is not a device at all. \"Whatever macOS considers current\" has no UID until you ask.\n\n And the fields do not survive equally. uid is durable; transport and visibility are true only of a device that is plugged in right now. Folding an\n AudioInputDevice into the stored selection would persist a claim about hardware that the hardware is free to contradict — and then isExplicitlySelectable\n would have to choose between trusting the fossil or re-reading, at which point the stored copy is dead weight. lastKnownName is the one field deliberately\n allowed to go stale, because nothing but a sentence in the UI reads it, and the snapshot heals it when the device returns.\n\n So: AudioInputDevice is what CoreAudio says exists. MicrophoneSelection is what the user asked for. AudioInputRoute.resolving is the only place the two meet.\n\n Cache miss after 18m idle: 265k tokens re-billed (~$1.53)\n\n───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────\n Package Updates Available\n Package updates are available. Run pi update --extensions\n Packages:\n - pi-sessions\n - @thurstonsand/pi-agent-switchboard\n - pi-doppelclaude\n───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────\n\n ✴ Claude Opus 5 /  mini-whisper /  main / [━━━━━━━━━━━━69%──────]\n ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────\n >\n ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────"
+  },
+  "windowTitle": "pi4:pi"
+ },
+ "screenshot": {
+  "byteCount": 133364
+ },
+ "targetApp": {
+  "bundleID": "com.mitchellh.ghostty",
+  "name": "Ghostty"
+ }
+}

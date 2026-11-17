@@ -1,0 +1,19 @@
+{
+ "id": "screen-chrome-01",
+ "tags": [
+  "chrome",
+  "chatgpt-sidebar",
+  "term-of-art"
+ ],
+ "scene": {
+  "kind": "chrome",
+  "url": "https://www.rfc-editor.org/rfc/rfc4120.html#section-3.3"
+ },
+ "say": "So when the TGT expires, does the client have to redo the A S exchange, or can it just send a K R B T G S request with the renewable ticket?",
+ "expect": "So when the TGT expires, does the client have to redo the AS exchange, or can it just send a KRB_TGS_REQ with the renewable ticket?",
+ "must": [
+  "TGT",
+  "AS exchange",
+  "KRB_TGS_REQ"
+ ]
+}

@@ -1,0 +1,25 @@
+ScreenContextClient.swift
+UTmuxPanes.swift
+MAppFeature+Delivery.swift
+MCleanupPrompt.swift
+MRetention.swift
+MProfiles.swiftHotkeyListener.swift
+AudioVault.swift
+M
+FocusedFieldReader.swift
+M
+VocabularyBoost.swift
+SpeechGate.swift
+UsersthurstonsandDevelopmini-whisper-expanded-contextPackagesASREngineSourcesASREngine
+SpeechGate.swift
+17
+final class SpeechGate: @unchecked Sendable {
+Chat
+Sessions
+Tip: Try the Plan agent to research and plan before implementing changes.
+SpeechGate.swift
+Agent
+Auto
+Local
+Default permissions
+0  0

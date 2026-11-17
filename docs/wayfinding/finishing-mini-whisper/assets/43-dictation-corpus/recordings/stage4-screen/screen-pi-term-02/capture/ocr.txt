@@ -1,0 +1,26 @@
+thurstonsand — n - [R]efit Permission Controls and Onboarding Escape - mini-whisper — pi --session-dir /tmp/pi-scenes --fork ~/.pi/agent/sessions/--Users-thurstonsand-Develop-mi..
+'' swift
+app.typeText ("hkj")
+XCTAssertTrue(cursor.isHittable, "The cursor came back off-screen.")
+// Entering the column only paints it; the scrolling is already done.
+app.typeText ('1")
+assertSingleGreyHistoryRow(app, id: id)
+XCTAssertTrue (cursor.isHittable)
+One thing the test taught me while writing it: after hkj the row is on screen but not grey. The cursor paint is gated on the detail column having focus, so a sidebar-focused
+pane shows no highlight. Your refinement is about the viewport, not the paint, so I assert only hittability there - but it's worth knowing the two are separate, in case you
+also want the cursor visible from the sidebar.
+Gates: mise run lint 0 ' unit suite green ' test:ui 53 tests, 0 failures.
+[branch]
+Branch summary (ctrl+o to expand)
+Branch summary: 18k tokens billed (~$0.20)
+[pi-sessions. subagent_disowned_message]
+[system] copied subagent records belong to the original session; this fork owns none.
+Session compacted 3 times
+Package Updates Available
+Package updates are available. Run pi update --extensions
+Packages:
+- pi-sessions
+- @thurstonsand/pi-agent-switchboard
+- pi-doppelclaude
+* Claude Opus 5 / Emini-whisper / Emain / [-
+30%

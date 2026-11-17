@@ -1,0 +1,31 @@
+── 1: pi ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+without its polish") for the contrast. Transcription.cleanup had a field doc that restated the optional, when the type doc above it already explains why
+cleanup rides on the transcription rather than the entry.
+Checked and kept
+HotkeyGestureMachine — every new comment is a state-table justification: why .cleanupPending gives the activation key a meaning it has nowhere else, why a
+late cleanupStarted cannot take back a press that already fired, why a dead tap must not discard a transcript. Those are the machine's whole design.
+PhysicalChordMatcher — the note that cleanupStarted/cleanupEnded come from the app's own lifecycle rather than anything the tap witnessed. Non-obvious in an
+enum where everything else is a physical event.
+FocusedTextContext — justifies a Codable conformance that would otherwise look gratuitous.
+AgentDriveabilityScene / SceneDependencies — the note that the scene's Keychain is real but scene-owned, so a UI run cannot leave a credential on the
+machine. Security-relevant.
+HistoryEntry.fieldContext, HistoryLog.version — persistence rationale and a migration note. Both outside the code.
+Test comments across HistoryFeatureTests, HistoryPipelineTests, PillFeatureTests, HistoryEntryCodecTests, HistoryEntryTextTests, AudioVaultTests,
+HotkeyGestureMachineTests — each states the claim the assertion makes, which is what a test comment is for here. Nothing restating.
+spikes/settings-mockup — the A/B/C/D variant labels are the content of a mock built to compare four Save placements. Left alone.
+MockEndpoint.swift is a pure move into CleanupTestSupport plus access modifiers. No comment churn.
+Markdown under docs/ is prose, not comments — I left it, say the word if you want that read too.
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Package Updates Available
+Package updates are available. Run pi update --extensions
+Packages:
+- pi-sessions
+- @thurstonsand/pi-agent-switchboard
+- pi-doppelclaude
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+✴ Claude Opus 5 /  mini-whisper /  main / [━━━━━━━━━━━━━━━━92%──]
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+>
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+pi2  pi                                                                                                                                             pod153
+pi2:pi

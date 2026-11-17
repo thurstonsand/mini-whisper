@@ -1,0 +1,19 @@
+{
+ "id": "screen-vscode-05",
+ "tags": [
+  "vscode",
+  "identifier"
+ ],
+ "scene": {
+  "kind": "vscode",
+  "file": "Packages/History/Sources/History/Retention.swift",
+  "line": 40
+ },
+ "say": "Does audio to delete also pick up the screenshot when stores media is false, or only once max age has passed?",
+ "expect": "Does audioToDelete also pick up the screenshot when storesMedia is false, or only once maxAge has passed?",
+ "must": [
+  "audioToDelete",
+  "storesMedia",
+  "maxAge"
+ ]
+}

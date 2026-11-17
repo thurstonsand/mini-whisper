@@ -1,0 +1,33 @@
+── 1: pi ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+a name from a layer below it. The retry policy in download(_:specification:to:progress:) reads correctly, but only because the reader accepts the borrowed
+vocabulary. A local case that means what it says would cost one line.
+While there — the guard in the same function inverts:
+```swift
+guard let expectedHash = file.lfs?.oid, hash != expectedHash else { return hash }
+```
+The success path is the else. if let expected = ..., hash != expected { throw } then return hash reads forward.
+4. Two layers of change tracking for one signal
+OnboardingWindowController.render() keeps renderedPermissions to detect permission changes, but withObservationTracking only fires onChange when isPresented
+or snapshot.permissions actually changed. The manual copy guards against a case that mostly cannot happen. renderedVisibility is load-bearing for the
+wasVisible == true → NSApp.hide transition; renderedPermissions is not.
+Worth a second look regardless of the field: the effect of that branch is NSApp.activate(ignoringOtherApps: true) on every permission change, at 1 Hz
+polling. A user toggling a switch in System Settings gets focus yanked out from under them at the moment of the toggle. If the intent is "come back to the
+front when the user returns," applicationBecameActive already does that, and it does it on the right event.
+────────────────────────────────────────────────────────────────────────────────
+Verdict: approved. The structure is right now — one startup join, one permissions delegate, one readiness path, one walk over the download plan. §1 and §2
+are the last two places where a captured value or a reconciliation pass is standing in for an identity, and neither is load-bearing. Take them when
+convenient.
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Package Updates Available
+Package updates are available. Run pi update --extensions
+Packages:
+- pi-sessions
+- @thurstonsand/pi-agent-switchboard
+- pi-doppelclaude
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+✴ Claude Opus 5 /  mini-whisper /  main / [━━━━━━31%────────────]
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+>
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+pi1  pi                                                                                                                                             pod153
+pi1:pi

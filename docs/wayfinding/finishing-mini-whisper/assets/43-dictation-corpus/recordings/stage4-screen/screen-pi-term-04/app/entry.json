@@ -1,0 +1,41 @@
+{
+ "audio": {
+  "byteCount": 592896,
+  "durationSeconds": 9.2
+ },
+ "createdAt": 816030761.137143,
+ "delivery": {
+  "method": "pasted",
+  "text": "Can you add a note to the sound design ticket that SoundsClient should preload NSSound so the start queue isn't late, and mention Tink and Basso?"
+ },
+ "id": "19E4DF8B-1078-4C99-A44B-47ADAB063569",
+ "original": {
+  "cleanup": {
+   "disposition": {
+    "kind": "cleaned",
+    "text": "Can you add a note to the sound design ticket that SoundsClient should preload NSSound so the start queue isn't late, and mention Tink and Basso?"
+   },
+   "durationSeconds": 2.628398060798645,
+   "endpoint": "https://api.anthropic.com/v1",
+   "model": "claude-haiku-5-5"
+  },
+  "engine": "FluidInference/parakeet-tdt-0.6b-v2-coreml@ee09c569f73759e6d44c9bd16766f477b2b36d39",
+  "text": "Can you add a note to the sound design ticket that sounds client should preload NS Sound so the start queue isn't late, and mention Tink and Bosso?",
+  "transcribedAt": 816030761.281276
+ },
+ "retranscriptions": [],
+ "screenContext": {
+  "structured": {
+   "source": "accessibility",
+   "text": "daily-driven: [History](tickets/11-history.md), [Paste-last-transcript recovery](tickets/12-paste-last-recovery.md), [Dictionary](tickets/13-dictionary.md), [Warm-mic fast\nstart](tickets/14-warm-mic.md), [Second engine / fallback hardening](tickets/15-second-engine.md) (stake #5 reworded per the bakeoff inversion), [Settings\nUI](tickets/16-settings-ui.md), [Model download UI](tickets/17-model-download-ui.md), [LLM cleanup pass](tickets/18-llm-cleanup.md), [Streaming transcription and the live-text\npill](tickets/19-streaming.md), [Context capture](tickets/20-context-capture.md) (added post-Phase-5: read the focused field's real text before delivery — spacing and\nedit-awareness without guessing), [Audio ducking](tickets/21-audio-ducking.md) (added post-Phase-7: duck actively playing audio while a recording is live, crash-safe restore),\n[Agent-driveability](tickets/22-agent-driveability.md) (added post-Phase-7: maximal accessibility compatibility so computer-use agents can drive every surface),\n[Iconography](tickets/23-iconography.md) (added post-Phase-7: a real app icon and a consistent glyph set, verified everywhere the app is seen).\n+43 - The eight post-MVP stakes and streaming graduated to tickets on user request, all blocked by the [MVP spec](tickets/08-mvp-spec.md) and opening only once the MVP is\ndaily-driven: [History](tickets/11-history.md), [Paste-last-transcript recovery](tickets/12-paste-last-recovery.md), [Dictionary](tickets/13-dictionary.md), [Warm-mic fast\nstart](tickets/14-warm-mic.md), [Second engine / fallback hardening](tickets/15-second-engine.md) (stake #5 reworded per the bakeoff inversion), [Settings\nUI](tickets/16-settings-ui.md), [Model download UI](tickets/17-model-download-ui.md), [LLM cleanup pass](tickets/18-llm-cleanup.md), [Streaming transcription and the live-text\npill](tickets/19-streaming.md), [Context capture](tickets/20-context-capture.md) (added post-Phase-5: read the focused field's real text before delivery — spacing and\nedit-awareness without guessing), [Audio ducking](tickets/21-audio-ducking.md) (added post-Phase-7: duck actively playing audio while a recording is live, crash-safe restore),\n[Agent-driveability](tickets/22-agent-driveability.md) (added post-Phase-7: maximal accessibility compatibility so computer-use agents can drive every surface),\n[Iconography](tickets/23-iconography.md) (added post-Phase-7: a real app icon and a consistent glyph set, verified everywhere the app is seen), [Sound\ndesign](tickets/24-sound-design.md) (added post-Phase-7: replace the borrowed macOS alert sounds with the app's own cues).\n44\n45 ## Out of scope\n46\n47 - Product-ization: App Store distribution, licensing, other users' needs, marketing. This app is made for one person.\n...\nYes. Same defect, different sense — SoundsClient maps all four cues onto macOS's built-in alert sounds: Tink, Pop, Funk, Basso. Borrowed, shared with every other app, and\ntuned as alerts rather than as the fast confirmations these are.\nFiled separately as Sound design (docs/wayfinding/finishing-mini-whisper/tickets/24-sound-design.md) rather than folded into the icon ticket. The crafts don't overlap and\nneither do the assets, so one session working both would be two sessions wearing a trench coat. The ticket cross-references the icon one.\nTwo things surfaced while writing it that aren't obvious from the placeholder: record-start fires on the critical path, so NSSound latency is user-visible — that cue is the\nacknowledgement the hotkey registered. And the start cue plays through the speakers while the mic is live, so it may end up in the recording.\n─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────\nPackage Updates Available\nPackage updates are available. Run pi update --extensions\nPackages:\n- pi-sessions\n- @thurstonsand/pi-agent-switchboard\n- pi-doppelclaude\n─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────\n✴ Claude Opus 5 /  mini-whisper /  main / [━━10%────────────────]\n───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────\n> Can you add a note to the sound design ticket that SoundsClient should preload NSSound so the start queue isn't late, and mention Tink and Basso?\n───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────\nthurstonsand — π - [QN]ueue custom-icon-audit_0417 - mini-whisper — pi --session-dir /tmp/pi-scenes --fork ~/.pi/agent/sessions/--Users-thurstonsand-Develop-mini-whisper--/2026-08-02T16-43-24-158Z_019fc35b-d87e-7d02-838b-36076df91062.jsonl — 177×45"
+  },
+  "windowTitle": "thurstonsand — π - [QN]ueue custom-icon-audit_0417 - mini-whisper — pi --session-dir /tmp/pi-scenes --fork ~/.pi/agent/sessions/--Users-thurstonsand-Develop-mini-whisper--/2026-08-02T16-43-24-158Z_019fc35b-d87e-7d02-838b-36076df91062.jsonl — 177×45"
+ },
+ "screenshot": {
+  "byteCount": 143031
+ },
+ "targetApp": {
+  "bundleID": "com.apple.Terminal",
+  "name": "Terminal"
+ }
+}

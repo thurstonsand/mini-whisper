@@ -1,0 +1,29 @@
+{
+  "appName" : "Code",
+  "axCapped" : false,
+  "axUnplaced" : 1762,
+  "axVisited" : 436,
+  "bundleID" : "com.microsoft.VSCode",
+  "capturedAt" : 816034742.834508,
+  "focusedFrame" : [
+    1008,
+    591,
+    240,
+    21
+  ],
+  "focusedRole" : "AXTextArea",
+  "screenshotCandidates" : 1,
+  "screenshotTitle" : "Retention.swift — Modified",
+  "timingsMs" : {
+    "ax" : 56.448625,
+    "ocr" : 219.323791,
+    "screenshot" : 136.67175
+  },
+  "windowFrame" : [
+    0,
+    30,
+    1280,
+    690
+  ],
+  "windowTitle" : "Retention.swift — Modified"
+}

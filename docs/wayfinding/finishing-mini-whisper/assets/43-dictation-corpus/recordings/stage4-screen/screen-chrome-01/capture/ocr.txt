@@ -1,0 +1,54 @@
+rfc-editor.org/rfc/rfc4120.htm ×
++
+• Ask Gemini
+G
+-- rfc-editor.org/rfc/rfc4120.html#section-3.3
+@ ChatGPT
+7 x
+"ChatGPT" started debugging this browser
+Cancel
+3.3.
+The Ticket-Granting Service (TGS) Exchange
+Chat
+Work
+Summary
+Message direction
+Message type
+Section
+1. Client to Kerberos
+KRB_TGS_REQ
+5.4.1
+2. Kerberos to client
+KRB_TGS_REP or
+5.4.2
+KRB_ERROR
+5.9.1
+The TGS exchange between a client and the Kerberos TGS is initiated
+by a client when it seeks to obtain authentication credentials for a
+given server (which might be registered in a remote realm), when it
+seeks to renew or validate an existing ticket, or when it seeks to
+obtain a proxy ticket.
+In the first case, the client must already
+have acquired a ticket for the Ticket-Granting Service using the AS
+exchange (the TGT is usually obtained when a client initially
+authenticates to the system, such as when a user logs in).
+message format for the TGS exchange is almost identical to that for
+the AS exchange.
+The primary difference is that encryption and
+decryption in the TGS exchange does not take place under the client's
+Neuman, et al.
+Standards Track
+[Page 34]
+RFC 4120
+Kerberos V5
+July 2005
+Instead, the session key from the TGT or renewable ticket, or
+sub-session key from an Authenticator is used.
+As is the case for
+all application servers, expired tickets are not accepted by the TGS,
++
+Medium v
+•lt•
+so once a renewable or TGT expires, the client must use a separate
+exchange to obtain valid tickets
+https://www.rfc-editor.org/rfc/rfc4120.html#section-3.3

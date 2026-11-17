@@ -1,0 +1,19 @@
+{
+ "id": "screen-vscode-02",
+ "tags": [
+  "vscode",
+  "identifier"
+ ],
+ "scene": {
+  "kind": "vscode",
+  "file": "MiniWhisper/TmuxPanes.swift",
+  "line": 190
+ },
+ "say": "In connected unix sockets, what happens when the peer path is empty and the peer is zero? Does listening path of server holding ever get called for a socket pair?",
+ "expect": "In connectedUnixSockets, what happens when the peerPath is empty and the peer is zero? Does listeningPath(ofServerHolding:) ever get called for a socketpair?",
+ "must": [
+  "connectedUnixSockets",
+  "peerPath",
+  "listeningPath"
+ ]
+}

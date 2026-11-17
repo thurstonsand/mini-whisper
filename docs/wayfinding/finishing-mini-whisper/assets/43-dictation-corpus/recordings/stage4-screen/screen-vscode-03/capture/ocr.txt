@@ -1,0 +1,78 @@
+AppFeature+Delivery.swift - Modified
+08
+ScreenContextClient.swift U
+TmuxPanes.swift M
+• AppFeature+Delivery.swift M X
+Chat
+Users > thurstonsand > Develop > mini-whisper-expanded-context > MiniWhisper >
+• AppFeature+Delivery.swift
+Sessions
+14
+extension AppFeature
+91
+func deliverReadyDictations(
+state:
+inout State) > Effect<Action> {
+The delivery vertical
+99
+for (index, dictation) in dictations.enumerated() {
+107
+108
+guard !waitsonEarlier, !target.isGUI || !guiDeliveryRunning else {
+109
+continue
+110
+111
+target. isGUI
+112
+guiDeliveryRunning
+true
+113
+114
+var started = dictation
+115
+started. isDelivering = true
+116
+state.updateDictation (started)
+117
+effects. append (
+118
+. run { send in
+119
+await deliver(
+120
+text, capture: capture, target: target, submits: dictation.submits,
+121
+to: dictation.generation, send: send,
+122
+What a cap...swers for
+123
+}.cancellable(id: CancelID.delivery(dictation.generation), cancelInFlight: true),
+124
+125
+126
+return .merge(effects)
+Tip: Try the Plan agent to research and
+127
+plan before implementing changes.
+128
++ >
+129
+// MARK: Private
+AppFeature+Delivery.swift
+130
+131
+/// A dictation answers to its generation; a recovery answers to nobody.
+132
+private func deliver(
+( Agent 8 Auto | Balance 0,
+133
+_ text: String, capture: ContextCapture, target: DeliveryTarget, submits: Bool,
+134
+to generation: Int?, send: Send<Action>,
+• Local • Default permissions
+135
+) asvnc f
+•OAO
+Ln 120, Col 1
+Spaces: 2 UTF-8 LF (] Swift

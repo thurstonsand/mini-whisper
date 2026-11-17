@@ -1,0 +1,22 @@
+{
+ "id": "screen-vscode-11",
+ "tags": [
+  "vscode",
+  "control"
+ ],
+ "scene": {
+  "kind": "vscode",
+  "file": "Packages/ASREngine/Sources/ASREngine/SpeechGate.swift",
+  "line": 55
+ },
+ "say": "Looks good to me. Go ahead and commit it, then run the package tests.",
+ "expect": "Looks good to me. Go ahead and commit it, then run the package tests.",
+ "must": [
+  "Looks good to me. Go ahead and commit it, then run the package tests."
+ ],
+ "forbid": [
+  "VadManager",
+  "GateConfiguration",
+  "SpeechGate"
+ ]
+}

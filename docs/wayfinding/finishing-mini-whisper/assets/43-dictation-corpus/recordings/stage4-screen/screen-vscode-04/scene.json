@@ -1,0 +1,20 @@
+{
+ "id": "screen-vscode-04",
+ "tags": [
+  "vscode",
+  "identifier"
+ ],
+ "scene": {
+  "kind": "vscode",
+  "file": "Packages/TranscriptCleanup/Sources/TranscriptCleanup/CleanupPrompt.swift",
+  "line": 100
+ },
+ "say": "Rename carries screen context to something shorter, and have system message assert that built in still contains the field context rule.",
+ "expect": "Rename carriesScreenContext to something shorter, and have systemMessage assert that builtIn still contains the fieldContextRule.",
+ "must": [
+  "carriesScreenContext",
+  "systemMessage",
+  "builtIn",
+  "fieldContextRule"
+ ]
+}

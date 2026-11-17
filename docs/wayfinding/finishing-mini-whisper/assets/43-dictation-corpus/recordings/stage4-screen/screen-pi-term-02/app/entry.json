@@ -1,0 +1,41 @@
+{
+ "audio": {
+  "byteCount": 624896,
+  "durationSeconds": 9.7
+ },
+ "createdAt": 816030674.995273,
+ "delivery": {
+  "method": "pasted",
+  "text": "Yes, make the cursor visible from the sidebar too, and fold assertSingleGreyHistoryRow into the new test, check is hittable after that."
+ },
+ "id": "82109668-0FD7-4288-8E02-4F9A9D1E1CCE",
+ "original": {
+  "cleanup": {
+   "disposition": {
+    "kind": "cleaned",
+    "text": "Yes, make the cursor visible from the sidebar too, and fold assertSingleGreyHistoryRow into the new test, check is hittable after that."
+   },
+   "durationSeconds": 3.9707800149917603,
+   "endpoint": "https://api.anthropic.com/v1",
+   "model": "claude-haiku-5-5"
+  },
+  "engine": "FluidInference/parakeet-tdt-0.6b-v2-coreml@ee09c569f73759e6d44c9bd16766f477b2b36d39",
+  "text": "Yes, make the cursor visible from the sidebar too, and fold assert single gray history row into the new test, check is hittable after that.",
+  "transcribedAt": 816030675.147017
+ },
+ "retranscriptions": [],
+ "screenContext": {
+  "structured": {
+   "source": "accessibility",
+   "text": "```swift\napp.typeText(\"hkj\")\nXCTAssertTrue(cursor.isHittable, \"The cursor came back off-screen.\")\n// Entering the column only paints it; the scrolling is already done.\napp.typeText(\"l\")\nassertSingleGreyHistoryRow(app, id: id)\nXCTAssertTrue(cursor.isHittable)\n```\nOne thing the test taught me while writing it: after hkj the row is on screen but not grey. The cursor paint is gated on the detail column having focus, so a sidebar-focused\npane shows no highlight. Your refinement is about the viewport, not the paint, so I assert only hittability there — but it's worth knowing the two are separate, in case you\nalso want the cursor visible from the sidebar.\nGates: mise run lint 0 · unit suite green · test:ui 53 tests, 0 failures.\n[branch]\nBranch summary (ctrl+o to expand)\nBranch summary: 18k tokens billed (~$0.20)\n[pi-sessions.subagent_disowned_message]\n[system] copied subagent records belong to the original session; this fork owns none.\nSession compacted 3 times\n─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────\nPackage Updates Available\nPackage updates are available. Run pi update --extensions\nPackages:\n- pi-sessions\n- @thurstonsand/pi-agent-switchboard\n- pi-doppelclaude\n─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────\n✴ Claude Opus 5 /  mini-whisper /  main / [━━━━━30%─────────────]\n───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────\n>\n───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────\nthurstonsand — π - [R]efit Permission Controls and Onboarding Escape - mini-whisper — pi --session-dir /tmp/pi-scenes --fork ~/.pi/agent/sessions/--Users-thurstonsand-Develop-mini-whisper--/2026-08-08T14-45-32-678Z_019fe1d6-1986-79e3-b50c-c2b01c131d3f.jsonl — 177×45"
+  },
+  "windowTitle": "thurstonsand — π - [R]efit Permission Controls and Onboarding Escape - mini-whisper — pi --session-dir /tmp/pi-scenes --fork ~/.pi/agent/sessions/--Users-thurstonsand-Develop-mini-whisper--/2026-08-08T14-45-32-678Z_019fe1d6-1986-79e3-b50c-c2b01c131d3f.jsonl — 177×45"
+ },
+ "screenshot": {
+  "byteCount": 136437
+ },
+ "targetApp": {
+  "bundleID": "com.apple.Terminal",
+  "name": "Terminal"
+ }
+}

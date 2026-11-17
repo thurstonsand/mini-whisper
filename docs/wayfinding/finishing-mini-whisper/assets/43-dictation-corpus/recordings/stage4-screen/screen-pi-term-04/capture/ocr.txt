@@ -1,0 +1,37 @@
+thurstonsand - n - [QN]ueue custom-icon-audit_0417 - mini-whisper - pi--session-dir /tmp/pi-scenes --fork ~|.pi/agent/sessions/--Users-thurstonsand-Develop-mini-whisper--/20...
+daily-driven: [History](tickets/11-history.md),
+[Paste-last-transcript recoveryl(tickets/12-paste-last-recovery.md), [Dictionaryl(tickets/13-dictionary.md), [Warm-mic fast
+start](tickets/14-warm-mic.md), [Second engine / fallback hardening](tickets/15-second-engine.md) (stake #5 reworded per the bakeoff inversion), [Settings
+UIl(tickets/16-settings-ui.md), [Model download UI](tickets/17-model-download-ui.md), [LLM cleanup pass](tickets/18-llm-cleanup.md), [streaming transcription and the live-text
+pilll(tickets/19-streaming.md), [Context capturel(tickets/20-context-capture.md) (added post-Phase-5: read the focused field's real text before delivery - spacing and
+edit-awareness without guessing), [Audio ducking](tickets/21-audio-ducking.md) (added post-Phase-7: duck actively playing audio while a recording is live, crash-safe restore),
+[Agent-driveabilityl(tickets/22-agent-driveability.md) (added post-Phase-7: maximal accessibility compatibility so computer-use agents can drive every surface),
+[Iconographyl(tickets/23-iconography.md) (added post-Phase-7: a real app icon and a consistent glyph set, verified everywhere the app is seen).
++43 - The eight post-MVP stakes and streaming graduated to tickets on user request, all blocked by the IMVP specl(tickets/08-mvp-spec.md) and opening only once the MVP is
+daily-driven: [History](tickets/11-history.md),
+[Dictionaryl(tickets/13-dictionary.md), [warm-mic fast
+start](tickets/14-warm-mic.md), [Second engine / fallback hardening](tickets/15-second-engine.md) (stake #5 reworded per the bakeoff inversion), [Settings
+UI](tickets/16-settings-ui.md), [Model download UI](tickets/17-model-download-ui.md), ILLM cleanup passl(tickets/18-llm-cleanup.md), [Streaming transcription and the live-text
+pill](tickets/19-streaming.md), [Context capturel(tickets/20-context-capture.md) (added post-Phase-5: read the focused field's real text before delivery - spacing and
+edit-awareness without guessing), [Audio duckingl(tickets/21-audio-ducking.md) (added post-Phase-7: duck actively playing audio while a recording is live,
+crash-safe restore),
+[Agent-driveabilityl(tickets/22-agent-driveability.md) (added post-Phase-7: maximal accessibility compatibility so computer-use agents can drive every surface),
+[Iconographyl(tickets/23-iconography.md) (added post-Phase-7: a real app icon and a consistent glyph set, verified everywhere the app is seen), [Sound
+44
+45 ## Out of scope
+46
+47 - Product-ization: App Store distribution, licensing, other users' needs, marketing. This app is made for one person.
+Same defect, different sense - SoundsClient maps all four cues onto macos's built-in alert sounds: Tink, Pop, Funk, Basso. Borrowed, shared with every other app, and
+tuned as alerts rather than as the fast confirmations these are.
+Filed separately as Sound design (docs/wayfinding/finishing-mini-whisper/tickets/24-sound-design.md) rather than folded into the icon ticket. The crafts don't overlap and
+neither do the assets, so one session working both would be two sessions wearing a trench coat. The ticket cross-references the icon one.
+Two things surfaced while writing it that aren't obvious from the placeholder: record-start fires on the critical path, so NSSound latency is user-visible - that cue is the
+acknowledgement the hotkey registered. And the start cue plays through the speakers while the mic is live, so it may end up in the recording.
+Package Updates Available
+Package updates are available. Run pi update --extensions
+Packages:
+- pi-sessions
+- @thurstonsand/pi-agent-switchboard
+pi-doppelclaude
+* Claude Opus 5 / Emini-whisper / Emain / [-10%
+Can you add a note to the sound design ticket that SoundsClient should preload NSsound so the start queue isn't late, and mention Tink and Basso?

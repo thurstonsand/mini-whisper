@@ -1,0 +1,18 @@
+{
+ "id": "screen-chrome-03",
+ "tags": [
+  "chrome",
+  "chatgpt-sidebar",
+  "term-of-art"
+ ],
+ "scene": {
+  "kind": "chrome",
+  "url": "https://www.postgresql.org/docs/current/routine-vacuuming.html#VACUUM-FOR-WRAPAROUND"
+ },
+ "say": "If the X I D counter wraps around, why does frozen transaction ID always compare as older? Is that separate from the modulo two to the thirty two arithmetic?",
+ "expect": "If the XID counter wraps around, why does FrozenTransactionId always compare as older? Is that separate from the modulo-2^32 arithmetic?",
+ "must": [
+  "XID",
+  "FrozenTransactionId"
+ ]
+}

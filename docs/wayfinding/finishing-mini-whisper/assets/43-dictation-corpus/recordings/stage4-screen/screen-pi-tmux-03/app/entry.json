@@ -1,0 +1,42 @@
+{
+ "audio": {
+  "byteCount": 688896,
+  "durationSeconds": 10.7
+ },
+ "createdAt": 816030490.811249,
+ "delivery": {
+  "detail": "untouched",
+  "method": "pasted",
+  "text": "Okay, move the unreadable file aside instead of dropping the entry, check loadError before the write-in HistoryLog, and split AppFeatureTests while you're at it."
+ },
+ "id": "AB2C64EB-6CDC-4DE0-B5EF-C4DF833D566B",
+ "original": {
+  "cleanup": {
+   "disposition": {
+    "kind": "cleaned",
+    "text": "Okay, move the unreadable file aside instead of dropping the entry, check loadError before the write-in HistoryLog, and split AppFeatureTests while you're at it."
+   },
+   "durationSeconds": 5.475839018821716,
+   "endpoint": "https://api.anthropic.com/v1",
+   "model": "claude-haiku-5-5"
+  },
+  "engine": "FluidInference/parakeet-tdt-0.6b-v2-coreml@ee09c569f73759e6d44c9bd16766f477b2b36d39",
+  "text": "Okay, move the unreadable file aside instead of dropping the entry, check load error before the write-in history log, and split app feature tests while you're at it.",
+  "transcribedAt": 816030490.921782
+ },
+ "retranscriptions": [],
+ "screenContext": {
+  "structured": {
+   "source": "tmux",
+   "text": " So: an unreadable history.json — corrupt, or written by a newer build and rejected by the version gate — survives launch untouched, and is then silently\n overwritten by the first dictation with a log containing exactly one entry. The user's history is gone with an .error line in the unified log as the only\n trace.\n\n That defeats the thing HistoryLog.init(from:) was built to do. Its comment says decoding \"rejects files from a version it does not know rather than\n misreading them\" — but rejecting the read while permitting the write is worse than misreading, because misreading is recoverable and truncation is not. The\n postmortem this whole ticket came from was about 109 unrecoverable WAVs. This is the same failure with the transcripts.\n\n The detection already exists two lines away. Consult it before the write: if loadError != nil, drop the entry (with its audio) rather than clobber the file,\n or move the unreadable file aside first and start clean deliberately. Either is defensible; silently overwriting is not.\n\n Everything else clears\n\n The structural work is sound, and I checked the invariant rather than taking it on faith.\n\n Removing the equality guard is safe: an append requires pendingDictation with isFinishing, which requires a dictation that set dictationInFlight = true and\n cancelled maintenance on the way in; maintenance only starts when dictationInFlight is false; the reducer is serialized. There is no interleaving left for\n the guard to catch. The narrow window where cancellation lands after the second checkCancellation() delivers a Completed computed from a log that has not\n been appended to yet, so the replace is still correct.\n\n .onChange(of: \\.dictationInFlight) is attached to the Reduce and dictationInFlight is mutated nowhere else, so every clearing path reaches it — including the\n early-drop guard inside finishDictation. Eight call sites became one. activeHistoryMaintenance is cleared when deferred at line 301. CancellationError\n returns silently. storesAudio states the predicate once and both uses read from it.\n\n Non-blocking, for later: AppFeatureTests.swift is 999 lines. That is not under the threshold, that is balanced on it.\n\n Fix the write-path load-error check and this is approved.\n\n───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────\n Package Updates Available\n Package updates are available. Run pi update --extensions\n Packages:\n - @thurstonsand/pi-agent-switchboard\n - pi-doppelclaude\n───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────\n\n ✴ Claude Opus 5 /  mini-whisper /  main / [━━━━━━33%────────────]\n ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────\n >\n ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────"
+  },
+  "windowTitle": "pi3:pi"
+ },
+ "screenshot": {
+  "byteCount": 138259
+ },
+ "targetApp": {
+  "bundleID": "com.mitchellh.ghostty",
+  "name": "Ghostty"
+ }
+}

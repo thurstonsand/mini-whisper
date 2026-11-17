@@ -1,0 +1,389 @@
+[
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : "── 1: pi ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 62
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " The report covers what changed and why, the two defects the work uncovered (the exhaustive manifest had been failing; the pointer-parking fragility), the one ",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 77.64285714285714
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " restructuring I tried and reverted against the parked-pointer law, the UI coverage on both input paths, and the real-hardware evidence. Nothing is staged, so ",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 93.28571428571428
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " the whole thing arrives as one reviewable surface.",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 108.92857142857143
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 124.57142857142857
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " ",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 140.21428571428572
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " - remind me why AudioInputDevice and MicrophoneSelection must be 2 separate entities",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 155.85714285714286
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " ",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 171.5
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 187.14285714285714
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " Thinking...",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 202.78571428571428
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 218.42857142857142
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " Different tense. One is a durable intent, the other an observation with a lifetime of one snapshot.",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 234.07142857142856
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 249.71428571428572
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " MicrophoneSelection has to survive the thing it names. Its whole point is being able to say \"the Studio Mic\" while the Studio Mic is in a drawer — that is    ",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 265.3571428571429
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " what makes the fallback heal instead of overwrite. An AudioInputDevice? cannot express that: nil would mean both \"user chose system default\" and \"the device  ",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 281
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " is gone,\" and those must stay distinct or the selection gets rewritten the first time someone unplugs something.",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 296.6428571428571
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 312.2857142857143
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " It also carries .systemDefault, which is not a device at all. \"Whatever macOS considers current\" has no UID until you ask.",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 327.92857142857144
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 343.57142857142856
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " And the fields do not survive equally. uid is durable; transport and visibility are true only of a device that is plugged in right now. Folding an",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 359.2142857142857
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " AudioInputDevice into the stored selection would persist a claim about hardware that the hardware is free to contradict — and then isExplicitlySelectable     ",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 374.85714285714283
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " would have to choose between trusting the fossil or re-reading, at which point the stored copy is dead weight. lastKnownName is the one field deliberately    ",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 390.5
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " allowed to go stale, because nothing but a sentence in the UI reads it, and the snapshot heals it when the device returns.",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 406.1428571428571
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 421.7857142857143
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " So: AudioInputDevice is what CoreAudio says exists. MicrophoneSelection is what the user asked for. AudioInputRoute.resolving is the only place the two meet. ",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 437.42857142857144
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 453.07142857142856
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " Cache miss after 18m idle: 265k tokens re-billed (~$1.53)",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 468.7142857142857
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 484.35714285714283
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : "───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 500
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " Package Updates Available",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 515.6428571428571
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " Package updates are available. Run pi update --extensions",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 531.2857142857142
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " Packages:",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 546.9285714285713
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " - pi-sessions",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 562.5714285714286
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " - @thurstonsand/pi-agent-switchboard",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 578.2142857142857
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " - pi-doppelclaude",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 593.8571428571429
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : "───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 609.5
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 625.1428571428571
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " ✴ Claude Opus 5 /  mini-whisper /  main / [━━━━━━━━━━━━69%──────]",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 640.7857142857142
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── ",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 656.4285714285714
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " >  ",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 672.0714285714286
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── ",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 687.7142857142857
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " pi4  pi                                                                                                                                             pod153 ",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 703.3571428571429
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "pi4:pi",
+    "web" : false,
+    "width" : 42,
+    "x" : 82,
+    "y" : 38
+  }
+]

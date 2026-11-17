@@ -1,0 +1,76 @@
+TmuxPanes.swift - Modified
+08
+ScreenContextClient.swift U
+• TmuxPanes.swift M X
+Chat
+Users > thurstonsand > Develop > mini-whisper-expanded-context > MiniWhisper >
+• TmuxPanes.swift
+Sessions
+39
+enum TmuxPanes f
+174
+private static func executablePath(
+processID: pid_t) > String? {
+176
+let length = proc_pidpath (processID, &butter, Uint32 (butter.count))
+177
+guard length > 0
+else f
+178
+return nil
+179
+180
+return String(decoding: buffer.prefix(Int(length)), as: UTF8.self)
+Private
+181
+182
+183
+/// The server a client talks to is the peer address of its connected unix socket. Reading it
+184
+/// here, rather than reconstructing it from
+'TUX', and TMUX_TMPDIR', is right for
+185
+/// every way the client could have been started. A client that started its own server talks to
+186
+/// it over a socketpair, which has no address; the tmux process holding the other end is that
+187
+/// server, and its listening socket is the path.
+188
+private static func connectedUnixSockets(_ processID: pid_t) > [String] {
+189
+unixSockets(processID).compactMap { socket in
+190
+if !socket.peerPath.isEmpty {
+191
+return socket.peerPath
+192
+193
+quard socket.peer != 0 else {
+194
+return nil
+195
+196
+return listeningPath(ofServerHolding: socket.peer)
+Tip: Try the Plan agent to research and
+197
+plan before implementing changes.
+198
++ > TuxPanes swift
+199
+200
+private static func listeningPath(ofServerHolding socket: UInt64) → String? {
+201
+let count = proc_listallpids (nil, 0)
+202
+quard count > 0 else f
+( Agent 8 Auto | Balance
+203
+return nil
+204
+• Local • Default permissions
+205
+var processIDs = Inid +1 (repeating:
+0. count: Int (count) + 64)
+DOAO
+Ln 190, Col 1
+Spaces: 2 UTF-8 LF (} Swift

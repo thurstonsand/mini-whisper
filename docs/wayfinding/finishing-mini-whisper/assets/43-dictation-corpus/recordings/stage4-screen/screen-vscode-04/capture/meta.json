@@ -1,0 +1,29 @@
+{
+  "appName" : "Code",
+  "axCapped" : false,
+  "axUnplaced" : 14199,
+  "axVisited" : 515,
+  "bundleID" : "com.microsoft.VSCode",
+  "capturedAt" : 816035377.881816,
+  "focusedFrame" : [
+    1008,
+    591,
+    240,
+    21
+  ],
+  "focusedRole" : "AXTextArea",
+  "screenshotCandidates" : 1,
+  "screenshotTitle" : "CleanupPrompt.swift — Modified",
+  "timingsMs" : {
+    "ax" : 60.645917,
+    "ocr" : 208.684875,
+    "screenshot" : 109.399292
+  },
+  "windowFrame" : [
+    0,
+    30,
+    1280,
+    690
+  ],
+  "windowTitle" : "CleanupPrompt.swift — Modified"
+}

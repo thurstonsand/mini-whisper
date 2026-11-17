@@ -1,0 +1,20 @@
+{
+ "id": "screen-vscode-07",
+ "tags": [
+  "vscode",
+  "identifier"
+ ],
+ "scene": {
+  "kind": "vscode",
+  "file": "Packages/HotkeyListener/Sources/HotkeyListener/HotkeyListener.swift",
+  "line": 330
+ },
+ "say": "In normalize, flags changed only removes from pressed keys when is modifier down returns false. What happens if two modifiers share a key code?",
+ "expect": "In normalize, flagsChanged only removes from pressedKeys when isModifierDown returns false. What happens if two modifiers share a keyCode?",
+ "must": [
+  "flagsChanged",
+  "pressedKeys",
+  "isModifierDown",
+  "keyCode"
+ ]
+}

@@ -1,0 +1,21 @@
+{
+ "id": "screen-pi-term-04",
+ "tags": [
+  "pi",
+  "terminal",
+  "identifier"
+ ],
+ "scene": {
+  "kind": "pi",
+  "tmux": false,
+  "session": "019fc35b"
+ },
+ "say": "Can you add a note to the sound design ticket that sounds client should preload NS sound so the start cue isn't late, and mention tink and basso?",
+ "expect": "Can you add a note to the Sound design ticket that SoundsClient should preload NSSound so the start cue isn't late, and mention Tink and Basso?",
+ "must": [
+  "SoundsClient",
+  "NSSound",
+  "Tink",
+  "Basso"
+ ]
+}

@@ -1,0 +1,19 @@
+{
+ "id": "screen-pi-term-03",
+ "tags": [
+  "pi",
+  "terminal",
+  "identifier"
+ ],
+ "scene": {
+  "kind": "pi",
+  "tmux": false,
+  "session": "019fd26c"
+ },
+ "say": "Agreed on the is pointed gate. Can you put the ease out idiom into ticket sixteen as well?",
+ "expect": "Agreed on the isPointed gate. Can you put the easeOut idiom into ticket 16 as well?",
+ "must": [
+  "isPointed",
+  "easeOut"
+ ]
+}

@@ -1,0 +1,479 @@
+[
+  {
+    "height" : 24,
+    "role" : "AXTextField",
+    "text" : "developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS#simple_requests",
+    "web" : false,
+    "width" : 731,
+    "x" : 158,
+    "y" : 81
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "Web",
+    "web" : true,
+    "width" : 34,
+    "x" : 61,
+    "y" : 225
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "HTTP",
+    "web" : true,
+    "width" : 43,
+    "x" : 122,
+    "y" : 225
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "Guides",
+    "web" : true,
+    "width" : 53,
+    "x" : 193,
+    "y" : 225
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "Cross-Origin Resource Sharing (CORS)",
+    "web" : true,
+    "width" : 294,
+    "x" : 273,
+    "y" : 225
+  },
+  {
+    "height" : 30,
+    "role" : "AXStaticText",
+    "text" : "In this article",
+    "web" : true,
+    "width" : 141,
+    "x" : 24,
+    "y" : 272
+  },
+  {
+    "height" : 44,
+    "role" : "AXStaticText",
+    "text" : "What requests use CORS?",
+    "web" : true,
+    "width" : 141,
+    "x" : 34,
+    "y" : 329
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "Functional overview",
+    "web" : true,
+    "width" : 151,
+    "x" : 34,
+    "y" : 385
+  },
+  {
+    "height" : 44,
+    "role" : "AXStaticText",
+    "text" : "Examples of access control scenarios",
+    "web" : true,
+    "width" : 150,
+    "x" : 34,
+    "y" : 417
+  },
+  {
+    "height" : 44,
+    "role" : "AXStaticText",
+    "text" : "The HTTP response headers",
+    "web" : true,
+    "width" : 150,
+    "x" : 34,
+    "y" : 473
+  },
+  {
+    "height" : 44,
+    "role" : "AXStaticText",
+    "text" : "The HTTP request headers",
+    "web" : true,
+    "width" : 138,
+    "x" : 34,
+    "y" : 529
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "Specifications",
+    "web" : true,
+    "width" : 107,
+    "x" : 34,
+    "y" : 585
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "Browser compatibility",
+    "web" : true,
+    "width" : 163,
+    "x" : 34,
+    "y" : 617
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "See also",
+    "web" : true,
+    "width" : 65,
+    "x" : 34,
+    "y" : 649
+  },
+  {
+    "height" : 21,
+    "role" : "AXStaticText",
+    "text" : "fetchPromise",
+    "web" : true,
+    "width" : 110,
+    "x" : 313,
+    "y" : 143
+  },
+  {
+    "height" : 19,
+    "role" : "AXStaticText",
+    "text" : ".",
+    "web" : true,
+    "width" : 10,
+    "x" : 331,
+    "y" : 173
+  },
+  {
+    "height" : 19,
+    "role" : "AXStaticText",
+    "text" : "then",
+    "web" : true,
+    "width" : 37,
+    "x" : 340,
+    "y" : 173
+  },
+  {
+    "height" : 19,
+    "role" : "AXStaticText",
+    "text" : "(",
+    "web" : true,
+    "width" : 9,
+    "x" : 377,
+    "y" : 173
+  },
+  {
+    "height" : 19,
+    "role" : "AXStaticText",
+    "text" : "(",
+    "web" : true,
+    "width" : 10,
+    "x" : 386,
+    "y" : 173
+  },
+  {
+    "height" : 19,
+    "role" : "AXStaticText",
+    "text" : "response",
+    "web" : true,
+    "width" : 74,
+    "x" : 395,
+    "y" : 173
+  },
+  {
+    "height" : 19,
+    "role" : "AXStaticText",
+    "text" : ")",
+    "web" : true,
+    "width" : 10,
+    "x" : 468,
+    "y" : 173
+  },
+  {
+    "height" : 19,
+    "role" : "AXStaticText",
+    "text" : "=>",
+    "web" : true,
+    "width" : 19,
+    "x" : 486,
+    "y" : 173
+  },
+  {
+    "height" : 19,
+    "role" : "AXStaticText",
+    "text" : " response",
+    "web" : true,
+    "width" : 82,
+    "x" : 505,
+    "y" : 173
+  },
+  {
+    "height" : 19,
+    "role" : "AXStaticText",
+    "text" : ".",
+    "web" : true,
+    "width" : 9,
+    "x" : 587,
+    "y" : 173
+  },
+  {
+    "height" : 19,
+    "role" : "AXStaticText",
+    "text" : "json",
+    "web" : true,
+    "width" : 37,
+    "x" : 596,
+    "y" : 173
+  },
+  {
+    "height" : 19,
+    "role" : "AXStaticText",
+    "text" : "(",
+    "web" : true,
+    "width" : 10,
+    "x" : 632,
+    "y" : 173
+  },
+  {
+    "height" : 19,
+    "role" : "AXStaticText",
+    "text" : ")",
+    "web" : true,
+    "width" : 10,
+    "x" : 641,
+    "y" : 173
+  },
+  {
+    "height" : 19,
+    "role" : "AXStaticText",
+    "text" : ")",
+    "web" : true,
+    "width" : 9,
+    "x" : 651,
+    "y" : 173
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : ".",
+    "web" : true,
+    "width" : 10,
+    "x" : 331,
+    "y" : 200
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "then",
+    "web" : true,
+    "width" : 37,
+    "x" : 340,
+    "y" : 200
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "(",
+    "web" : true,
+    "width" : 9,
+    "x" : 377,
+    "y" : 200
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "(",
+    "web" : true,
+    "width" : 10,
+    "x" : 386,
+    "y" : 200
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "data",
+    "web" : true,
+    "width" : 37,
+    "x" : 395,
+    "y" : 200
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : ")",
+    "web" : true,
+    "width" : 9,
+    "x" : 432,
+    "y" : 200
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "=>",
+    "web" : true,
+    "width" : 19,
+    "x" : 450,
+    "y" : 200
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "{",
+    "web" : true,
+    "width" : 10,
+    "x" : 477,
+    "y" : 200
+  },
+  {
+    "height" : 10,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 101,
+    "x" : 313,
+    "y" : 228
+  },
+  {
+    "height" : 10,
+    "role" : "AXStaticText",
+    "text" : "    console",
+    "web" : true,
+    "width" : 101,
+    "x" : 313,
+    "y" : 238
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : ".",
+    "web" : true,
+    "width" : 10,
+    "x" : 413,
+    "y" : 228
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "log",
+    "web" : true,
+    "width" : 28,
+    "x" : 422,
+    "y" : 228
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "(",
+    "web" : true,
+    "width" : 9,
+    "x" : 450,
+    "y" : 228
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "data",
+    "web" : true,
+    "width" : 37,
+    "x" : 459,
+    "y" : 228
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : ")",
+    "web" : true,
+    "width" : 10,
+    "x" : 495,
+    "y" : 228
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : ";",
+    "web" : true,
+    "width" : 9,
+    "x" : 505,
+    "y" : 228
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "}",
+    "web" : true,
+    "width" : 10,
+    "x" : 331,
+    "y" : 256
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : ")",
+    "web" : true,
+    "width" : 10,
+    "x" : 340,
+    "y" : 256
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : ";",
+    "web" : true,
+    "width" : 10,
+    "x" : 349,
+    "y" : 256
+  },
+  {
+    "height" : 48,
+    "role" : "AXStaticText",
+    "text" : "This operation performs a simple exchange between the client and the server, using CORS headers to handle the privileges:",
+    "web" : true,
+    "width" : 529,
+    "x" : 296,
+    "y" : 317
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "Let's look at what the browser will send to the server in this case:",
+    "web" : true,
+    "width" : 490,
+    "x" : 296,
+    "y" : 616
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "HTTP",
+    "web" : true,
+    "width" : 43,
+    "x" : 313,
+    "y" : 672
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "\"ChatGPT\" started debugging this browser",
+    "web" : false,
+    "width" : 264,
+    "x" : 281,
+    "y" : 135
+  },
+  {
+    "height" : 19,
+    "role" : "AXStaticText",
+    "text" : "Medium",
+    "web" : true,
+    "width" : 59,
+    "x" : 1072,
+    "y" : 652
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "ChatGPT",
+    "web" : false,
+    "width" : 61,
+    "x" : 943,
+    "y" : 126
+  }
+]

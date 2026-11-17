@@ -1,0 +1,19 @@
+{
+ "id": "screen-vscode-09",
+ "tags": [
+  "vscode",
+  "identifier"
+ ],
+ "scene": {
+  "kind": "vscode",
+  "file": "MiniWhisper/FocusedFieldReader.swift",
+  "line": 170
+ },
+ "say": "Why does capture bail out with grid semantics for terminals before it checks AX is process trusted? I'd rather report accessibility permission missing first.",
+ "expect": "Why does capture bail out with gridSemantics for terminals before it checks AXIsProcessTrusted? I'd rather report accessibilityPermissionMissing first.",
+ "must": [
+  "gridSemantics",
+  "AXIsProcessTrusted",
+  "accessibilityPermissionMissing"
+ ]
+}

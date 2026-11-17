@@ -1,0 +1,34 @@
+thurstonsand - n - [C]onsolidate settings-source_1147 unification - mini-whisper - pi --session-dir /tmp/pi-scenes --fork ~/.pi/agent/sessions/--Users-thurstonsand-Develop-mini-w.….
+$ cd /Users/thurstonsand/Develop/mini-whisper && osascript -e 'quit app "MiniWhisper Dev"' 2>/dev/null; mise run lint 2>&1 | rg -n "ERROR error: did not pass" head; echo
+gate clean
+M .agents/skills/native-macos-ui/SKILL.md
+M docs/wayfinding/finishing-mini-whisper/tickets/16-settings-ui.md
+?? MiniWhisper/HistoryPlaybackClient.swift
+Both addressed.
+Player. finish now stops the player before releasing it, so replacement and explicit stop do the same thing instead of one leaning on ARC timing. That made stop() collapse to
+. Verified by driving real audio in the dev and clicking tom ones
+a single finish(.success(.interrupted)) - the symmetry the reviewer wanted,
+waveform shows the stop glyph on that row alone; clicking row two's while it plays moves the stop glyph to row two and returns row one to a waveform, so the replacement path
+runs through the actor and settles correctly.
+Documentation. The reviewer is right that the rule and the code couldn't both stand as written. The amendment narrows the constraint to what it actually covers rather than
+softening it: a value-scoped .animation on the row is still ignored for an async change,
+but on a leaf view inside the row it works,
+because animating a child's opacity
+inside the row's own body instead
+of the transaction List hands its rows. That line is the whole rule. withAnimation at the mutation site stays documented as the
+fallback for anything the row animates as a whole, and the leaf spelling is now the preferred one where it applies, since it keeps presentation timing out of the reducer.
+I added the value-dependent animation idiom to the skill too - isCopied ? nil : easeOut(duration: 0.5) - since that's how one piece of state gets instant arrival and slow
+exit, and it's the thing that let the two-case enum die.
+Ticket 16 got the same correction in its own voice, marked as what building the real pane found that the spike couldn't see, with the mid-fade captures as the evidence. Its
+stagger paragraph now records that the shipped version spells the delay in the view rather than holding a second state.
+Gate green, tests green.
+On the two observations I'm leaving alone: agreed on the dangling cursor UUID - it self-heals on the next move and costs nothing. The isPointed gate was deliberate; hover
+shouldn't mean anything while the keyboard is driving, and the lingering ellipsis was the same fault as the lingering grey.
+Package Updates Available
+Package updates are available. Run pi update --extensions
+Packages:
+- pi-sessions
+- @thurstonsand/pi-agent-switchboard
+pi-doppelclaude
+Claude Opus 5 / Emini-whisper / Emain /
+97%1

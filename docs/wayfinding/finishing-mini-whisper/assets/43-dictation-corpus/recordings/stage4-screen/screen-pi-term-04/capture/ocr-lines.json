@@ -1,0 +1,298 @@
+[
+  {
+    "confidence" : 1,
+    "height" : 14.878706812858603,
+    "text" : "thurstonsand - n - [QN]ueue custom-icon-audit_0417 - mini-whisper - pi--session-dir /tmp/pi-scenes --fork ~|.pi/agent/sessions/--Users-thurstonsand-Develop-mini-whisper--/20...",
+    "width" : 1162.7906670875423,
+    "x" : 100.46513147858023,
+    "y" : 41.159029341691095
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.04028257727626,
+    "text" : "daily-driven: [History](tickets/11-history.md),",
+    "width" : 329.4396657547699,
+    "x" : 18.547767172974908,
+    "y" : 68.9412336858805
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.14605832099915,
+    "text" : "[Paste-last-transcript recoveryl(tickets/12-paste-last-recovery.md), [Dictionaryl(tickets/13-dictionary.md), [Warm-mic fast",
+    "width" : 866.9767115600449,
+    "x" : 349.7674580806435,
+    "y" : 70.91644174021188
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.204177230596486,
+    "text" : "start](tickets/14-warm-mic.md), [Second engine / fallback hardening](tickets/15-second-engine.md) (stake #5 reworded per the bakeoff inversion), [Settings",
+    "width" : 1075.3488005050506,
+    "x" : 18.604662445149415,
+    "y" : 81.7500000402446
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.878706812858603,
+    "text" : "UIl(tickets/16-settings-ui.md), [Model download UI](tickets/17-model-download-ui.md), [LLM cleanup pass](tickets/18-llm-cleanup.md), [streaming transcription and the live-text",
+    "width" : 1229.7674663299663,
+    "x" : 14.883708602458722,
+    "y" : 98.81401586467899
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.198365956544865,
+    "text" : "pilll(tickets/19-streaming.md), [Context capturel(tickets/20-context-capture.md) (added post-Phase-5: read the focused field's real text before delivery - spacing and",
+    "width" : 1164.6511994949497,
+    "x" : 16.74416760009253,
+    "y" : 111.83288378906671
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.738543450832378,
+    "text" : "edit-awareness without guessing), [Audio ducking](tickets/21-audio-ducking.md) (added post-Phase-7: duck actively playing audio while a recording is live, crash-safe restore),",
+    "width" : 1226.046489197531,
+    "x" : 16.744203796583303,
+    "y" : 124.85175232411208
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.18688917160033,
+    "text" : "[Agent-driveabilityl(tickets/22-agent-driveability.md) (added post-Phase-7: maximal accessibility compatibility so computer-use agents can drive every surface),",
+    "width" : 1121.9034967732885,
+    "x" : 16.725353642658632,
+    "y" : 138.43803696390916
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.28428184986111,
+    "text" : "[Iconographyl(tickets/23-iconography.md) (added post-Phase-7: a real app icon and a consistent glyph set, verified everywhere the app is seen).",
+    "width" : 1002.7906670875421,
+    "x" : 16.74420124605565,
+    "y" : 154.3437502482048
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.65624999999999,
+    "text" : "+43 - The eight post-MVP stakes and streaming graduated to tickets on user request, all blocked by the IMVP specl(tickets/08-mvp-spec.md) and opening only once the MVP is",
+    "width" : 1192.5581334175085,
+    "x" : 16.74418906231796,
+    "y" : 167.2812500538398
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.150606095790874,
+    "text" : "daily-driven: [History](tickets/11-history.md),",
+    "width" : 333.0232665193603,
+    "x" : 16.74418059808084,
+    "y" : 182.3750001236987
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.093749999999984,
+    "text" : "[Dictionaryl(tickets/13-dictionary.md), [warm-mic fast",
+    "width" : 388.8372001262627,
+    "x" : 827.9069812410272,
+    "y" : 182.37500025684454
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.09375000000006,
+    "text" : "start](tickets/14-warm-mic.md), [Second engine / fallback hardening](tickets/15-second-engine.md) (stake #5 reworded per the bakeoff inversion), [Settings",
+    "width" : 1079.069777637486,
+    "x" : 16.744180882626228,
+    "y" : 195.3125000641954
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.095687776803976,
+    "text" : "UI](tickets/16-settings-ui.md), [Model download UI](tickets/17-model-download-ui.md), ILLM cleanup passl(tickets/18-llm-cleanup.md), [Streaming transcription and the live-text",
+    "width" : 1227.906933922559,
+    "x" : 16.744207360334116,
+    "y" : 210.40431236058947
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.093749999999984,
+    "text" : "pill](tickets/19-streaming.md), [Context capturel(tickets/20-context-capture.md) (added post-Phase-5: read the focused field's real text before delivery - spacing and",
+    "width" : 1164.6511994949497,
+    "x" : 16.74416760009253,
+    "y" : 223.343749943303
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.229363530874288,
+    "text" : "edit-awareness without guessing), [Audio duckingl(tickets/21-audio-ducking.md) (added post-Phase-7: duck actively playing audio while a recording is live,",
+    "width" : 1080.930222362514,
+    "x" : 16.744191049816667,
+    "y" : 238.30188648443493
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.229363530874211,
+    "text" : "crash-safe restore),",
+    "width" : 148.83721108656005,
+    "x" : 1095.8139525244474,
+    "y" : 238.3018864727025
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.01981812715534,
+    "text" : "[Agent-driveabilityl(tickets/22-agent-driveability.md) (added post-Phase-7: maximal accessibility compatibility so computer-use agents can drive every surface),",
+    "width" : 1121.9032337261503,
+    "x" : 16.725343533955787,
+    "y" : 250.19540386783822
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.20678859949112,
+    "text" : "[Iconographyl(tickets/23-iconography.md) (added post-Phase-7: a real app icon and a consistent glyph set, verified everywhere the app is seen), [Sound",
+    "width" : 1051.1627560325478,
+    "x" : 16.74420328621669,
+    "y" : 266.1994611610164
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.2991914153099,
+    "text" : "44",
+    "width" : 16.744186110234285,
+    "x" : 22.325581270464255,
+    "y" : 295.9568732433783
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.5000003427268,
+    "text" : "45 ## Out of scope",
+    "width" : 130.2325555906285,
+    "x" : 22.325582578126944,
+    "y" : 308.87499991339143
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.1590294241905,
+    "text" : "46",
+    "width" : 16.74418611023429,
+    "x" : 22.32558114643325,
+    "y" : 321.9946090911393
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.14218345284462,
+    "text" : "47 - Product-ization: App Store distribution, licensing, other users' needs, marketing. This app is made for one person.",
+    "width" : 842.790667087542,
+    "x" : 22.325596594697707,
+    "y" : 334.75000014013233
+  },
+  {
+    "confidence" : 1,
+    "height" : 19.194956243038234,
+    "text" : "Same defect, different sense - SoundsClient maps all four cues onto macos's built-in alert sounds: Tink, Pop, Funk, Basso. Borrowed, shared with every other app, and",
+    "width" : 1160.9778338945007,
+    "x" : 48.34776095894564,
+    "y" : 388.8829786810009
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.1590294241905,
+    "text" : "tuned as alerts rather than as the fast confirmations these are.",
+    "width" : 448.37208894500566,
+    "x" : 16.74418798891104,
+    "y" : 405.6873316463148
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.290093809366256,
+    "text" : "Filed separately as Sound design (docs/wayfinding/finishing-mini-whisper/tickets/24-sound-design.md) rather than folded into the icon ticket. The crafts don't overlap and",
+    "width" : 1192.5581334175083,
+    "x" : 16.744189012175998,
+    "y" : 433.5849059050872
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.878706812858603,
+    "text" : "neither do the assets, so one session working both would be two sessions wearing a trench coat. The ticket cross-references the icon one.",
+    "width" : 961.860444725028,
+    "x" : 16.74419614443345,
+    "y" : 446.60377327664725
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.65624999999999,
+    "text" : "Two things surfaced while writing it that aren't obvious from the placeholder: record-start fires on the critical path, so NSSound latency is user-visible - that cue is the",
+    "width" : 1205.5814218574637,
+    "x" : 16.74417273059097,
+    "y" : 474.18750008356136
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.093749999999984,
+    "text" : "acknowledgement the hotkey registered. And the start cue plays through the speakers while the mic is live, so it may end up in the recording.",
+    "width" : 987.906933922559,
+    "x" : 16.744207366356584,
+    "y" : 489.2812502885767
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.1590294241905,
+    "text" : "Package Updates Available",
+    "width" : 178.60465549593152,
+    "x" : 14.883718671618082,
+    "y" : 532.1563343386354
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.106047511100769,
+    "text" : "Package updates are available. Run pi update --extensions",
+    "width" : 401.86044472502806,
+    "x" : 16.74419614358777,
+    "y" : 545.1752023988404
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.159029424190578,
+    "text" : "Packages:",
+    "width" : 65.11627779531425,
+    "x" : 16.744186480249844,
+    "y" : 560.0539084336257
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.239723265171081,
+    "text" : "- pi-sessions",
+    "width" : 93.02325555906286,
+    "x" : 16.744186080933684,
+    "y" : 573.0727765010157
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.500000342726723,
+    "text" : "- @thurstonsand/pi-agent-switchboard",
+    "width" : 253.02326651936028,
+    "x" : 16.74418060659893,
+    "y" : 587.7499997258939
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.018867433071177,
+    "text" : "pi-doppelclaude",
+    "width" : 109.76744440937148,
+    "x" : 27.906975317794878,
+    "y" : 600.9703506283431
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.249410092830683,
+    "text" : "* Claude Opus 5 / Emini-whisper / Emain / [-10%",
+    "width" : 353.4883777006173,
+    "x" : 16.744183393563162,
+    "y" : 641.6562500212061
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.093749999999984,
+    "text" : "Can you add a note to the sound design ticket that SoundsClient should preload NSsound so the start queue isn't late, and mention Tink and Basso?",
+    "width" : 1025.1162668350169,
+    "x" : 29.767447914263315,
+    "y" : 669.6875000481007
+  }
+]

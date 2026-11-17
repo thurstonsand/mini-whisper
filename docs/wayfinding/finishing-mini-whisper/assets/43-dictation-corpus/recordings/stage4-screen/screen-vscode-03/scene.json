@@ -1,0 +1,19 @@
+{
+ "id": "screen-vscode-03",
+ "tags": [
+  "vscode",
+  "identifier"
+ ],
+ "scene": {
+  "kind": "vscode",
+  "file": "MiniWhisper/AppFeature+Delivery.swift",
+  "line": 120
+ },
+ "say": "Why does this loop skip when waits on earlier is true even if target dot is GUI is false? I'd expect GUI delivery running to be the only gate here.",
+ "expect": "Why does this loop skip when waitsOnEarlier is true even if target.isGUI is false? I'd expect guiDeliveryRunning to be the only gate here.",
+ "must": [
+  "waitsOnEarlier",
+  "target.isGUI",
+  "guiDeliveryRunning"
+ ]
+}

@@ -1,0 +1,20 @@
+{
+ "id": "screen-pi-tmux-04",
+ "tags": [
+  "pi",
+  "tmux",
+  "identifier"
+ ],
+ "scene": {
+  "kind": "pi",
+  "tmux": true,
+  "session": "019fdaa2"
+ },
+ "say": "So where does audio input route dot resolving get called from? And does is explicitly selectable ever read last known name?",
+ "expect": "So where does AudioInputRoute.resolving get called from? And does isExplicitlySelectable ever read lastKnownName?",
+ "must": [
+  "AudioInputRoute.resolving",
+  "isExplicitlySelectable",
+  "lastKnownName"
+ ]
+}

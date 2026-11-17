@@ -1,0 +1,19 @@
+{
+ "id": "screen-chrome-05",
+ "tags": [
+  "chrome",
+  "chatgpt-sidebar",
+  "term-of-art"
+ ],
+ "scene": {
+  "kind": "chrome",
+  "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS#simple_requests"
+ },
+ "say": "If bar dot other only wants to allow foo dot example, does it send access control allow origin with that exact origin, or can it still use a wildcard?",
+ "expect": "If bar.other only wants to allow foo.example, does it send Access-Control-Allow-Origin with that exact origin, or can it still use a wildcard?",
+ "must": [
+  "bar.other",
+  "foo.example",
+  "Access-Control-Allow-Origin"
+ ]
+}

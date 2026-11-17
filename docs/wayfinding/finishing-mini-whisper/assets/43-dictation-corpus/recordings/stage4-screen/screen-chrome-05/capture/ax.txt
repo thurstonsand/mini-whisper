@@ -1,0 +1,29 @@
+developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS#simple_requests
+Web
+HTTP
+Guides
+Cross-Origin Resource Sharing (CORS)
+In this article
+What requests use CORS?
+Functional overview
+Examples of access control scenarios
+The HTTP response headers
+The HTTP request headers
+Specifications
+Browser compatibility
+See also
+fetchPromise
+.then((response)
+=> response.json())
+.then((data)
+=>
+{
+console
+.log(data);
+});
+This operation performs a simple exchange between the client and the server, using CORS headers to handle the privileges:
+Let's look at what the browser will send to the server in this case:
+HTTP
+"ChatGPT" started debugging this browser
+Medium
+ChatGPT

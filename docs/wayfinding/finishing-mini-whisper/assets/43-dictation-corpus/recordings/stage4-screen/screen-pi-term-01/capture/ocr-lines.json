@@ -1,0 +1,210 @@
+[
+  {
+    "confidence" : 1,
+    "height" : 13.278469890356039,
+    "text" : "thurstonsand - n - Liquid Glass review of the settings window - mini-whisper - pi --session-dir /tmp/pi-scenes --fork ~/.pi/agent/sessions/--Users-thurstonsand-Develop-mini-whisp..",
+    "width" : 1164.6511994949494,
+    "x" : 100.46509783178557,
+    "y" : 41.15902989425717
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.1590294241905,
+    "text" : "\"reference\"",
+    "width" : 78.13953335437711,
+    "x" : 59.53488439031002,
+    "y" : 70.91644214761152
+  },
+  {
+    "confidence" : 0.5,
+    "height" : 13.018867433071101,
+    "text" : "\"/tmp/1g/B_crop.png\"",
+    "width" : 141.39534450406848,
+    "x" : 148.83721137587278,
+    "y" : 70.91644228568109
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.077895700931503,
+    "text" : "\"description'",
+    "width" : 89.71342658354376,
+    "x" : 57.43830114973822,
+    "y" : 83.75932374228181
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.093749999999984,
+    "text" : "\"listRowBackground rejected: full-bleed square band, separators swallowed, hover fill lost\"",
+    "width" : 640,
+    "x" : 161.86046503279667,
+    "y" : 83.90624986643721
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.257159143686295,
+    "text" : "reference\": \"/tmp/1g/F_crop.png\",",
+    "width" : 230.69766677188554,
+    "x" : 65.11628280421982,
+    "y" : 126.71159053646403
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.175791710615147,
+    "text" : "\"description\": \"glassEffect on content rows renders as a grey outline - the HIG content-layer rule made visibl!%!",
+    "width" : 785.1162668350167,
+    "x" : 59.534889745282285,
+    "y" : 139.7304584652103
+  },
+  {
+    "confidence" : 0.5,
+    "height" : 14.878705441951777,
+    "text" : "reference\": \"/tmp/1g/E0_sheet_inset.png and /tmp/1g/E1_sheet_bar.png\",",
+    "width" : 491.1627560325477,
+    "x" : 65.11630415426855,
+    "y" : 180.64690040031792
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.093749999999984,
+    "text" : "\"description\": \"Sheet bottom bar: safeAreaInset vs safeAreaBar are visually identical, so no change'",
+    "width" : 699.5348888187431,
+    "x" : 61.39534621097734,
+    "y" : 195.3125000641882
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.229363530874288,
+    "text" : "reference\": \"/tmp/1g/G_crop.png\",",
+    "width" : 230.69766677188554,
+    "x" : 65.11628280421982,
+    "y" : 238.30188647917046
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.018867433071177,
+    "text" : "\"description\": \"MoreMenu with .menuStyle(.button) - bordered ellipsis matching neighbouring bordered buttons\"",
+    "width" : 764.6511994949494,
+    "x" : 59.53486527555423,
+    "y" : 251.320754961122
+  },
+  {
+    "confidence" : 0.3,
+    "height" : 16.738543450832378,
+    "text" : "\"referen' : \"https://developer.apple.com/design/human-interface-guidelines/materia%!% '",
+    "width" : 608.3720889450057,
+    "x" : 59.53489546548142,
+    "y" : 292.23719699830355
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.259096920490286,
+    "text" : "\"descriptio! ' \"\\\"Don't use Liquid Glass in the content layer\\\" and \\\"Use Liquid Glass effects sparingly\\\"\"",
+    "width" : 753.4883557800224,
+    "x" : 57.67442666835859,
+    "y" : 307.1159032090769
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.067300885915735,
+    "text" : "\"reference\": \"https://developer.apple.com/documentation/TechnologyOverviews/adopting-liquid-glass‚¿‚‚",
+    "width" : 690.2325775112233,
+    "x" : 61.395339067897,
+    "y" : 349.8437500793271
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.49999965727335,
+    "text" : "\"description\": \"Standard components adopt the material automaticallv when rebuilt against the new SDK\"",
+    "width" : 714.4186219837262,
+    "x" : 59.53487497727137,
+    "y" : 362.7812500952918
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.156418055295944,
+    "text" : "'reference\": \"$(xcrun --sdk macosx --show-sdk-path)/System/Library/Frameworks/SwiftUI.framework/.../arm64e-apple-macos.swiftinterface'‚",
+    "width" : 943.2558221099887,
+    "x" : 61.39534466706788,
+    "y" : 405.6873317807963
+  },
+  {
+    "confidence" : 0.5,
+    "height" : 17.52853536605836,
+    "text" : "\"descriptio! ' \"Authoritative macOs availability for safeAreaBar (:16986), ToolbarSpacer, GlassButtonStyle,",
+    "width" : 753.57489828844,
+    "x" : 57.63273828389777,
+    "y" : 416.9652752075433
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.075050622224797,
+    "text" : "and the macOS-unavailable hoverEffect/listRowHoverEffect\"",
+    "width" : 407.4418665824916,
+    "x" : 809.3023224346517,
+    "y" : 418.70619970348514
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.500000342726723,
+    "text" : "Report delivered to the parent. Stopping.",
+    "width" : 288.37208894500566,
+    "x" : 16.74418798550755,
+    "y" : 476.3437498714134
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.065363794565195,
+    "text" : "Package Updates Available",
+    "width" : 178.60465549593155,
+    "x" : 14.883718647072994,
+    "y" : 530.2499998324286
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.106047511100769,
+    "text" : "Package updates are available. Run pi update --extensions",
+    "width" : 400,
+    "x" : 16.744185947989497,
+    "y" : 545.1752023988563
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.159029424190578,
+    "text" : "Packages:",
+    "width" : 63.25581114969136,
+    "x" : 16.744187250735713,
+    "y" : 560.0539084336257
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.239723265171081,
+    "text" : "- pi-sessions",
+    "width" : 93.02325555906286,
+    "x" : 16.744186080933684,
+    "y" : 573.0727765010157
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.1590294241905,
+    "text" : "@thurstonsand/pi-agent-switchboard",
+    "width" : 240,
+    "x" : 29.76744176744184,
+    "y" : 587.9514825881618
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.018867433071101,
+    "text" : "pi-doppelclaude",
+    "width" : 109.76744440937148,
+    "x" : 27.906975348087073,
+    "y" : 600.9703506333503
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.249410092830606,
+    "text" : "Claude Opus 5 / Emini-whisper / Emain /",
+    "width" : 293.95348888187425,
+    "x" : 29.767441553314228,
+    "y" : 641.6562500314852
+  }
+]

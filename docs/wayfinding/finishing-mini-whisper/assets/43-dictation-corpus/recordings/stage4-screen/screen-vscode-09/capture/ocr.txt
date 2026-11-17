@@ -1,0 +1,79 @@
+FocusedFieldReader.swift - Modified
+08 0
+I Retention.swift M
+Profiles.swift
+• HotkeyListener.swift
+• AudioVault.swift M
+• FocusedFieldReader.swift M X
+Chat
+Users > thurstonsand > Develop > mini-whisper-expanded-context › MiniWhisper >
+FocusedFieldReader.swift
+Sessions
+12
+enum FocusedFieldReader f
+111
+private struct Session {
+148
+func deepestFocusedElement(of application: AXUIElement) > AXUIElement? {
+154
+for
+in 0 ..< maximumFocusDepth {
+158
+element =
+child
+159
+160
+return element
+161
+162
+163
+func read(_ target: DeliveryTarget)
+> ContextCapture {
+164
+guard AXIsProcessTrusted() else {
+165
+return .unavailable(.accessibilityPermissionMissing)
+166
+Private
+167
+guard let processID = target.processID else {
+168
+return .unavailable(.noFocusedElement)
+169
+170
+let bundleID = target.app?.bundleID
+171
+guard !TerminalBundleIDs.contains(bundleID) else
+172
+return .unavailable(.gridSemantics(bundleID: bundleID))
+173
+174
+175
+// A press that beat a Chromium wake captured only the web area; walking down from it now,
+176
+// with the tree awake, still finds the field inside it.
+Tip: Try the Plan agent to research and
+177
+let focused: AXUIElement
+plan before implementing changes.
+178
+if let element = target.element {
++ • FocusedFieldReader.swift
+179
+focused = element. raw
+180
+} else {
+181
+let application = AXUIElementCreateApplication (processID)
+182
+if let blocked = arm(application, cap: firstContactTimeout, for: .focusedElement) {
+( Agent 8 Auto | Balance 0,
+183
+return .unavailable(blocked)
+184
+• Local • Default permissions
+185
+Switch AXRead.element(application. kAXFocusedUIElementAttribute) f
+Ln 170, Col 1
+Spaces: 2 UTF-8 LF (} Swift
+89

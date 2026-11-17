@@ -1,0 +1,20 @@
+{
+ "id": "screen-vscode-10",
+ "tags": [
+  "vscode",
+  "identifier"
+ ],
+ "scene": {
+  "kind": "vscode",
+  "file": "Packages/ASREngine/Sources/ASREngine/VocabularyBoost.swift",
+  "line": 80
+ },
+ "say": "Is the CTC keyword spotter loaded once per dictation? CTC models dot load direct looks expensive, and min similarity should come from recognition boost thresholds.",
+ "expect": "Is the CtcKeywordSpotter loaded once per dictation? CtcModels.loadDirect looks expensive, and minSimilarity should come from RecognitionBoostThresholds.",
+ "must": [
+  "CtcKeywordSpotter",
+  "CtcModels.loadDirect",
+  "minSimilarity",
+  "RecognitionBoostThresholds"
+ ]
+}

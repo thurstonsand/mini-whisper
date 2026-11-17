@@ -1,0 +1,1307 @@
+[
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 374,
+    "y" : 41
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 400,
+    "y" : 41
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 17,
+    "x" : 866,
+    "y" : 41
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 1171,
+    "y" : 41
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 1197,
+    "y" : 41
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 1223,
+    "y" : 41
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 1249,
+    "y" : 41
+  },
+  {
+    "height" : 24,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 24,
+    "x" : 14,
+    "y" : 75
+  },
+  {
+    "height" : 24,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 24,
+    "x" : 14,
+    "y" : 119
+  },
+  {
+    "height" : 24,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 24,
+    "x" : 14,
+    "y" : 163
+  },
+  {
+    "height" : 24,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 24,
+    "x" : 14,
+    "y" : 207
+  },
+  {
+    "height" : 24,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 24,
+    "x" : 14,
+    "y" : 251
+  },
+  {
+    "height" : 24,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 24,
+    "x" : 14,
+    "y" : 610
+  },
+  {
+    "height" : 24,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 24,
+    "x" : 14,
+    "y" : 654
+  },
+  {
+    "height" : 19,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 1,
+    "x" : 53,
+    "y" : 72
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "ScreenContextClient.swift",
+    "web" : true,
+    "width" : 1,
+    "x" : 53,
+    "y" : 74
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "U",
+    "web" : true,
+    "width" : 1,
+    "x" : 53,
+    "y" : 75
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 1,
+    "x" : 53,
+    "y" : 74
+  },
+  {
+    "height" : 19,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 1,
+    "x" : 53,
+    "y" : 72
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "TmuxPanes.swift",
+    "web" : true,
+    "width" : 1,
+    "x" : 53,
+    "y" : 74
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "M",
+    "web" : true,
+    "width" : 1,
+    "x" : 53,
+    "y" : 75
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 1,
+    "x" : 53,
+    "y" : 74
+  },
+  {
+    "height" : 19,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 1,
+    "x" : 53,
+    "y" : 72
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "AppFeature+Delivery.swift",
+    "web" : true,
+    "width" : 1,
+    "x" : 53,
+    "y" : 74
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "M",
+    "web" : true,
+    "width" : 1,
+    "x" : 53,
+    "y" : 75
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 1,
+    "x" : 53,
+    "y" : 74
+  },
+  {
+    "height" : 19,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 1,
+    "x" : 53,
+    "y" : 72
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "CleanupPrompt.swift",
+    "web" : true,
+    "width" : 1,
+    "x" : 53,
+    "y" : 74
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "M",
+    "web" : true,
+    "width" : 1,
+    "x" : 53,
+    "y" : 75
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 1,
+    "x" : 53,
+    "y" : 74
+  },
+  {
+    "height" : 19,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 6,
+    "x" : 53,
+    "y" : 72
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "Retention.swift",
+    "web" : true,
+    "width" : 91,
+    "x" : 61,
+    "y" : 74
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "M",
+    "web" : true,
+    "width" : 10,
+    "x" : 157,
+    "y" : 75
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 173,
+    "y" : 74
+  },
+  {
+    "height" : 19,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 20,
+    "x" : 203,
+    "y" : 72
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "Profiles.swift",
+    "web" : true,
+    "width" : 79,
+    "x" : 225,
+    "y" : 74
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 17,
+    "x" : 309,
+    "y" : 74
+  },
+  {
+    "height" : 19,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 20,
+    "x" : 340,
+    "y" : 72
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "HotkeyListener.swift",
+    "web" : true,
+    "width" : 124,
+    "x" : 362,
+    "y" : 74
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 17,
+    "x" : 491,
+    "y" : 74
+  },
+  {
+    "height" : 19,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 20,
+    "x" : 522,
+    "y" : 72
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "AudioVault.swift",
+    "web" : true,
+    "width" : 97,
+    "x" : 544,
+    "y" : 74
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "M",
+    "web" : true,
+    "width" : 10,
+    "x" : 646,
+    "y" : 75
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 662,
+    "y" : 74
+  },
+  {
+    "height" : 19,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 20,
+    "x" : 692,
+    "y" : 72
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "FocusedFieldReader.swift",
+    "web" : true,
+    "width" : 156,
+    "x" : 714,
+    "y" : 74
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "M",
+    "web" : true,
+    "width" : 10,
+    "x" : 875,
+    "y" : 75
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 891,
+    "y" : 74
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 930,
+    "y" : 74
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 956,
+    "y" : 74
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "Users",
+    "web" : true,
+    "width" : 36,
+    "x" : 69,
+    "y" : 102
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 17,
+    "x" : 104,
+    "y" : 101
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "thurstonsand",
+    "web" : true,
+    "width" : 81,
+    "x" : 120,
+    "y" : 102
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 17,
+    "x" : 200,
+    "y" : 101
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "Develop",
+    "web" : true,
+    "width" : 50,
+    "x" : 216,
+    "y" : 102
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 17,
+    "x" : 265,
+    "y" : 101
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "mini-whisper-expanded-context",
+    "web" : true,
+    "width" : 196,
+    "x" : 281,
+    "y" : 102
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 17,
+    "x" : 476,
+    "y" : 101
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "MiniWhisper",
+    "web" : true,
+    "width" : 76,
+    "x" : 492,
+    "y" : 102
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 17,
+    "x" : 567,
+    "y" : 101
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 20,
+    "x" : 583,
+    "y" : 99
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "FocusedFieldReader.swift",
+    "web" : true,
+    "width" : 156,
+    "x" : 605,
+    "y" : 102
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "12",
+    "web" : true,
+    "width" : 14,
+    "x" : 79,
+    "y" : 122
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 100,
+    "y" : 121
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "111",
+    "web" : true,
+    "width" : 22,
+    "x" : 71,
+    "y" : 140
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 100,
+    "y" : 139
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "148",
+    "web" : true,
+    "width" : 22,
+    "x" : 71,
+    "y" : 158
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 100,
+    "y" : 157
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "154",
+    "web" : true,
+    "width" : 22,
+    "x" : 71,
+    "y" : 176
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 100,
+    "y" : 175
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "enum",
+    "web" : true,
+    "width" : 29,
+    "x" : 119,
+    "y" : 122
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : " ",
+    "web" : true,
+    "width" : 8,
+    "x" : 148,
+    "y" : 122
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "FocusedFieldReader",
+    "web" : true,
+    "width" : 131,
+    "x" : 155,
+    "y" : 122
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : " ",
+    "web" : true,
+    "width" : 8,
+    "x" : 285,
+    "y" : 122
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "{",
+    "web" : true,
+    "width" : 8,
+    "x" : 292,
+    "y" : 122
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "  ",
+    "web" : true,
+    "width" : 15,
+    "x" : 119,
+    "y" : 140
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "private",
+    "web" : true,
+    "width" : 52,
+    "x" : 133,
+    "y" : 140
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : " ",
+    "web" : true,
+    "width" : 8,
+    "x" : 184,
+    "y" : 140
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "struct",
+    "web" : true,
+    "width" : 44,
+    "x" : 191,
+    "y" : 140
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : " ",
+    "web" : true,
+    "width" : 7,
+    "x" : 235,
+    "y" : 140
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "Session",
+    "web" : true,
+    "width" : 51,
+    "x" : 242,
+    "y" : 140
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : " ",
+    "web" : true,
+    "width" : 8,
+    "x" : 292,
+    "y" : 140
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "{",
+    "web" : true,
+    "width" : 7,
+    "x" : 300,
+    "y" : 140
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "    ",
+    "web" : true,
+    "width" : 29,
+    "x" : 119,
+    "y" : 158
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "func",
+    "web" : true,
+    "width" : 29,
+    "x" : 148,
+    "y" : 158
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : " ",
+    "web" : true,
+    "width" : 8,
+    "x" : 177,
+    "y" : 158
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "deepestFocusedElement",
+    "web" : true,
+    "width" : 152,
+    "x" : 184,
+    "y" : 158
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "(",
+    "web" : true,
+    "width" : 7,
+    "x" : 336,
+    "y" : 158
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "of",
+    "web" : true,
+    "width" : 15,
+    "x" : 343,
+    "y" : 158
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : " ",
+    "web" : true,
+    "width" : 8,
+    "x" : 357,
+    "y" : 158
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "application",
+    "web" : true,
+    "width" : 80,
+    "x" : 365,
+    "y" : 158
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : ": AXUIElement",
+    "web" : true,
+    "width" : 95,
+    "x" : 444,
+    "y" : 158
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : ")",
+    "web" : true,
+    "width" : 8,
+    "x" : 538,
+    "y" : 158
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : " ",
+    "web" : true,
+    "width" : 8,
+    "x" : 545,
+    "y" : 158
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "->",
+    "web" : true,
+    "width" : 14,
+    "x" : 553,
+    "y" : 158
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : " AXUIElement",
+    "web" : true,
+    "width" : 87,
+    "x" : 567,
+    "y" : 158
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "?",
+    "web" : true,
+    "width" : 7,
+    "x" : 654,
+    "y" : 158
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : " ",
+    "web" : true,
+    "width" : 8,
+    "x" : 661,
+    "y" : 158
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "{",
+    "web" : true,
+    "width" : 8,
+    "x" : 668,
+    "y" : 158
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "      ",
+    "web" : true,
+    "width" : 44,
+    "x" : 119,
+    "y" : 176
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "for",
+    "web" : true,
+    "width" : 23,
+    "x" : 162,
+    "y" : 176
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : " ",
+    "web" : true,
+    "width" : 8,
+    "x" : 184,
+    "y" : 176
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "_",
+    "web" : true,
+    "width" : 8,
+    "x" : 191,
+    "y" : 176
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : " ",
+    "web" : true,
+    "width" : 8,
+    "x" : 198,
+    "y" : 176
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "in",
+    "web" : true,
+    "width" : 15,
+    "x" : 206,
+    "y" : 176
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : " ",
+    "web" : true,
+    "width" : 8,
+    "x" : 220,
+    "y" : 176
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "0",
+    "web" : true,
+    "width" : 8,
+    "x" : 227,
+    "y" : 176
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : " ",
+    "web" : true,
+    "width" : 7,
+    "x" : 235,
+    "y" : 176
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "..<",
+    "web" : true,
+    "width" : 22,
+    "x" : 242,
+    "y" : 176
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : " maximumFocusDepth ",
+    "web" : true,
+    "width" : 137,
+    "x" : 264,
+    "y" : 176
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "{",
+    "web" : true,
+    "width" : 8,
+    "x" : 401,
+    "y" : 176
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "Chat",
+    "web" : true,
+    "width" : 29,
+    "x" : 997,
+    "y" : 75
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 1226,
+    "y" : 74
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 1252,
+    "y" : 74
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "Sessions",
+    "web" : true,
+    "width" : 54,
+    "x" : 997,
+    "y" : 102
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 1173,
+    "y" : 101
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 1199,
+    "y" : 101
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 1225,
+    "y" : 101
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 1251,
+    "y" : 101
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "Tip:",
+    "web" : true,
+    "width" : 24,
+    "x" : 1006,
+    "y" : 512
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : " Try the ",
+    "web" : true,
+    "width" : 47,
+    "x" : 1029,
+    "y" : 512
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "Plan agent",
+    "web" : true,
+    "width" : 61,
+    "x" : 1075,
+    "y" : 512
+  },
+  {
+    "height" : 33,
+    "role" : "AXStaticText",
+    "text" : " to research and plan before implementing changes.",
+    "web" : true,
+    "width" : 221,
+    "x" : 1006,
+    "y" : 512
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 1145,
+    "y" : 490
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 1173,
+    "y" : 490
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 1201,
+    "y" : 490
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 1229,
+    "y" : 490
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 12,
+    "x" : 1009,
+    "y" : 563
+  },
+  {
+    "height" : 17,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 17,
+    "x" : 1023,
+    "y" : 561
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "FocusedFieldReader.swift",
+    "web" : true,
+    "width" : 135,
+    "x" : 1043,
+    "y" : 563
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 12,
+    "x" : 1009,
+    "y" : 632
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 12,
+    "x" : 1036,
+    "y" : 632
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "Agent",
+    "web" : true,
+    "width" : 31,
+    "x" : 1054,
+    "y" : 632
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 12,
+    "x" : 1101,
+    "y" : 632
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "Auto",
+    "web" : true,
+    "width" : 25,
+    "x" : 1119,
+    "y" : 632
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 12,
+    "x" : 1212,
+    "y" : 632
+  },
+  {
+    "height" : 12,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 12,
+    "x" : 1238,
+    "y" : 633
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 12,
+    "x" : 1007,
+    "y" : 665
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "Local",
+    "web" : true,
+    "width" : 28,
+    "x" : 1025,
+    "y" : 665
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 12,
+    "x" : 1067,
+    "y" : 665
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "Default permissions",
+    "web" : true,
+    "width" : 104,
+    "x" : 1085,
+    "y" : 665
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 48,
+    "y" : 698
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : " 0 ",
+    "web" : true,
+    "width" : 15,
+    "x" : 64,
+    "y" : 699
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 17,
+    "x" : 78,
+    "y" : 698
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : " 0",
+    "web" : true,
+    "width" : 12,
+    "x" : 94,
+    "y" : 699
+  }
+]

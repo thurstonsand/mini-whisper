@@ -1,0 +1,29 @@
+{
+  "appName" : "Code",
+  "axCapped" : false,
+  "axUnplaced" : 4088,
+  "axVisited" : 484,
+  "bundleID" : "com.microsoft.VSCode",
+  "capturedAt" : 816034775.054946,
+  "focusedFrame" : [
+    1008,
+    591,
+    240,
+    21
+  ],
+  "focusedRole" : "AXTextArea",
+  "screenshotCandidates" : 1,
+  "screenshotTitle" : "AudioVault.swift — Modified",
+  "timingsMs" : {
+    "ax" : 52.49275,
+    "ocr" : 220.8435,
+    "screenshot" : 128.664584
+  },
+  "windowFrame" : [
+    0,
+    30,
+    1280,
+    690
+  ],
+  "windowTitle" : "AudioVault.swift — Modified"
+}

@@ -1,0 +1,51 @@
+{
+ "audio": {
+  "byteCount": 567296,
+  "durationSeconds": 8.8
+ },
+ "createdAt": 816035387.657415,
+ "delivery": {
+  "method": "pasted",
+  "text": "Rename carriesScreenContext to something shorter, and have systemMessage assert that builtIn still contains the fieldContextRule."
+ },
+ "fieldContext": {
+  "after": "\n",
+  "afterWasTruncated": false,
+  "before": "",
+  "beforeWasTruncated": false,
+  "role": "AXTextArea",
+  "selected": "",
+  "selectedRange": [
+   0,
+   0
+  ],
+  "selectionWasTruncated": false
+ },
+ "id": "6A78B792-E610-4D7B-BDD0-42A86F6A29CD",
+ "original": {
+  "cleanup": {
+   "disposition": {
+    "kind": "cleaned",
+    "text": "Rename carriesScreenContext to something shorter, and have systemMessage assert that builtIn still contains the fieldContextRule."
+   },
+   "durationSeconds": 3.566240072250366,
+   "endpoint": "https://api.anthropic.com/v1",
+   "model": "claude-haiku-5-5"
+  },
+  "engine": "FluidInference/parakeet-tdt-0.6b-v2-coreml@ee09c569f73759e6d44c9bd16766f477b2b36d39",
+  "text": "Rename carry screen context to something shorter, and have system message assert that built-in still contains the field context rule.",
+  "transcribedAt": 816035387.802506
+ },
+ "retranscriptions": [],
+ "screenContext": {
+  "recognizedText": "CleanupPrompt.swift - Modified\n08\n• CleanupPrompt.swift M\nRetention.swift M\n• Profiles.swift\n• HotkeyListener.swift\n• AudioVault.swift M\nChat\nUsers > thurstonsand > Develop > mini-whisper-expanded-context > Packages > TranscriptCleanup > Sources > TranscriptCleanup >\n• CleanupPro\nSessions\n43\npublic enum CleanupPrompt {\nCleanupRequest\n- Remove only tiller sounds, stutters, duplicate words, abandoned starts, and retracted wording. Del Lifecycle\n86\nResolve every self-correction or restart, even after an engine-written ellipsis or cues such as \"public \"hold on\n87\nCorrect every plain grammar slip, including subjectfverb agreement and pronoun case, without broad'\n88\nRestore normal capitalization and punctuation. Remove spurious engine punctuation, including a com cleanupprompt\n89\nPublic\n90\nConvert every spoken punctuation command to exactly its mark and delete the command words: comma,\n91\nInsert exactly one blank line at every clear turn from one developed question, decision, problem,\n92\nConvert every spoken symbol name, including repeated symbols and symbols directly before flags, and\n93\nTreat every spelling aside as a mandatory respelling. Identify the modified word, then replace the\n94\n- Use a DICTIONARY entrys exact spelling and casing whenever context clearly denotes that product of\n95\n- Use FOCUSED_TEXT_CONTEXT and TARGET_BUNDLE_ID only to choose spelling, casing, identifier joining,\n96\n97\nProcess only TRANSCRIPT. Before emitting one final version, silently verify that the whole dictation\n98\n99\n100\n/// The built-in prompt, plus the user's own instructions when there are any. The built-in rules\n101\n/// are defaults for a user who said nothing, so the instructions outrank them. They are appended\n102\n/// untagged, because tagging them would make the prompt's rule on dictated requests disown them;\nPrivate:\n103\n/// the sentence that introduces them appears only when something follows it.\n104\npublic static func systemMessage(\n105\nadditionalInstructions: String, carriesScreenContext: Bool,\n106\n> String {\nTip: Try the Plan agent to research and\n107\nlet rules: String\nplan before implementing changes.\n108\nif carriesScreenContext\nprecondition(builtIn.contains(fieldContextRule), \"builtIn lost the rule screen context edits\")\n+ >\n109\nCleanupPrompt.swift\n110\nrules\n= builtIn.replacing(fieldContextRule, with: screenContextRule)\n111\nelse f\n112\nrules = builtIn\n( Agent 8 Auto | Balance 0,\n113\n114\nlet instructions\n= additionalInstructions.trimmingCharacters (in: .whitespacesAndNewlines)\n• Local • Default permissions\n115\nquard !instructions. isEmotv else f\nDOAO\nLn 100, Col 1\nSpaces: 2 UTF-8 LF (} Swift",
+  "windowTitle": "CleanupPrompt.swift — Modified"
+ },
+ "screenshot": {
+  "byteCount": 261027
+ },
+ "targetApp": {
+  "bundleID": "com.microsoft.VSCode",
+  "name": "Code"
+ }
+}

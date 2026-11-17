@@ -1,0 +1,82 @@
+SpeechGate.swift
+08
+istener.swift
+AudioVault.swift M
+• FocusedFieldReader.swift M
+VocabularyBoost.swift
+SpeechGate.swift X
+Chat
+Users > thurstonsand > Develop > mini-whisper-expanded-context > Packages > ASREngine > Sources > ASREngine >
+• SpeechGate.swift
+Sessions
+17
+final class SpeechGate: @unchecked Sendable {
+40
+SpeechGate
+41
+/// Nil when the audio may proceed to an engine; otherwise the outcome it ends with.
+Lifecycle
+42
+func refusal(of samples: [Float], sampleRate: Double) async throws > Transcriptionoutcome? {
+Internal
+43
+precondition (sampleRate >
+44
+let duration = Double(samples. count) / sampleRate
+45
+guard duration ›= minimumUtteranceDuration else {
+46
+gateLogger.notice(
+Private
+47
+"Gate discarded recording below duration floor: duration=\(duration, format: "fixed(precision: 3))s'
+48
+49
+return . tooShort
+50
+51
+guard let manager
+= lock.withLock({ manager }) else {
+52
+throw ASREngineError.notReady
+53
+54
+let
+results = try await manager.process(GateFraming.zeroPaddedCopy(of: samples))
+55
+let
+segments = await manager.segmentSpeech (
+56
+from:
+results, totalSamples: samples.count,
+57
+config: configuration. segmentationConfiguration,
+58
+59
+return segments.isEmpty ?
+. noSpeech : nil
+601
+61
+Tip: Try the Plan agent to research and
+62
+// MARK: Private
+plan before implementing changes.
+63
+private let
++ *
+library: ModelLibrary
+SpeechGate, swift
+65
+private let configuration: GateConfiguration
+66
+private let lock = NSLock()
+67
+private var
+manager: VadManager?
+( Agent 8 Auto | Balance 0,
+68
+69
+• Local • Default permissions
+Ln 55, Col 1
+Spaces: 2 UTF-8 LF (} Swift
+€8

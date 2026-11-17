@@ -1,0 +1,95 @@
+Profiles.swift
+08
+uxPanes.swift M
+AppFeature+Delivery.swift M
+• CleanupPrompt.swift M
+Retention.swift M
+Profiles.swift X
+Chat
+Users > thurstonsand > Develop > mini-whisper-expanded-context > Packages > AppSettings > Sources > AppSettings >
+Profiles.swift
+Sessions
+public struct Profile: Equatable, Identifiable, Sendable f
+185
+public let engineCredential: CredentialSlot?
+186
+/// Whether recognition itself is biased toward the dictionary. Off wherever an LLM reads the
+187
+/// DICTIONARY block, because there the sidecar only adds traps.
+188
+public let boostsVocabulary: Bool
+CredentialSlot
+189
+public let cleanup: CleanupLeg
+Lifecycle
+Public®
+190
+/// The endpoint the pane edits. Custom keeps its own while its cleanup is off, so turning it
+EndpointLeg
+191
+/// back on is one toggle rather than a form to fill again. Nil where cleanup runs on this Mac.
+CleanupLeg
+192
+public let endpointLeg: EndpointLeg?
+endpoint
+a factory profile ships with. Nil for Custom, which has no defaults to return
+FactoryEndpoint
+193
+/// The
+194
+/// to, and for Offline, which has no endpoint at all.
+195
+public let factory: FactoryEndpoint?
+196
+/// Which of a factory profile's
+fields the user changed. Each one resets on its own.
+197
+public let isEndpointOverridden: Bool
+198
+public let isModeloverridden: Bool
+199
+200
+public var isCustom: Bool
+EndpointOverride
+Lifecycle
+201
+id = .custom
+Public
+202
+Litecyclerofile Settings
+203
+Public™
+204
+/// Every key the profile needs, engine first.
+205
+public var credentials: [CredentialSlot] {
+ProfileSettinas
+206
+guard case let .endpoint (leg) = cleanup else {
+Tip: Try the Plan agent to research and
+Public
+207
+return [engineCredentiall.compactMap(\.self)
+plan before implementing changes.
+208
+return [engineCredential, leg.credentiall.compactMap(\.self)
++ *
+209
+Profiles.swift
+210
+211
+212
+/// Every model the profile needs on disk.
+) Agent 8 Auto | Balance
+213
+public var assets:
+[ModelAssetl f
+214
+cleanup == .local ? engine.assets +
+[.s1Mini] : engine.assets
+• Local • Default permissions
+Private
+215
+DOAO
+Ln 200, Col 1
+Spaces: 2 UTF-8 LF () Swift

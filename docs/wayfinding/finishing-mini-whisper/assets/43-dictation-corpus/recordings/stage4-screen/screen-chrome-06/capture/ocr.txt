@@ -1,0 +1,44 @@
+Cross-Origin Resource Sharin
++
+• Ask Gemini
+developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS#simple_requests
+ChatGPT
+7 x
+"ChatGPT" started debugging this browser
+Cancel
+Chat
+Work
+// mdn
+) =
+Web > HTTP > Guides > Cross-Origin Resource Sharing (CORS)
+D Theme
+*A English (US)
+} ;
+In this article
+This operation performs a simple exchange between the client and the
+What requests use
+server, using CORS headers to handle the privileges:
+CORS?
+Functional overview
+Examples of access
+Client
+Server
+control scenarios
+Origin: https://foo.example
+URL: https://bar.other
+The HTTP response
+GET / resources/public-data/ HTTP/1.1
+headers
+Origin: https://foo.example
+The HTTP request
+HTTP /1.1 200 OK
+headers
+Access-Control-Allow-Origin: *
+Specifications
+Browser compatibility
+Let's look at what the browser will send to the server in this case:
+See also
++
+Medium v
+HTTP
+Copy

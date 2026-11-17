@@ -1,0 +1,33 @@
+── 1: pi ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+So: an unreadable history.json — corrupt, or written by a newer build and rejected by the version gate — survives launch untouched, and is then silently
+overwritten by the first dictation with a log containing exactly one entry. The user's history is gone with an .error line in the unified log as the only
+trace.
+That defeats the thing HistoryLog.init(from:) was built to do. Its comment says decoding "rejects files from a version it does not know rather than
+misreading them" — but rejecting the read while permitting the write is worse than misreading, because misreading is recoverable and truncation is not. The
+postmortem this whole ticket came from was about 109 unrecoverable WAVs. This is the same failure with the transcripts.
+The detection already exists two lines away. Consult it before the write: if loadError != nil, drop the entry (with its audio) rather than clobber the file,
+or move the unreadable file aside first and start clean deliberately. Either is defensible; silently overwriting is not.
+Everything else clears
+The structural work is sound, and I checked the invariant rather than taking it on faith.
+Removing the equality guard is safe: an append requires pendingDictation with isFinishing, which requires a dictation that set dictationInFlight = true and
+cancelled maintenance on the way in; maintenance only starts when dictationInFlight is false; the reducer is serialized. There is no interleaving left for
+the guard to catch. The narrow window where cancellation lands after the second checkCancellation() delivers a Completed computed from a log that has not
+been appended to yet, so the replace is still correct.
+.onChange(of: \.dictationInFlight) is attached to the Reduce and dictationInFlight is mutated nowhere else, so every clearing path reaches it — including the
+early-drop guard inside finishDictation. Eight call sites became one. activeHistoryMaintenance is cleared when deferred at line 301. CancellationError
+returns silently. storesAudio states the predicate once and both uses read from it.
+Non-blocking, for later: AppFeatureTests.swift is 999 lines. That is not under the threshold, that is balanced on it.
+Fix the write-path load-error check and this is approved.
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Package Updates Available
+Package updates are available. Run pi update --extensions
+Packages:
+- @thurstonsand/pi-agent-switchboard
+- pi-doppelclaude
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+✴ Claude Opus 5 /  mini-whisper /  main / [━━━━━━33%────────────]
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+>
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+pi3  pi                                                                                                                                             pod153
+pi3:pi

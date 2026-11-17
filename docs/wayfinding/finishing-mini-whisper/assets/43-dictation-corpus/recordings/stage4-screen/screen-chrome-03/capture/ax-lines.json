@@ -1,0 +1,416 @@
+[
+  {
+    "height" : 24,
+    "role" : "AXTextField",
+    "text" : "postgresql.org/docs/current/routine-vacuuming.html#VACUUM-FOR-WRAPAROUND",
+    "web" : false,
+    "width" : 795,
+    "x" : 158,
+    "y" : 81
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "PostgreSQL",
+    "web" : true,
+    "width" : 79,
+    "x" : 75,
+    "y" : 173
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "'s ",
+    "web" : true,
+    "width" : 14,
+    "x" : 153,
+    "y" : 173
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "MVCC",
+    "web" : true,
+    "width" : 41,
+    "x" : 167,
+    "y" : 173
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : " transaction semantics depend on being able to compare transaction ID (",
+    "web" : true,
+    "width" : 488,
+    "x" : 207,
+    "y" : 173
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "XID",
+    "web" : true,
+    "width" : 23,
+    "x" : 695,
+    "y" : 173
+  },
+  {
+    "height" : 42,
+    "role" : "AXStaticText",
+    "text" : ") numbers: a row version with an insertion XID greater than the current transaction's XID is ",
+    "web" : true,
+    "width" : 727,
+    "x" : 75,
+    "y" : 173
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "“",
+    "web" : true,
+    "width" : 6,
+    "x" : 597,
+    "y" : 195
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "in the future",
+    "web" : true,
+    "width" : 84,
+    "x" : 602,
+    "y" : 195
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "”",
+    "web" : true,
+    "width" : 5,
+    "x" : 686,
+    "y" : 195
+  },
+  {
+    "height" : 63,
+    "role" : "AXStaticText",
+    "text" : " and should not be visible to the current transaction. But since transaction IDs have limited size (32 bits) a cluster that runs for a long time (more than 4 billion transactions) would suffer ",
+    "web" : true,
+    "width" : 742,
+    "x" : 75,
+    "y" : 195
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "transaction ID wraparound",
+    "web" : true,
+    "width" : 181,
+    "x" : 456,
+    "y" : 238
+  },
+  {
+    "height" : 106,
+    "role" : "AXStaticText",
+    "text" : ": the XID counter wraps around to zero, and all of a sudden transactions that were in the past appear to be in the future — which means their output become invisible. In short, catastrophic data loss. (Actually the data is still there, but that's cold comfort if you cannot get at it.) To avoid this, it is necessary to vacuum every table in every database at least once every two billion transactions.",
+    "web" : true,
+    "width" : 735,
+    "x" : 75,
+    "y" : 238
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "The reason that periodic vacuuming solves the problem is that ",
+    "web" : true,
+    "width" : 422,
+    "x" : 75,
+    "y" : 362
+  },
+  {
+    "height" : 17,
+    "role" : "AXStaticText",
+    "text" : "VACUUM",
+    "web" : true,
+    "width" : 52,
+    "x" : 497,
+    "y" : 364
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : " will mark rows as ",
+    "web" : true,
+    "width" : 123,
+    "x" : 549,
+    "y" : 362
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "frozen",
+    "web" : true,
+    "width" : 44,
+    "x" : 672,
+    "y" : 362
+  },
+  {
+    "height" : 85,
+    "role" : "AXStaticText",
+    "text" : ", indicating that they were inserted by a transaction that committed sufficiently far in the past that the effects of the inserting transaction are certain to be visible to all current and future transactions. Normal XIDs are compared using modulo-2",
+    "web" : true,
+    "width" : 744,
+    "x" : 75,
+    "y" : 362
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "32",
+    "web" : true,
+    "width" : 13,
+    "x" : 140,
+    "y" : 426
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : " arithmetic. This means that for every normal XID, there are two billion XIDs that are ",
+    "web" : true,
+    "width" : 566,
+    "x" : 152,
+    "y" : 427
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "“",
+    "web" : true,
+    "width" : 6,
+    "x" : 717,
+    "y" : 427
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "older",
+    "web" : true,
+    "width" : 36,
+    "x" : 722,
+    "y" : 427
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "”",
+    "web" : true,
+    "width" : 6,
+    "x" : 757,
+    "y" : 427
+  },
+  {
+    "height" : 42,
+    "role" : "AXStaticText",
+    "text" : " and two billion that are ",
+    "web" : true,
+    "width" : 717,
+    "x" : 75,
+    "y" : 427
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "“",
+    "web" : true,
+    "width" : 6,
+    "x" : 205,
+    "y" : 449
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "newer",
+    "web" : true,
+    "width" : 43,
+    "x" : 210,
+    "y" : 449
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "”",
+    "web" : true,
+    "width" : 6,
+    "x" : 252,
+    "y" : 449
+  },
+  {
+    "height" : 42,
+    "role" : "AXStaticText",
+    "text" : "; another way to say it is that the normal XID space is circular with no endpoint. Therefore, once a row version has been created with a particular normal XID, the row version will appear to be ",
+    "web" : true,
+    "width" : 739,
+    "x" : 75,
+    "y" : 449
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "“",
+    "web" : true,
+    "width" : 6,
+    "x" : 75,
+    "y" : 492
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "in the past",
+    "web" : true,
+    "width" : 72,
+    "x" : 80,
+    "y" : 492
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "”",
+    "web" : true,
+    "width" : 6,
+    "x" : 151,
+    "y" : 492
+  },
+  {
+    "height" : 63,
+    "role" : "AXStaticText",
+    "text" : " for the next two billion transactions, no matter which normal XID we are talking about. If the row version still exists after more than two billion transactions, it will suddenly appear to be in the future. To prevent this, ",
+    "web" : true,
+    "width" : 731,
+    "x" : 75,
+    "y" : 492
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "PostgreSQL",
+    "web" : true,
+    "width" : 78,
+    "x" : 163,
+    "y" : 535
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : " reserves a special XID, ",
+    "web" : true,
+    "width" : 156,
+    "x" : 241,
+    "y" : 535
+  },
+  {
+    "height" : 18,
+    "role" : "AXStaticText",
+    "text" : "FrozenTransactionId",
+    "web" : true,
+    "width" : 165,
+    "x" : 397,
+    "y" : 537
+  },
+  {
+    "height" : 65,
+    "role" : "AXStaticText",
+    "text" : ", which does not follow the normal XID comparison rules and is always considered older than every normal XID. Frozen row versions are treated as if the inserting XID were ",
+    "web" : true,
+    "width" : 745,
+    "x" : 75,
+    "y" : 535
+  },
+  {
+    "height" : 17,
+    "role" : "AXStaticText",
+    "text" : "FrozenTransactionId",
+    "web" : true,
+    "width" : 165,
+    "x" : 227,
+    "y" : 582
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : ", so that they will appear to be ",
+    "web" : true,
+    "width" : 206,
+    "x" : 392,
+    "y" : 580
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "“",
+    "web" : true,
+    "width" : 5,
+    "x" : 598,
+    "y" : 580
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "in the past",
+    "web" : true,
+    "width" : 71,
+    "x" : 603,
+    "y" : 580
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "”",
+    "web" : true,
+    "width" : 6,
+    "x" : 673,
+    "y" : 580
+  },
+  {
+    "height" : 64,
+    "role" : "AXStaticText",
+    "text" : " to all normal transactions regardless of wraparound issues, and so such row versions will be valid until deleted, no matter how long that is.",
+    "web" : true,
+    "width" : 727,
+    "x" : 75,
+    "y" : 580
+  },
+  {
+    "height" : 18,
+    "role" : "AXStaticText",
+    "text" : "Note",
+    "web" : true,
+    "width" : 46,
+    "x" : 425,
+    "y" : 694
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "\"ChatGPT\" started debugging this browser",
+    "web" : false,
+    "width" : 264,
+    "x" : 281,
+    "y" : 135
+  },
+  {
+    "height" : 19,
+    "role" : "AXStaticText",
+    "text" : "Medium",
+    "web" : true,
+    "width" : 59,
+    "x" : 1072,
+    "y" : 652
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "ChatGPT",
+    "web" : false,
+    "width" : 61,
+    "x" : 943,
+    "y" : 126
+  }
+]

@@ -1,0 +1,23 @@
+ScreenContextClient.swift
+U
+TmuxPanes.swift
+M
+AppFeature+Delivery.swift
+M
+UsersthurstonsandDevelopmini-whisper-expanded-contextMiniWhisper
+AppFeature+Delivery.swift
+14
+91
+99
+extension AppFeature {
+func deliverReadyDictations(_ state: inout State) -> Effect<Action> {
+for (index, dictation) in dictations.enumerated() {
+Chat
+Sessions
+Tip: Try the Plan agent to research and plan before implementing changes.
+AppFeature+Delivery.swift
+Agent
+Auto
+Local
+Default permissions
+0  0

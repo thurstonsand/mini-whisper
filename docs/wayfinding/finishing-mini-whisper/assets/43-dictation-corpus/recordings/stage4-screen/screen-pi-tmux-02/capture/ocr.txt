@@ -1,0 +1,56 @@
+pi2: pi
+pi
+its polish
+the contrast.
+Transcription.cleanup had a field doc that restated the optional, when the type doc above it already explains why
+cleanup rides on the transcription rather than the entr'
+Checked and kept
+HotkeyGestureMachine
+every new comment is a state-table justification: why cleanupPending gives.
+the activation key a meaning
+it has nowhere else, why a
+ate cleanupStarted
+cannot take back a press that already fired, why a dead tap must not
+discard a transcript. Those are the machine's whole design.
+PhysicalChordMatcher
+that cleanupStarted/cleanupEnded come from the app's own lifecycle rather than anything the tap witnessed. Non-obvious in an
+note
+ning
+physi
+FocusedTextContext
+Codable
+conformance
+that would otherwise look gratuitous.
+AgentDriveabilityScene
+SceneDependencies
+ote that.
+the scene's
+Keychain
+real but scene-owned, so a UI run cannot leave a credential on the
+HistoryEntry.fieldContext, HistoryLog.version
+persistence rationale and a migration note. Both outside the code.
+HistoryFeatureTests, HistoryPipelineTests,
+PillFeatureTests, HistoryEntryCodecTests, HistoryEntryTextTests, AudioVaultTests
+HotkeyGestureMachineTests
+each
+the assertion makes.
+which
+is whal
+comment
+for here. Nothing restating.
+spikes/settings-mockup
+he A/B/C/D variant labels are the content of a mock built to compare four Save placements. Left alone.
+MockEndpoint.swift
+is a pure move into CleanupTestSupport plus access modifiers. No comment churn.
+‹ down unde.
+docs/
+say the word if you want that read too.
+Package Updates Available
+Package updates are available. Run pi update
+-extensions
+Packages:
+* Claude Opus 5 / • mini-whisper / & main /
+-92%1
+pi2
+pi
+pod 153

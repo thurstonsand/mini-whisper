@@ -1,0 +1,450 @@
+[
+  {
+    "confidence" : 1,
+    "height" : 13.035135579109147,
+    "text" : "pi2: pi",
+    "width" : 48.37209111371918,
+    "x" : 83.72093110759224,
+    "y" : 39.310810557787775
+  },
+  {
+    "confidence" : 0.5,
+    "height" : 9.310810736815114,
+    "text" : "pi",
+    "width" : 18.6046514810468,
+    "x" : 48.372092781440415,
+    "y" : 69.10540539067655
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.48333333333337,
+    "text" : "its polish",
+    "width" : 89.30232710902466,
+    "x" : 66.97674343068851,
+    "y" : 83.82812490061117
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.48333333333337,
+    "text" : "the contrast.",
+    "width" : 100.46511526065025,
+    "x" : 210.23255856061738,
+    "y" : 83.82812491130302
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.170918070276599,
+    "text" : "Transcription.cleanup had a field doc that restated the optional, when the type doc above it already explains why",
+    "width" : 909.767464265695,
+    "x" : 316.2790584489606,
+    "y" : 82.14054031662525
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.636458333333323,
+    "text" : "cleanup rides on the transcription rather than the entr'",
+    "width" : 442.79069156390136,
+    "x" : 11.162793602512515,
+    "y" : 96.7468750300643
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172973157962169,
+    "text" : "Checked and kept",
+    "width" : 124.65116355451232,
+    "x" : 11.162790107266687,
+    "y" : 128.69459448283624
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.035135579109223,
+    "text" : "HotkeyGestureMachine",
+    "width" : 161.8604610426009,
+    "x" : 9.302327514477717,
+    "y" : 160.3513511210085
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.190315666794746,
+    "text" : "every new comment is a state-table justification: why cleanupPending gives.",
+    "width" : 600.9302305213005,
+    "x" : 195.34883819651017,
+    "y" : 160.35135112507646
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.068674637874004,
+    "text" : "the activation key a meaning",
+    "width" : 227.1618816563901,
+    "x" : 799.9199410793925,
+    "y" : 157.3818818459103
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.758324217796357,
+    "text" : "it has nowhere else, why a",
+    "width" : 216.0701022982063,
+    "x" : 1026.8628475314295,
+    "y" : 157.34044909252293
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.636458333333323,
+    "text" : "ate cleanupStarted",
+    "width" : 145.11627881516256,
+    "x" : 18.60465123258784,
+    "y" : 174.97708343247672
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.636458333333323,
+    "text" : "cannot take back a press that already fired, why a dead tap must not",
+    "width" : 545.1162678671524,
+    "x" : 169.30233183386562,
+    "y" : 174.97708331397553
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.636458333333323,
+    "text" : "discard a transcript. Those are the machine's whole design.",
+    "width" : 474.4186168721973,
+    "x" : 719.999993829881,
+    "y" : 174.97708344042408
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.035135579109223,
+    "text" : "PhysicalChordMatcher",
+    "width" : 160,
+    "x" : 11.162790598908995,
+    "y" : 206.90540517537204
+  },
+  {
+    "confidence" : 1,
+    "height" : 17.225000000000016,
+    "text" : "that cleanupStarted/cleanupEnded come from the app's own lifecycle rather than anything the tap witnessed. Non-obvious in an",
+    "width" : 991.6278377242152,
+    "x" : 267.90700501386164,
+    "y" : 202.96770812800466
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.31081073681519,
+    "text" : "note",
+    "width" : 31.62790614927829,
+    "x" : 226.97674450675623,
+    "y" : 208.7675675771806
+  },
+  {
+    "confidence" : 1,
+    "height" : 7.44864831566806,
+    "text" : "ning",
+    "width" : 29.767439632672357,
+    "x" : 146.97674576505915,
+    "y" : 225.52702700730111
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.310810736815114,
+    "text" : "physi",
+    "width" : 33.488372665884256,
+    "x" : 266.0465112484532,
+    "y" : 223.66486487276643
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172973157962169,
+    "text" : "FocusedTextContext",
+    "width" : 146.97673985776345,
+    "x" : 9.302327652513636,
+    "y" : 253.45945935970968
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.348268156250368,
+    "text" : "Codable",
+    "width" : 59.56755360145742,
+    "x" : 273.47203705979155,
+    "y" : 253.37181184892532
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172972473502204,
+    "text" : "conformance",
+    "width" : 96.74418222743832,
+    "x" : 333.0232573513972,
+    "y" : 253.4594595974651
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.636458333333323,
+    "text" : "that would otherwise look gratuitous.",
+    "width" : 301.39534578195077,
+    "x" : 427.90697817143064,
+    "y" : 253.20729184696697
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.498399162292543,
+    "text" : "AgentDriveabilityScene",
+    "width" : 178.83493466227577,
+    "x" : 9.180143476660161,
+    "y" : 281.8472998902573
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.035135579109223,
+    "text" : "SceneDependencies",
+    "width" : 141.39534578195068,
+    "x" : 206.51162933124687,
+    "y" : 283.2540538217217
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.640568508704462,
+    "text" : "ote that.",
+    "width" : 65.11627881516254,
+    "x" : 411.16279076172106,
+    "y" : 284.7864584627031
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.03513421018922,
+    "text" : "the scene's",
+    "width" : 91.16278815162552,
+    "x" : 480.0000018497687,
+    "y" : 283.2540543861757
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172973157962092,
+    "text" : "Keychain",
+    "width" : 68.83720637436944,
+    "x" : 578.6046525255376,
+    "y" : 285.1162161072908
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.168862298130989,
+    "text" : "real but scene-owned, so a UI run cannot leave a credential on the",
+    "width" : 528.372074691704,
+    "x" : 673.4883811685735,
+    "y" : 283.25405438423434
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.897296631336197,
+    "text" : "HistoryEntry.fieldContext, HistoryLog.version",
+    "width" : 362.79069156390136,
+    "x" : 9.30232853908069,
+    "y" : 329.80810843704046
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.112725280721927,
+    "text" : "persistence rationale and a migration note. Both outside the code.",
+    "width" : 528.372074691704,
+    "x" : 392.55814880308975,
+    "y" : 329.80810787879795
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.035135579109223,
+    "text" : "HistoryFeatureTests, HistoryPipelineTests,",
+    "width" : 336.74419317544846,
+    "x" : 174.88371727003684,
+    "y" : 361.4648646390885
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.07187500000006,
+    "text" : "PillFeatureTests, HistoryEntryCodecTests, HistoryEntryTextTests, AudioVaultTests",
+    "width" : 654.8836883408071,
+    "x" : 511.62792581409246,
+    "y" : 359.4281251031911
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.897296631336197,
+    "text" : "HotkeyGestureMachineTests",
+    "width" : 202.79069156390133,
+    "x" : 9.302328525230513,
+    "y" : 376.3621624869574
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.310810736815114,
+    "text" : "each",
+    "width" : 29.767442369674875,
+    "x" : 234.41860432679047,
+    "y" : 378.2243243031296
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.483333333333292,
+    "text" : "the assertion makes.",
+    "width" : 152.5581339335762,
+    "x" : 413.0232585515406,
+    "y" : 378.08854173119374
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.310810736815114,
+    "text" : "which",
+    "width" : 40.93023325830295,
+    "x" : 574.8837204974635,
+    "y" : 378.2243243354588
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.483333333333292,
+    "text" : "is whal",
+    "width" : 53.953490663537025,
+    "x" : 625.1162778449758,
+    "y" : 378.0885417127299
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172973157962169,
+    "text" : "comment",
+    "width" : 59.53488473934982,
+    "x" : 742.3255807893947,
+    "y" : 378.22432420948377
+  },
+  {
+    "confidence" : 1,
+    "height" : 17.486022929350483,
+    "text" : "for here. Nothing restating.",
+    "width" : 221.66385667741025,
+    "x" : 833.3537262128548,
+    "y" : 375.0947812763968
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.035135579109223,
+    "text" : "spikes/settings-mockup",
+    "width" : 178.60465421804932,
+    "x" : 9.302323958357563,
+    "y" : 408.01891868857604
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.071874999999984,
+    "text" : "he A/B/C/D variant labels are the content of a mock built to compare four Save placements. Left alone.",
+    "width" : 818.6046104260089,
+    "x" : 217.6744390910227,
+    "y" : 406.07916669760874
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.62457525730133,
+    "text" : "MockEndpoint.swift",
+    "width" : 147.26081882357062,
+    "x" : 9.16920833047612,
+    "y" : 437.5749016966466
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.071874999999984,
+    "text" : "is a pure move into CleanupTestSupport plus access modifiers. No comment churn.",
+    "width" : 630.6976947869956,
+    "x" : 163.72091994410175,
+    "y" : 437.65833306934934
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.388400780657877,
+    "text" : "‹ down unde.",
+    "width" : 78.13953348339405,
+    "x" : 37.20930293761754,
+    "y" : 471.33243245717927
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172972473502128,
+    "text" : "docs/",
+    "width" : 52.09302414693106,
+    "x" : 126.51162769397632,
+    "y" : 469.47027038034355
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.897296631336273,
+    "text" : "say the word if you want that read too.",
+    "width" : 312.5581339335763,
+    "x" : 465.1162808006538,
+    "y" : 467.6081082548724
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.508033621311156,
+    "text" : "Package Updates Available",
+    "width" : 202.99997372477577,
+    "x" : 9.18869741007246,
+    "y" : 513.5499328962812
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.110669508576393,
+    "text" : "Package updates are available. Run pi update",
+    "width" : 355.34884739349775,
+    "x" : 9.30232037802298,
+    "y" : 530.9216219498878
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.03513421018922,
+    "text" : "-extensions",
+    "width" : 89.30232163501962,
+    "x" : 377.6744210119475,
+    "y" : 530.9216218668423
+  },
+  {
+    "confidence" : 1,
+    "height" : 12.666085696220337,
+    "text" : "Packages:",
+    "width" : 72.82998944611828,
+    "x" : 9.124305954413597,
+    "y" : 547.8192622619247
+  },
+  {
+    "confidence" : 1,
+    "height" : 17.360494333505677,
+    "text" : "* Claude Opus 5 / • mini-whisper / & main /",
+    "width" : 346.1965080227018,
+    "x" : 11.083494876969773,
+    "y" : 637.1368129926823
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172973157962169,
+    "text" : "-92%1",
+    "width" : 53.953490663536954,
+    "x" : 491.1627894696627,
+    "y" : 640.7891890752081
+  },
+  {
+    "confidence" : 0.5,
+    "height" : 13.035135579109147,
+    "text" : "pi2",
+    "width" : 26.046512073465525,
+    "x" : 9.302325296600568,
+    "y" : 702.2405402461361
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172972473502128,
+    "text" : "pi",
+    "width" : 16.744186332942128,
+    "x" : 57.674418442831254,
+    "y" : 702.2405406785463
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.897296631336197,
+    "text" : "pod 153",
+    "width" : 52.093024146930986,
+    "x" : 1214.8837204118734,
+    "y" : 702.2405408411356
+  }
+]

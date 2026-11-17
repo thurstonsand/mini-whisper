@@ -1,0 +1,15 @@
+ScreenContextClient.swift
+U
+UsersthurstonsandDevelopmini-whisper-expanded-contextMiniWhisper
+ScreenContextClient.swift
+82
+private enum ScreenReader {
+Chat
+Sessions
+Tip: Try the Plan agent to research and plan before implementing changes.
+ScreenContextClient.swift
+Agent
+Auto
+Local
+Default permissions
+0  0

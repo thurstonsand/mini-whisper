@@ -1,0 +1,210 @@
+[
+  {
+    "confidence" : 1,
+    "height" : 15.138309270143463,
+    "text" : "thurstonsand — n - [R]efit Permission Controls and Onboarding Escape - mini-whisper — pi --session-dir /tmp/pi-scenes --fork ~/.pi/agent/sessions/--Users-thurstonsand-Develop-mi..",
+    "width" : 1164.6511994949494,
+    "x" : 100.46509786754089,
+    "y" : 39.29919106631475
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.262971103191441,
+    "text" : "'' swift",
+    "width" : 48.372094425154316,
+    "x" : 26.046510523856963,
+    "y" : 68.81250024070265
+  },
+  {
+    "confidence" : 0.5,
+    "height" : 15.711085796356201,
+    "text" : "app.typeText (\"hkj\")",
+    "width" : 134.35236698583054,
+    "x" : 29.590073490936362,
+    "y" : 83.67049290479463
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.878706812858603,
+    "text" : "XCTAssertTrue(cursor.isHittable, \"The cursor came back off-screen.\")",
+    "width" : 478.1395552749718,
+    "x" : 29.767431570717633,
+    "y" : 98.81401586287899
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.257159143686295,
+    "text" : "// Entering the column only paints it; the scrolling is already done.",
+    "width" : 487.4418665824916,
+    "x" : 29.767438697974683,
+    "y" : 126.7115905394308
+  },
+  {
+    "confidence" : 0.5,
+    "height" : 13.175791710615147,
+    "text" : "app.typeText ('1\")",
+    "width" : 120.93023332281146,
+    "x" : 29.76744261766402,
+    "y" : 139.73045830401702
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.284281849861186,
+    "text" : "assertSingleGreyHistoryRow(app, id: id)",
+    "width" : 275.3488443462402,
+    "x" : 29.76743821608921,
+    "y" : 154.3437502442162
+  },
+  {
+    "confidence" : 0.5,
+    "height" : 13.65624999999999,
+    "text" : "XCTAssertTrue (cursor.isHittable)",
+    "width" : 226.97673348063972,
+    "x" : 29.767447120145256,
+    "y" : 167.28125005000294
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.018867433071177,
+    "text" : "One thing the test taught me while writing it: after hkj the row is on screen but not grey. The cursor paint is gated on the detail column having focus, so a sidebar-focused",
+    "width" : 1213.023288439955,
+    "x" : 16.744169640487527,
+    "y" : 210.40431291319072
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.09375000000006,
+    "text" : "pane shows no highlight. Your refinement is about the viewport, not the paint, so I assert only hittability there - but it's worth knowing the two are separate, in case you",
+    "width" : 1205.5814218574637,
+    "x" : 16.744172702208612,
+    "y" : 223.34374994322474
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.834819972515065,
+    "text" : "also want the cursor visible from the sidebar.",
+    "width" : 323.8514485129068,
+    "x" : 16.689491080735422,
+    "y" : 236.5296953522757
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.878706812858603,
+    "text" : "Gates: mise run lint 0 ' unit suite green ' test:ui 53 tests, 0 failures.",
+    "width" : 513.4883557800224,
+    "x" : 16.744194102721348,
+    "y" : 266.1994606068373
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.42672640085226,
+    "text" : "[branch]",
+    "width" : 58.048053231972496,
+    "x" : 16.591772346587184,
+    "y" : 307.91069985457233
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.282344758510568,
+    "text" : "Branch summary (ctrl+o to expand)",
+    "width" : 232.5581334175084,
+    "x" : 16.744188764114003,
+    "y" : 334.7499997922568
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.022742301225632,
+    "text" : "Branch summary: 18k tokens billed (~$0.20)",
+    "width" : 295.8139555274972,
+    "x" : 16.74418493392581,
+    "y" : 377.78975765403356
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.7385448217392,
+    "text" : "[pi-sessions. subagent_disowned_message]",
+    "width" : 275.34884434624024,
+    "x" : 16.7441824090772,
+    "y" : 418.7061992800288
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.878706812858525,
+    "text" : "[system] copied subagent records belong to the original session; this fork owns none.",
+    "width" : 597.2092890712682,
+    "x" : 16.744192557297907,
+    "y" : 446.6037732752894
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.500000000000036,
+    "text" : "Session compacted 3 times",
+    "width" : 176.74418885030863,
+    "x" : 16.74418455569385,
+    "y" : 489.2812500158134
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.1590294241905,
+    "text" : "Package Updates Available",
+    "width" : 176.74418885030863,
+    "x" : 16.744184551589875,
+    "y" : 532.1563343386354
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.106047511100769,
+    "text" : "Package updates are available. Run pi update --extensions",
+    "width" : 401.86044472502806,
+    "x" : 16.74419614358777,
+    "y" : 545.1752023988404
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.159029424190578,
+    "text" : "Packages:",
+    "width" : 65.11627779531425,
+    "x" : 16.744186480249844,
+    "y" : 560.0539084336257
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.239723265171081,
+    "text" : "- pi-sessions",
+    "width" : 93.02325555906286,
+    "x" : 16.744186080933684,
+    "y" : 573.0727765010157
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.500000342726723,
+    "text" : "- @thurstonsand/pi-agent-switchboard",
+    "width" : 253.02326651936028,
+    "x" : 16.74418060659893,
+    "y" : 587.7499997258939
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.65624999999999,
+    "text" : "- pi-doppelclaude",
+    "width" : 120.93023332281146,
+    "x" : 16.744185317452633,
+    "y" : 600.6875002955593
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.249410092830606,
+    "text" : "* Claude Opus 5 / Emini-whisper / Emain / [-",
+    "width" : 320,
+    "x" : 16.744187404651154,
+    "y" : 641.656249973705
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.2991914153099,
+    "text" : "30%",
+    "width" : 26.04651111812572,
+    "x" : 364.6511629525651,
+    "y" : 643.7466306686928
+  }
+]

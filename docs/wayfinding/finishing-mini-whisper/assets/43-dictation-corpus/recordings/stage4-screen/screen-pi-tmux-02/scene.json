@@ -1,0 +1,20 @@
+{
+ "id": "screen-pi-tmux-02",
+ "tags": [
+  "pi",
+  "tmux",
+  "identifier"
+ ],
+ "scene": {
+  "kind": "pi",
+  "tmux": true,
+  "session": "01a01ef8"
+ },
+ "say": "Go ahead and read the docs markdown too. And double check the comment in physical chord matcher about cleanup started and cleanup ended.",
+ "expect": "Go ahead and read the docs markdown too. And double check the comment in PhysicalChordMatcher about cleanupStarted and cleanupEnded.",
+ "must": [
+  "PhysicalChordMatcher",
+  "cleanupStarted",
+  "cleanupEnded"
+ ]
+}

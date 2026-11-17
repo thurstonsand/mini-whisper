@@ -1,0 +1,1208 @@
+[
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 374,
+    "y" : 41
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 400,
+    "y" : 41
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 17,
+    "x" : 866,
+    "y" : 41
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 1171,
+    "y" : 41
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 1197,
+    "y" : 41
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 1223,
+    "y" : 41
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 1249,
+    "y" : 41
+  },
+  {
+    "height" : 24,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 24,
+    "x" : 14,
+    "y" : 75
+  },
+  {
+    "height" : 24,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 24,
+    "x" : 14,
+    "y" : 119
+  },
+  {
+    "height" : 24,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 24,
+    "x" : 14,
+    "y" : 163
+  },
+  {
+    "height" : 24,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 24,
+    "x" : 14,
+    "y" : 207
+  },
+  {
+    "height" : 24,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 24,
+    "x" : 14,
+    "y" : 251
+  },
+  {
+    "height" : 24,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 24,
+    "x" : 14,
+    "y" : 610
+  },
+  {
+    "height" : 24,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 24,
+    "x" : 14,
+    "y" : 654
+  },
+  {
+    "height" : 19,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 1,
+    "x" : 53,
+    "y" : 72
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "ScreenContextClient.swift",
+    "web" : true,
+    "width" : 1,
+    "x" : 53,
+    "y" : 74
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "U",
+    "web" : true,
+    "width" : 1,
+    "x" : 53,
+    "y" : 75
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 1,
+    "x" : 53,
+    "y" : 74
+  },
+  {
+    "height" : 19,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 1,
+    "x" : 53,
+    "y" : 72
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "TmuxPanes.swift",
+    "web" : true,
+    "width" : 1,
+    "x" : 53,
+    "y" : 74
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "M",
+    "web" : true,
+    "width" : 1,
+    "x" : 53,
+    "y" : 75
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 1,
+    "x" : 53,
+    "y" : 74
+  },
+  {
+    "height" : 19,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 1,
+    "x" : 53,
+    "y" : 72
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "AppFeature+Delivery.swift",
+    "web" : true,
+    "width" : 135,
+    "x" : 53,
+    "y" : 74
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "M",
+    "web" : true,
+    "width" : 11,
+    "x" : 192,
+    "y" : 75
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 17,
+    "x" : 208,
+    "y" : 74
+  },
+  {
+    "height" : 19,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 20,
+    "x" : 239,
+    "y" : 72
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "CleanupPrompt.swift",
+    "web" : true,
+    "width" : 127,
+    "x" : 261,
+    "y" : 74
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "M",
+    "web" : true,
+    "width" : 11,
+    "x" : 392,
+    "y" : 75
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 17,
+    "x" : 408,
+    "y" : 74
+  },
+  {
+    "height" : 19,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 20,
+    "x" : 439,
+    "y" : 72
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "Retention.swift",
+    "web" : true,
+    "width" : 91,
+    "x" : 461,
+    "y" : 74
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "M",
+    "web" : true,
+    "width" : 11,
+    "x" : 556,
+    "y" : 75
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 17,
+    "x" : 572,
+    "y" : 74
+  },
+  {
+    "height" : 19,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 20,
+    "x" : 603,
+    "y" : 72
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "Profiles.swift",
+    "web" : true,
+    "width" : 78,
+    "x" : 625,
+    "y" : 74
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 709,
+    "y" : 74
+  },
+  {
+    "height" : 19,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 20,
+    "x" : 739,
+    "y" : 72
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "HotkeyListener.swift",
+    "web" : true,
+    "width" : 124,
+    "x" : 761,
+    "y" : 74
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 891,
+    "y" : 74
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 930,
+    "y" : 74
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 956,
+    "y" : 74
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "Users",
+    "web" : true,
+    "width" : 31,
+    "x" : 53,
+    "y" : 102
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 17,
+    "x" : 83,
+    "y" : 101
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "thurstonsand",
+    "web" : true,
+    "width" : 81,
+    "x" : 99,
+    "y" : 102
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 17,
+    "x" : 179,
+    "y" : 101
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "Develop",
+    "web" : true,
+    "width" : 50,
+    "x" : 195,
+    "y" : 102
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 17,
+    "x" : 244,
+    "y" : 101
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "mini-whisper-expanded-context",
+    "web" : true,
+    "width" : 196,
+    "x" : 260,
+    "y" : 102
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 17,
+    "x" : 455,
+    "y" : 101
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "Packages",
+    "web" : true,
+    "width" : 59,
+    "x" : 471,
+    "y" : 102
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 17,
+    "x" : 529,
+    "y" : 101
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "HotkeyListener",
+    "web" : true,
+    "width" : 92,
+    "x" : 545,
+    "y" : 102
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 637,
+    "y" : 101
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "Sources",
+    "web" : true,
+    "width" : 50,
+    "x" : 653,
+    "y" : 102
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 17,
+    "x" : 702,
+    "y" : 101
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "HotkeyListener",
+    "web" : true,
+    "width" : 92,
+    "x" : 718,
+    "y" : 102
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 810,
+    "y" : 101
+  },
+  {
+    "height" : 20,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 20,
+    "x" : 826,
+    "y" : 99
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "HotkeyListener.swift",
+    "web" : true,
+    "width" : 123,
+    "x" : 848,
+    "y" : 102
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "175",
+    "web" : true,
+    "width" : 22,
+    "x" : 71,
+    "y" : 122
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 100,
+    "y" : 121
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "269",
+    "web" : true,
+    "width" : 22,
+    "x" : 71,
+    "y" : 140
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 100,
+    "y" : 139
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "private",
+    "web" : true,
+    "width" : 51,
+    "x" : 119,
+    "y" : 122
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : " ",
+    "web" : true,
+    "width" : 7,
+    "x" : 170,
+    "y" : 122
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "final",
+    "web" : true,
+    "width" : 36,
+    "x" : 177,
+    "y" : 122
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : " ",
+    "web" : true,
+    "width" : 8,
+    "x" : 213,
+    "y" : 122
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "class",
+    "web" : true,
+    "width" : 37,
+    "x" : 220,
+    "y" : 122
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : " ",
+    "web" : true,
+    "width" : 8,
+    "x" : 256,
+    "y" : 122
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "EventTapSession",
+    "web" : true,
+    "width" : 108,
+    "x" : 264,
+    "y" : 122
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "<",
+    "web" : true,
+    "width" : 8,
+    "x" : 372,
+    "y" : 122
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "Action",
+    "web" : true,
+    "width" : 44,
+    "x" : 379,
+    "y" : 122
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : ": ",
+    "web" : true,
+    "width" : 15,
+    "x" : 422,
+    "y" : 122
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "Equatable ",
+    "web" : true,
+    "width" : 73,
+    "x" : 437,
+    "y" : 122
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "&",
+    "web" : true,
+    "width" : 8,
+    "x" : 509,
+    "y" : 122
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : " Sendable",
+    "web" : true,
+    "width" : 66,
+    "x" : 516,
+    "y" : 122
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : ">: ",
+    "web" : true,
+    "width" : 23,
+    "x" : 581,
+    "y" : 122
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "@unchecked",
+    "web" : true,
+    "width" : 73,
+    "x" : 603,
+    "y" : 122
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : " ",
+    "web" : true,
+    "width" : 8,
+    "x" : 675,
+    "y" : 122
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "Sendable ",
+    "web" : true,
+    "width" : 65,
+    "x" : 683,
+    "y" : 122
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "{",
+    "web" : true,
+    "width" : 7,
+    "x" : 748,
+    "y" : 122
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "  ",
+    "web" : true,
+    "width" : 15,
+    "x" : 119,
+    "y" : 140
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "private",
+    "web" : true,
+    "width" : 52,
+    "x" : 133,
+    "y" : 140
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : " ",
+    "web" : true,
+    "width" : 8,
+    "x" : 184,
+    "y" : 140
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "func",
+    "web" : true,
+    "width" : 30,
+    "x" : 191,
+    "y" : 140
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : " ",
+    "web" : true,
+    "width" : 8,
+    "x" : 220,
+    "y" : 140
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "run",
+    "web" : true,
+    "width" : 23,
+    "x" : 227,
+    "y" : 140
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "(",
+    "web" : true,
+    "width" : 8,
+    "x" : 249,
+    "y" : 140
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "startup",
+    "web" : true,
+    "width" : 51,
+    "x" : 256,
+    "y" : 140
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : ": CheckedContinuation<",
+    "web" : true,
+    "width" : 159,
+    "x" : 307,
+    "y" : 140
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "Void",
+    "web" : true,
+    "width" : 29,
+    "x" : 466,
+    "y" : 140
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : ", ",
+    "web" : true,
+    "width" : 15,
+    "x" : 495,
+    "y" : 140
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "any",
+    "web" : true,
+    "width" : 22,
+    "x" : 509,
+    "y" : 140
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : " ",
+    "web" : true,
+    "width" : 8,
+    "x" : 531,
+    "y" : 140
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "Error",
+    "web" : true,
+    "width" : 37,
+    "x" : 538,
+    "y" : 140
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : ">",
+    "web" : true,
+    "width" : 8,
+    "x" : 574,
+    "y" : 140
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : ")",
+    "web" : true,
+    "width" : 8,
+    "x" : 581,
+    "y" : 140
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : " ",
+    "web" : true,
+    "width" : 7,
+    "x" : 589,
+    "y" : 140
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "{",
+    "web" : true,
+    "width" : 8,
+    "x" : 596,
+    "y" : 140
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "Chat",
+    "web" : true,
+    "width" : 29,
+    "x" : 997,
+    "y" : 75
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 1226,
+    "y" : 74
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 1252,
+    "y" : 74
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "Sessions",
+    "web" : true,
+    "width" : 54,
+    "x" : 997,
+    "y" : 102
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 1173,
+    "y" : 101
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 1199,
+    "y" : 101
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 1225,
+    "y" : 101
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 1251,
+    "y" : 101
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "Tip:",
+    "web" : true,
+    "width" : 24,
+    "x" : 1006,
+    "y" : 512
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : " Try the ",
+    "web" : true,
+    "width" : 47,
+    "x" : 1029,
+    "y" : 512
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : "Plan agent",
+    "web" : true,
+    "width" : 61,
+    "x" : 1075,
+    "y" : 512
+  },
+  {
+    "height" : 33,
+    "role" : "AXStaticText",
+    "text" : " to research and plan before implementing changes.",
+    "web" : true,
+    "width" : 221,
+    "x" : 1006,
+    "y" : 512
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 1145,
+    "y" : 490
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 1173,
+    "y" : 490
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 1201,
+    "y" : 490
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 1229,
+    "y" : 490
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 12,
+    "x" : 1009,
+    "y" : 563
+  },
+  {
+    "height" : 17,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 17,
+    "x" : 1023,
+    "y" : 561
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "HotkeyListener.swift",
+    "web" : true,
+    "width" : 107,
+    "x" : 1043,
+    "y" : 563
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 12,
+    "x" : 1009,
+    "y" : 632
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 12,
+    "x" : 1036,
+    "y" : 632
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "Agent",
+    "web" : true,
+    "width" : 31,
+    "x" : 1054,
+    "y" : 632
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 12,
+    "x" : 1101,
+    "y" : 632
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "Auto",
+    "web" : true,
+    "width" : 25,
+    "x" : 1119,
+    "y" : 632
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 12,
+    "x" : 1212,
+    "y" : 632
+  },
+  {
+    "height" : 12,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 12,
+    "x" : 1238,
+    "y" : 633
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 12,
+    "x" : 1007,
+    "y" : 665
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "Local",
+    "web" : true,
+    "width" : 28,
+    "x" : 1025,
+    "y" : 665
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 12,
+    "x" : 1067,
+    "y" : 665
+  },
+  {
+    "height" : 13,
+    "role" : "AXStaticText",
+    "text" : "Default permissions",
+    "web" : true,
+    "width" : 104,
+    "x" : 1085,
+    "y" : 665
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 16,
+    "x" : 48,
+    "y" : 698
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : " 0 ",
+    "web" : true,
+    "width" : 15,
+    "x" : 64,
+    "y" : 699
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 17,
+    "x" : 78,
+    "y" : 698
+  },
+  {
+    "height" : 14,
+    "role" : "AXStaticText",
+    "text" : " 0",
+    "web" : true,
+    "width" : 12,
+    "x" : 94,
+    "y" : 699
+  }
+]

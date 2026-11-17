@@ -1,0 +1,308 @@
+[
+  {
+    "height" : 24,
+    "role" : "AXTextField",
+    "text" : "rfc-editor.org/rfc/rfc4120.html#section-3.3",
+    "web" : false,
+    "width" : 763,
+    "x" : 158,
+    "y" : 81
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "3.3",
+    "web" : true,
+    "width" : 24,
+    "x" : 16,
+    "y" : 173
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : ".  The Ticket-Granting Service (TGS) Exchange",
+    "web" : true,
+    "width" : 353,
+    "x" : 39,
+    "y" : 173
+  },
+  {
+    "height" : 9,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 392,
+    "x" : 16,
+    "y" : 203
+  },
+  {
+    "height" : 9,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 392,
+    "x" : 16,
+    "y" : 212
+  },
+  {
+    "height" : 9,
+    "role" : "AXStaticText",
+    "text" : "                             Summary",
+    "web" : true,
+    "width" : 392,
+    "x" : 16,
+    "y" : 221
+  },
+  {
+    "height" : 9,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 392,
+    "x" : 16,
+    "y" : 230
+  },
+  {
+    "height" : 9,
+    "role" : "AXStaticText",
+    "text" : "         Message direction       Message type     ",
+    "web" : true,
+    "width" : 392,
+    "x" : 16,
+    "y" : 239
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "Section",
+    "web" : true,
+    "width" : 56,
+    "x" : 407,
+    "y" : 233
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "1",
+    "web" : true,
+    "width" : 9,
+    "x" : 86,
+    "y" : 248
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : ". Client to Kerberos   KRB_TGS_REQ      5.4.1",
+    "web" : true,
+    "width" : 564,
+    "x" : 16,
+    "y" : 248
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "         2. Kerberos to client   KRB_TGS_REP or   5.4.2",
+    "web" : true,
+    "width" : 564,
+    "x" : 16,
+    "y" : 263
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "                                 KRB_ERROR        5.9.1",
+    "web" : true,
+    "width" : 564,
+    "x" : 16,
+    "y" : 278
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "",
+    "web" : true,
+    "width" : 564,
+    "x" : 16,
+    "y" : 293
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "   The TGS exchange between a client and the Kerberos TGS is initiated",
+    "web" : true,
+    "width" : 564,
+    "x" : 16,
+    "y" : 308
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "   by a client when it seeks to obtain authentication credentials for a",
+    "web" : true,
+    "width" : 564,
+    "x" : 16,
+    "y" : 323
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "   given server (which might be registered in a remote realm), when it",
+    "web" : true,
+    "width" : 564,
+    "x" : 16,
+    "y" : 338
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "   seeks to renew or validate an existing ticket, or when it seeks to",
+    "web" : true,
+    "width" : 564,
+    "x" : 16,
+    "y" : 353
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "   obtain a proxy ticket.  In the first case, the client must already",
+    "web" : true,
+    "width" : 564,
+    "x" : 16,
+    "y" : 368
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "   have acquired a ticket for the Ticket-Granting Service using the AS",
+    "web" : true,
+    "width" : 564,
+    "x" : 16,
+    "y" : 383
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "   exchange (the TGT is usually obtained when a client initially",
+    "web" : true,
+    "width" : 564,
+    "x" : 16,
+    "y" : 398
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "   authenticates to the system, such as when a user logs in).  The",
+    "web" : true,
+    "width" : 564,
+    "x" : 16,
+    "y" : 413
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "   message format for the TGS exchange is almost identical to that for",
+    "web" : true,
+    "width" : 564,
+    "x" : 16,
+    "y" : 428
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "   the AS exchange.  The primary difference is that encryption and",
+    "web" : true,
+    "width" : 564,
+    "x" : 16,
+    "y" : 443
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "   decryption in the TGS exchange does not take place under the client's",
+    "web" : true,
+    "width" : 564,
+    "x" : 16,
+    "y" : 458
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "Neuman, et al.              Standards Track                    [Page 34]",
+    "web" : true,
+    "width" : 564,
+    "x" : 16,
+    "y" : 518
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "RFC 4120",
+    "web" : true,
+    "width" : 63,
+    "x" : 16,
+    "y" : 576
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "                      Kerberos V5                      July 2005",
+    "web" : true,
+    "width" : 501,
+    "x" : 79,
+    "y" : 576
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "   key.  Instead, the session key from the TGT or renewable ticket, or",
+    "web" : true,
+    "width" : 548,
+    "x" : 16,
+    "y" : 621
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "   sub-session key from an Authenticator is used.  As is the case for",
+    "web" : true,
+    "width" : 540,
+    "x" : 16,
+    "y" : 636
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "   all application servers, expired tickets are not accepted by the TGS,",
+    "web" : true,
+    "width" : 564,
+    "x" : 16,
+    "y" : 651
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "   so once a renewable or TGT expires, the client must use a separate",
+    "web" : true,
+    "width" : 540,
+    "x" : 16,
+    "y" : 666
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "   exchange to obtain valid tickets.",
+    "web" : true,
+    "width" : 282,
+    "x" : 16,
+    "y" : 681
+  },
+  {
+    "height" : 15,
+    "role" : "AXStaticText",
+    "text" : "   The TGS exchange consists of two messages: a request (KRB_TGS_REQ)",
+    "web" : true,
+    "width" : 540,
+    "x" : 16,
+    "y" : 711
+  }
+]

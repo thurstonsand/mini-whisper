@@ -1,0 +1,29 @@
+{
+  "appName" : "Code",
+  "axCapped" : false,
+  "axUnplaced" : 4531,
+  "axVisited" : 514,
+  "bundleID" : "com.microsoft.VSCode",
+  "capturedAt" : 816034796.821137,
+  "focusedFrame" : [
+    1008,
+    591,
+    240,
+    21
+  ],
+  "focusedRole" : "AXTextArea",
+  "screenshotCandidates" : 1,
+  "screenshotTitle" : "VocabularyBoost.swift",
+  "timingsMs" : {
+    "ax" : 49.284417,
+    "ocr" : 209.597541,
+    "screenshot" : 137.0345
+  },
+  "windowFrame" : [
+    0,
+    30,
+    1280,
+    690
+  ],
+  "windowTitle" : "VocabularyBoost.swift"
+}

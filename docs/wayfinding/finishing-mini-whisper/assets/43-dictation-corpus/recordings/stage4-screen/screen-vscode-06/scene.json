@@ -1,0 +1,19 @@
+{
+ "id": "screen-vscode-06",
+ "tags": [
+  "vscode",
+  "identifier"
+ ],
+ "scene": {
+  "kind": "vscode",
+  "file": "Packages/AppSettings/Sources/AppSettings/Profiles.swift",
+  "line": 200
+ },
+ "say": "Add a test that is endpoint overridden stays false for the custom profile, and check boosts vocabulary on the endpoint leg too.",
+ "expect": "Add a test that isEndpointOverridden stays false for the Custom profile, and check boostsVocabulary on the EndpointLeg too.",
+ "must": [
+  "isEndpointOverridden",
+  "boostsVocabulary",
+  "EndpointLeg"
+ ]
+}

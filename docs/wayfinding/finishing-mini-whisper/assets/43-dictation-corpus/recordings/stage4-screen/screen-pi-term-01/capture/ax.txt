@@ -1,0 +1,43 @@
+"reference": "/tmp/lg/B_crop.png",
+"description": "listRowBackground rejected: full-bleed square band, separators swallowed, hover fill lost"
+},
+{
+"reference": "/tmp/lg/F_crop.png",
+"description": "glassEffect on content rows renders as a grey outline — the HIG content-layer rule made visible"
+},
+{
+"reference": "/tmp/lg/E0_sheet_inset.png and /tmp/lg/E1_sheet_bar.png",
+"description": "Sheet bottom bar: safeAreaInset vs safeAreaBar are visually identical, so no change"
+},
+{
+"reference": "/tmp/lg/G_crop.png",
+"description": "MoreMenu with .menuStyle(.button) — bordered ellipsis matching neighbouring bordered buttons"
+},
+{
+"reference": "https://developer.apple.com/design/human-interface-guidelines/materials",
+"description": "\"Don't use Liquid Glass in the content layer\" and \"Use Liquid Glass effects sparingly\""
+},
+{
+"reference": "https://developer.apple.com/documentation/TechnologyOverviews/adopting-liquid-glass",
+"description": "Standard components adopt the material automatically when rebuilt against the new SDK"
+},
+{
+"reference": "$(xcrun --sdk macosx --show-sdk-path)/System/Library/Frameworks/SwiftUI.framework/.../arm64e-apple-macos.swiftinterface",
+"description": "Authoritative macOS availability for safeAreaBar (:16986), ToolbarSpacer, GlassButtonStyle, and the macOS-unavailable hoverEffect/listRowHoverEffect"
+}
+]
+}
+Report delivered to the parent. Stopping.
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Package Updates Available
+Package updates are available. Run pi update --extensions
+Packages:
+- pi-sessions
+- @thurstonsand/pi-agent-switchboard
+- pi-doppelclaude
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+✴ Claude Opus 5 /  mini-whisper /  main / [━━━━━━32%────────────]
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+>
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+thurstonsand — π - Liquid Glass review of the settings window - mini-whisper — pi --session-dir /tmp/pi-scenes --fork ~/.pi/agent/sessions/--Users-thurstonsand-Develop-mini-whisper--/2026-08-04T23-41-21-553Z_019fcf27-3711-7fa0-9163-8c11453974d6.jsonl — 177×45

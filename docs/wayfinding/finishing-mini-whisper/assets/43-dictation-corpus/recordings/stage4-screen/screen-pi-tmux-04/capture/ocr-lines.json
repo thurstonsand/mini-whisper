@@ -1,0 +1,490 @@
+[
+  {
+    "confidence" : 1,
+    "height" : 13.035135579109147,
+    "text" : "pi4: pi",
+    "width" : 48.37209111371918,
+    "x" : 83.72093110759224,
+    "y" : 39.310810557787775
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172973157962169,
+    "text" : "1: pi",
+    "width" : 40.93023325830296,
+    "x" : 26.046511180372327,
+    "y" : 67.24324312414635
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.483333333333292,
+    "text" : "report covers what changed and why.",
+    "width" : 273.4883644548767,
+    "x" : 44.65116653650487,
+    "y" : 83.82812492106058
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.485388421018863,
+    "text" : "• the",
+    "width" : 31.62790614927829,
+    "x" : 323.7209305701811,
+    "y" : 83.82812501317494
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.62720871369045,
+    "text" : "two defects the work uncovered (the exhaustive manifest had",
+    "width" : 476.35457539237655,
+    "x" : 359.03024262119055,
+    "y" : 80.98017597165963
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.20971326331297,
+    "text" : "been failing; the pointer-parking fragility), the",
+    "width" : 398.13953895739917,
+    "x" : 837.2093001966049,
+    "y" : 83.8281247934083
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172973157962169,
+    "text" : "one",
+    "width" : 26.046512073465493,
+    "x" : 1240.9302322423373,
+    "y" : 84.00270256365405
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.188259894649137,
+    "text" : "estructuring I tried and reverted against the parked-pointer law, the UI coverage on both input paths,",
+    "width" : 822.3256200952915,
+    "x" : 16.744166667164542,
+    "y" : 96.74687490448977
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.188259894649137,
+    "text" : "and the real-hardware evidence. Nothing is staged",
+    "width" : 398.13953895739917,
+    "x" : 839.0697653228838,
+    "y" : 96.74687490354339
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.093327684203778,
+    "text" : "the whole thing arrives as one reviewable surface.",
+    "width" : 400,
+    "x" : 11.162790596582807,
+    "y" : 113.79729707198496
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.614966807762777,
+    "text" : "- remind me why AudioInputDevice and MicrophoneSelection must be 2 separate entities",
+    "width" : 673.5613438901345,
+    "x" : 9.265465659075625,
+    "y" : 157.52209151402286
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.242239660024582,
+    "text" : "Thinking...",
+    "width" : 88.09015248388454,
+    "x" : 10.87442367738872,
+    "y" : 205.54982607558406
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.071874999999908,
+    "text" : "Different tense. One is a durable intent, the other an observation with a lifetime of",
+    "width" : 680.9302305213005,
+    "x" : 11.16279162409856,
+    "y" : 236.70000033092293
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.983694821596146,
+    "text" : "one snapshot",
+    "width" : 102.78318122897986,
+    "x" : 693.7391611744504,
+    "y" : 235.718219822012
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.112725280722003,
+    "text" : "MicrophoneSelection has to survive the thing it names",
+    "width" : 426.0464983884529,
+    "x" : 9.302332093933149,
+    "y" : 268.27916682984846
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.219914800922055,
+    "text" : "is being",
+    "width" : 71.32683313480939,
+    "x" : 578.2770356033894,
+    "y" : 266.69860117059795
+  },
+  {
+    "confidence" : 1,
+    "height" : 17.281337902943335,
+    "text" : "able to say \"the Studio Mic\" while the Studio Mic",
+    "width" : 396.3891273122198,
+    "x" : 647.3772885998762,
+    "y" : 264.66677255552383
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.658858144283203,
+    "text" : "in a drawer",
+    "width" : 91.55515935923489,
+    "x" : 1071.4427602612384,
+    "y" : 267.1029076419232
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.483333675563427,
+    "text" : "- that is",
+    "width" : 74.4186059241872,
+    "x" : 1168.3720922820926,
+    "y" : 268.27916658550373
+  },
+  {
+    "confidence" : 0.3,
+    "height" : 9.310810736815114,
+    "text" : "wnau",
+    "width" : 29.76744236967489,
+    "x" : 11.162790334542404,
+    "y" : 286.9783783765812
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.310810736815114,
+    "text" : "makes",
+    "width" : 48.372091113719165,
+    "x" : 42.790698530691714,
+    "y" : 286.97837838799154
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.035135579109223,
+    "text" : "allback heal instead of",
+    "width" : 189.7674423696749,
+    "x" : 133.95348815292556,
+    "y" : 283.254053816549
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.035135579109223,
+    "text" : "overwrite. An AudioInputDevice? cannot",
+    "width" : 308.83721184837447,
+    "x" : 325.5813939819201,
+    "y" : 283.25405382597586
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.035135579109223,
+    "text" : "express that: nil would mean both \"user chose system default\" and|",
+    "width" : 522.7906915639014,
+    "x" : 641.8604681002355,
+    "y" : 283.2540538287586
+  },
+  {
+    "confidence" : 1,
+    "height" : 18.432692716519064,
+    "text" : "\"the device",
+    "width" : 95.84916050658634,
+    "x" : 1164.1142261086788,
+    "y" : 280.7909349119384
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.778856649001476,
+    "text" : "is gonei and those must stay distinct or the selection gets rewritten the first time someone unplugs something.",
+    "width" : 894.8836883408071,
+    "x" : 11.1628005892865,
+    "y" : 296.2697916564969
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.897296631336197,
+    "text" : "It also carries systemDefault,",
+    "width" : 245.5814050238229,
+    "x" : 13.023250891743077,
+    "y" : 329.8081084344381
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.112725280722003,
+    "text" : "which is not a device at all.",
+    "width" : 241.86046104260086,
+    "x" : 256.74418929265306,
+    "y" : 329.80810780465146
+  },
+  {
+    "confidence" : 1,
+    "height" : 19.0083126286666,
+    "text" : "\"Whatever macos considers current\" has no UID until you ask.",
+    "width" : 487.6088232202915,
+    "x" : 500.3861982541921,
+    "y" : 326.12021530038214
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.035135579109223,
+    "text" : "ields do not survive equally. uid is durable; transport and visibility",
+    "width" : 569.3023052130045,
+    "x" : 78.13954497553469,
+    "y" : 361.4648646406304
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.035135579109223,
+    "text" : "are true only of a device that is plugged in right now",
+    "width" : 437.20930843609864,
+    "x" : 645.5813921844979,
+    "y" : 361.46486463899834
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172972473502128,
+    "text" : "Folding",
+    "width" : 55.813951706137885,
+    "x" : 1099.5348844880164,
+    "y" : 361.4648649283841
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.20971326331297,
+    "text" : "AudioInputDevice into the stored selection would persist",
+    "width" : 448.3720746917039,
+    "x" : 9.302334638719758,
+    "y" : 376.36216193699585
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.446593570212473,
+    "text" : "aim about",
+    "width" : 74.4186059241872,
+    "x" : 494.88372020689866,
+    "y" : 378.0885415124068
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172973157962169,
+    "text" : "hardware",
+    "width" : 68.83720637436937,
+    "x" : 574.8837223039234,
+    "y" : 378.22432421539884
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.310810736815114,
+    "text" : "that",
+    "width" : 31.62790614927829,
+    "x" : 651.162791018384,
+    "y" : 378.22432433393743
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.925503228108099,
+    "text" : "the hardware is free to contradict",
+    "width" : 279.20891868693946,
+    "x" : 682.7337829415571,
+    "y" : 376.13309671415027
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.310810736815114,
+    "text" : "and",
+    "width" : 29.76744236967491,
+    "x" : 982.3255810691877,
+    "y" : 378.2243243255113
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.20971326331297,
+    "text" : "then isExplicitlySelectable",
+    "width" : 223.25580682455154,
+    "x" : 1013.9534918653095,
+    "y" : 376.36216193324157
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.636458333333323,
+    "text" : "choose between trusting the fossil or re-reading, at which point the stored copy is dead weight.",
+    "width" : 766.511613649103,
+    "x" : 120.93023953203763,
+    "y" : 391.00729184855226
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.636458333333323,
+    "text" : "lastKnownName is the one",
+    "width" : 199.06976947869964,
+    "x" : 891.1627892407166,
+    "y" : 391.0072918206198
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172973157962169,
+    "text" : "ield",
+    "width" : 31.62790614927829,
+    "x" : 1106.9767445266896,
+    "y" : 393.1216214892235
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172973157962169,
+    "text" : "rately.",
+    "width" : 46.51163007111833,
+    "x" : 1196.2790686782155,
+    "y" : 393.121621486154
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.837049438555994,
+    "text" : "allowed to go stale, because nothing but a sentence in the UI reads it, and the snapshot heals",
+    "width" : 751.627925308296,
+    "x" : 11.162781390148789,
+    "y" : 406.0791665705446
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172973157962169,
+    "text" : "it when the device returns",
+    "width" : 208.37209658772423,
+    "x" : 770.2325562145801,
+    "y" : 408.0189188187716
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.897296631336197,
+    "text" : "AudioInputDevice",
+    "width" : 130.23255763032512,
+    "x" : 40.93023271789717,
+    "y" : 437.81351383188894
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.071874999999984,
+    "text" : "is what CoreAudio says exists. MicrophoneSelection is what the",
+    "width" : 496.74419317544846,
+    "x" : 178.6046474830329,
+    "y" : 437.6583330703864
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172973157962169,
+    "text" : "user asked",
+    "width" : 83.7209275592069,
+    "x" : 680.9302338113326,
+    "y" : 439.6756755688568
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.071874999999984,
+    "text" : "AudioInputRoute.resolving is the only place the two meet",
+    "width" : 450.23257952634526,
+    "x" : 809.3023146928238,
+    "y" : 437.6583330670458
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.897296631336197,
+    "text" : "Cache miss after 18m idle: 265k tokens re-billed (~$1.53)",
+    "width" : 455.813962654148,
+    "x" : 9.302320914967117,
+    "y" : 467.60810843747277
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.462898959716213,
+    "text" : "Package Updates Available",
+    "width" : 201.1622188551009,
+    "x" : 9.188684418906547,
+    "y" : 513.572361836576
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.110669508576393,
+    "text" : "Package updates are available. Run pi update --extensions",
+    "width" : 457.6744236967488,
+    "x" : 9.302322937088165,
+    "y" : 530.9216219513776
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.933927388985957,
+    "text" : "Packages:",
+    "width" : 72.79421134914517,
+    "x" : 9.147870058635096,
+    "y" : 546.6453926006963
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.310810736815114,
+    "text" : "sessions",
+    "width" : 63.25581229855661,
+    "x" : 50.23255887397751,
+    "y" : 564.440540563846
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.035135579109223,
+    "text" : "@thurstonsand/pi-agent-switchboard",
+    "width" : 271.6279034122758,
+    "x" : 26.046513324413866,
+    "y" : 577.4756754472988
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.172958791255951,
+    "text" : "oi-doppelclaude.",
+    "width" : 119.53301262962444,
+    "x" : 27.676513227949755,
+    "y" : 591.3505860446746
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.188259894649214,
+    "text" : "* Claude Opus 5 / • mini-whisper / % main /",
+    "width" : 351.62790341227577,
+    "x" : 11.162792439010463,
+    "y" : 637.0648651914241
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.035135579109147,
+    "text" : "-69%-",
+    "width" : 35.348836445487635,
+    "x" : 459.5348840679538,
+    "y" : 638.9270267235704
+  },
+  {
+    "confidence" : 0.5,
+    "height" : 13.035135579109147,
+    "text" : "pi4",
+    "width" : 26.046512073465525,
+    "x" : 9.302325296600568,
+    "y" : 702.2405402461361
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.897296631336197,
+    "text" : "pi",
+    "width" : 18.604650112545542,
+    "x" : 55.813953976285376,
+    "y" : 700.378378562386
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.170918070276599,
+    "text" : "pod 153",
+    "width" : 50.23255763032509,
+    "x" : 1216.7441862258122,
+    "y" : 702.2405402875174
+  }
+]

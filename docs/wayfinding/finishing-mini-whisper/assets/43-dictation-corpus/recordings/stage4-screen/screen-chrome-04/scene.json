@@ -1,0 +1,18 @@
+{
+ "id": "screen-chrome-04",
+ "tags": [
+  "chrome",
+  "chatgpt-sidebar",
+  "term-of-art"
+ ],
+ "scene": {
+  "kind": "chrome",
+  "url": "https://www.postgresql.org/docs/current/routine-vacuuming.html#VACUUM-FOR-WRAPAROUND"
+ },
+ "say": "So M V C C breaks because a row with an insertion X I D in the future just isn't visible? And vacuum fixes that by marking the rows frozen?",
+ "expect": "So MVCC breaks because a row with an insertion XID in the future just isn't visible? And VACUUM fixes that by marking the rows frozen?",
+ "must": [
+  "MVCC",
+  "XID"
+ ]
+}

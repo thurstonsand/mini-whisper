@@ -1,0 +1,19 @@
+{
+ "id": "screen-vscode-08",
+ "tags": [
+  "vscode",
+  "identifier"
+ ],
+ "scene": {
+  "kind": "vscode",
+  "file": "Packages/History/Sources/History/AudioVault.swift",
+  "line": 60
+ },
+ "say": "Should write screenshot create the directory with intermediate directories the way the WAV path does, or does the history log already guarantee it exists?",
+ "expect": "Should writeScreenshot create the directory withIntermediateDirectories the way the WAV path does, or does the HistoryLog already guarantee it exists?",
+ "must": [
+  "writeScreenshot",
+  "withIntermediateDirectories",
+  "HistoryLog"
+ ]
+}

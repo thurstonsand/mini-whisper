@@ -1,0 +1,482 @@
+[
+  {
+    "confidence" : 0.5,
+    "height" : 13.035135579109147,
+    "text" : "pi1:pi",
+    "width" : 48.37209111371918,
+    "x" : 83.72093111121654,
+    "y" : 39.31081055919849
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172973157962092,
+    "text" : "1: pi",
+    "width" : 40.93023325830296,
+    "x" : 26.046511184802007,
+    "y" : 67.24324312281625
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.31081073681519,
+    "text" : "name",
+    "width" : 39.06976674169702,
+    "x" : 24.18604702450032,
+    "y" : 84.00270262331537
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.48333333333337,
+    "text" : "trom a",
+    "width" : 48.372091113719165,
+    "x" : 66.9767450943032,
+    "y" : 83.82812489108878
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.48538842101894,
+    "text" : "• Laven",
+    "width" : 46.51162459711321,
+    "x" : 115.3488390735364,
+    "y" : 83.82812493911163
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.483333333333292,
+    "text" : "below it. The retry policy in",
+    "width" : 232.55813393357624,
+    "x" : 169.30232828751332,
+    "y" : 83.82812492146246
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.897296631336197,
+    "text" : "download(_:specification:to:progress:) reads correctly, but only because the reader accepts the borrowed",
+    "width" : 837.2093084360986,
+    "x" : 405.58139214763406,
+    "y" : 82.14054087088904
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.6364583333334,
+    "text" : "vocabulary. A local case that means what it says would",
+    "width" : 431.62792530829597,
+    "x" : 11.162781421607518,
+    "y" : 96.7468750330951
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172973157962169,
+    "text" : "While there.",
+    "width" : 89.30232710902467,
+    "x" : 11.162789795825244,
+    "y" : 128.69459448407903
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.267905368407604,
+    "text" : "the guard",
+    "width" : 72.55813940758128,
+    "x" : 122.79069765325453,
+    "y" : 128.69459435343822
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.514503987630214,
+    "text" : "the",
+    "width" : 29.2542352377032,
+    "x" : 224.56238275370424,
+    "y" : 127.25648863815486
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.310810736815114,
+    "text" : "same",
+    "width" : 35.34883644548767,
+    "x" : 256.7441863353957,
+    "y" : 130.55675676636986
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.035134210189142,
+    "text" : "function",
+    "width" : 72.55813940758131,
+    "x" : 293.9534877845814,
+    "y" : 126.83243276455407
+  },
+  {
+    "confidence" : 1,
+    "height" : 17.701496414343573,
+    "text" : "inverts",
+    "width" : 64.44013518602858,
+    "x" : 364.0261717698965,
+    "y" : 125.85753527869049
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.897296631336197,
+    "text" : "'swift",
+    "width" : 53.953485189531946,
+    "x" : 22.325582273451097,
+    "y" : 156.62702711171931
+  },
+  {
+    "confidence" : 1,
+    "height" : 18.35998800595594,
+    "text" : "guard let expectedHash",
+    "width" : 177.1935761455998,
+    "x" : 25.76457658009788,
+    "y" : 171.95611682382204
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.636458333333323,
+    "text" : "ile.lfs? oid,",
+    "width" : 106.046509336463,
+    "x" : 230.69767547324136,
+    "y" : 174.97708343074862
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.349605929851563,
+    "text" : "• hash",
+    "width" : 46.51163007111826,
+    "x" : 338.6046499825287,
+    "y" : 177.11081082194528
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.636458333333323,
+    "text" : "!= expectedHash else { return hash }",
+    "width" : 290.2325576303251,
+    "x" : 385.11627919531304,
+    "y" : 174.9770834384551
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.90051325460277,
+    "text" : "he success path is the else. if let expected =",
+    "width" : 372.2174099635651,
+    "x" : 14.82525034737204,
+    "y" : 218.349663505463
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.071874999999984,
+    "text" : ", hash != expected { throw } then return hash reads forward.",
+    "width" : 483.7209220852018,
+    "x" : 414.883724913175,
+    "y" : 221.62812466396673
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.246452684203886,
+    "text" : "4. Two layers of change tracking for one signal",
+    "width" : 377.6744236967489,
+    "x" : 9.302322958643108,
+    "y" : 251.59729762592187
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.035135579109147,
+    "text" : "OnboardingWindowController. render()",
+    "width" : 280.9302305213005,
+    "x" : 9.302326512069577,
+    "y" : 283.25405382744464
+  },
+  {
+    "confidence" : 1,
+    "height" : 12.9032921552659,
+    "text" : "keeps",
+    "width" : 50.58287753117991,
+    "x" : 288.22580172100646,
+    "y" : 283.75983123483456
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.035135579109223,
+    "text" : "renderedPermissions",
+    "width" : 161.86046104260086,
+    "x" : 344.18604845206113,
+    "y" : 283.2540538202169
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.035135579109223,
+    "text" : "to detect permission changes, but withObservationTracking only fires onChange when isPresented",
+    "width" : 751.627925308296,
+    "x" : 507.9069675401714,
+    "y" : 283.25405382949094
+  },
+  {
+    "confidence" : 1,
+    "height" : 17.288370045026227,
+    "text" : "snapshot. permissions",
+    "width" : 162.19914868273543,
+    "x" : 33.322590552868355,
+    "y" : 297.1552692940997
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.035135579109223,
+    "text" : "changed",
+    "width" : 57.67441822274382,
+    "x" : 273.4883723227366,
+    "y" : 300.01351323721343
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.897296631336273,
+    "text" : "against a case that mostly cannot happen. renderedVisibility is load-bearing for the",
+    "width" : 673.4883863508969,
+    "x" : 530.232551039052,
+    "y" : 298.1513516755688
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.33092001279188,
+    "text" : "wasVisible == true → NSApp.hide transition; renderedPermissions",
+    "width" : 506.14463635089686,
+    "x" : 9.25028998288277,
+    "y" : 312.62909765549267
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.24645268420381,
+    "text" : "North a second look regardless of the field: the effect of that branch is NSApp.activate(ignoringOtherApps: true) on every permission change,",
+    "width" : 1123.7209220852017,
+    "x" : 11.162794665926226,
+    "y" : 344.35624968374486
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.48333299110331,
+    "text" : "at 1 Hz",
+    "width" : 63.25581229855658,
+    "x" : 1138.6046519006786,
+    "y" : 346.5093750070577
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.035135579109223,
+    "text" : "polling. A user",
+    "width" : 119.06976947869956,
+    "x" : 11.162789400185106,
+    "y" : 361.4648645963237
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.33142479856808,
+    "text" : "toggling a switch",
+    "width" : 143.52014652816703,
+    "x" : 130.12131499736063,
+    "y" : 361.26783574892465
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.035135579109223,
+    "text" : "in System Settings gets focus yanked out",
+    "width" : 323.7209220852017,
+    "x" : 279.06977142053614,
+    "y" : 361.4648646382555
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.310810736815114,
+    "text" : "trom",
+    "width" : 31.62790614927836,
+    "x" : 612.0930235707096,
+    "y" : 363.32702703492856
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172973157962092,
+    "text" : "unde",
+    "width" : 37.2093029620936,
+    "x" : 647.4418601468601,
+    "y" : 361.4648647025392
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.310810736815114,
+    "text" : "them",
+    "width" : 33.48837266588433,
+    "x" : 697.6744182197253,
+    "y" : 363.3270270366402
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172972473502128,
+    "text" : "momen",
+    "width" : 42.7906970379064,
+    "x" : 792.5581395508142,
+    "y" : 361.4648649749381
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.035135579109223,
+    "text" : "the toggle. If the intent isạẠcome back to the",
+    "width" : 372.0930405689462,
+    "x" : 870.6976656739635,
+    "y" : 361.464864639411
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.340617096424118,
+    "text" : "front when the user returns,",
+    "width" : 219.79154988789236,
+    "x" : 12.89528923526703,
+    "y" : 375.6773190089971
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.897296631336197,
+    "text" : "applicationBecameActive already does that, and it does it on",
+    "width" : 489.3023052130046,
+    "x" : 243.72094031244106,
+    "y" : 376.36216249152693
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.20971326331297,
+    "text" : "the right event.",
+    "width" : 130.2325576303251,
+    "x" : 734.8837211150701,
+    "y" : 376.3621618587056
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.071874999999984,
+    "text" : "Verdict: approved. The structure is right now - one startup",
+    "width" : 478.13953895739917,
+    "x" : 11.162788296625568,
+    "y" : 437.65833306172357
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172973157962169,
+    "text" : "join",
+    "width" : 39.06976674169698,
+    "x" : 487.4418607507972,
+    "y" : 439.67567554020815
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172973157962169,
+    "text" : "one permissions delegate,",
+    "width" : 206.51163554512337,
+    "x" : 532.0930193455966,
+    "y" : 439.6756755775382
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.071874999999984,
+    "text" : "one readiness path, one walk over the download plan. §1 and §2",
+    "width" : 504.186037345852,
+    "x" : 738.6046556869519,
+    "y" : 437.65833307058654
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.091271912058168,
+    "text" : "are the last two places where a captured value or a reconciliation pass is standing in for an identity, and neither is load-bearing. Take them when",
+    "width" : 1175.8139188621078,
+    "x" : 11.162808246365543,
+    "y" : 452.71081113778433
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172972473502128,
+    "text" : "convenient.",
+    "width" : 81.86046104260092,
+    "x" : 11.1627928740484,
+    "y" : 469.47027038034355
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.482490942875508,
+    "text" : "Package Updates Available",
+    "width" : 201.1875306544282,
+    "x" : 9.187567087073875,
+    "y" : 513.5648059437704
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.035135579109223,
+    "text" : "Package updates are available. Run pi update --extensions",
+    "width" : 457.6744236967488,
+    "x" : 9.302322937088165,
+    "y" : 530.9216213968132
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.400938383738179,
+    "text" : "Packages:",
+    "width" : 72.62300636736268,
+    "x" : 9.26989207221794,
+    "y" : 547.498179439599
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.310810736815114,
+    "text" : "sessions",
+    "width" : 63.25581229855661,
+    "x" : 50.23255887397751,
+    "y" : 564.440540563846
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172973157962092,
+    "text" : "dthurstonsand/pi-agent-switchboard",
+    "width" : 269.7674423696749,
+    "x" : 27.906976396557898,
+    "y" : 579.3378377414906
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.753069957097422,
+    "text" : "-doppelclaude.",
+    "width" : 102.75280050098095,
+    "x" : 44.45672587714894,
+    "y" : 591.3505864686879
+  },
+  {
+    "confidence" : 1,
+    "height" : 17.37969480554267,
+    "text" : "* Claude Opus 5 / • mini-whisper / & main /",
+    "width" : 344.3516588424888,
+    "x" : 11.082841384470418,
+    "y" : 637.1228270126737
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.330208333333262,
+    "text" : "- 31%-",
+    "width" : 29.76744236967484,
+    "x" : 414.883720576403,
+    "y" : 640.7697915986328
+  },
+  {
+    "confidence" : 0.5,
+    "height" : 13.035135579109147,
+    "text" : "pi1",
+    "width" : 26.046512073465525,
+    "x" : 9.302325296600568,
+    "y" : 702.2405402461361
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.897296631336197,
+    "text" : "pi",
+    "width" : 18.604650112545542,
+    "x" : 55.81395401349467,
+    "y" : 700.3783785251427
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.170918070276599,
+    "text" : "pod 153",
+    "width" : 50.23255763032509,
+    "x" : 1216.7441862116711,
+    "y" : 702.240540293486
+  }
+]

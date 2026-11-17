@@ -1,0 +1,25 @@
+ScreenContextClient.swift
+UTmuxPanes.swift
+MAppFeature+Delivery.swift
+M
+CleanupPrompt.swift
+M
+Retention.swift
+M
+Profiles.swift
+HotkeyListener.swift
+UsersthurstonsandDevelopmini-whisper-expanded-contextPackagesHotkeyListenerSourcesHotkeyListener
+HotkeyListener.swift
+175
+269
+private final class EventTapSession<Action: Equatable & Sendable>: @unchecked Sendable {
+private func run(startup: CheckedContinuation<Void, any Error>) {
+Chat
+Sessions
+Tip: Try the Plan agent to research and plan before implementing changes.
+HotkeyListener.swift
+Agent
+Auto
+Local
+Default permissions
+0  0

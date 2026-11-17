@@ -1,0 +1,21 @@
+ScreenContextClient.swift
+U
+TmuxPanes.swift
+M
+AppFeature+Delivery.swift
+M
+CleanupPrompt.swift
+M
+Retention.swift
+M
+UsersthurstonsandDevelopmini-whisper-expanded-contextPackagesHistorySourcesHistory
+Retention.swift
+Chat
+Sessions
+Tip: Try the Plan agent to research and plan before implementing changes.
+Retention.swift
+Agent
+Auto
+Local
+Default permissions
+0  0

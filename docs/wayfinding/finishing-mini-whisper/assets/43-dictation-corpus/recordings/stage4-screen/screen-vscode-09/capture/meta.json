@@ -1,0 +1,29 @@
+{
+  "appName" : "Code",
+  "axCapped" : false,
+  "axUnplaced" : 19010,
+  "axVisited" : 526,
+  "bundleID" : "com.microsoft.VSCode",
+  "capturedAt" : 816034785.975642,
+  "focusedFrame" : [
+    1008,
+    591,
+    240,
+    21
+  ],
+  "focusedRole" : "AXTextArea",
+  "screenshotCandidates" : 1,
+  "screenshotTitle" : "FocusedFieldReader.swift — Modified",
+  "timingsMs" : {
+    "ax" : 63.048375,
+    "ocr" : 224.097125,
+    "screenshot" : 129.717875
+  },
+  "windowFrame" : [
+    0,
+    30,
+    1280,
+    690
+  ],
+  "windowTitle" : "FocusedFieldReader.swift — Modified"
+}

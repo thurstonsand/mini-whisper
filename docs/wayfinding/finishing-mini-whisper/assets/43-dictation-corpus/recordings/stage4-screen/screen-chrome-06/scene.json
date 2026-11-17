@@ -1,0 +1,17 @@
+{
+ "id": "screen-chrome-06",
+ "tags": [
+  "chrome",
+  "chatgpt-sidebar",
+  "term-of-art"
+ ],
+ "scene": {
+  "kind": "chrome",
+  "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS#simple_requests"
+ },
+ "say": "Why does the first example respond with access control allow origin star? Doesn't that let any origin read the resource?",
+ "expect": "Why does the first example respond with Access-Control-Allow-Origin: *? Doesn't that let any origin read the resource?",
+ "must": [
+  "Access-Control-Allow-Origin"
+ ]
+}

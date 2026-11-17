@@ -1,0 +1,29 @@
+{
+  "appName" : "Google Chrome",
+  "axCapped" : true,
+  "axUnplaced" : 0,
+  "axVisited" : 3000,
+  "bundleID" : "com.google.Chrome",
+  "capturedAt" : 816036406.583163,
+  "focusedFrame" : [
+    934,
+    611,
+    304,
+    26
+  ],
+  "focusedRole" : "AXTextArea",
+  "screenshotCandidates" : 1,
+  "screenshotTitle" : "rfc-editor.org/rfc/rfc4120.html#section-3.3",
+  "timingsMs" : {
+    "ax" : 206.820083,
+    "ocr" : 186.530958,
+    "screenshot" : 135.619041
+  },
+  "windowFrame" : [
+    0,
+    30,
+    1280,
+    690
+  ],
+  "windowTitle" : "rfc-editor.org/rfc/rfc4120.html#section-3.3 - Google Chrome"
+}

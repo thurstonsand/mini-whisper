@@ -1,0 +1,32 @@
+ScreenContextClient.swift
+UTmuxPanes.swift
+MAppFeature+Delivery.swift
+MCleanupPrompt.swift
+M
+Retention.swift
+M
+Profiles.swift
+HotkeyListener.swift
+AudioVault.swift
+M
+FocusedFieldReader.swift
+M
+UsersthurstonsandDevelopmini-whisper-expanded-contextMiniWhisper
+FocusedFieldReader.swift
+12
+111
+148
+154
+enum FocusedFieldReader {
+private struct Session {
+func deepestFocusedElement(of application: AXUIElement) -> AXUIElement? {
+for _ in 0 ..< maximumFocusDepth {
+Chat
+Sessions
+Tip: Try the Plan agent to research and plan before implementing changes.
+FocusedFieldReader.swift
+Agent
+Auto
+Local
+Default permissions
+0  0

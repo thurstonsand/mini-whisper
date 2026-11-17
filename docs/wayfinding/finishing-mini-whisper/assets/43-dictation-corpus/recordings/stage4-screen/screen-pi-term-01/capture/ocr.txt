@@ -1,0 +1,26 @@
+thurstonsand - n - Liquid Glass review of the settings window - mini-whisper - pi --session-dir /tmp/pi-scenes --fork ~/.pi/agent/sessions/--Users-thurstonsand-Develop-mini-whisp..
+"reference"
+"/tmp/1g/B_crop.png"
+"description'
+"listRowBackground rejected: full-bleed square band, separators swallowed, hover fill lost"
+reference": "/tmp/1g/F_crop.png",
+"description": "glassEffect on content rows renders as a grey outline - the HIG content-layer rule made visibl!%!
+reference": "/tmp/1g/E0_sheet_inset.png and /tmp/1g/E1_sheet_bar.png",
+"description": "Sheet bottom bar: safeAreaInset vs safeAreaBar are visually identical, so no change'
+reference": "/tmp/1g/G_crop.png",
+"description": "MoreMenu with .menuStyle(.button) - bordered ellipsis matching neighbouring bordered buttons"
+"referen' : "https://developer.apple.com/design/human-interface-guidelines/materia%!% '
+"descriptio! ' "\"Don't use Liquid Glass in the content layer\" and \"Use Liquid Glass effects sparingly\""
+"reference": "https://developer.apple.com/documentation/TechnologyOverviews/adopting-liquid-glass‚¿‚‚
+"description": "Standard components adopt the material automaticallv when rebuilt against the new SDK"
+'reference": "$(xcrun --sdk macosx --show-sdk-path)/System/Library/Frameworks/SwiftUI.framework/.../arm64e-apple-macos.swiftinterface'‚
+"descriptio! ' "Authoritative macOs availability for safeAreaBar (:16986), ToolbarSpacer, GlassButtonStyle,
+and the macOS-unavailable hoverEffect/listRowHoverEffect"
+Report delivered to the parent. Stopping.
+Package Updates Available
+Package updates are available. Run pi update --extensions
+Packages:
+- pi-sessions
+@thurstonsand/pi-agent-switchboard
+pi-doppelclaude
+Claude Opus 5 / Emini-whisper / Emain /

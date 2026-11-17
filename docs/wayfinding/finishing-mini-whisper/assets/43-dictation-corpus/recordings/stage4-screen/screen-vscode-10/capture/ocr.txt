@@ -1,0 +1,84 @@
+VocabularyBoost.swift
+08
+files.swift
+• HotkeyListener.swift
+AudioVault.swift M
+• FocusedFieldReader.swift M
+• VocabularyBoost.swift X
+Chat
+Users > thurstonsand > Develop > mini-whisper-expanded-context > Packages > ASREngine > Sources > ASREngine > • VocabularyBoost.swift
+Sessions
+61
+actor FluidVocabularyBoostBackend: VocabularyBoostBackend f
+64
+private init (
+Vocabular...tBackend
+66
+thresholds:
+RecognitionBoostIhresholds,
+Vocabulary Boost
+Lifecycle
+67
+Internal
+68
+self.directory = directory
+69
+self. tokenizer = tokenizer
+70
+self. thresholds = thresholds
+Private
+cluidVoca....stBackend
+71
+spotter = CtcKeywordSpotter(models: models, blankId: models.vocabulary.count)
+Lifecycle
+72
+73
+74
+// MARK: Internal
+75
+76
+static func load(
+77
+from directory: URL, thresholds: RecognitionBoostThresholds,
+78
+) async throws > FluidVocabularyBoostBackend {
+79
+try await FluidVocabularyBoostBackend (
+Private
+80
+directory: directory, models: CtcModels.loadDirect(from: directory),
+81
+tokenizer: CtcTokenizer.load (from: directory), thresholds: thresholds,
+82
+83
+84
+85
+func prepare (terms:
+[String]) async throws {
+86
+let tokenizedTerms = terms.compactMap { text > CustomVocabularyTerm? in
+Tip: Try the Plan agent to research and
+87
+let tokenIDs = tokenizer.encode(text)
+plan before implementing changes.
+88
+guard !tokenIDs.isEmpty else {
++ • VocabularyBoost.swift
+89
+return nil
+90
+91
+return CustomVocabularyTerm(
+92
+text: text, ctcTokenIds: tokenIDs, minSimilarity: thresholds.minimumSimilarity,
+( Agent 8 Auto | Balance 0,
+93
+94
+• Local • Default permissions
+95
+let vocabularv = CustomVocabularvContex+(
+DOAO
+Ln 80, Col 1
+Spaces: 2 UTF-8 LF (] Swift
+€8
+D

@@ -1,0 +1,290 @@
+[
+  {
+    "confidence" : 1,
+    "height" : 13.152543872594864,
+    "text" : "PostgreSQL: Documentation:",
+    "width" : 167.44185562219414,
+    "x" : 156.2790721199968,
+    "y" : 44.87870643313496
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.018867433071101,
+    "text" : "+",
+    "width" : 14.883720834648528,
+    "x" : 370.23255809430367,
+    "y" : 44.87870633669896
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.100235551595622,
+    "text" : "• Ask Gemini",
+    "width" : 91.16278891343995,
+    "x" : 1173.953489173125,
+    "y" : 42.93750003817104
+  },
+  {
+    "confidence" : 1,
+    "height" : 17.58112335205084,
+    "text" : "° postgresql.org/docs/current/routine-vacuuming.htm|#VACUUM-FOR-WRAPAROUND",
+    "width" : 586.1272885101009,
+    "x" : 130.18187034396837,
+    "y" : 85.76505364734095
+  },
+  {
+    "confidence" : 0.5,
+    "height" : 13.318586051464106,
+    "text" : "ChatGPT",
+    "width" : 63.31686000631322,
+    "x" : 941.3648257206871,
+    "y" : 130.28140776274034
+  },
+  {
+    "confidence" : 0.5,
+    "height" : 15.093749999999984,
+    "text" : "· ×",
+    "width" : 44.65116113390849,
+    "x" : 1218.6046514795576,
+    "y" : 128.468749899005
+  },
+  {
+    "confidence" : 1,
+    "height" : 18.869415223598455,
+    "text" : "\"ChatGPT\" started debugging this browser",
+    "width" : 268.1935895412458,
+    "x" : 278.91262702022385,
+    "y" : 137.0091444150636
+  },
+  {
+    "confidence" : 1,
+    "height" : 12.160153329372442,
+    "text" : "Cancel",
+    "width" : 44.89093134031286,
+    "x" : 572.9033714467167,
+    "y" : 139.22989635368936
+  },
+  {
+    "confidence" : 1,
+    "height" : 17.250000000000014,
+    "text" : "PostgreSQL's MVCC transaction semantics depend on being able to compare transaction ID (XID) numbers: a",
+    "width" : 727.4418665824917,
+    "x" : 76.2790666104512,
+    "y" : 176.6250002785707
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.8787054419517,
+    "text" : "Chat",
+    "width" : 37.209300031565675,
+    "x" : 1028.8372100772406,
+    "y" : 175.06738563751472
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.018867433071101,
+    "text" : "Work",
+    "width" : 39.06976667718851,
+    "x" : 1116.2790700521034,
+    "y" : 176.92722393285797
+  },
+  {
+    "confidence" : 1,
+    "height" : 18.04696160554888,
+    "text" : "row version with an insertion XID greater than the current transaction's XID is \"in the future\" and should not be",
+    "width" : 744.2646955667789,
+    "x" : 74.37990157094961,
+    "y" : 196.91389618146292
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.14024636149408,
+    "text" : "visible to the current transaction. But since transaction IDs have limited size (32 bits) a cluster that runs for a",
+    "width" : 727.4418665824917,
+    "x" : 74.41860153937134,
+    "y" : 219.703503733499
+  },
+  {
+    "confidence" : 1,
+    "height" : 17.250000000000014,
+    "text" : "long time (more than 4 billion transactions) would suffer transaction ID wraparound: the XID counter wraps",
+    "width" : 721.860444725028,
+    "x" : 72.55814965609065,
+    "y" : 239.87500024832076
+  },
+  {
+    "confidence" : 1,
+    "height" : 17.250000000000014,
+    "text" : "around to zero, and all of a sudden transactions that were in the past appear to be in the future - which",
+    "width" : 705.1162668350167,
+    "x" : 74.41861066630456,
+    "y" : 262.156250178301
+  },
+  {
+    "confidence" : 1,
+    "height" : 18.72403055429456,
+    "text" : "means their output become invisible. In short, catastrophic data loss. (Actually the data is still there, but that's",
+    "width" : 738.666614057239,
+    "x" : 74.38805969196822,
+    "y" : 282.72325278507657
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.7385448217392,
+    "text" : "cold comfort if you cannot get at it.) To avoid this, it is necessary to vacuum every table in every database at",
+    "width" : 721.8604447250282,
+    "x" : 74.41861463129561,
+    "y" : 305.25606451033303
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.093749999999984,
+    "text" : "least once every two billion transactions.",
+    "width" : 275.3488443462402,
+    "x" : 74.41860092800349,
+    "y" : 327.5624997551505
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.7385448217392,
+    "text" : "The reason that periodic vacuuming solves the problem is that VACUUM will mark rows as frozen, indicating that",
+    "width" : 747.9069339225589,
+    "x" : 74.41862596681187,
+    "y" : 364.7708893120573
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.73854482173928,
+    "text" : "they were inserted by a transaction that committed sufficiently far in the past that the effects of the inserting",
+    "width" : 731.1627998737374,
+    "x" : 74.41860003317461,
+    "y" : 387.0889486086607
+  },
+  {
+    "confidence" : 1,
+    "height" : 20.331102132797195,
+    "text" : "transaction are certain to be visible to all current and future transactions. Normal XIDs are compared using",
+    "width" : 718.2751122334456,
+    "x" : 74.36003235079787,
+    "y" : 405.8534503760174
+  },
+  {
+    "confidence" : 1,
+    "height" : 20.05551832914352,
+    "text" : "modulo-232 arithmetic. This means that for every normal XID, there are two billion XIDs that are \"older\" and",
+    "width" : 718.2100519079684,
+    "x" : 74.38753799294639,
+    "y" : 427.76164125672847
+  },
+  {
+    "confidence" : 1,
+    "height" : 17.250000000000014,
+    "text" : "two billion that are \"newer\"; another way to say it is that the normal XID space is circular with no endpoint.",
+    "width" : 712.5581334175082,
+    "x" : 74.41860761547512,
+    "y" : 451.9062498977975
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.192553997039795,
+    "text" : "Therefore, once a row version has been created with a particular normal XID, the row version will appear to be",
+    "width" : 740.4651550224469,
+    "x" : 74.41858518526747,
+    "y" : 474.18750021612186
+  },
+  {
+    "confidence" : 1,
+    "height" : 19.73857358098025,
+    "text" : "\"in the past\" for the next two billion transactions, no matter which normal XID we are talking about. If the row",
+    "width" : 733.1067182239058,
+    "x" : 74.37030946775505,
+    "y" : 493.0743915220197
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.128622442483861,
+    "text" : "version still exists after more than two billion transactions, it will suddenly appear to be in the future. To",
+    "width" : 697.6744002525252,
+    "x" : 74.41861374314159,
+    "y" : 517.277627723412
+  },
+  {
+    "confidence" : 1,
+    "height" : 17.24999999999994,
+    "text" : "prevent this, PostgreSQL reserves a special XID, FrozenTransactionId, which does not follow the normal XID",
+    "width" : 746.0464891975307,
+    "x" : 74.41861577975187,
+    "y" : 537.4374997981491
+  },
+  {
+    "confidence" : 1,
+    "height" : 19.80163323879244,
+    "text" : "comparison rules and is always considered older than every normal XID. Frozen row versions are treated as if",
+    "width" : 734.993774551066,
+    "x" : 74.3690805587144,
+    "y" : 558.808468575671
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.87803253531451,
+    "text" : "the inserting XID were FrozenTransactionId, so that they will appear to be \"in the past\" to all normal",
+    "width" : 695.8139555274972,
+    "x" : 74.41860353882637,
+    "y" : 582.3719674790699
+  },
+  {
+    "confidence" : 1,
+    "height" : 19.130529105663285,
+    "text" : "transactions regardless of wraparound issues, and so such row versions will be valid until deleted, no matter",
+    "width" : 729.3753507295173,
+    "x" : 74.38239776594897,
+    "y" : 602.6611767053136
+  },
+  {
+    "confidence" : 1,
+    "height" : 21.77070716023441,
+    "text" : "Ask ChatGPT",
+    "width" : 98.86875482253075,
+    "x" : 931.9609706065853,
+    "y" : 613.332974736704
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.878706812858603,
+    "text" : "how long that is.",
+    "width" : 113.48836674031986,
+    "x" : 74.41860719683898,
+    "y" : 627.0080859289577
+  },
+  {
+    "confidence" : 1,
+    "height" : 24.17789685726168,
+    "text" : "+",
+    "width" : 24.186047212577222,
+    "x" : 933.9534879169673,
+    "y" : 647.4663074849474
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.738543450832378,
+    "text" : "Medium v",
+    "width" : 80,
+    "x" : 1071.6279060697675,
+    "y" : 653.0458224049745
+  },
+  {
+    "confidence" : 0.5,
+    "height" : 14.8787054419517,
+    "text" : "•İt•",
+    "width" : 18.604651385820006,
+    "x" : 1216.7441858419736,
+    "y" : 653.0458223571914
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.878705441951777,
+    "text" : "Note",
+    "width" : 46.511627779531466,
+    "x" : 424.1860464529515,
+    "y" : 699.5417793153413
+  }
+]

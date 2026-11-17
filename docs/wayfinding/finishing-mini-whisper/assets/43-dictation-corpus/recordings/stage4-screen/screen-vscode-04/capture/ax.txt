@@ -1,0 +1,25 @@
+ScreenContextClient.swift
+UTmuxPanes.swift
+MAppFeature+Delivery.swift
+M
+CleanupPrompt.swift
+M
+Retention.swift
+M
+Profiles.swift
+HotkeyListener.swift
+AudioVault.swift
+M
+UsersthurstonsandDevelopmini-whisper-expanded-contextPackagesTranscriptCleanupSourcesTranscriptCleanup
+CleanupPrompt.swift
+43
+public enum CleanupPrompt {
+Chat
+Sessions
+Tip: Try the Plan agent to research and plan before implementing changes.
+CleanupPrompt.swift
+Agent
+Auto
+Local
+Default permissions
+0  0

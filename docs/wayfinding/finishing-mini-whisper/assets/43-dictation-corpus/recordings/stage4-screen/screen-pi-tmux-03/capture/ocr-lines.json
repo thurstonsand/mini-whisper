@@ -1,0 +1,706 @@
+[
+  {
+    "confidence" : 1,
+    "height" : 13.035135579109147,
+    "text" : "pi3: pi",
+    "width" : 48.37209111371918,
+    "x" : 83.72093111121654,
+    "y" : 39.31081055919849
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172973157962092,
+    "text" : "1: pi",
+    "width" : 40.93023325830296,
+    "x" : 26.046511184802007,
+    "y" : 67.24324312281625
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.170918070276599,
+    "text" : "an unreadable history.json",
+    "width" : 212.093018672926,
+    "x" : 39.069769757784215,
+    "y" : 82.14054030140201
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172973157962169,
+    "text" : "corrupt,",
+    "width" : 65.11627881516254,
+    "x" : 273.488372097535,
+    "y" : 84.00270258786216
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.483333333333292,
+    "text" : "or written",
+    "width" : 93.02326014223652,
+    "x" : 338.6046489077892,
+    "y" : 83.82812491301252
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.48333333333337,
+    "text" : "by a newer build and rejected by the version gate",
+    "width" : 394.4186168721973,
+    "x" : 431.62790077408954,
+    "y" : 83.82812492334408
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.310810736815114,
+    "text" : "survives",
+    "width" : 63.25581229855658,
+    "x" : 850.2325588739775,
+    "y" : 84.00270272600815
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.48333333333337,
+    "text" : "Launch untouched, and 1s|",
+    "width" : 189.7674423696749,
+    "x" : 926.5116275674376,
+    "y" : 83.82812491993204
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.483333333333292,
+    "text" : "then silently",
+    "width" : 104.18604829386211,
+    "x" : 1119.9999990176148,
+    "y" : 83.82812491546377
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.483333333333292,
+    "text" : "overwritten by the.",
+    "width" : 145.11627881516256,
+    "x" : 11.162790735776486,
+    "y" : 98.89999989985272
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.188259894649214,
+    "text" : "dictation with a log containing exactly one entry. The user's history is gone with an error line in the unified log as",
+    "width" : 952.5581558295964,
+    "x" : 210.23254990552672,
+    "y" : 96.74687490580479
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.48333333333337,
+    "text" : "the only",
+    "width" : 65.11627881516262,
+    "x" : 1166.5116279379338,
+    "y" : 96.74687514653853
+  },
+  {
+    "confidence" : 0.3,
+    "height" : 5.586486578981122,
+    "text" : "ILIS",
+    "width" : 40.930233258303005,
+    "x" : 159.99999952953524,
+    "y" : 102.62432426164617
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.310810736815114,
+    "text" : "trace.",
+    "width" : 44.65116355451233,
+    "x" : 13.023255320418254,
+    "y" : 115.65945947318029
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172973157962169,
+    "text" : "lhat defeats.",
+    "width" : 94.88372118483746,
+    "x" : 13.023255591767333,
+    "y" : 145.45405395038648
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172973157962169,
+    "text" : "• the",
+    "width" : 33.488372665884256,
+    "x" : 106.04651127946097,
+    "y" : 145.45405391500537
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.091271912058245,
+    "text" : "thing HistoryLog.init(from:)",
+    "width" : 228.83721184837447,
+    "x" : 141.3953475046082,
+    "y" : 143.39791693578115
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.229109490911192,
+    "text" : "was built to",
+    "width" : 100.46511526065025,
+    "x" : 375.81395414641906,
+    "y" : 143.39791694329153
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.310810736815114,
+    "text" : "do",
+    "width" : 24.186045556859597,
+    "x" : 474.4186050768673,
+    "y" : 145.45405403932517
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.31081073681519,
+    "text" : "Its",
+    "width" : 26.046512073465493,
+    "x" : 513.4883717700651,
+    "y" : 145.45405405524104
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172973157962169,
+    "text" : "comment",
+    "width" : 61.39534578195068,
+    "x" : 541.3953504191022,
+    "y" : 145.45405391500537
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172972473502128,
+    "text" : "says",
+    "width" : 39.06976674169705,
+    "x" : 604.6511633965933,
+    "y" : 145.45405416412734
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.694140515724873,
+    "text" : "decoding",
+    "width" : 71.11770972008117,
+    "x" : 643.5387898714248,
+    "y" : 144.2875088113229
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.229110859831195,
+    "text" : "\"rejects files from a version it does.",
+    "width" : 301.39534578195054,
+    "x" : 718.1395361990999,
+    "y" : 143.39791638000324
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172973157962245,
+    "text" : "not know rather than",
+    "width" : 169.30232710902473,
+    "x" : 1017.6744177570006,
+    "y" : 145.45405395466253
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.697547930479018,
+    "text" : "misreading",
+    "width" : 80.52095011210761,
+    "x" : 10.919056708729201,
+    "y" : 158.88353088979508
+  },
+  {
+    "confidence" : 1,
+    "height" : 12.869336094458887,
+    "text" : "them\"",
+    "width" : 47.05619504098935,
+    "x" : 92.82652514799543,
+    "y" : 159.630779925875
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172973157962169,
+    "text" : "- but.",
+    "width" : 42.790697037906384,
+    "x" : 145.11627936476773,
+    "y" : 160.3513512123027
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172973157962169,
+    "text" : "reJecting",
+    "width" : 78.13953348339408,
+    "x" : 187.90697735132622,
+    "y" : 162.21351340771778
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.310810736815114,
+    "text" : "thei",
+    "width" : 24.186045556859597,
+    "x" : 275.3488375859113,
+    "y" : 162.21351351171631
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.310810736815114,
+    "text" : "read",
+    "width" : 35.348836445487635,
+    "x" : 303.2558142423725,
+    "y" : 162.2135135260092
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.190315666794746,
+    "text" : "while permitting",
+    "width" : 133.95349066353697,
+    "x" : 342.3255801650603,
+    "y" : 160.35135111751424
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172972473502128,
+    "text" : "• the",
+    "width" : 33.488372665884256,
+    "x" : 474.41860425842003,
+    "y" : 160.3513515212798
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172973157962169,
+    "text" : "write",
+    "width" : 46.51163007111826,
+    "x" : 507.90697556327814,
+    "y" : 160.35135122394124
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.465990824500714,
+    "text" : "1s worse",
+    "width" : 68.83721184837441,
+    "x" : 558.1395335176733,
+    "y" : 162.05833345024357
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172973157962169,
+    "text" : "than misreading,",
+    "width" : 124.6511635545123,
+    "x" : 634.4186041616404,
+    "y" : 160.35135124790287
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.054531806707367,
+    "text" : "because misreading is recoverable and truncation is not. The",
+    "width" : 485.5813831278027,
+    "x" : 764.6511732360987,
+    "y" : 158.46979192479267
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.168862298130989,
+    "text" : "postmortem this whole ticket came from was about 109 unrecoverable WAVs. This is the same failure with the transcripts.",
+    "width" : 950.6976947869955,
+    "x" : 11.162780436624102,
+    "y" : 174.97708331306097
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.035135579109223,
+    "text" : "The detection already exists two lines away. Consult it before the write: if loadError != nil",
+    "width" : 742.3256200952915,
+    "x" : 13.02323645808306,
+    "y" : 205.04324301807694
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.03513421018922,
+    "text" : "drop the entry (with its audio) rather than clobber the file",
+    "width" : 483.7209220852019,
+    "x" : 768.372102306236,
+    "y" : 205.04324354277702
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.897296631336273,
+    "text" : "or move the unreadable file aside first and start clean deliberately. Either",
+    "width" : 606.5116136491031,
+    "x" : 11.162802012657657,
+    "y" : 219.94054068730483
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.20971326331297,
+    "text" : "silently overwriting is not.",
+    "width" : 223.25580682455168,
+    "x" : 746.0465151027973,
+    "y" : 221.62812479047707
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.246452684203733,
+    "text" : "Everything else clears",
+    "width" : 178.60465421804932,
+    "x" : 9.302323982514192,
+    "y" : 251.59729761442966
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.963689936200696,
+    "text" : "The structural",
+    "width" : 110.10733429091928,
+    "x" : 12.821420358715663,
+    "y" : 283.08232837799096
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.961990767717346,
+    "text" : "work is sound, and I checked the invariant rather than taking it",
+    "width" : 522.876830507287,
+    "x" : 120.88960667938657,
+    "y" : 281.7884197830843
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.545844388008149,
+    "text" : "faith.",
+    "width" : 47.86708677830717,
+    "x" : 674.7192244737253,
+    "y" : 281.1799902249013
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.035135579109223,
+    "text" : "Removing the equality guard is safe: an append",
+    "width" : 368.3720746917041,
+    "x" : 11.162799780997881,
+    "y" : 314.9108105851206
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.168862298130989,
+    "text" : "requires pendingDictation",
+    "width" : 210.23255763032518,
+    "x" : 377.67441887439935,
+    "y" : 312.7770832975119
+  },
+  {
+    "confidence" : 1,
+    "height" : 18.86079917748765,
+    "text" : "isFinishing",
+    "width" : 93.93052173836885,
+    "x" : 630.2731573349423,
+    "y" : 311.3713955792908
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.035135579109223,
+    "text" : "which requires a dictation that set dictationInFlight = true and",
+    "width" : 513.4883863508968,
+    "x" : 736.7441788262679,
+    "y" : 314.9108105864188
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.483333675563427,
+    "text" : "cancelled maintenance on the way.",
+    "width" : 254.88371023682734,
+    "x" : 11.162795958330513,
+    "y" : 331.43749969936187
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.483333675563275,
+    "text" : "maintenance only starts",
+    "width" : 191.6279034122758,
+    "x" : 299.5348854181432,
+    "y" : 331.43749969801036
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.897296631336273,
+    "text" : "when dictationInFlight",
+    "width" : 180.46511526065024,
+    "x" : 494.88372137445344,
+    "y" : 329.80810843088494
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172973157962169,
+    "text" : "educer",
+    "width" : 52.09302414693113,
+    "x" : 799.9999994651391,
+    "y" : 331.6702701554297
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172972473502128,
+    "text" : "is serial",
+    "width" : 74.41860045018217,
+    "x" : 853.9534910307227,
+    "y" : 329.80810821818136
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.310810736815114,
+    "text" : "There.",
+    "width" : 40.93023325830288,
+    "x" : 978.6046507196858,
+    "y" : 331.67027028399104
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.310810736815114,
+    "text" : "is",
+    "width" : 22.325580408754888,
+    "x" : 1019.5348843382583,
+    "y" : 331.670270152088
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.310810736815114,
+    "text" : "noi",
+    "width" : 24.186045556859597,
+    "x" : 1043.7209308029655,
+    "y" : 331.670270152088
+  },
+  {
+    "confidence" : 0.5,
+    "height" : 9.310810736815114,
+    "text" : "Ing.",
+    "width" : 20.46511662915151,
+    "x" : 1149.767441592401,
+    "y" : 333.5324324271084
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.035134210189142,
+    "text" : "for",
+    "width" : 24.186045556859597,
+    "x" : 1216.7441862448259,
+    "y" : 329.80810835332886
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.093327684203778,
+    "text" : "the guard to catch.",
+    "width" : 148.83721184837444,
+    "x" : 13.023254444184875,
+    "y" : 346.5093752317959
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.48333299110331,
+    "text" : "The narrow window where",
+    "width" : 193.48836445487672,
+    "x" : 161.86046880082642,
+    "y" : 346.50937501915377
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.246452684203733,
+    "text" : "cancellation lands after the second checkCancellation() delivers a Completed computed from a log that has not",
+    "width" : 880,
+    "x" : 355.34883714000307,
+    "y" : 344.35624968051934
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.035135579109223,
+    "text" : "been appended to yet, so the replace is still correct.",
+    "width" : 431.6279253082959,
+    "x" : 11.162781474911288,
+    "y" : 361.4648646370062
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.149464701612764,
+    "text" : ". onChange(of: \\.dictationInFlight)",
+    "width" : 271.6279034122758,
+    "x" : 11.162792430549347,
+    "y" : 391.0072917145628
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.636458333333323,
+    "text" : "attached to the Reduce and dictationInFlight",
+    "width" : 353.48836445487666,
+    "x" : 314.4186084250285,
+    "y" : 391.00729184556474
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.035135579109147,
+    "text" : "s mutated nowhere else, so every clearing path reaches",
+    "width" : 427.9069594310539,
+    "x" : 682.7907062363004,
+    "y" : 393.12162139672495
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.035135579109147,
+    "text" : "Including the",
+    "width" : 100.46511526065018,
+    "x" : 1166.5116283249872,
+    "y" : 393.1216213868551
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172973157962169,
+    "text" : "guard",
+    "width" : 44.65116355451233,
+    "x" : 93.02325537732659,
+    "y" : 409.8810809557248
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.035134210189142,
+    "text" : "finishDictation",
+    "width" : 128.37208563971416,
+    "x" : 195.34883907161586,
+    "y" : 406.1567570019775
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.13212287724015,
+    "text" : "Eight call sites became one",
+    "width" : 217.67442369674887,
+    "x" : 336.74418338026413,
+    "y" : 408.0189186896088
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.071874999999984,
+    "text" : "activeHistoryMaintenance is cleared when deferred at line 301. CancellationError",
+    "width" : 643.7209220852017,
+    "x" : 567.4418644360812,
+    "y" : 406.07916670107824
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.502730587621535,
+    "text" : "eturns silentl.",
+    "width" : 117.20929748808857,
+    "x" : 14.883724535025454,
+    "y" : 422.58645821217004
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.035135579109147,
+    "text" : "storesAudio",
+    "width" : 93.02326014223654,
+    "x" : 150.69767228729484,
+    "y" : 422.91621595589055
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.636458333333323,
+    "text" : "the predicate once and both uses",
+    "width" : 258.6046542180493,
+    "x" : 303.2558123546678,
+    "y" : 422.58645821568916
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.310810736815114,
+    "text" : "read",
+    "width" : 33.488372665884256,
+    "x" : 569.3023252949648,
+    "y" : 424.77837835718367
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.091271912058245,
+    "text" : "Non-blocking, for later: AppFeatureTests.swift is 999 lines. That is not under the threshold, that is balanced on it.",
+    "width" : 933.9534578195066,
+    "x" : 11.162805667242248,
+    "y" : 452.7108111236599
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.093327684203778,
+    "text" : "Fix the write-path load-error check and this is approved.",
+    "width" : 453.95350161154704,
+    "x" : 11.16278436915064,
+    "y" : 484.3093752263174
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.110669508576393,
+    "text" : "Package Updates Available",
+    "width" : 202.79069156390133,
+    "x" : 9.302328539070778,
+    "y" : 530.9216219472995
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.24850777188938,
+    "text" : "Package updates are available. Run pi update --extensions",
+    "width" : 457.6744236967489,
+    "x" : 9.302322942323183,
+    "y" : 547.4677086636427
+  },
+  {
+    "confidence" : 1,
+    "height" : 12.850525764624273,
+    "text" : "Packages:",
+    "width" : 72.9487917776065,
+    "x" : 9.106999768775012,
+    "y" : 562.6706836244066
+  },
+  {
+    "confidence" : 1,
+    "height" : 17.204975438118012,
+    "text" : "nurstonsand/pi-agent-switchboard",
+    "width" : 255.14672523122198,
+    "x" : 42.68002471928558,
+    "y" : 576.9546935679051
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172973157962169,
+    "text" : "›i-doppelclaude.",
+    "width" : 117.20929748808857,
+    "x" : 31.627909318567525,
+    "y" : 594.2351350318974
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.20765749116736,
+    "text" : "* Claude Opus 5 / • mini-whisper / ' main /",
+    "width" : 351.6279034122758,
+    "x" : 11.162792429646052,
+    "y" : 638.6166664941695
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.172973157962169,
+    "text" : "-33%-",
+    "width" : 33.488372665884256,
+    "x" : 414.88372055077883,
+    "y" : 640.7891890567912
+  },
+  {
+    "confidence" : 0.5,
+    "height" : 13.035135579109147,
+    "text" : "pi3",
+    "width" : 26.046512073465525,
+    "x" : 9.302325296600568,
+    "y" : 702.2405402461361
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.897296631336197,
+    "text" : "pi",
+    "width" : 18.604650112545542,
+    "x" : 55.81395401349467,
+    "y" : 700.3783785251427
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.170918070276599,
+    "text" : "pod 153",
+    "width" : 50.23255763032509,
+    "x" : 1216.7441862258122,
+    "y" : 702.2405402875174
+  }
+]

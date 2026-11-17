@@ -1,0 +1,29 @@
+{
+  "appName" : "Code",
+  "axCapped" : false,
+  "axUnplaced" : 14880,
+  "axVisited" : 466,
+  "bundleID" : "com.microsoft.VSCode",
+  "capturedAt" : 816034753.650469,
+  "focusedFrame" : [
+    1008,
+    591,
+    240,
+    21
+  ],
+  "focusedRole" : "AXTextArea",
+  "screenshotCandidates" : 1,
+  "screenshotTitle" : "Profiles.swift",
+  "timingsMs" : {
+    "ax" : 67.642833,
+    "ocr" : 239.52425,
+    "screenshot" : 148.94375
+  },
+  "windowFrame" : [
+    0,
+    30,
+    1280,
+    690
+  ],
+  "windowTitle" : "Profiles.swift"
+}

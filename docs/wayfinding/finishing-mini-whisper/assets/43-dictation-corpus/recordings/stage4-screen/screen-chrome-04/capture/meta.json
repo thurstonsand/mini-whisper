@@ -1,0 +1,29 @@
+{
+  "appName" : "Google Chrome",
+  "axCapped" : false,
+  "axUnplaced" : 0,
+  "axVisited" : 1489,
+  "bundleID" : "com.google.Chrome",
+  "capturedAt" : 816036424.661205,
+  "focusedFrame" : [
+    934,
+    611,
+    304,
+    26
+  ],
+  "focusedRole" : "AXTextArea",
+  "screenshotCandidates" : 1,
+  "screenshotTitle" : "PostgreSQL: Documentation: 18: 24.1. Routine Vacuuming",
+  "timingsMs" : {
+    "ax" : 128.553375,
+    "ocr" : 211.590583,
+    "screenshot" : 115.293417
+  },
+  "windowFrame" : [
+    0,
+    30,
+    1280,
+    690
+  ],
+  "windowTitle" : "PostgreSQL: Documentation: 18: 24.1. Routine Vacuuming - Google Chrome"
+}

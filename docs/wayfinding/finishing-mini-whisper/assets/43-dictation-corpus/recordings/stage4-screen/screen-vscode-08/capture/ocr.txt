@@ -1,0 +1,80 @@
+AudioVault.swift - Modified
+• CleanupPrompt.swift M
+Retention.swift M
+• Profiles.swift
+HotkeyListener.swift
+• AudioVault.swift M X
+Chat
+Users > thurstonsand > Develop > mini-whisper-expanded-context > Packages > History > Sources > History >
+• AudioVault.swift
+Sessions
+17
+public struct AudioVault: Sendable {
+AudioVaultError
+45
+AudioVault
+46
+Lifecycle
+47
+/// Writes the screenshot's JPEG and returns the metadata the entry should carry.
+Public
+48
+public func writeScreenshot(_ jpeg: Data, id: UUID) throws → ScreenshotMetadata f
+49
+try FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
+50
+try jpeg.write(to: screenshotURL(id: id), options: .atomic)
+51
+return ScreenshotMetadata(byteCount: jpeg.count)
+52
+53
+54
+/// Reads back an entry's canonical WAV, for re-transcription and playback.
+55
+public func read (id: UUID) throws → CanonicalRecording {
+56
+try CanonicalWAVReader. read (contentsOf: url(id: id))
+57
+}
+58
+// Deletes the entries' audio and screenshot files. A file already gone is accepted - deletion
+59
+60
+/// is satisfied by absence - but any other failure propagates: reporting success after failing
+61
+/// to delete data is how a retention promise turns into a lie.
+62
+public func delete(_
+ids: [UUID]) throws {
+63
+for file in ids.flatMap({ lurl(id: $0), screenshotURL (id: $0)] }) {
+64
+65
+try FileManager. default. removeItem(at: file)
+66
+catch CocoaError. fileNoSuchFile f
+Tip: Try the Plan agent to research and
+67
+continue
+plan before implementing changes.
+68
++ • AudioVault.swift
+69
+70
+71
+72
+/// Returns the log corrected against the disk: entries whose WAV or JPEG is missing lose that
+( Agent 8 Auto | Balance
+73
+/// file's metadata, and files no entry references - including ones not named by an entry UUID
+74
+/// - are deleted.
+• Local • Default permissions
+75
+public func reconcile(
+loa: HistorvLoa) throws > HistorvLoa f
+®OAO
+Ln 60, Col 1
+Spaces: 2 UTF-8 LF (} Swift
+€8
+D

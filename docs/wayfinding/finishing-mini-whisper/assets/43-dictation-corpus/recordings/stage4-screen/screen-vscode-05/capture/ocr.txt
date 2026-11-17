@@ -1,0 +1,88 @@
+Retention.swift - Modified
+08
+nt.swift U
+TmuxPanes.swift M
+• AppFeature+Delivery.swift M
+• CleanupPrompt.swift M
+• Retention.swift M X
+Chat
+Users > thurstonsand > Develop > mini-whisper-expanded-context > Packages > History > Sources > History >
+• Retention.swift
+Sessions
+24
+/// with the returned one and deletes the returned entriesạỊi audio. Must run when a TTL setting
+ptention Outcome
+ifecycle
+25
+/// changes, not only on a timer, or the control appears to do nothing.
+Public
+26
+public enum Retention {
+Retention
+27
+public static func apply(
+28
+policy: RetentionPolicy, to log: HistoryLog, now: Date = Date(),
+29
+> RetentionOutcome {
+30
+var kept = [HistoryEntryl()
+31
+var
+audioToDelete = [UUID] ()
+32
+33
+for entry in log.entries
+34
+let age = now.timeIntervalSince(entry.createdAt)
+35
+// A screenshot is a recording of the screen, kept beside the recording of the voice, and
+36
+// the audio limit is the one that governs it.
+37
+let storesMedia
+= entry.audio != nil || entry.screenshot != nil
+38
+if let maxAge = policy.transcripts.maxAge, age >= maxAge {
+39
+if storesMedia {
+40
+audioToDelete.append (entry.id)
+41
+42
+continue
+43
+44
+var
+entry = entry
+45
+if
+storesMedia,
+let maxAge = policy.audio.maxAge, age >= maxAge {
+46)
+audioToDelete.append (entry.id)
+Tip: Try the Plan agent to research and
+47
+entry. audio = nil
+plan before implementing changes.
+48
+entry.screenshot = nil
++ • Retention.swift
+49
+50
+kept. append (entry)
+51
+52
+() Agent Auto | Balance
+53
+var log = log
+54
+log.entries = kept
+• Local • Default permissions
+55
+return RetentionOutcome(loa: loa. audioToDelete: audioToDelete)
+DOAO
+Ln 40, Col 1
+Spaces: 2 UTF-8 LF (} Swift
+€8
+D

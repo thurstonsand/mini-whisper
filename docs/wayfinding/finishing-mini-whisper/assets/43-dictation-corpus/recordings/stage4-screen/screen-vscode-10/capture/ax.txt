@@ -1,0 +1,27 @@
+ScreenContextClient.swift
+UTmuxPanes.swift
+MAppFeature+Delivery.swift
+MCleanupPrompt.swift
+MRetention.swift
+MProfiles.swift
+HotkeyListener.swift
+AudioVault.swift
+M
+FocusedFieldReader.swift
+M
+VocabularyBoost.swift
+UsersthurstonsandDevelopmini-whisper-expanded-contextPackagesASREngineSourcesASREngine
+VocabularyBoost.swift
+61
+64
+actor FluidVocabularyBoostBackend: VocabularyBoostBackend {
+private init(
+Chat
+Sessions
+Tip: Try the Plan agent to research and plan before implementing changes.
+VocabularyBoost.swift
+Agent
+Auto
+Local
+Default permissions
+0  0

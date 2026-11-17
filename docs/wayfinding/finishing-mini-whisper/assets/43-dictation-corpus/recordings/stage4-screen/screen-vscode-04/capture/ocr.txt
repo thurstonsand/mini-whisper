@@ -1,0 +1,83 @@
+CleanupPrompt.swift - Modified
+08
+• CleanupPrompt.swift M
+Retention.swift M
+• Profiles.swift
+• HotkeyListener.swift
+• AudioVault.swift M
+Chat
+Users > thurstonsand > Develop > mini-whisper-expanded-context > Packages > TranscriptCleanup > Sources > TranscriptCleanup >
+• CleanupProi
+Sessions
+43
+public enum CleanupPrompt {
+CleanupRequest
+- Remove only tiller sounds, stutters, duplicate words, abandoned starts, and retracted wording. Del Lifecycle
+86
+Resolve every self-correction or restart, even after an engine-written ellipsis or cues such as "public "hold on
+87
+Correct every plain grammar slip, including subjectfverb agreement and pronoun case, without broad'
+88
+Restore normal capitalization and punctuation. Remove spurious engine punctuation, including a com cleanupprompt
+89
+Public
+90
+Convert every spoken punctuation command to exactly its mark and delete the command words: comma,
+91
+Insert exactly one blank line at every clear turn from one developed question, decision, problem,
+92
+Convert every spoken symbol name, including repeated symbols and symbols directly before flags, and
+93
+Treat every spelling aside as a mandatory respelling. Identify the modified word, then replace the
+94
+- Use a DICTIONARY entrys exact spelling and casing whenever context clearly denotes that product of
+95
+- Use FOCUSED_TEXT_CONTEXT and TARGET_BUNDLE_ID only to choose spelling, casing, identifier joining,
+96
+97
+Process only TRANSCRIPT. Before emitting one final version, silently verify that the whole dictation
+98
+99
+100
+/// The built-in prompt, plus the user's own instructions when there are any. The built-in rules
+101
+/// are defaults for a user who said nothing, so the instructions outrank them. They are appended
+102
+/// untagged, because tagging them would make the prompt's rule on dictated requests disown them;
+Private:
+103
+/// the sentence that introduces them appears only when something follows it.
+104
+public static func systemMessage(
+105
+additionalInstructions: String, carriesScreenContext: Bool,
+106
+> String {
+Tip: Try the Plan agent to research and
+107
+let rules: String
+plan before implementing changes.
+108
+if carriesScreenContext
+precondition(builtIn.contains(fieldContextRule), "builtIn lost the rule screen context edits")
++ >
+109
+CleanupPrompt.swift
+110
+rules
+= builtIn.replacing(fieldContextRule, with: screenContextRule)
+111
+else f
+112
+rules = builtIn
+( Agent 8 Auto | Balance 0,
+113
+114
+let instructions
+= additionalInstructions.trimmingCharacters (in: .whitespacesAndNewlines)
+• Local • Default permissions
+115
+quard !instructions. isEmotv else f
+DOAO
+Ln 100, Col 1
+Spaces: 2 UTF-8 LF (} Swift

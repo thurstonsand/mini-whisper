@@ -1,0 +1,26 @@
+{
+  "appName" : "Terminal",
+  "axCapped" : false,
+  "axVisited" : 18,
+  "bundleID" : "com.apple.Terminal",
+  "capturedAt" : 816030691.153561,
+  "focusedFrame" : [
+    0,
+    -557.3466796875,
+    1259,
+    1277.3466796875
+  ],
+  "focusedRole" : "AXTextArea",
+  "timingsMs" : {
+    "ax" : 31.278667,
+    "ocr" : 280.630583,
+    "screenshot" : 106.340583
+  },
+  "windowFrame" : [
+    0,
+    30,
+    1280,
+    690
+  ],
+  "windowTitle" : "thurstonsand — π - [C]onsolidate settings-source_1147 unification - mini-whisper — pi --session-dir /tmp/pi-scenes --fork ~/.pi/agent/sessions/--Users-thurstonsand-Develop-mini-whisper--/2026-08-05T14-56-14-055Z_019fd26c-cee7-74e4-9079-84905a1dd838.jsonl — 177×45"
+}

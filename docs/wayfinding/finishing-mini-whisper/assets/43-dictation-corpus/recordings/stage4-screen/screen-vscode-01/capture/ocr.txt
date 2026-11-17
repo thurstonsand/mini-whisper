@@ -1,0 +1,78 @@
+ScreenContextClient.swift - Untracked
+08
+ScreenContextClient.swift U
+Chat
+Users > thurstonsand > Develop > mini-whisper-expanded-context > MiniWhisper >
+ScreenContextClient.swift
+Sessions
+82
+private enum ScreenReader f
+145
+/// app's chrome,
+which names nothing the user is talking about.
+146
+private static let textRoles:
+Set<String> = ["AXStaticText", "AXTextArea", "AXTextField"]
+147
+148
+/// Safari builds a page's tree only once something asks for it, so the first walk of a process
+149
+// nobody has read yet finds the window's chrome and no page - 25 nodes where a warm read finds
+150
+/ 55, measured against a freshly opened Safari. That walk is the asking; the next one, once the
+151
+page has had a moment to answer it, reads what it built.
+152
+153
+// A read that found text it could not place on screen is not the screen, and answers nothing,
+154
+/// so the screenshot's recognized text stands in for it as it does for a target that reports none.
+Private
+155
+private static func accessibilityText (
+156
+of processID: pid_t, in window: AXUIElement, bounds: CGRect, skipping focused: AXElement?,
+157
+focus: CGRect?,
+158
+) async → ScreenContext.StructuredText? {
+159
+if await ledger.isFirstRead(of: processID) {
+160
+_ = walk(window, within: bounds, skipping: focused)
+161
+try? await Task.sleep(for: treeBuildSettle)
+162
+163
+guard let lines = walk(window, within: bounds, skipping: focused) else f
+164
+return nil
+165
+166
+let text = VisibleText.compose(lines, within: bounds, excluding: focus)
+Tip: Try the Plan agent to research and
+167
+return text. isEmpty ? nil :
+. init (source: .accessibility, text: text)
+plan before implementing changes.
+168
++ >
+169
+ScreenContextClient swift
+170
+/// Depth-first, so a page reads in document order - the sidebar, then the conversation, then
+171
+/// the composer - rather than interleaved row by row as sorting by position would have it. Nil
+172
+/// once it meets text it cannot place.
+) Agent 8 Auto | Balance
+173
+private static func walk(
+174
+window: AXUIElement, within bounds: CGRect, skipping focused: AXElement?,
+• Local • Default permissions
+175
+> [VisibleLinel? f
+Ln 160, Col 1
+Spaces: 2 UTF-8 LF (} Swift
+€8

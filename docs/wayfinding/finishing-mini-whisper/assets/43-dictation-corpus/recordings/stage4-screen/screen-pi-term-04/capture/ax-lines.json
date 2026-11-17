@@ -1,0 +1,812 @@
+[
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "Last login: Tue Nov 10 14:11:19 on ttys022",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -557.3466796875
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "cd ~/Develop/mini-whisper && /Users/thurstonsand/.local/share/mise/installs/pi/latest/pi/pi --session-dir /tmp/pi-scenes --fork /Users/thurstonsand/.pi/agent/sessions/--Users-thurstonsand-Develop-mini-whisper--/2026-08-02T16-43-24-158Z_019fc35b-d87e-7d02-838b-36076df91062.jsonl",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -542.9944698033707
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -528.6422599192416
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "~ ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -514.2900500351124
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "❯ cd ~/Develop/mini-whisper && /Users/thurstonsand/.local/share/mise/installs/pi/latest/pi/pi --session-dir /tmp/pi-scenes --fork /Users/thurstonsand/.pi/agent/sessions/--Users-thurstonsand-Develop-mini-whisper--/2026-08-02T16-43-24-158Z_019fc35b-d87e-7d02-838b-36076df91062.jsonl",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -499.93784015098316
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -485.58563026685397
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -471.2334203827247
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -456.8812104985955
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -442.5290006144663
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -428.1767907303371
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -413.8245808462079
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -399.4723709620787
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -385.12016107794943
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -370.76795119382024
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -356.41574130969104
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -342.0635314255618
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -327.7113215414326
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -313.3591116573034
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -299.00690177317415
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -284.65469188904495
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -270.30248200491576
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -255.9502721207865
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -241.5980622366573
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -227.24585235252812
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -212.89364246839887
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -198.54143258426967
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -184.18922270014048
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -169.83701281601128
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -155.48480293188203
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -141.13259304775283
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -126.78038316362364
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -112.42817327949439
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -98.07596339536519
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -83.723753511236
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -69.37154362710675
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -55.01933374297755
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -40.6671238588483
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -26.31491397471916
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : -11.96270409058991
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 2.3895057935393424
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 16.74171567766848
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 31.093925561797732
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 45.446135445926984
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : " daily-driven: [History](tickets/11-history.md), [Paste-last-transcript recovery](tickets/12-paste-last-recovery.md), [Dictionary](tickets/13-dictionary.md), [Warm-mic fast     ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 59.79834533005612
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : " start](tickets/14-warm-mic.md), [Second engine / fallback hardening](tickets/15-second-engine.md) (stake #5 reworded per the bakeoff inversion), [Settings                      ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 74.15055521418537
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : " UI](tickets/16-settings-ui.md), [Model download UI](tickets/17-model-download-ui.md), [LLM cleanup pass](tickets/18-llm-cleanup.md), [Streaming transcription and the live-text ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 88.50276509831463
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : " pill](tickets/19-streaming.md), [Context capture](tickets/20-context-capture.md) (added post-Phase-5: read the focused field's real text before delivery — spacing and          ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 102.85497498244376
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : " edit-awareness without guessing), [Audio ducking](tickets/21-audio-ducking.md) (added post-Phase-7: duck actively playing audio while a recording is live, crash-safe restore), ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 117.20718486657302
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : " [Agent-driveability](tickets/22-agent-driveability.md) (added post-Phase-7: maximal accessibility compatibility so computer-use agents can drive every surface),                ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 131.55939475070227
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : " [Iconography](tickets/23-iconography.md) (added post-Phase-7: a real app icon and a consistent glyph set, verified everywhere the app is seen).                                 ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 145.9116046348314
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : " +43 - The eight post-MVP stakes and streaming graduated to tickets on user request, all blocked by the [MVP spec](tickets/08-mvp-spec.md) and opening only once the MVP is      ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 160.26381451896066
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : " daily-driven: [History](tickets/11-history.md), [Paste-last-transcript recovery](tickets/12-paste-last-recovery.md), [Dictionary](tickets/13-dictionary.md), [Warm-mic fast     ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 174.6160244030898
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : " start](tickets/14-warm-mic.md), [Second engine / fallback hardening](tickets/15-second-engine.md) (stake #5 reworded per the bakeoff inversion), [Settings                      ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 188.96823428721905
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : " UI](tickets/16-settings-ui.md), [Model download UI](tickets/17-model-download-ui.md), [LLM cleanup pass](tickets/18-llm-cleanup.md), [Streaming transcription and the live-text ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 203.3204441713483
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : " pill](tickets/19-streaming.md), [Context capture](tickets/20-context-capture.md) (added post-Phase-5: read the focused field's real text before delivery — spacing and          ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 217.67265405547744
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : " edit-awareness without guessing), [Audio ducking](tickets/21-audio-ducking.md) (added post-Phase-7: duck actively playing audio while a recording is live, crash-safe restore), ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 232.0248639396067
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : " [Agent-driveability](tickets/22-agent-driveability.md) (added post-Phase-7: maximal accessibility compatibility so computer-use agents can drive every surface),                ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 246.37707382373594
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : " [Iconography](tickets/23-iconography.md) (added post-Phase-7: a real app icon and a consistent glyph set, verified everywhere the app is seen), [Sound                          ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 260.7292837078651
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : " design](tickets/24-sound-design.md) (added post-Phase-7: replace the borrowed macOS alert sounds with the app's own cues).                                                      ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 275.08149359199433
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "  44                                                                                                                                                                             ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 289.4337034761236
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "  45 ## Out of scope                                                                                                                                                             ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 303.7859133602527
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "  46                                                                                                                                                                             ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 318.138123244382
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "  47 - Product-ization: App Store distribution, licensing, other users' needs, marketing. This app is made for one person.                                                       ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 332.4903331285112
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "     ...                                                                                                                                                                         ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 346.84254301264036
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "                                                                                                                                                                                 ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 361.1947528967696
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 375.54696278089887
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : " Yes. Same defect, different sense — SoundsClient maps all four cues onto macOS's built-in alert sounds: Tink, Pop, Funk, Basso. Borrowed, shared with every other app, and      ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 389.899172665028
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : " tuned as alerts rather than as the fast confirmations these are.                                                                                                                ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 404.25138254915726
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "                                                                                                                                                                                 ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 418.6035924332865
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : " Filed separately as Sound design (docs/wayfinding/finishing-mini-whisper/tickets/24-sound-design.md) rather than folded into the icon ticket. The crafts don't overlap and      ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 432.95580231741565
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : " neither do the assets, so one session working both would be two sessions wearing a trench coat. The ticket cross-references the icon one.                                       ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 447.3080122015449
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "                                                                                                                                                                                 ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 461.66022208567415
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : " Two things surfaced while writing it that aren't obvious from the placeholder: record-start fires on the critical path, so NSSound latency is user-visible — that cue is the    ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 476.0124319698034
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : " acknowledgement the hotkey registered. And the start cue plays through the speakers while the mic is live, so it may end up in the recording.                                   ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 490.3646418539324
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 504.7168517380617
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 519.0690616221909
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : " Package Updates Available                                                                                                                                                       ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 533.4212715063202
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : " Package updates are available. Run pi update --extensions                                                                                                                       ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 547.7734813904494
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : " Packages:                                                                                                                                                                       ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 562.1256912745787
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : " - pi-sessions                                                                                                                                                                   ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 576.4779011587077
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : " - @thurstonsand/pi-agent-switchboard                                                                                                                                            ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 590.830111042837
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : " - pi-doppelclaude                                                                                                                                                               ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 605.1823209269662
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 619.5345308110955
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 633.8867406952247
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : " ✴ Claude Opus 5 /  mini-whisper /  main / [━━10%────────────────] ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 648.238950579354
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : " ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 662.591160463483
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : " > Can you add a note to the sound design ticket that SoundsClient should preload NSSound so the start queue isn't late, and mention Tink and Basso?                             ",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 676.9433703476122
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : " ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 691.2955802317415
+  },
+  {
+    "height" : 14.352209884129213,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1259,
+    "x" : 0,
+    "y" : 705.6477901158707
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "thurstonsand — π - [QN]ueue custom-icon-audit_0417 - mini-whisper — pi --session-dir /tmp/pi-scenes --fork ~/.pi/agent/sessions/--Users-thurstonsand-Develop-mini-whisper--/2026-08-02T16-43-24-158Z_019fc35b-d87e-7d02-838b-36076df91062.jsonl — 177×45",
+    "web" : false,
+    "width" : 1170,
+    "x" : 100,
+    "y" : 38
+  }
+]

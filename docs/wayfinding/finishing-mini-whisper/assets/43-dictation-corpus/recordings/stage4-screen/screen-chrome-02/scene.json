@@ -1,0 +1,18 @@
+{
+ "id": "screen-chrome-02",
+ "tags": [
+  "chrome",
+  "chatgpt-sidebar",
+  "term-of-art"
+ ],
+ "scene": {
+  "kind": "chrome",
+  "url": "https://www.rfc-editor.org/rfc/rfc4120.html#section-3.3"
+ },
+ "say": "Why does the T G S use the sub session key from the authenticator instead of the client's key? And what's a proxy ticket for?",
+ "expect": "Why does the TGS use the sub-session key from the Authenticator instead of the client's key? And what's a proxy ticket for?",
+ "must": [
+  "TGS",
+  "sub-session key"
+ ]
+}

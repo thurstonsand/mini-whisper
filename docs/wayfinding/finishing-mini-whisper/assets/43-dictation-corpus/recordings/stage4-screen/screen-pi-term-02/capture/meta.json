@@ -1,0 +1,26 @@
+{
+  "appName" : "Terminal",
+  "axCapped" : false,
+  "axVisited" : 18,
+  "bundleID" : "com.apple.Terminal",
+  "capturedAt" : 816030664.315286,
+  "focusedFrame" : [
+    0,
+    -557.3466796875,
+    1259,
+    1277.3466796875
+  ],
+  "focusedRole" : "AXTextArea",
+  "timingsMs" : {
+    "ax" : 31.203334,
+    "ocr" : 230.397,
+    "screenshot" : 107.702542
+  },
+  "windowFrame" : [
+    0,
+    30,
+    1280,
+    690
+  ],
+  "windowTitle" : "thurstonsand — π - [R]efit Permission Controls and Onboarding Escape - mini-whisper — pi --session-dir /tmp/pi-scenes --fork ~/.pi/agent/sessions/--Users-thurstonsand-Develop-mini-whisper--/2026-08-08T14-45-32-678Z_019fe1d6-1986-79e3-b50c-c2b01c131d3f.jsonl — 177×45"
+}

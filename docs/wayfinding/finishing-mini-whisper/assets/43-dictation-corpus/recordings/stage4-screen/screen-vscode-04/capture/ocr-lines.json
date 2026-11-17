@@ -1,0 +1,674 @@
+[
+  {
+    "confidence" : 1,
+    "height" : 13.100235551595699,
+    "text" : "CleanupPrompt.swift - Modified",
+    "width" : 186.04651111812572,
+    "x" : 433.4883722558302,
+    "y" : 42.937500045157144
+  },
+  {
+    "confidence" : 1,
+    "height" : 18.59838283061988,
+    "text" : "08",
+    "width" : 16.744186110234267,
+    "x" : 1170.2325580146503,
+    "y" : 41.15902950562448
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.160292923450475,
+    "text" : "• CleanupPrompt.swift M",
+    "width" : 163.72093329124579,
+    "x" : 72.55813790923347,
+    "y" : 76.4959571113858
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.1590294241905,
+    "text" : "Retention.swift M",
+    "width" : 107.90697776374863,
+    "x" : 288.3720924188193,
+    "y" : 76.49595697622931
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.1590294241905,
+    "text" : "• Profiles.swift",
+    "width" : 98.60465549593151,
+    "x" : 435.3488349479197,
+    "y" : 76.49595697528814
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.160292923450475,
+    "text" : "• HotkeyListener.swift",
+    "width" : 143.25581114969134,
+    "x" : 571.1627920077738,
+    "y" : 76.49595711047888
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.1590294241905,
+    "text" : "• AudioVault.swift M",
+    "width" : 132.0930222362513,
+    "x" : 753.4883725084525,
+    "y" : 76.49595697804723
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.1590294241905,
+    "text" : "Chat",
+    "width" : 31.6279055748457,
+    "x" : 997.20930285082,
+    "y" : 76.49595692402335
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.153807371854839,
+    "text" : "Users > thurstonsand > Develop > mini-whisper-expanded-context > Packages > TranscriptCleanup > Sources > TranscriptCleanup >",
+    "width" : 814.8837331649831,
+    "x" : 68.8372031887732,
+    "y" : 102.53369241057766
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.1590294241905,
+    "text" : "• CleanupProi",
+    "width" : 89.30232774796579,
+    "x" : 891.162789505484,
+    "y" : 104.39353109639863
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.347219973802536,
+    "text" : "Sessions",
+    "width" : 55.85129726080254,
+    "x" : 997.1906302997379,
+    "y" : 104.29943580777437
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.159029424190578,
+    "text" : "43",
+    "width" : 14.883720834648555,
+    "x" : 78.13953489430362,
+    "y" : 122.99191374774297
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.836627036333073,
+    "text" : "public enum CleanupPrompt {",
+    "width" : 199.30283740179576,
+    "x" : 117.09224574177148,
+    "y" : 121.03357579867426
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.092328608036006,
+    "text" : "CleanupRequest",
+    "width" : 82.36258527111389,
+    "x" : 857.3654163703522,
+    "y" : 124.6560989393543
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.79188269376749,
+    "text" : "- Remove only tiller sounds, stutters, duplicate words, abandoned starts, and retracted wording. Del Lifecycle",
+    "width" : 766.5596064814814,
+    "x" : 135.78972018677405,
+    "y" : 135.89913329646998
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.1590294241905,
+    "text" : "86",
+    "width" : 16.744186110234295,
+    "x" : 78.13953488286734,
+    "y" : 154.60916434720394
+  },
+  {
+    "confidence" : 1,
+    "height" : 22.43817359209063,
+    "text" : "Resolve every self-correction or restart, even after an engine-written ellipsis or cues such as \"public \"hold on",
+    "width" : 813.0232884399551,
+    "x" : 146.9767287184629,
+    "y" : 152.74932633813705
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.2991914153099,
+    "text" : "87",
+    "width" : 14.883720834648564,
+    "x" : 78.13953483848965,
+    "y" : 173.20754709136799
+  },
+  {
+    "confidence" : 1,
+    "height" : 18.68750000000001,
+    "text" : "Correct every plain grammar slip, including subjectfverb agreement and pronoun case, without broad'",
+    "width" : 714.4185781425364,
+    "x" : 146.97675781245263,
+    "y" : 169.43749972513103
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.2991914153099,
+    "text" : "88",
+    "width" : 16.744186110234295,
+    "x" : 78.13953475883633,
+    "y" : 191.8059298471519
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.878706812858525,
+    "text" : "Restore normal capitalization and punctuation. Remove spurious engine punctuation, including a com cleanupprompt",
+    "width" : 785.1162668350169,
+    "x" : 146.9767501835759,
+    "y" : 189.94609133522403
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.1590294241905,
+    "text" : "89",
+    "width" : 16.744186110234303,
+    "x" : 78.13953474720844,
+    "y" : 208.54447443648965
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.2991914153099,
+    "text" : "Public",
+    "width" : 31.6279055748457,
+    "x" : 857.6744192125772,
+    "y" : 206.6846360672777
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.159029424190578,
+    "text" : "90",
+    "width" : 16.744186110234303,
+    "x" : 78.13953474720844,
+    "y" : 227.14285718581576
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.224224478006333,
+    "text" : "Convert every spoken punctuation command to exactly its mark and delete the command words: comma,",
+    "width" : 701.3953335437711,
+    "x" : 146.97675173165345,
+    "y" : 226.93750034176375
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.2991914153099,
+    "text" : "91",
+    "width" : 14.883720834648564,
+    "x" : 78.13953483848965,
+    "y" : 245.74123981373992
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.878706812858603,
+    "text" : "Insert exactly one blank line at every clear turn from one developed question, decision, problem,",
+    "width" : 701.3953335437711,
+    "x" : 146.9767517358664,
+    "y" : 243.88140130848535
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.159029424190578,
+    "text" : "92",
+    "width" : 16.744186110234303,
+    "x" : 78.13953474720844,
+    "y" : 262.47978440953545
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.202240824699473,
+    "text" : "Convert every spoken symbol name, including repeated symbols and symbols directly before flags, and",
+    "width" : 716.2790667087543,
+    "x" : 146.9767456144614,
+    "y" : 262.15625004592965
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.159029424190578,
+    "text" : "93",
+    "width" : 16.744186110234303,
+    "x" : 78.13953474720844,
+    "y" : 281.07816715886156
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.8787054419517,
+    "text" : "Treat every spelling aside as a mandatory respelling. Identify the modified word, then replace the",
+    "width" : 714.4185781425365,
+    "x" : 146.97676271167737,
+    "y" : 279.21832897174653
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.299191415309977,
+    "text" : "94",
+    "width" : 16.744186110234295,
+    "x" : 78.13953475883633,
+    "y" : 299.6765497932435
+  },
+  {
+    "confidence" : 1,
+    "height" : 18.68750000000001,
+    "text" : "- Use a DICTIONARY entrys exact spelling and casing whenever context clearly denotes that product of",
+    "width" : 733.0232445987655,
+    "x" : 132.09302861224526,
+    "y" : 295.937500298209
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.1590294241905,
+    "text" : "95",
+    "width" : 18.604651385819988,
+    "x" : 76.27906956290396,
+    "y" : 316.4150943825813
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.231300622224829,
+    "text" : "- Use FOCUSED_TEXT_CONTEXT and TARGET_BUNDLE_ID only to choose spelling, casing, identifier joining,",
+    "width" : 725.5813780162738,
+    "x" : 132.09303182806678,
+    "y" : 316.0625002215469
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.159029424190578,
+    "text" : "96",
+    "width" : 18.604651385819988,
+    "x" : 76.27906956290396,
+    "y" : 335.01347713190745
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.1590294241905,
+    "text" : "97",
+    "width" : 18.604651385819988,
+    "x" : 76.27906956290396,
+    "y" : 351.75202160630096
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.779228538274776,
+    "text" : "Process only TRANSCRIPT. Before emitting one final version, silently verify that the whole dictation",
+    "width" : 725.5813780162737,
+    "x" : 132.0930318273633,
+    "y" : 351.75202138747284
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.018867433071177,
+    "text" : "98",
+    "width" : 18.604651385820013,
+    "x" : 76.27906955256803,
+    "y" : 370.35040448607
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.159029424190578,
+    "text" : "99",
+    "width" : 18.604651385819988,
+    "x" : 76.27906956290396,
+    "y" : 388.9487871049532
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.8787054419517,
+    "text" : "100",
+    "width" : 26.046511118125693,
+    "x" : 68.83720945703733,
+    "y" : 405.687331857917
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.878706812858525,
+    "text" : "/// The built-in prompt, plus the user's own instructions when there are any. The built-in rules",
+    "width" : 693.9534669612796,
+    "x" : 133.95349898607577,
+    "y" : 405.6873312275577
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.018867433071101,
+    "text" : "101",
+    "width" : 26.046511118125693,
+    "x" : 68.83720945703733,
+    "y" : 424.28571448137035
+  },
+  {
+    "confidence" : 1,
+    "height" : 19.762663841247583,
+    "text" : "/// are defaults for a user who said nothing, so the instructions outrank them. They are appended",
+    "width" : 701.4977465628508,
+    "x" : 133.90132103907746,
+    "y" : 421.12744182563335
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.018867433071177,
+    "text" : "102",
+    "width" : 24.186044472502807,
+    "x" : 70.69767503506644,
+    "y" : 441.02425878885515
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.194491773843787,
+    "text" : "/// untagged, because tagging them would make the prompt's rule on dictated requests disown them;",
+    "width" : 701.3953335437711,
+    "x" : 133.9534958667348,
+    "y" : 441.02425844922954
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.299190729856527,
+    "text" : "Private:",
+    "width" : 37.209300031565675,
+    "x" : 857.6744191935195,
+    "y" : 454.0431268520529
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.159029424190578,
+    "text" : "103",
+    "width" : 24.186047212577158,
+    "x" : 70.69767396735483,
+    "y" : 459.62264157564056
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.878706812858525,
+    "text" : "/// the sentence that introduces them appears only when something follows it.",
+    "width" : 558.139555274972,
+    "x" : 133.9534780824918,
+    "y" : 459.6226412001961
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.304695129394537,
+    "text" : "104",
+    "width" : 24.252951608094833,
+    "x" : 70.66422176987844,
+    "y" : 478.1481914717578
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.093749999999984,
+    "text" : "public static func systemMessage(",
+    "width" : 240.00000000000003,
+    "x" : 132.09302081395353,
+    "y" : 476.34375029808297
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.1590294241905,
+    "text" : "105",
+    "width" : 24.186047212577158,
+    "x" : 70.69767396735483,
+    "y" : 496.81940707429294
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.7385448217392,
+    "text" : "additionalInstructions: String, carriesScreenContext: Bool,",
+    "width" : 429.7674224887766,
+    "x" : 146.97675378191033,
+    "y" : 494.95956855557
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.018867433071101,
+    "text" : "106",
+    "width" : 26.046511118125693,
+    "x" : 68.83720945703733,
+    "y" : 513.5579516781359
+  },
+  {
+    "confidence" : 1,
+    "height" : 16.07987618446357,
+    "text" : "> String {",
+    "width" : 83.92617034055834,
+    "x" : 146.87412494858935,
+    "y" : 511.097528040774
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.154480963945405,
+    "text" : "Tip: Try the Plan agent to research and",
+    "width" : 221.39533354377107,
+    "x" : 1006.5116328327655,
+    "y" : 511.5624997596657
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.1590294241905,
+    "text" : "107",
+    "width" : 24.186047212577158,
+    "x" : 70.69767396735483,
+    "y" : 532.1563342980126
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.152548193931615,
+    "text" : "let rules: String",
+    "width" : 125.04604420945567,
+    "x" : 146.79430247763167,
+    "y" : 530.1750657739533
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.065363109111821,
+    "text" : "plan before implementing changes.",
+    "width" : 202.79068900813684,
+    "x" : 1004.6511678990322,
+    "y" : 530.2500003095802
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.018867433071177,
+    "text" : "108",
+    "width" : 24.186044472502807,
+    "x" : 70.69767503506644,
+    "y" : 548.8948787349469
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.018867433071101,
+    "text" : "if carriesScreenContext",
+    "width" : 167.44185562219414,
+    "x" : 146.97674648347655,
+    "y" : 548.8948789420652
+  },
+  {
+    "confidence" : 1,
+    "height" : 20.510230302810704,
+    "text" : "precondition(builtIn.contains(fieldContextRule), \"builtIn lost the rule screen context edits\")",
+    "width" : 679.2153303872054,
+    "x" : 161.78807032287182,
+    "y" : 563.8154934283247
+  },
+  {
+    "confidence" : 0.5,
+    "height" : 13.057614058256133,
+    "text" : "+ >",
+    "width" : 35.348836126017176,
+    "x" : 1008.3720934432524,
+    "y" : 561.8750002011988
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.159029424190578,
+    "text" : "109",
+    "width" : 24.186047212577158,
+    "x" : 70.69767396735483,
+    "y" : 567.4932615217322
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.1590294241905,
+    "text" : "CleanupPrompt.swift",
+    "width" : 111.62791105499437,
+    "x" : 1043.720928098833,
+    "y" : 563.7735850089061
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.159029424190578,
+    "text" : "110",
+    "width" : 24.186047212577158,
+    "x" : 70.69767396735483,
+    "y" : 586.0916442710584
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.1590294241905,
+    "text" : "rules",
+    "width" : 40.93023332281142,
+    "x" : 161.86046456480994,
+    "y" : 586.0916442668314
+  },
+  {
+    "confidence" : 1,
+    "height" : 14.878706812858525,
+    "text" : "= builtIn.replacing(fieldContextRule, with: screenContextRule)",
+    "width" : 450.2325775112233,
+    "x" : 204.65115301221616,
+    "y" : 586.0916438950661
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.1590294241905,
+    "text" : "Describe what to build",
+    "width" : 137.6744221731201,
+    "x" : 1006.5116260309933,
+    "y" : 595.3908356845743
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.018867433071101,
+    "text" : "111",
+    "width" : 22.325580566954272,
+    "x" : 70.69767477078643,
+    "y" : 602.8301888526469
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.956423282623316,
+    "text" : "else f",
+    "width" : 44.99884916877104,
+    "x" : 161.68662229471596,
+    "y" : 600.4314916677852
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.1590294241905,
+    "text" : "112",
+    "width" : 22.325580566954272,
+    "x" : 70.69767473977868,
+    "y" : 621.4285714947781
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.1590294241905,
+    "text" : "rules = builtIn",
+    "width" : 111.62791105499437,
+    "x" : 161.86046299006836,
+    "y" : 621.4285715294027
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.084736764431025,
+    "text" : "( Agent 8 Auto | Balance 0,",
+    "width" : 189.76744440937154,
+    "x" : 1034.418603284626,
+    "y" : 630.7277630423879
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.1590294241905,
+    "text" : "113",
+    "width" : 22.325580566954272,
+    "x" : 70.69767473977868,
+    "y" : 640.0269542441042
+  },
+  {
+    "confidence" : 1,
+    "height" : 9.2991914153099,
+    "text" : "114",
+    "width" : 24.18604721257715,
+    "x" : 70.69767397510677,
+    "y" : 658.6253368711341
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.03436622023585,
+    "text" : "let instructions",
+    "width" : 119.06976667718854,
+    "x" : 146.97674426483292,
+    "y" : 656.7500000765947
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.093749999999984,
+    "text" : "= additionalInstructions.trimmingCharacters (in: .whitespacesAndNewlines)",
+    "width" : 526.5116442199775,
+    "x" : 266.04650338437347,
+    "y" : 656.750000241063
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.2862196266651,
+    "text" : "• Local • Default permissions",
+    "width" : 184.18604447250289,
+    "x" : 1006.5116287260224,
+    "y" : 663.9374997896908
+  },
+  {
+    "confidence" : 1,
+    "height" : 11.1590294241905,
+    "text" : "115",
+    "width" : 22.325580566954272,
+    "x" : 70.69767473977868,
+    "y" : 675.363881467824
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.018867433071177,
+    "text" : "quard !instructions. isEmotv else f",
+    "width" : 247.44186658249157,
+    "x" : 146.97674104705675,
+    "y" : 675.3638816417822
+  },
+  {
+    "confidence" : 0.3,
+    "height" : 14.878706812858603,
+    "text" : "DOAO",
+    "width" : 59.534883338594284,
+    "x" : 46.51162800512146,
+    "y" : 697.681940369312
+  },
+  {
+    "confidence" : 1,
+    "height" : 13.270720839500427,
+    "text" : "Ln 100, Col 1",
+    "width" : 80,
+    "x" : 900.4651161860464,
+    "y" : 699.5417792055932
+  },
+  {
+    "confidence" : 1,
+    "height" : 15.780190467834432,
+    "text" : "Spaces: 2 UTF-8 LF (} Swift",
+    "width" : 210.4212919121774,
+    "x" : 991.5493197363456,
+    "y" : 696.9640361870061
+  }
+]

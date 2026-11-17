@@ -1,0 +1,29 @@
+{
+  "appName" : "Code",
+  "axCapped" : false,
+  "axUnplaced" : 12631,
+  "axVisited" : 421,
+  "bundleID" : "com.microsoft.VSCode",
+  "capturedAt" : 816034710.632661,
+  "focusedFrame" : [
+    1008,
+    591,
+    240,
+    21
+  ],
+  "focusedRole" : "AXTextArea",
+  "screenshotCandidates" : 1,
+  "screenshotTitle" : "TmuxPanes.swift — Modified",
+  "timingsMs" : {
+    "ax" : 53.273708,
+    "ocr" : 195.314083,
+    "screenshot" : 131.860667
+  },
+  "windowFrame" : [
+    0,
+    30,
+    1280,
+    690
+  ],
+  "windowTitle" : "TmuxPanes.swift — Modified"
+}

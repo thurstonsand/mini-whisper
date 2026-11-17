@@ -1,0 +1,27 @@
+{
+  "appName" : "Ghostty",
+  "axCapped" : false,
+  "axVisited" : 14,
+  "bundleID" : "com.mitchellh.ghostty",
+  "capturedAt" : 816030441.015047,
+  "focusedFrame" : [
+    0,
+    62,
+    1280,
+    657
+  ],
+  "focusedRole" : "AXTextArea",
+  "timingsMs" : {
+    "ax" : 31.063833,
+    "ocr" : 227.978292,
+    "screenshot" : 107.836417,
+    "tmux" : 116.835833
+  },
+  "windowFrame" : [
+    0,
+    30,
+    1280,
+    689
+  ],
+  "windowTitle" : "pi1:pi"
+}

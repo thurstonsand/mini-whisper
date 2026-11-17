@@ -1,0 +1,19 @@
+{
+ "id": "screen-vscode-01",
+ "tags": [
+  "vscode",
+  "identifier"
+ ],
+ "scene": {
+  "kind": "vscode",
+  "file": "MiniWhisper/ScreenContextClient.swift",
+  "line": 160
+ },
+ "say": "Why does accessibility text walk the window twice and then sleep for the tree build settle? Can we skip that when ledger dot is first read comes back false?",
+ "expect": "Why does accessibilityText walk the window twice and then sleep for the treeBuildSettle? Can we skip that when ledger.isFirstRead comes back false?",
+ "must": [
+  "accessibilityText",
+  "treeBuildSettle",
+  "ledger.isFirstRead"
+ ]
+}

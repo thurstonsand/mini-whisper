@@ -1,0 +1,19 @@
+ScreenContextClient.swift
+U
+TmuxPanes.swift
+M
+UsersthurstonsandDevelopmini-whisper-expanded-contextMiniWhisper
+TmuxPanes.swift
+39
+174
+enum TmuxPanes {
+private static func executablePath(_ processID: pid_t) -> String? {
+Chat
+Sessions
+Tip: Try the Plan agent to research and plan before implementing changes.
+TmuxPanes.swift
+Agent
+Auto
+Local
+Default permissions
+0  0

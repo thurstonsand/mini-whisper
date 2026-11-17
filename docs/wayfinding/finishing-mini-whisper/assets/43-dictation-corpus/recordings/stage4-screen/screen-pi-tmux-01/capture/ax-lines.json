@@ -1,0 +1,389 @@
+[
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : "── 1: pi ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 62
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " a name from a layer below it. The retry policy in download(_:specification:to:progress:) reads correctly, but only because the reader accepts the borrowed    ",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 77.64285714285714
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " vocabulary. A local case that means what it says would cost one line.",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 93.28571428571428
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 108.92857142857143
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " While there — the guard in the same function inverts:",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 124.57142857142857
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 140.21428571428572
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " ```swift",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 155.85714285714286
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : "   guard let expectedHash = file.lfs?.oid, hash != expectedHash else { return hash }",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 171.5
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " ```",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 187.14285714285714
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 202.78571428571428
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " The success path is the else. if let expected = ..., hash != expected { throw } then return hash reads forward.",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 218.42857142857142
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 234.07142857142856
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " 4. Two layers of change tracking for one signal",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 249.71428571428572
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 265.3571428571429
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " OnboardingWindowController.render() keeps renderedPermissions to detect permission changes, but withObservationTracking only fires onChange when isPresented  ",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 281
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " or snapshot.permissions actually changed. The manual copy guards against a case that mostly cannot happen. renderedVisibility is load-bearing for the         ",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 296.6428571428571
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " wasVisible == true → NSApp.hide transition; renderedPermissions is not.",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 312.2857142857143
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 327.92857142857144
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " Worth a second look regardless of the field: the effect of that branch is NSApp.activate(ignoringOtherApps: true) on every permission change, at 1 Hz         ",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 343.57142857142856
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " polling. A user toggling a switch in System Settings gets focus yanked out from under them at the moment of the toggle. If the intent is \"come back to the    ",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 359.2142857142857
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " front when the user returns,\" applicationBecameActive already does that, and it does it on the right event.",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 374.85714285714283
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 390.5
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " ────────────────────────────────────────────────────────────────────────────────",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 406.1428571428571
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 421.7857142857143
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " Verdict: approved. The structure is right now — one startup join, one permissions delegate, one readiness path, one walk over the download plan. §1 and §2    ",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 437.42857142857144
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " are the last two places where a captured value or a reconciliation pass is standing in for an identity, and neither is load-bearing. Take them when",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 453.07142857142856
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " convenient.",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 468.7142857142857
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 484.35714285714283
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : "───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 500
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " Package Updates Available",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 515.6428571428571
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " Package updates are available. Run pi update --extensions",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 531.2857142857142
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " Packages:",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 546.9285714285713
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " - pi-sessions",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 562.5714285714286
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " - @thurstonsand/pi-agent-switchboard",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 578.2142857142857
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " - pi-doppelclaude",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 593.8571428571429
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : "───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 609.5
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : "",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 625.1428571428571
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " ✴ Claude Opus 5 /  mini-whisper /  main / [━━━━━━31%────────────]",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 640.7857142857142
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── ",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 656.4285714285714
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " >  ",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 672.0714285714286
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── ",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 687.7142857142857
+  },
+  {
+    "height" : 15.642857142857142,
+    "role" : "AXTextArea",
+    "text" : " pi1  pi                                                                                                                                             pod153 ",
+    "web" : false,
+    "width" : 1280,
+    "x" : 0,
+    "y" : 703.3571428571429
+  },
+  {
+    "height" : 16,
+    "role" : "AXStaticText",
+    "text" : "pi1:pi",
+    "web" : false,
+    "width" : 40,
+    "x" : 82,
+    "y" : 38
+  }
+]

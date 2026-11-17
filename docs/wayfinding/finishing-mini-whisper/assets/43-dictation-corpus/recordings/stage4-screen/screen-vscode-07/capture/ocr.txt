@@ -1,0 +1,81 @@
+HotkeyListener.swift
+08
+Feature+Delivery.swift M
+CleanupPrompt.swift M
+Retention.swift M
+• Profiles.swift
+• HotkeyListener.swift X
+Chat
+Jsers > thurstonsand > Develop > mini-whisper-expanded-context > Packages > HotkeyListener > Sources > HotkeyListener > • HotkeyListener.swift
+Sessions
+175
+private final class EventTapSession<Action: Equatable & Sendable>: @unchecked Sendable {
+269
+private func run(startup: CheckedContinuation<Void, any Error>) 1
+Private
+316
+†inishStream ()
+317
+HotkeyListener
+318
+319
+private func normalize(type: CGEventType, event: CGEvent, time: Duration) > KeyTransition? {
+320
+let keyCode = UInt16(event.getIntegerValueField(.keyboardEventKeycode))
+321
+let key: PhysicalKey
+322
+let phase: KeyPhase
+323
+324
+if
+type =
+. flagsChanged,
+325
+let modifier = ModifierKey.allCases.first(where: { $ø.keyCode == keyCode })
+326
+327
+key
+= .modifier(modifier)
+if isModifierDown (modifier,
+328
+event: event) {
+329
+pressedKeys. insert (key)
+330
+phase = . down
+331
+else f
+332
+pressedKeys. remove (key)
+333
+phase = .up
+334
+335
+else if type == .keyDown {
+336
+key = .keyCode (keyCode)
+Tip: Try the Plan agent to research and
+337
+pressedKeys. insert (key)
+plan before implementing changes.
+338
+phase = .down
++ & HotkeyListener.swift
+339
+} else if type == .keyUp {
+340
+key = .keyCode (keyCode)
+341
+pressedKeys. remove (key)
+342
+phase = .up
+( Agent 8 Auto | Balance 0,
+343
+else f
+344
+return nil
+• Local • Default permissions
+345
+Ln 330, Col 1
+Spaces: 2 UTF-8 LF (} Swift

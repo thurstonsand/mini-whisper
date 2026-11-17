@@ -1,0 +1,29 @@
+{
+  "appName" : "Google Chrome",
+  "axCapped" : false,
+  "axUnplaced" : 0,
+  "axVisited" : 2694,
+  "bundleID" : "com.google.Chrome",
+  "capturedAt" : 816036514.757081,
+  "focusedFrame" : [
+    934,
+    611,
+    304,
+    26
+  ],
+  "focusedRole" : "AXTextArea",
+  "screenshotCandidates" : 1,
+  "screenshotTitle" : "Cross-Origin Resource Sharing (CORS) - HTTP | MDN",
+  "timingsMs" : {
+    "ax" : 184.74575,
+    "ocr" : 162.984125,
+    "screenshot" : 109.513667
+  },
+  "windowFrame" : [
+    0,
+    30,
+    1280,
+    690
+  ],
+  "windowTitle" : "Cross-Origin Resource Sharing (CORS) - HTTP | MDN - Google Chrome"
+}

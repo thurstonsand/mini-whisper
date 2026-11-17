@@ -1,0 +1,42 @@
+{
+ "audio": {
+  "byteCount": 567296,
+  "durationSeconds": 8.8
+ },
+ "createdAt": 816030474.135104,
+ "delivery": {
+  "detail": "untouched",
+  "method": "pasted",
+  "text": "Go ahead and read the docs markdown too, and double-check the comment in physical chord matcher about cleanup started and cleanup ended."
+ },
+ "id": "06C5FC4B-F0C2-429D-B16B-8541FEAA89BE",
+ "original": {
+  "cleanup": {
+   "disposition": {
+    "kind": "cleaned",
+    "text": "Go ahead and read the docs markdown too, and double-check the comment in physical chord matcher about cleanup started and cleanup ended."
+   },
+   "durationSeconds": 0.9649230241775513,
+   "endpoint": "https://api.anthropic.com/v1",
+   "model": "claude-haiku-5-5"
+  },
+  "engine": "FluidInference/parakeet-tdt-0.6b-v2-coreml@ee09c569f73759e6d44c9bd16766f477b2b36d39",
+  "text": "Go ahead and read the docs markdown too, and double-check the comment in physical chord matcher about cleanup started and cleanup ended.",
+  "transcribedAt": 816030474.28009
+ },
+ "retranscriptions": [],
+ "screenContext": {
+  "structured": {
+   "source": "tmux",
+   "text": " without its polish\") for the contrast. Transcription.cleanup had a field doc that restated the optional, when the type doc above it already explains why\n cleanup rides on the transcription rather than the entry.\n\n Checked and kept\n\n HotkeyGestureMachine — every new comment is a state-table justification: why .cleanupPending gives the activation key a meaning it has nowhere else, why a\n late cleanupStarted cannot take back a press that already fired, why a dead tap must not discard a transcript. Those are the machine's whole design.\n\n PhysicalChordMatcher — the note that cleanupStarted/cleanupEnded come from the app's own lifecycle rather than anything the tap witnessed. Non-obvious in an\n enum where everything else is a physical event.\n\n FocusedTextContext — justifies a Codable conformance that would otherwise look gratuitous.\n\n AgentDriveabilityScene / SceneDependencies — the note that the scene's Keychain is real but scene-owned, so a UI run cannot leave a credential on the\n machine. Security-relevant.\n\n HistoryEntry.fieldContext, HistoryLog.version — persistence rationale and a migration note. Both outside the code.\n\n Test comments across HistoryFeatureTests, HistoryPipelineTests, PillFeatureTests, HistoryEntryCodecTests, HistoryEntryTextTests, AudioVaultTests,\n HotkeyGestureMachineTests — each states the claim the assertion makes, which is what a test comment is for here. Nothing restating.\n\n spikes/settings-mockup — the A/B/C/D variant labels are the content of a mock built to compare four Save placements. Left alone.\n\n MockEndpoint.swift is a pure move into CleanupTestSupport plus access modifiers. No comment churn.\n\n Markdown under docs/ is prose, not comments — I left it, say the word if you want that read too.\n\n───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────\n Package Updates Available\n Package updates are available. Run pi update --extensions\n Packages:\n - pi-sessions\n - @thurstonsand/pi-agent-switchboard\n - pi-doppelclaude\n───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────\n\n ✴ Claude Opus 5 /  mini-whisper /  main / [━━━━━━━━━━━━━━━━92%──]\n ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────\n >\n ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────"
+  },
+  "windowTitle": "pi2:pi"
+ },
+ "screenshot": {
+  "byteCount": 132407
+ },
+ "targetApp": {
+  "bundleID": "com.mitchellh.ghostty",
+  "name": "Ghostty"
+ }
+}

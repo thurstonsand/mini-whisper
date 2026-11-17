@@ -1,0 +1,29 @@
+{
+  "appName" : "Code",
+  "axCapped" : false,
+  "axUnplaced" : 12942,
+  "axVisited" : 505,
+  "bundleID" : "com.microsoft.VSCode",
+  "capturedAt" : 816034764.318298,
+  "focusedFrame" : [
+    1008,
+    591,
+    240,
+    21
+  ],
+  "focusedRole" : "AXTextArea",
+  "screenshotCandidates" : 1,
+  "screenshotTitle" : "HotkeyListener.swift",
+  "timingsMs" : {
+    "ax" : 63.48525,
+    "ocr" : 309.554375,
+    "screenshot" : 126.443875
+  },
+  "windowFrame" : [
+    0,
+    30,
+    1280,
+    690
+  ],
+  "windowTitle" : "HotkeyListener.swift"
+}

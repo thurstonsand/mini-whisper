@@ -1,0 +1,23 @@
+{
+ "id": "screen-chrome-07",
+ "tags": [
+  "chrome",
+  "chatgpt-sidebar",
+  "control"
+ ],
+ "scene": {
+  "kind": "chrome",
+  "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS#simple_requests"
+ },
+ "say": "Thanks, that makes sense. Can you summarize this page in three bullet points?",
+ "expect": "Thanks, that makes sense. Can you summarize this page in three bullet points?",
+ "must": [
+  "summarize this page",
+  "three bullet points"
+ ],
+ "forbid": [
+  "Access-Control",
+  "foo.example",
+  "CORS"
+ ]
+}
