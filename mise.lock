@@ -256,51 +256,51 @@ url = "https://github.com/koalaman/shellcheck/releases/download/v0.11.0/shellche
 url_api = "https://api.github.com/repos/koalaman/shellcheck/releases/assets/279056944"
 
 [[tools.swiftformat]]
-version = "0.64.6"
+version = "0.64.7"
 backend = "github:nicklockwood/SwiftFormat"
-specifiers = ["0.64.6"]
+specifiers = ["0.64.7"]
 
 [tools.swiftformat.options]
 no_app = "true"
 
 [tools.swiftformat."platforms.linux-arm64"]
-checksum = "sha256:f9e402654355faa4020c5fa7431dd1be2c5daa9cea93b936c2675011b2e99fd7"
+checksum = "sha256:f42267d050f863047f6a90a1e268dd90e2145ab6c81144c304afbdc438617efd"
 checksum_source = "mise-versions"
-url = "https://github.com/nicklockwood/SwiftFormat/releases/download/0.64.6/swiftformat_linux_aarch64.zip"
-url_api = "https://api.github.com/repos/nicklockwood/SwiftFormat/releases/assets/716496052"
+url = "https://github.com/nicklockwood/SwiftFormat/releases/download/0.64.7/swiftformat_linux_aarch64.zip"
+url_api = "https://api.github.com/repos/nicklockwood/SwiftFormat/releases/assets/747332882"
 
 [tools.swiftformat."platforms.linux-arm64-musl"]
-checksum = "sha256:f9e402654355faa4020c5fa7431dd1be2c5daa9cea93b936c2675011b2e99fd7"
+checksum = "sha256:f42267d050f863047f6a90a1e268dd90e2145ab6c81144c304afbdc438617efd"
 checksum_source = "mise-versions"
-url = "https://github.com/nicklockwood/SwiftFormat/releases/download/0.64.6/swiftformat_linux_aarch64.zip"
-url_api = "https://api.github.com/repos/nicklockwood/SwiftFormat/releases/assets/716496052"
+url = "https://github.com/nicklockwood/SwiftFormat/releases/download/0.64.7/swiftformat_linux_aarch64.zip"
+url_api = "https://api.github.com/repos/nicklockwood/SwiftFormat/releases/assets/747332882"
 
 [tools.swiftformat."platforms.linux-x64"]
-checksum = "sha256:5b9b03a383409a4bf60b0cacd6b18fb36fc3fbacd8b8af156a2865b80ff20ebe"
+checksum = "sha256:819aea026e1c630f46b234ed84481e56d9eb3cfe7024cd51b1af55169c8e13bb"
 checksum_source = "mise-versions"
-url = "https://github.com/nicklockwood/SwiftFormat/releases/download/0.64.6/swiftformat_linux.zip"
-url_api = "https://api.github.com/repos/nicklockwood/SwiftFormat/releases/assets/716496057"
+url = "https://github.com/nicklockwood/SwiftFormat/releases/download/0.64.7/swiftformat_linux.zip"
+url_api = "https://api.github.com/repos/nicklockwood/SwiftFormat/releases/assets/747332872"
 
 [tools.swiftformat."platforms.linux-x64-musl"]
-checksum = "sha256:5b9b03a383409a4bf60b0cacd6b18fb36fc3fbacd8b8af156a2865b80ff20ebe"
+checksum = "sha256:819aea026e1c630f46b234ed84481e56d9eb3cfe7024cd51b1af55169c8e13bb"
 checksum_source = "mise-versions"
-url = "https://github.com/nicklockwood/SwiftFormat/releases/download/0.64.6/swiftformat_linux.zip"
-url_api = "https://api.github.com/repos/nicklockwood/SwiftFormat/releases/assets/716496057"
+url = "https://github.com/nicklockwood/SwiftFormat/releases/download/0.64.7/swiftformat_linux.zip"
+url_api = "https://api.github.com/repos/nicklockwood/SwiftFormat/releases/assets/747332872"
 
 [tools.swiftformat."platforms.macos-arm64"]
-checksum = "sha256:70e6b2057647fb1c54d620ebbb6649274de56534c57f91f67461a129ebaaba3e"
+checksum = "sha256:e82e224325cbd3403fc7b68caf6c917926dc106de3af875fca4b87e3c4634038"
 checksum_source = "mise-versions"
-url = "https://github.com/nicklockwood/SwiftFormat/releases/download/0.64.6/swiftformat.zip"
-url_api = "https://api.github.com/repos/nicklockwood/SwiftFormat/releases/assets/716496056"
+url = "https://github.com/nicklockwood/SwiftFormat/releases/download/0.64.7/swiftformat.zip"
+url_api = "https://api.github.com/repos/nicklockwood/SwiftFormat/releases/assets/747332879"
 
 [tools.swiftformat."platforms.macos-x64"]
-checksum = "sha256:70e6b2057647fb1c54d620ebbb6649274de56534c57f91f67461a129ebaaba3e"
+checksum = "sha256:e82e224325cbd3403fc7b68caf6c917926dc106de3af875fca4b87e3c4634038"
 checksum_source = "mise-versions"
-url = "https://github.com/nicklockwood/SwiftFormat/releases/download/0.64.6/swiftformat.zip"
-url_api = "https://api.github.com/repos/nicklockwood/SwiftFormat/releases/assets/716496056"
+url = "https://github.com/nicklockwood/SwiftFormat/releases/download/0.64.7/swiftformat.zip"
+url_api = "https://api.github.com/repos/nicklockwood/SwiftFormat/releases/assets/747332879"
 
 [tools.swiftformat."platforms.windows-x64"]
-checksum = "sha256:70e6b2057647fb1c54d620ebbb6649274de56534c57f91f67461a129ebaaba3e"
+checksum = "sha256:e82e224325cbd3403fc7b68caf6c917926dc106de3af875fca4b87e3c4634038"
 checksum_source = "mise-versions"
-url = "https://github.com/nicklockwood/SwiftFormat/releases/download/0.64.6/swiftformat.zip"
-url_api = "https://api.github.com/repos/nicklockwood/SwiftFormat/releases/assets/716496056"
+url = "https://github.com/nicklockwood/SwiftFormat/releases/download/0.64.7/swiftformat.zip"
+url_api = "https://api.github.com/repos/nicklockwood/SwiftFormat/releases/assets/747332879"
