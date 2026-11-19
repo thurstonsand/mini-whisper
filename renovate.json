@@ -76,6 +76,11 @@
       "groupSlug": "fluid-audio",
       "labels": ["dependencies", "fluid-audio"],
       "description": "Review FluidAudio dependency changes and rerun the MVP regression corpus before merging."
+    },
+    {
+      "description": "mise keeps the dependency graph behind each npm tool in mise.lock under .mise/locks, and Renovate's mise manager regenerates it with each bump. Left on, the npm manager would also bump those package.json files alone, out of step with their aube-lock.yaml and mise.lock's digest",
+      "matchFileNames": [".mise/locks/**"],
+      "enabled": false
     }
   ]
 }
