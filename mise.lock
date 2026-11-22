@@ -25,12 +25,6 @@ checksum_source = "mise-versions"
 url = "https://github.com/cpisciotta/xcbeautify/releases/download/3.2.1/xcbeautify-3.2.1-arm64-apple-macosx.zip"
 url_api = "https://api.github.com/repos/cpisciotta/xcbeautify/releases/assets/388376615"
 
-[tools."aqua:cpisciotta/xcbeautify"."platforms.macos-x64"]
-checksum = "sha256:ba65e8efc2ebe8c6f13393aaeb88a0ff849278d9480ee1496affaa3db781ac6e"
-checksum_source = "mise-versions"
-url = "https://github.com/cpisciotta/xcbeautify/releases/download/3.2.1/xcbeautify-3.2.1-x86_64-apple-macosx.zip"
-url_api = "https://api.github.com/repos/cpisciotta/xcbeautify/releases/assets/388376611"
-
 [[tools."aqua:jdx/jactionlint"]]
 version = "2.6.0"
 backend = "aqua:jdx/jactionlint"
@@ -64,12 +58,6 @@ provenance = "github-attestations"
 checksum = "sha256:c3f373c7eac668aacb390b9c802cf4b5e2ad1a11b0b0c0aea6b04ca0cfa0c018"
 url = "https://github.com/jdx/jactionlint/releases/download/v2.6.0/jactionlint_2.6.0_darwin_arm64.tar.gz"
 url_api = "https://api.github.com/repos/jdx/jactionlint/releases/assets/740515965"
-provenance = "github-attestations"
-
-[tools."aqua:jdx/jactionlint"."platforms.macos-x64"]
-checksum = "sha256:aa89c49ad5c9530f2308f18333166050f97f14d420f478a8225d043bef1e2cab"
-url = "https://github.com/jdx/jactionlint/releases/download/v2.6.0/jactionlint_2.6.0_darwin_amd64.tar.gz"
-url_api = "https://api.github.com/repos/jdx/jactionlint/releases/assets/740515909"
 provenance = "github-attestations"
 
 [tools."aqua:jdx/jactionlint"."platforms.windows-x64"]
@@ -147,10 +135,6 @@ url = "https://github.com/SolaWing/xcode-build-server/archive/refs/tags/v1.3.0.t
 checksum = "sha256:92c4bb848af5c8128d4600a93f45e49b89ed953d885c60092459303a5d80e312"
 url = "https://github.com/SolaWing/xcode-build-server/archive/refs/tags/v1.3.0.tar.gz"
 
-[tools."http:xcode-build-server"."platforms.macos-x64"]
-checksum = "sha256:92c4bb848af5c8128d4600a93f45e49b89ed953d885c60092459303a5d80e312"
-url = "https://github.com/SolaWing/xcode-build-server/archive/refs/tags/v1.3.0.tar.gz"
-
 [tools."http:xcode-build-server"."platforms.windows-x64"]
 checksum = "sha256:92c4bb848af5c8128d4600a93f45e49b89ed953d885c60092459303a5d80e312"
 url = "https://github.com/SolaWing/xcode-build-server/archive/refs/tags/v1.3.0.tar.gz"
@@ -196,12 +180,6 @@ url = "https://github.com/astral-sh/ruff/releases/download/0.17.5/ruff-aarch64-a
 url_api = "https://api.github.com/repos/astral-sh/ruff/releases/assets/740496814"
 provenance = "github-attestations"
 
-[tools.ruff."platforms.macos-x64"]
-checksum = "sha256:892f70854ebcd70d873b1bee8358cfd3a1e3180388e3851e3fd3e4a1d5a4dfdd"
-url = "https://github.com/astral-sh/ruff/releases/download/0.17.5/ruff-x86_64-apple-darwin.tar.gz"
-url_api = "https://api.github.com/repos/astral-sh/ruff/releases/assets/740497049"
-provenance = "github-attestations"
-
 [tools.ruff."platforms.windows-x64"]
 checksum = "sha256:6e1284ce4e2fa0ea7b4a28d0947f59c63e6983aa8b2e5b04402b0e59376405ca"
 url = "https://github.com/astral-sh/ruff/releases/download/0.17.5/ruff-x86_64-pc-windows-msvc.zip"
@@ -243,12 +221,6 @@ checksum_source = "mise-versions"
 url = "https://github.com/koalaman/shellcheck/releases/download/v0.11.0/shellcheck-v0.11.0.darwin.aarch64.tar.xz"
 url_api = "https://api.github.com/repos/koalaman/shellcheck/releases/assets/279056932"
 
-[tools.shellcheck."platforms.macos-x64"]
-checksum = "sha256:3c89db4edcab7cf1c27bff178882e0f6f27f7afdf54e859fa041fca10febe4c6"
-checksum_source = "mise-versions"
-url = "https://github.com/koalaman/shellcheck/releases/download/v0.11.0/shellcheck-v0.11.0.darwin.x86_64.tar.xz"
-url_api = "https://api.github.com/repos/koalaman/shellcheck/releases/assets/279056930"
-
 [tools.shellcheck."platforms.windows-x64"]
 checksum = "sha256:8a4e35ab0b331c85d73567b12f2a444df187f483e5079ceffa6bda1faa2e740e"
 checksum_source = "mise-versions"
@@ -288,12 +260,6 @@ url = "https://github.com/nicklockwood/SwiftFormat/releases/download/0.64.6/swif
 url_api = "https://api.github.com/repos/nicklockwood/SwiftFormat/releases/assets/716496057"
 
 [tools.swiftformat."platforms.macos-arm64"]
-checksum = "sha256:70e6b2057647fb1c54d620ebbb6649274de56534c57f91f67461a129ebaaba3e"
-checksum_source = "mise-versions"
-url = "https://github.com/nicklockwood/SwiftFormat/releases/download/0.64.6/swiftformat.zip"
-url_api = "https://api.github.com/repos/nicklockwood/SwiftFormat/releases/assets/716496056"
-
-[tools.swiftformat."platforms.macos-x64"]
 checksum = "sha256:70e6b2057647fb1c54d620ebbb6649274de56534c57f91f67461a129ebaaba3e"
 checksum_source = "mise-versions"
 url = "https://github.com/nicklockwood/SwiftFormat/releases/download/0.64.6/swiftformat.zip"
