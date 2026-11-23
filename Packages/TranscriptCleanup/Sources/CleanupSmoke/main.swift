@@ -99,7 +99,9 @@ print(CleanupPrompt.systemMessage(
   carriesScreenContext: request.carriesScreenContext,
 ))
 print("\n=== USER MESSAGE ===")
-print(CleanupPrompt.userMessage(request))
+print(CleanupPrompt.userMessage(
+  request, additionalInstructions: configuration.additionalInstructions,
+))
 
 print("\n=== MOCK GATEWAY REPLY ===")
 print(MockEndpoint.wrappedReply)
@@ -108,9 +110,9 @@ print("\n=== OUTCOME ===")
 switch await client.clean(request) {
 case let .cleaned(text, stripped):
   print("cleaned: \(text)")
+  print("stripped: \(stripped.map(\.rawValue))")
 case .cancelled:
   print("cancelled")
-  print("stripped: \(stripped.map(\.rawValue))")
 case let .failed(failure):
   print("failed: \(failure.localizedDescription)")
 }

@@ -23,7 +23,8 @@ struct OpenAICompatibleCleanupTests {
       status: 200,
       body: completion("Run the tests."),
     ))
-    _ = await client(session: session).clean(request)
+    _ = await client(session: session, additionalInstructions: "Prefer British spelling.")
+      .clean(request)
 
     let entry = try #require(log.entries.first)
     #expect(entry.url.absoluteString == "https://gateway.example/v1/chat/completions")
@@ -36,7 +37,12 @@ struct OpenAICompatibleCleanupTests {
     #expect(body["stream"] as? Bool == false)
     #expect(entry.messages.map(\.role) == ["system", "user"])
     #expect(entry.messages[0].content.hasPrefix(CleanupPrompt.builtIn))
-    #expect(entry.messages[1].content == CleanupPrompt.userMessage(request))
+    #expect(entry.messages[0].content.hasSuffix("Prefer British spelling."))
+    #expect(
+      entry.messages[1].content.hasSuffix(
+        "<ADDITIONAL_INSTRUCTIONS>\nPrefer British spelling.\n</ADDITIONAL_INSTRUCTIONS>",
+      ),
+    )
   }
 
   @Test func `a screenshot rides the user message as an image part the system message introduces`(
@@ -59,7 +65,10 @@ struct OpenAICompatibleCleanupTests {
     #expect(system.contains(CleanupPrompt.screenContextRule))
     let parts = try #require(messages[1]["content"] as? [[String: Any]])
     #expect(parts.map { $0["type"] as? String } == ["text", "image_url"])
-    #expect(parts[0]["text"] as? String == CleanupPrompt.userMessage(shot))
+    #expect(parts[0]["text"] as? String == CleanupPrompt.userMessage(
+      shot,
+      additionalInstructions: "",
+    ))
     #expect(
       (parts[1]["image_url"] as? [String: String])?["url"] == "data:image/jpeg;base64,/9j/AQ==",
     )
@@ -383,12 +392,12 @@ struct OpenAICompatibleCleanupTests {
   private func client(
     session: URLSession, timeout: TimeInterval = 10, apiKey: String? = "sk-test",
     endpoint: String = "https://gateway.example/v1",
-    reasoningEffort: ReasoningEffort = .modelDecides,
+    reasoningEffort: ReasoningEffort = .modelDecides, additionalInstructions: String = "",
   ) -> OpenAICompatibleCleanup {
     OpenAICompatibleCleanup(
       configuration: CleanupConfiguration(
         endpoint: URL(string: endpoint)!, model: "gateway-small", reasoningEffort: reasoningEffort,
-        timeout: timeout, additionalInstructions: "",
+        timeout: timeout, additionalInstructions: additionalInstructions,
       ), apiKey: apiKey, session: session,
     )
   }

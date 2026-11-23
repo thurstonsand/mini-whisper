@@ -27,7 +27,11 @@ public struct OpenAICompatibleCleanup: Sendable {
         ),
       ),
       ChatMessage(
-        role: "user", content: CleanupPrompt.userMessage(request), image: request.screenshot,
+        role: "user",
+        content: CleanupPrompt.userMessage(
+          request, additionalInstructions: configuration.additionalInstructions,
+        ),
+        image: request.screenshot,
       ),
     ]
     switch await completion(messages: messages, timeout: configuration.timeout) {

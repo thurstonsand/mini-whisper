@@ -92,34 +92,39 @@ struct CleanupPromptTests {
   }
 
   @Test func `a transcript alone sends one block`() {
-    let message = CleanupPrompt.userMessage(request())
+    let message = CleanupPrompt.userMessage(request(), additionalInstructions: "")
     #expect(message == "<TRANSCRIPT>\nrun the tests\n</TRANSCRIPT>")
   }
 
   @Test func `every optional block is omitted when absent`() {
-    let message = CleanupPrompt.userMessage(request())
+    let message = CleanupPrompt.userMessage(request(), additionalInstructions: "")
     #expect(!message.contains("FOCUSED_TEXT_CONTEXT"))
     #expect(!message.contains("DICTIONARY"))
     #expect(!message.contains("TARGET_BUNDLE_ID"))
   }
 
   @Test func `an empty vocabulary is absence, not an empty block`() {
-    #expect(!CleanupPrompt.userMessage(request(vocabulary: [])).contains("DICTIONARY"))
-    #expect(!CleanupPrompt.userMessage(request(vocabulary: [""])).contains("DICTIONARY"))
+    #expect(!CleanupPrompt.userMessage(request(vocabulary: []), additionalInstructions: "")
+      .contains("DICTIONARY"))
+    #expect(!CleanupPrompt.userMessage(request(vocabulary: [""]), additionalInstructions: "")
+      .contains("DICTIONARY"))
   }
 
   @Test func `an empty bundle id is absence`() {
-    #expect(!CleanupPrompt.userMessage(request(bundleID: "")).contains("TARGET_BUNDLE_ID"))
+    #expect(!CleanupPrompt.userMessage(request(bundleID: ""), additionalInstructions: "")
+      .contains("TARGET_BUNDLE_ID"))
   }
 
   @Test func `a context that carries no text is absence`() {
     let empty = context(before: "", selected: "", after: "")
-    #expect(!CleanupPrompt.userMessage(request(context: empty)).contains("FOCUSED_TEXT_CONTEXT"))
+    #expect(!CleanupPrompt.userMessage(request(context: empty), additionalInstructions: "")
+      .contains("FOCUSED_TEXT_CONTEXT"))
   }
 
   @Test func `context slices are tagged individually and empty slices are dropped`() {
     let message = CleanupPrompt.userMessage(
       request(context: context(before: "The conc", selected: "", after: " ends here")),
+      additionalInstructions: "",
     )
     #expect(message.contains("<FOCUSED_TEXT_CONTEXT>"))
     #expect(message.contains("<BEFORE_CARET>\nThe conc\n</BEFORE_CARET>"))
@@ -133,6 +138,7 @@ struct CleanupPromptTests {
         context: context(before: "let ", selected: "value", after: " = 1"),
         vocabulary: ["MiniWhisper", "TCA"], bundleID: "com.apple.dt.Xcode",
       ),
+      additionalInstructions: "  Prefer British spelling.\n",
     )
     #expect(message == """
     <TRANSCRIPT>
@@ -159,6 +165,10 @@ struct CleanupPromptTests {
     <TARGET_BUNDLE_ID>
     com.apple.dt.Xcode
     </TARGET_BUNDLE_ID>
+
+    <ADDITIONAL_INSTRUCTIONS>
+    Prefer British spelling.
+    </ADDITIONAL_INSTRUCTIONS>
     """)
   }
 
@@ -171,6 +181,7 @@ struct CleanupPromptTests {
 
     let message = CleanupPrompt.userMessage(
       request(context: context(before: "Sure,", selected: "", after: ""), screen: screen),
+      additionalInstructions: "",
     )
 
     #expect(message == """
@@ -203,8 +214,10 @@ struct CleanupPromptTests {
       screen: ScreenContext(windowTitle: "Untitled", structured: nil, recognizedText: nil),
     )
 
-    #expect(CleanupPrompt.userMessage(recognizedOnly).contains("<VISIBLE_TEXT>\nQwen3-ASR\n"))
-    #expect(!CleanupPrompt.userMessage(blank).contains("SCREEN_CONTEXT"))
+    #expect(CleanupPrompt.userMessage(recognizedOnly, additionalInstructions: "")
+      .contains("<VISIBLE_TEXT>\nQwen3-ASR\n"))
+    #expect(!CleanupPrompt.userMessage(blank, additionalInstructions: "")
+      .contains("SCREEN_CONTEXT"))
     let screened = CleanupPrompt.systemMessage(
       additionalInstructions: "", carriesScreenContext: recognizedOnly.carriesScreenContext,
     )
