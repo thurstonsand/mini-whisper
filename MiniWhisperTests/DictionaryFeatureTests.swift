@@ -235,7 +235,7 @@ import Testing
     await store.receive(
       .settingsWindow(.dictionary(.delegate(.quickAddPersistenceFailed("disk full")))),
     )
-    await store.receive(.pill(.dictionarySaveFailed)) {
+    await store.receive(.pill(.notice(.dictionarySaveFailed))) {
       $0.pill.noticeGeneration = 1
       $0.pill.presentation = .notice(.dictionarySaveFailed)
     }

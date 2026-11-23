@@ -89,17 +89,13 @@ import Testing
   }
 
   @Test(arguments: [
-    (
-      PillFeature.Action.noSpeechDetected,
-      PillFeature.State.Presentation.Notice.noSpeechDetected,
-      1,
-    ),
-    (.cancelledSavedToHistory, .cancelledSavedToHistory, 1),
-    (.noTranscriptToPaste, .noTranscriptToPaste, 3),
-    (.cleanupUnavailable, .cleanupUnavailable, 3),
+    (PillFeature.State.Presentation.Notice.noSpeechDetected, 1),
+    (.cancelledSavedToHistory, 1),
+    (.noTranscriptToPaste, 3),
+    (.cleanupUnavailable, 3),
   ])
   func `explanatory notices remain readable before fading`(
-    action: PillFeature.Action, notice: PillFeature.State.Presentation.Notice, seconds: Int,
+    notice: PillFeature.State.Presentation.Notice, seconds: Int,
   ) async {
     let clock = TestClock()
     let store = TestStore(initialState: PillFeature.State()) {
@@ -108,7 +104,7 @@ import Testing
       $0.continuousClock = clock
     }
 
-    await store.send(action) {
+    await store.send(.notice(notice)) {
       $0.noticeGeneration = 1
       $0.presentation = .notice(notice)
     }
@@ -131,7 +127,7 @@ import Testing
       $0.continuousClock = TestClock()
     }
 
-    await store.send(.noTranscriptToPaste) {
+    await store.send(.notice(.noTranscriptToPaste)) {
       $0.noticeGeneration = 1
       $0.presentation = .notice(.noTranscriptToPaste)
     }
@@ -153,7 +149,7 @@ import Testing
       $0.continuousClock = TestClock()
     }
 
-    await store.send(.noReceiver(pasteShortcut: "⌥⌘V")) {
+    await store.send(.notice(.noReceiver(pasteShortcut: "⌥⌘V"))) {
       $0.noticeGeneration = 1
       $0.presentation = .notice(.noReceiver(pasteShortcut: "⌥⌘V"))
     }
@@ -175,7 +171,7 @@ import Testing
       $0.continuousClock = clock
     }
 
-    await store.send(.copiedToClipboard) {
+    await store.send(.notice(.copiedToClipboard)) {
       $0.noticeGeneration = 1
       $0.presentation = .notice(.copiedToClipboard)
     }
@@ -197,12 +193,12 @@ import Testing
       $0.continuousClock = clock
     }
 
-    await store.send(.noSpeechDetected) {
+    await store.send(.notice(.noSpeechDetected)) {
       $0.noticeGeneration = 1
       $0.presentation = .notice(.noSpeechDetected)
     }
     await clock.advance(by: .milliseconds(500))
-    await store.send(.copiedToClipboard) {
+    await store.send(.notice(.copiedToClipboard)) {
       $0.noticeGeneration = 2
       $0.presentation = .notice(.copiedToClipboard)
     }
@@ -225,7 +221,7 @@ import Testing
       $0.continuousClock = clock
     }
 
-    await store.send(.copiedToClipboard) {
+    await store.send(.notice(.copiedToClipboard)) {
       $0.noticeGeneration = 1
       $0.presentation = .notice(.copiedToClipboard)
     }

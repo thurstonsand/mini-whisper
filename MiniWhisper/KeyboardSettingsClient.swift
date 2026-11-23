@@ -47,7 +47,7 @@ struct KeyboardShortcutSettings: Equatable {
     guard !hotkey.modifiers.isDisjoint(with: conflicting) else {
       return nil
     }
-    return "Change the Dictation shortcut so a double-tap only starts MiniWhisper."
+    return "Change the Dictation shortcut so a double-tap only starts \(Channel.name)."
   }
 }
 

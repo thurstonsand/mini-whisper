@@ -15,9 +15,12 @@ struct SettingsWindowView: View {
       List(selection: selection) {
         destinationRow(.settings)
         Section {
-          ForEach(SettingsDestination.allCases.dropFirst()) { destination in
+          ForEach(SettingsDestination.allCases.dropFirst().dropLast()) { destination in
             destinationRow(destination)
           }
+        }
+        Section {
+          destinationRow(.about)
         }
       }
       .navigationSplitViewColumnWidth(min: 160, ideal: 176, max: 220)
@@ -178,6 +181,8 @@ struct SettingsWindowView: View {
         press: { store.send(.models(.pressRequested)) },
         escape: { store.send(.models(.previewCleared)) },
       )
+    case .about:
+      WindowKeyActions(left: { setFocus(.sidebar) })
     }
   }
 
@@ -224,6 +229,8 @@ struct SettingsWindowView: View {
       ProfilesPane(store: store)
     case .models:
       ModelsPane(store: store)
+    case .about:
+      AboutPane()
     }
   }
 

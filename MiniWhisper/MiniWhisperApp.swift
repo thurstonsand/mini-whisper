@@ -73,8 +73,6 @@ import SwiftUI
       switch agentScene.presentedWindow {
       case let .settings(destination, initialFocus):
         menuBarController.presentSettings(destination: destination, initialFocus: initialFocus)
-      case .about:
-        menuBarController.presentAbout()
       case nil:
         break
       }

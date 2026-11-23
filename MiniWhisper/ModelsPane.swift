@@ -36,7 +36,7 @@ struct ModelsPane: View {
     } message: { asset in
       switch asset {
       case .s1Mini:
-        Text("MiniWhisper will deliver transcripts without cleanup.")
+        Text("\(Channel.name) will deliver transcripts without cleanup.")
       case .gate,
            .parakeet:
         Text("\(models.settings.activeProfile.name) can’t transcribe until it’s downloaded again.")

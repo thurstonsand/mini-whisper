@@ -84,7 +84,7 @@ extension AppFeature {
     /// What the pill owes the user once this dictation's paste lands, beyond the paste itself.
     var deliveredNotice: PillFeature.Action {
       if case .failed = cleanupRecord?.disposition {
-        .cleanupUnavailable
+        .notice(.cleanupUnavailable)
       } else {
         .dismiss
       }
@@ -142,7 +142,9 @@ extension AppFeature {
         delivery: delivery, vocabulary: vocabulary,
       )
     }
-    guard dictation.original != nil || state.storesAudio else {
+    // With transcripts kept for Never, nothing reaches the disk at all, not even until the next
+    // retention pass; Copy Last still has this session's transcript in memory.
+    guard state.keepsHistory, dictation.original != nil || state.storesAudio else {
       state.removeDictation(generation)
       return .run { [dictation] _ in await metrics.record(measure(dictation, nil)) }
     }

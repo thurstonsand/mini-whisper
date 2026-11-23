@@ -32,10 +32,15 @@ import ComposableArchitecture
         case noTranscriptToPaste
         case copiedToClipboard
         case noReceiver(pasteShortcut: String?)
+        case cancelled
         case cancelledSavedToHistory
         case cleanupUnavailable
         case speechModelUnavailable(String)
         case dictionarySaveFailed
+        case microphoneAccessOff
+        case recordingFailed
+        case transcriptionFailed
+        case pasteFailed
 
         // MARK: Internal
 
@@ -63,13 +68,15 @@ import ComposableArchitecture
             Content(
               text: "Copied — ⌘V to paste", phase: "Nowhere to paste",
             )
+          case .cancelled:
+            Content(text: "Cancelled", phase: "Cancelled")
           case .cancelledSavedToHistory:
             Content(
               text: "Cancelled — saved to History", phase: "Cancelled and saved to History",
             )
           case .cleanupUnavailable:
             Content(
-              text: "Cleanup failed", phase: "Pasted without cleanup",
+              text: "Pasted without cleanup", phase: "Pasted without cleanup",
             )
           case let .speechModelUnavailable(status):
             Content(
@@ -79,6 +86,14 @@ import ComposableArchitecture
             Content(
               text: "Entry not saved — open Dictionary", phase: "Dictionary entry not saved",
             )
+          case .microphoneAccessOff:
+            Content(text: "Microphone access is off", phase: "Microphone access is off")
+          case .recordingFailed:
+            Content(text: "Couldn’t record", phase: "Recording failed")
+          case .transcriptionFailed:
+            Content(text: "Couldn’t transcribe", phase: "Transcription failed")
+          case .pasteFailed:
+            Content(text: "Couldn’t paste", phase: "Paste failed")
           }
         }
       }
@@ -108,14 +123,7 @@ import ComposableArchitecture
     case submitQueued
     case polishingStarted(skipComponents: [String])
     case skipAffordanceRevealed
-    case noSpeechDetected
-    case noTranscriptToPaste
-    case copiedToClipboard
-    case noReceiver(pasteShortcut: String?)
-    case cancelledSavedToHistory
-    case cleanupUnavailable
-    case speechModelUnavailable(String)
-    case dictionarySaveFailed
+    case notice(State.Presentation.Notice)
     case dismiss
     case cancel
     case noticeDisplayElapsed(Int)
@@ -228,22 +236,8 @@ import ComposableArchitecture
         polishing.isSkipRevealed = true
         state.presentation = .polishing(polishing)
         return .none
-      case .noSpeechDetected:
-        return showNotice(.noSpeechDetected, state: &state)
-      case .noTranscriptToPaste:
-        return showNotice(.noTranscriptToPaste, state: &state)
-      case .copiedToClipboard:
-        return showNotice(.copiedToClipboard, state: &state)
-      case let .noReceiver(pasteShortcut):
-        return showNotice(.noReceiver(pasteShortcut: pasteShortcut), state: &state)
-      case .cancelledSavedToHistory:
-        return showNotice(.cancelledSavedToHistory, state: &state)
-      case .cleanupUnavailable:
-        return showNotice(.cleanupUnavailable, state: &state)
-      case let .speechModelUnavailable(status):
-        return showNotice(.speechModelUnavailable(status), state: &state)
-      case .dictionarySaveFailed:
-        return showNotice(.dictionarySaveFailed, state: &state)
+      case let .notice(notice):
+        return showNotice(notice, state: &state)
       case .dismiss,
            .cancel:
         state.presentation = nil
@@ -296,6 +290,7 @@ import ComposableArchitecture
     let duration: Duration =
       switch notice {
       case .noSpeechDetected,
+           .cancelled,
            .cancelledSavedToHistory:
         .seconds(1)
       default:

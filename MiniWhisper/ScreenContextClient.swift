@@ -293,19 +293,7 @@ private enum ScreenReader {
 
   private static func frame(of element: AXUIElement) -> CGRect? {
     AXUIElementSetMessagingTimeout(element, messagingTimeout)
-    guard case let .success(position) = AXRead.value(element, kAXPositionAttribute),
-          case let .success(size) = AXRead.value(element, kAXSizeAttribute)
-    else {
-      return nil
-    }
-    var origin = CGPoint.zero
-    var extent = CGSize.zero
-    guard AXValueGetValue(position as! AXValue, .cgPoint, &origin),
-          AXValueGetValue(size as! AXValue, .cgSize, &extent)
-    else {
-      return nil
-    }
-    return CGRect(origin: origin, size: extent)
+    return AXRead.frame(element)
   }
 
   /// The window alone, never the rectangle it occupies: the pill is on screen by now, and so may

@@ -45,6 +45,8 @@ struct AppHealth: Equatable {
   /// The cleanup key a factory profile was chosen without. A factory profile promises its
   /// cleanup, so it does not dictate raw in the meantime.
   var missingCleanupKey: CredentialProvider?
+  /// Files that failed to load at launch and have been left as they are, waiting on the user.
+  var unreadableFiles: Set<StoredFile> = []
   /// Keys an endpoint refused on a real request. Said beside the key, not as a degradation: the
   /// dictation still delivered, just uncleaned.
   var rejectedKeys: Set<CredentialSlot> = []
@@ -97,6 +99,12 @@ struct AppHealth: Equatable {
     if missingCleanupKey != nil {
       degradations.append(.cleanupKeyMissing)
     }
+    if unreadableFiles.contains(.settings) {
+      degradations.append(.settingsFileUnreadable)
+    }
+    if unreadableFiles.contains(.history) {
+      degradations.append(.historyFileUnreadable)
+    }
     return degradations
   }
 
@@ -118,6 +126,8 @@ enum Degradation: String, Hashable {
   case modelSetupFailed = "model-setup-failed"
   case engineKeyMissing = "engine-key"
   case cleanupKeyMissing = "cleanup-key"
+  case settingsFileUnreadable = "settings-file"
+  case historyFileUnreadable = "history-file"
 
   // MARK: Internal
 
@@ -161,6 +171,59 @@ enum Degradation: String, Hashable {
       Presentation(
         title: "Add Your API Key…", reason: "Required to clean up dictation",
       )
+    case .settingsFileUnreadable:
+      Presentation(
+        title: "Review settings.json…", reason: "Settings file couldn’t be read",
+      )
+    case .historyFileUnreadable:
+      Presentation(
+        title: "Review history.json…", reason: "History file couldn’t be read",
+      )
+    }
+  }
+
+  /// The file a degradation is about, when the repair is the user's call on it rather than a fix.
+  var unreadableFile: StoredFile? {
+    switch self {
+    case .settingsFileUnreadable:
+      .settings
+    case .historyFileUnreadable:
+      .history
+    default:
+      nil
+    }
+  }
+}
+
+// MARK: - StoredFile
+
+/// A file that holds user data and can fail to load. One that does is left exactly as it is: the
+/// user decides whether to repair it by hand or start over.
+enum StoredFile: String, Hashable {
+  case settings
+  case history
+
+  // MARK: Internal
+
+  var url: URL {
+    switch self {
+    case .settings:
+      Channel.settingsFile
+    case .history:
+      Channel.historyFile
+    }
+  }
+
+  var name: String {
+    url.lastPathComponent
+  }
+
+  var resetConsequence: String {
+    switch self {
+    case .settings:
+      "Every setting returns to its default."
+    case .history:
+      "History starts over, empty."
     }
   }
 }

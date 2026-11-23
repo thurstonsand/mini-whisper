@@ -112,7 +112,7 @@ struct OnboardingWelcomePage: View {
       .padding(.top, 10)
       if let failureMessage = store.failureMessage {
         Label(failureMessage, systemImage: "exclamationmark.triangle.fill")
-          .font(.system(size: 12))
+          .font(.callout)
           .foregroundStyle(.red)
           .padding(.top, 10)
           .accessibilityElement(children: .ignore)
@@ -236,19 +236,19 @@ struct OnboardingStepRail: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
       Image(systemName: "mic.fill")
-        .font(.system(size: 25, weight: .semibold))
+        .font(.largeTitle.weight(.semibold))
         .foregroundStyle(Color.accentColor)
         .accessibilityHidden(true)
       SemanticText(
         Channel.name, identifier: AccessibilityID.onboardingRailBrand, label: "Application name",
       )
-      .font(.system(size: 19, weight: .semibold))
+      .font(.title2.weight(.semibold))
       .padding(.top, 10)
       SemanticText(
         "fast and accurate dictation", identifier: AccessibilityID.onboardingRailTagline,
         label: "Application description",
       )
-      .font(.system(size: 12))
+      .font(.callout)
       .foregroundStyle(.secondary)
       .fixedSize(horizontal: false, vertical: true)
       .padding(.top, 3)
@@ -344,7 +344,7 @@ struct OnboardingStepRail: View {
           )
           .accessibilityHidden(true)
         Text(title)
-          .font(.system(size: 12, weight: isCurrent ? .semibold : .regular))
+          .font(.callout.weight(isCurrent ? .semibold : .regular))
           .foregroundStyle(isCurrent ? Color.primary : Color.secondary)
           .lineLimit(1)
           .fixedSize(horizontal: true, vertical: false)
@@ -456,7 +456,7 @@ struct OnboardingKeysPage: View {
         }
         if let url = provider.keysURL {
           Link("Get a key from \(provider.displayName)", destination: url)
-            .font(.system(size: 12))
+            .font(.callout)
             .focused(focus, equals: .keyHelp(slot))
             .accessibilityIdentifier(AccessibilityID.onboardingKeyLink(provider))
         }
@@ -466,7 +466,7 @@ struct OnboardingKeysPage: View {
         "\(provider.displayName) key saved in your Keychain",
         systemImage: "checkmark.circle.fill",
       )
-      .font(.system(size: 13))
+      .font(.body)
       .foregroundStyle(.green)
       .accessibilityElement(children: .ignore)
       .accessibilityIdentifier(AccessibilityID.onboardingKeyField(provider))
@@ -586,14 +586,14 @@ struct OnboardingPermissionsPage: View {
       permission.isRequired ? .permissionsAction : .screenRecordingAction
     return HStack(spacing: 8) {
       Image(systemName: isGranted ? "checkmark.circle.fill" : symbol)
-        .font(.system(size: 15))
+        .font(.title3)
         .foregroundStyle(isGranted ? Color.green : Color.accentColor)
         .frame(width: 20)
         .accessibilityHidden(true)
       VStack(alignment: .leading, spacing: 2) {
-        Text(title).font(.system(size: 13, weight: .medium))
+        Text(title).font(.body.weight(.medium))
         Text(explanation)
-          .font(.system(size: 11))
+          .font(.subheadline)
           .foregroundStyle(.secondary)
           .fixedSize(horizontal: false, vertical: true)
       }
@@ -618,7 +618,7 @@ struct OnboardingPermissionsPage: View {
             identifier: OnboardingAccessibility.permissionStatusIdentifier(permission),
             label: "\(title) status",
           )
-          .font(.system(size: 12, weight: .medium))
+          .font(.callout.weight(.medium))
           .foregroundStyle(isGranted ? Color.green : Color.secondary)
         }
         if ownsAction {
@@ -731,7 +731,7 @@ struct OnboardingModelPage: View {
           "The first specialization can take about 3–4 minutes. Keep \(Channel.name) open.",
           identifier: AccessibilityID.onboardingModelStatus, label: "Model preparation information",
         )
-        .font(.system(size: 12))
+        .font(.callout)
         .foregroundStyle(.secondary)
       }
     case let .failed(message):
@@ -754,7 +754,7 @@ struct OnboardingModelPage: View {
       Label(
         "\(Self.size(store.health.engine.assets)) · downloaded once", systemImage: "internaldrive",
       )
-      .font(.system(size: 12))
+      .font(.callout)
       .foregroundStyle(.secondary)
       .accessibilityElement(children: .ignore)
       .accessibilityIdentifier(AccessibilityID.onboardingModelStatus)
@@ -762,7 +762,7 @@ struct OnboardingModelPage: View {
       .accessibilityValue("Not installed")
     case .credentialMissing:
       Label("Installed · waiting on a key", systemImage: "key")
-        .font(.system(size: 12))
+        .font(.callout)
         .foregroundStyle(.secondary)
         .accessibilityElement(children: .ignore)
         .accessibilityIdentifier(AccessibilityID.onboardingModelStatus)
@@ -852,7 +852,7 @@ struct OnboardingModelPage: View {
   private func progressRow(_ title: String, value: String) -> some View {
     HStack(spacing: 10) {
       ProgressView().controlSize(.small)
-      Text(title).font(.system(size: 13, weight: .medium))
+      Text(title).font(.body.weight(.medium))
     }
     .accessibilityElement(children: .ignore)
     .accessibilityIdentifier(AccessibilityID.onboardingModelProgress)

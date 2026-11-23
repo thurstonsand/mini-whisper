@@ -443,6 +443,7 @@ import TranscriptCleanup
         #expect(engine == .scribe)
         throw ASREngineError.credentialRejected
       }
+      $0.continuousClock = ImmediateClock()
       $0.date.now = Date(timeIntervalSince1970: 1000)
       $0.uuid = .incrementing
     }

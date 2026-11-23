@@ -99,7 +99,7 @@ import Testing
         $0.pill.presentation = .transcribing
       }
     await store.receive(.transcriptionCompleted(1, .noSpeech))
-    await store.receive(.pill(.noSpeechDetected)) {
+    await store.receive(.pill(.notice(.noSpeechDetected))) {
       $0.pill.noticeGeneration = 1
       $0.pill.presentation = .notice(.noSpeechDetected)
     }
@@ -856,7 +856,7 @@ import Testing
     await store.send(.transcriptionCompleted(1, .noSpeech)) {
       $0.dictationInFlight = false
     }
-    await store.receive(.pill(.noSpeechDetected)) {
+    await store.receive(.pill(.notice(.noSpeechDetected))) {
       $0.pill.noticeGeneration = 1
       $0.pill.presentation = .notice(.noSpeechDetected)
     }
@@ -865,17 +865,27 @@ import Testing
     #expect(await sounds.recorded == ["drop-cancel"])
   }
 
-  @Test func `transcription failure degrades engine and does not claim no speech`() async {
+  @Test func `transcription failure degrades engine and says so instead of no speech`() async {
     var state = AppFeature.State()
     state.$health.withLock { $0.engineReadiness = .ready }
     state.transcriptionGeneration = 2
     state.pill.presentation = .transcribing
-    let store = TestStore(initialState: state) { AppFeature() }
+    let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
+      $0.continuousClock = ImmediateClock()
+    }
 
     await store.send(.transcriptionFailed(2, "model failure")) {
       $0.$health.withLock { $0.engineReadiness = .failed("model failure") }
     }
-    await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
+    await store.receive(.pill(.notice(.transcriptionFailed))) {
+      $0.pill.noticeGeneration = 1
+      $0.pill.presentation = .notice(.transcriptionFailed)
+    }
+    await store.receive(.pill(.noticeDisplayElapsed(1))) { $0.pill.isFadingOut = true }
+    await store.receive(.pill(.noticeFadeElapsed(1))) {
+      $0.pill.presentation = nil
+      $0.pill.isFadingOut = false
+    }
   }
 
   @Test func `repeated engine failure plays the error cue only once`() async {
@@ -1031,7 +1041,7 @@ import Testing
       )
       $0.pendingDictation?.isFinishing = true
     }
-    await store.receive(.pill(.cancelledSavedToHistory)) {
+    await store.receive(.pill(.notice(.cancelledSavedToHistory))) {
       $0.pill.noticeGeneration = 1
       $0.pill.presentation = .notice(.cancelledSavedToHistory)
     }
@@ -1130,6 +1140,7 @@ import Testing
         await deliveries.record()
         return .pasted(.restored)
       }
+      $0.continuousClock = ImmediateClock()
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
 
@@ -1302,7 +1313,7 @@ import Testing
       .hotkeys(for: .pasteLastTranscript)
       .first?
       .compactDisplayName
-    await store.receive(.pill(.noReceiver(pasteShortcut: pasteShortcut))) {
+    await store.receive(.pill(.notice(.noReceiver(pasteShortcut: pasteShortcut)))) {
       $0.pill.noticeGeneration = 1
       $0.pill.presentation = .notice(.noReceiver(pasteShortcut: pasteShortcut))
     }
@@ -1342,12 +1353,12 @@ import Testing
     await store.send(.transcriptionCompleted(1, .transcript("recoverable")))
     await store.receive(
       .pill(
-        .noReceiver(
+        .notice(.noReceiver(
           pasteShortcut: HotkeyBindingsSettings.defaults
             .hotkeys(for: .pasteLastTranscript)
             .first?
             .compactDisplayName,
-        ),
+        )),
       ),
     )
     await store.send(.pill(.dismiss))
@@ -1415,7 +1426,7 @@ import Testing
       ),
     )
     await store.receive(
-      .pill(.noReceiver(pasteShortcut: pasteHotkey.compactDisplayName)),
+      .pill(.notice(.noReceiver(pasteShortcut: pasteHotkey.compactDisplayName))),
     ) {
       $0.pill.noticeGeneration = 1
       $0.pill.presentation = .notice(
@@ -1466,7 +1477,7 @@ import Testing
 
     await store.send(.hotkeyListenerEvent(.action(.pasteLastTranscript)))
     await store.receive(.pasteLastTranscript)
-    await store.receive(.pill(.noTranscriptToPaste)) {
+    await store.receive(.pill(.notice(.noTranscriptToPaste))) {
       $0.pill.noticeGeneration = 1
       $0.pill.presentation = .notice(.noTranscriptToPaste)
     }
@@ -1553,7 +1564,7 @@ import Testing
         deliveryResult("copy me", .copied(.accessibilityPermissionMissing)),
       ),
     )
-    await store.receive(.pill(.copiedToClipboard)) {
+    await store.receive(.pill(.notice(.copiedToClipboard))) {
       $0.pill.noticeGeneration = 1
       $0.pill.presentation = .notice(.copiedToClipboard)
     }
@@ -1781,7 +1792,7 @@ import Testing
       $0.pendingDictation = nil
       $0.dictationInFlight = false
     }
-    await store.receive(.pill(.copiedToClipboard)) {
+    await store.receive(.pill(.notice(.copiedToClipboard))) {
       $0.pill.noticeGeneration = 1
       $0.pill.presentation = .notice(.copiedToClipboard)
     }
@@ -1790,7 +1801,29 @@ import Testing
     #expect(await sounds.recorded == ["drop-error"])
   }
 
-  @Test func `delivery failure dismisses the pill and plays the error cue`() async {
+  @Test(arguments: [
+    (
+      AudioCaptureError.microphonePermission(.denied),
+      PillFeature.State.Presentation.Notice.microphoneAccessOff,
+    ),
+    (.engineStoppedUnexpectedly, .recordingFailed),
+  ])
+  func `a failed recording says why`(
+    error: AudioCaptureError, notice: PillFeature.State.Presentation.Notice,
+  ) async {
+    var state = AppFeature.State()
+    state.dictationInFlight = true
+    let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
+      $0.continuousClock = ImmediateClock()
+    }
+    store.exhaustivity = .off(showSkippedAssertions: false)
+
+    await store.send(.recording(.delegate(.failed(error))))
+    await store.receive(.pill(.notice(notice))) { $0.pill.presentation = .notice(notice) }
+    await store.finish()
+  }
+
+  @Test func `delivery failure says so and plays the error cue`() async {
     let sounds = SoundRecorder()
     var state = AppFeature.State()
     state.awaitingTranscript(generation: 5)
@@ -1803,6 +1836,7 @@ import Testing
       $0.contextCapture.capture = { _ in .unavailable(.noTextRange(role: "AXTextArea")) }
       $0.delivery.deliver = { _, _, _ in throw DeliveryError.pasteboardWriteFailed }
       $0.sounds.play = { cue in await sounds.record(cue) }
+      $0.continuousClock = ImmediateClock()
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
     let message = DeliveryError.pasteboardWriteFailed.localizedDescription
@@ -1823,7 +1857,9 @@ import Testing
         5, deliveryFailure("undeliverable", message: message),
       ),
     )
-    await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
+    await store.receive(.pill(.notice(.pasteFailed))) {
+      $0.pill.presentation = .notice(.pasteFailed)
+    }
     await store.finish()
     #expect(await sounds.recorded == ["drop-error"])
   }

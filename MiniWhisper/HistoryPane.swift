@@ -38,7 +38,13 @@ struct HistoryPane: View {
     .focusEffectDisabled()
     .keyboardCursorScroll(store: store, cursor: visibleCursor)
     .overlay {
-      if store.history.log.entries.isEmpty {
+      if store.history.log.entries.isEmpty, store.history.retention.transcripts == .never {
+        ContentUnavailableView {
+          Label("History Is Off", systemImage: "clock.badge.xmark")
+        } actions: {
+          Button("Keep Dictations…") { store.send(.history(.storagePresentationChanged(true))) }
+        }
+      } else if store.history.log.entries.isEmpty {
         ContentUnavailableView(
           "No History", systemImage: "clock.arrow.circlepath",
           description: Text("Your dictations will appear here."),

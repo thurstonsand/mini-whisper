@@ -197,7 +197,7 @@ import TranscriptCleanup
         ),
       ),
     )
-    await store.receive(.pill(.cleanupUnavailable)) {
+    await store.receive(.pill(.notice(.cleanupUnavailable))) {
       $0.pill.noticeGeneration = 1
       $0.pill.presentation = .notice(.cleanupUnavailable)
     }

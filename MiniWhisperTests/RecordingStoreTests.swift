@@ -260,7 +260,22 @@ import Testing
       $0.$health.withLock { $0.micStatus = .denied }
       $0.captureError = .microphonePermission(.denied)
     }
-    await store.receive(.delegate(.failed))
+    await store.receive(.delegate(.failed(.microphonePermission(.denied))))
+    await store.receive(.captureCancelled(1)) { $0.phase = .idle }
+  }
+
+  @Test func `a start discarded before it fails reports nothing more`() async {
+    var state = recordingState()
+    state.captureGeneration = 1
+    state.phase = .starting(nil)
+    let store = TestStore(initialState: state) { RecordingFeature() }
+
+    await store.send(.cancelRecording) { $0.phase = .starting(.cancel) }
+    await store.receive(.delegate(.discarded))
+    await store.send(.captureFailed(1, .engineStartFailed("busy"))) {
+      $0.phase = .cancelling
+      $0.captureError = .engineStartFailed("busy")
+    }
     await store.receive(.captureCancelled(1)) { $0.phase = .idle }
   }
 
@@ -282,7 +297,7 @@ import Testing
       $0.$health.withLock { $0.micStatus = .denied }
       $0.captureError = .microphonePermission(.denied)
     }
-    await store.receive(.delegate(.failed))
+    await store.receive(.delegate(.failed(.microphonePermission(.denied))))
     await store.receive(.captureCancelled(1)) {
       $0.captureSessionID = nil
       $0.phase = .idle
@@ -328,7 +343,7 @@ import Testing
       $0.phase = .cancelling
       $0.captureError = .engineConfigurationChanged
     }
-    await store.receive(.delegate(.failed))
+    await store.receive(.delegate(.failed(.engineConfigurationChanged)))
     await store.receive(.captureCancelled(1)) {
       $0.captureSessionID = nil
       $0.phase = .idle

@@ -244,7 +244,7 @@ extension AppFeature {
       .cancel(id: CancelID.cleanup(dictation.generation)),
       .cancel(id: CancelID.delivery(dictation.generation)),
       .send(.hotkeyListenerEvent(.gestureInput(.cleanupEnded))),
-      .send(.pill(.cancelledSavedToHistory)),
+      .send(.pill(.notice(state.keepsHistory ? .cancelledSavedToHistory : .cancelled))),
       playSound(state.settings.soundTheme.resourceName(for: .cancel)),
       finishDictation(&state, delivery: nil),
     )
@@ -271,7 +271,8 @@ extension AppFeature {
     }
     gestureLogger.notice("Dictation refused: \(status, privacy: .public)")
     return .merge(
-      receiveGestureInput(.refused, state: &state), .send(.pill(.speechModelUnavailable(status))),
+      receiveGestureInput(.refused, state: &state),
+      .send(.pill(.notice(.speechModelUnavailable(status)))),
       playSound(state.settings.soundTheme.resourceName(for: .error)),
     )
   }

@@ -41,6 +41,7 @@ enum AccessibilityID {
   static let settingsSidebarDictionary = "miniwhisper.settings.sidebar.dictionary"
   static let settingsSidebarProfiles = "miniwhisper.settings.sidebar.profiles"
   static let settingsSidebarModels = "miniwhisper.settings.sidebar.models"
+  static let settingsSidebarAbout = "miniwhisper.settings.sidebar.about"
   static let settingsShortcutRow = "miniwhisper.settings.shortcut.activate"
   static let settingsShortcutRowState = "miniwhisper.settings.shortcut.activate.state"
   static let settingsPasteLastShortcutRow = "miniwhisper.settings.shortcut.paste-last"
@@ -102,7 +103,6 @@ enum AccessibilityID {
   static let dictionaryMisspelling = "miniwhisper.dictionary.misspelling"
   static let dictionarySave = "miniwhisper.dictionary.save"
 
-  static let aboutWindow = "miniwhisper.about.window"
   static let aboutContent = "miniwhisper.about.content"
   static let aboutIcon = "miniwhisper.about.icon"
   static let aboutAppName = "miniwhisper.about.app-name"
@@ -113,7 +113,8 @@ enum AccessibilityID {
   static let aboutFluidAudioLink = "miniwhisper.about.fluid-audio-link"
   static let aboutS1MiniAttribution = "miniwhisper.about.s1-mini-attribution"
   static let aboutS1MiniLink = "miniwhisper.about.s1-mini-link"
-  static let aboutClose = "miniwhisper.about.close"
+  static let aboutLlamaAttribution = "miniwhisper.about.llama-attribution"
+  static let aboutLlamaLink = "miniwhisper.about.llama-link"
 
   static let onboardingWindow = "miniwhisper.onboarding.window"
   static let onboardingWelcome = "miniwhisper.onboarding.welcome"
@@ -286,6 +287,14 @@ enum AccessibilityID {
 
   static func settingsRepairAction(_ degradation: Degradation) -> String {
     "\(settingsRepairRow(degradation)).action"
+  }
+
+  static func settingsRepairReveal(_ degradation: Degradation) -> String {
+    "\(settingsRepairRow(degradation)).reveal"
+  }
+
+  static func settingsRepairReset(_ degradation: Degradation) -> String {
+    "\(settingsRepairRow(degradation)).reset"
   }
 
   static func settingsShortcutBinding(_ index: Int) -> String {

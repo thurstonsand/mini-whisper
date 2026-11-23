@@ -101,7 +101,7 @@ import TranscriptCleanup
     await store.send(.transcriptionCompleted(1, .noSpeech)) {
       $0.pendingDictation = nil
     }
-    await store.receive(.pill(.noSpeechDetected)) {
+    await store.receive(.pill(.notice(.noSpeechDetected))) {
       $0.pill.noticeGeneration = 1
       $0.pill.presentation = .notice(.noSpeechDetected)
     }
@@ -143,6 +143,7 @@ import TranscriptCleanup
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
+      $0.continuousClock = ImmediateClock()
       $0.date.now = Date(timeIntervalSince1970: 1000)
       $0.historyClient.writeAudio = { _, savedID in
         #expect(savedID == id)
@@ -156,7 +157,9 @@ import TranscriptCleanup
       $0.$health.withLock { $0.engineReadiness = .failed("engine failed") }
       $0.pendingDictation?.isFinishing = true
     }
-    await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
+    await store.receive(.pill(.notice(.transcriptionFailed))) {
+      $0.pill.presentation = .notice(.transcriptionFailed)
+    }
     let entry = try HistoryEntry(
       id: id, createdAt: #require(pending?.createdAt), targetApp: nil, original: nil,
       delivery: nil,
@@ -165,6 +168,45 @@ import TranscriptCleanup
     await store.receive(.historyEntryPrepared(3, entry))
     await store.finish()
     #expect(store.state.history.entries == [entry])
+  }
+
+  @Test func `with history off a delivered dictation writes nothing`() async {
+    var state = historyState()
+    state.$settings.withLock {
+      $0.retention.transcripts = .never
+      $0.retention.audio = .forever
+    }
+    state.transcriptionGeneration = 2
+    state.pendingDictation = pendingDictation(generation: 2)
+    state.pendingDictation?.original = History.Transcription(
+      text: "keep me nowhere", engine: "test-engine@revision",
+      transcribedAt: Date(timeIntervalSince1970: 200),
+    )
+    let store = TestStore(initialState: state) {
+      AppFeature()
+    } withDependencies: {
+      $0.continuousClock = ImmediateClock()
+      $0.date.now = Date(timeIntervalSince1970: 1000)
+      $0.uuid = .incrementing
+      $0.historyClient.writeAudio = { _, _ in
+        Issue.record("History off still wrote audio")
+        return AudioMetadata(durationSeconds: 1, byteCount: 1)
+      }
+    }
+    store.exhaustivity = .off(showSkippedAssertions: false)
+
+    await store.send(
+      .deliveryCompleted(
+        2,
+        AppFeature.DeliveryResult(
+          text: "keep me nowhere", targetApp: nil, outcome: .pasted(.restored),
+        ),
+      ),
+    )
+    await store.finish()
+
+    #expect(store.state.history.entries.isEmpty)
+    #expect(store.state.pendingDictation == nil)
   }
 
   @Test func `hard delivery failure retains transcript with nil delivery`() async throws {
@@ -181,6 +223,7 @@ import TranscriptCleanup
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
+      $0.continuousClock = ImmediateClock()
       $0.date.now = Date(timeIntervalSince1970: 1000)
       $0.uuid = .constant(id)
     }
@@ -216,6 +259,7 @@ import TranscriptCleanup
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
+      $0.continuousClock = ImmediateClock()
       $0.date.now = Date(timeIntervalSince1970: 1000)
       $0.historyClient.writeAudio = { _, _ in throw HistoryPipelineTestError.audioWriteFailed }
       $0.uuid = .constant(UUID())
@@ -241,6 +285,7 @@ import TranscriptCleanup
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
+      $0.continuousClock = ImmediateClock()
       $0.date.now = Date(timeIntervalSince1970: 1000)
       $0.historyClient.writeAudio = { _, savedID in
         #expect(savedID == id)
@@ -448,6 +493,7 @@ import TranscriptCleanup
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
+      $0.continuousClock = ImmediateClock()
       $0.date.now = Date(timeIntervalSince1970: 1000)
       $0.historyClient.deleteAudio = { _ in }
       $0.historyClient.reconcile = { $0 }
@@ -457,7 +503,7 @@ import TranscriptCleanup
     await store.send(.historyMaintenanceRequested) {
       $0.historyMaintenance = .waiting
     }
-    await store.send(.recording(.delegate(.failed))) {
+    await store.send(.recording(.delegate(.failed(.inputUnavailable)))) {
       $0.dictationInFlight = false
       $0.historyMaintenance = .running
     }

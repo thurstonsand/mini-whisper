@@ -8,6 +8,8 @@ import SwiftUI
 // MARK: - SettingsPane
 
 struct SettingsPane: View {
+  // MARK: Internal
+
   let store: StoreOf<SettingsWindowFeature>
 
   var body: some View {
@@ -59,6 +61,28 @@ struct SettingsPane: View {
     )
     .task { store.send(.settingsPane(.task)) }
     .onDisappear { store.send(.settingsPane(.paneClosed)) }
+    .alert(
+      "Reset \(store.settingsPane.pendingReset?.name ?? "")?", isPresented: resetPending,
+      presenting: store.settingsPane.pendingReset,
+    ) { _ in
+      Button("Cancel", role: .cancel) { store.send(.settingsPane(.resetFileCancelled)) }
+      Button("Reset", role: .destructive) { store.send(.settingsPane(.resetFileConfirmed)) }
+    } message: { file in
+      Text("\(file.resetConsequence) The unreadable file is replaced.")
+    }
+  }
+
+  // MARK: Private
+
+  private var resetPending: Binding<Bool> {
+    Binding(
+      get: { store.settingsPane.pendingReset != nil },
+      set: {
+        if !$0 {
+          store.send(.settingsPane(.resetFileCancelled))
+        }
+      },
+    )
   }
 }
 
@@ -88,12 +112,23 @@ private struct RepairRow: View {
 
   var body: some View {
     LabeledContent {
-      Button(presentation.title) {
-        store.send(.settingsPane(.repairTapped(degradation)))
+      if let file = degradation.unreadableFile {
+        HStack {
+          Button("Show in Finder") { store.send(.settingsPane(.revealFileTapped(file))) }
+            .focusRing(store.state.showsSettingsRing(row, target: .revealFile(file)))
+            .accessibilityIdentifier(AccessibilityID.settingsRepairReveal(degradation))
+          Button("Reset to Defaults…") { store.send(.settingsPane(.resetFileTapped(file))) }
+            .focusRing(store.state.showsSettingsRing(row, target: .resetFile(file)))
+            .accessibilityIdentifier(AccessibilityID.settingsRepairReset(degradation))
+        }
+      } else {
+        Button(presentation.title) {
+          store.send(.settingsPane(.repairTapped(degradation)))
+        }
+        .focusRing(store.state.showsSettingsRing(row, target: .repair(degradation)))
+        .accessibilityIdentifier(AccessibilityID.settingsRepairAction(degradation))
+        .accessibilityLabel(presentation.title)
       }
-      .focusRing(store.state.showsSettingsRing(row, target: .repair(degradation)))
-      .accessibilityIdentifier(AccessibilityID.settingsRepairAction(degradation))
-      .accessibilityLabel(presentation.title)
     } label: {
       Label {
         Text(presentation.reason)

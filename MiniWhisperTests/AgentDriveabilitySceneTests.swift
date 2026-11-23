@@ -29,7 +29,7 @@ struct AgentDriveabilitySceneTests {
       AgentDriveabilityScene.settingsDegraded.presentedWindow
         == .settings(.settings, initialFocus: nil),
     )
-    #expect(AgentDriveabilityScene.about.presentedWindow == .about)
+    #expect(AgentDriveabilityScene.about.presentedWindow == .settings(.about, initialFocus: nil))
     #expect(AgentDriveabilityScene.menuHealthy.presentedWindow == nil)
   }
 

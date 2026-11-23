@@ -150,7 +150,7 @@ struct OnboardingView: View {
          store.visibleStep != .model || failureMessage != store.modelSetupFailure
       {
         Label(failureMessage, systemImage: "exclamationmark.triangle.fill")
-          .font(.system(size: 12))
+          .font(.callout)
           .foregroundStyle(.red)
           .fixedSize(horizontal: false, vertical: true)
           .accessibilityElement(children: .ignore)
@@ -199,10 +199,10 @@ struct OnboardingView: View {
           .accessibilityIdentifier(AccessibilityID.onboardingPermissionsContinue)
       } else {
         SemanticText(
-          "Continue after granting the required permissions",
+          "Grant the required permissions to continue",
           identifier: AccessibilityID.onboardingPermissionsGuidance, label: "Permissions guidance",
         )
-        .font(.system(size: 12))
+        .font(.callout)
         .foregroundStyle(.secondary)
       }
     case .shortcut:
@@ -235,7 +235,7 @@ struct OnboardingView: View {
           "Complete the earlier steps to try a dictation",
           identifier: AccessibilityID.onboardingTryItGuidance, label: "Try it guidance",
         )
-        .font(.system(size: 12))
+        .font(.callout)
         .foregroundStyle(.secondary)
       } else if store.missingKeys.isEmpty {
         Button("Start Dictating") { store.send(.finish) }

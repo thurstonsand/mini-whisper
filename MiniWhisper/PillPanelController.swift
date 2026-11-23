@@ -49,12 +49,18 @@ private let performanceLogger = Logger(
 
   private static let panelSize = NSSize(width: 420, height: 76)
   private static let bottomMargin: CGFloat = 14
+  /// The longest exit PillView animates, with a frame to spare.
+  private static let exitDuration = Duration.milliseconds(200)
 
   private let store: StoreOf<PillFeature>
   private let panel: NonactivatingPillPanel
   private var screenParametersObserver: any NSObjectProtocol?
   private var lastVisibility: Bool?
   private var panelWidth = panelSize.width
+  /// Chosen when the pill appears and kept until it is gone: the dictation does not move, so the
+  /// pill does not follow the pointer or a later change of focus.
+  private var screen: NSScreen?
+  private var pendingHide: Task<Void, Never>?
 
   private func resizePanel(width: CGFloat) {
     guard width > 20, width != panelWidth else {
@@ -83,20 +89,42 @@ private let performanceLogger = Logger(
     guard isVisible != lastVisibility else {
       return
     }
+    let wasVisible = lastVisibility == true
     lastVisibility = isVisible
 
     guard isVisible else {
-      panel.orderOut(nil)
+      guard wasVisible else {
+        return
+      }
+      // The view plays its own exit transition; ordering the panel out at once would cut it.
+      pendingHide = Task { [weak self] in
+        try? await Task.sleep(for: Self.exitDuration)
+        guard !Task.isCancelled, let self else {
+          return
+        }
+        panel.orderOut(nil)
+        screen = nil
+        pendingHide = nil
+      }
       return
     }
 
+    if let pendingHide {
+      pendingHide.cancel()
+      self.pendingHide = nil
+    } else {
+      screen = PillScreen.atPress()
+    }
     positionPanel()
     panel.orderFrontRegardless()
     performanceLogger.notice("benchmark pill-visible")
   }
 
   private func positionPanel() {
-    guard let screen = NSScreen.screens.first else {
+    if let chosen = screen, !NSScreen.screens.contains(chosen) {
+      screen = PillScreen.atPress()
+    }
+    guard let screen = screen ?? NSScreen.screens.first else {
       pillPanelLogger.error("Cannot position the pill because no screen is available")
       panel.orderOut(nil)
       return

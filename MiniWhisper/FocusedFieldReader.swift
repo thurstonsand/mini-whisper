@@ -568,6 +568,24 @@ enum AXRead {
     return .success(bounds)
   }
 
+  /// An element's frame in Accessibility's space: top-left origin, on the primary display.
+  static func frame(_ element: AXUIElement) -> CGRect? {
+    guard case let .success(position) = value(element, kAXPositionAttribute),
+          case let .success(size) = value(element, kAXSizeAttribute),
+          CFGetTypeID(position) == AXValueGetTypeID(), CFGetTypeID(size) == AXValueGetTypeID()
+    else {
+      return nil
+    }
+    var origin = CGPoint.zero
+    var extent = CGSize.zero
+    guard AXValueGetValue(position as! AXValue, .cgPoint, &origin),
+          AXValueGetValue(size as! AXValue, .cgSize, &extent)
+    else {
+      return nil
+    }
+    return CGRect(origin: origin, size: extent)
+  }
+
   static func children(_ element: AXUIElement) -> Result<[AXUIElement], Failure> {
     value(element, kAXChildrenAttribute).flatMap { value in
       guard let children = value as? [AnyObject] else {

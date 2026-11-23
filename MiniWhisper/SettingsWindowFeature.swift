@@ -13,6 +13,7 @@ enum SettingsDestination: String, CaseIterable, Identifiable, Equatable {
   case dictionary = "Dictionary"
   case profiles = "Profiles"
   case models = "Models"
+  case about = "About"
 
   // MARK: Internal
 
@@ -32,6 +33,8 @@ enum SettingsDestination: String, CaseIterable, Identifiable, Equatable {
       "person.crop.rectangle.stack"
     case .models:
       "internaldrive"
+    case .about:
+      "info.circle"
     }
   }
 
@@ -47,6 +50,8 @@ enum SettingsDestination: String, CaseIterable, Identifiable, Equatable {
       AccessibilityID.settingsSidebarProfiles
     case .models:
       AccessibilityID.settingsSidebarModels
+    case .about:
+      AccessibilityID.settingsSidebarAbout
     }
   }
 }

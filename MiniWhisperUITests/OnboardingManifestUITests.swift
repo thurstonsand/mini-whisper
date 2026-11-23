@@ -355,7 +355,7 @@ private enum PermissionManifest: CaseIterable {
   }
 
   var guidance: String {
-    "Continue after granting the required permissions"
+    "Grant the required permissions to continue"
   }
 
   var railValues: [String] {

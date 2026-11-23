@@ -34,6 +34,10 @@ final class SettingsUITests: MiniWhisperUITestCase, SurfaceTagged {
           .staticText, "miniwhisper.settings.sidebar.models", "Models section",
           "Models; Not selected",
         ),
+        contract(
+          .staticText, "miniwhisper.settings.sidebar.about", "About section",
+          "About; Not selected",
+        ),
         contract(.group, "miniwhisper.settings.shortcut.activate", "Activate shortcut"),
         contract(
           .staticText, "miniwhisper.settings.shortcut.activate.state",

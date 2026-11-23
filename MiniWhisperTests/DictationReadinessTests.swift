@@ -25,7 +25,7 @@ import Testing
     }
 
     await store.send(.hotkeyListenerEvent(.gesture(.startRecording)))
-    await store.receive(.pill(.speechModelUnavailable("Speech model not installed"))) {
+    await store.receive(.pill(.notice(.speechModelUnavailable("Speech model not installed")))) {
       $0.pill.presentation = .notice(.speechModelUnavailable("Speech model not installed"))
       $0.pill.noticeGeneration = 1
     }
@@ -56,7 +56,7 @@ import Testing
     store.exhaustivity = .off(showSkippedAssertions: false)
 
     await store.send(.hotkeyListenerEvent(.gesture(.startRecording)))
-    await store.receive(.pill(.speechModelUnavailable("Needs a Google key")))
+    await store.receive(.pill(.notice(.speechModelUnavailable("Needs a Google key"))))
     #expect(!store.state.dictationInFlight)
   }
 
@@ -75,7 +75,7 @@ import Testing
 
     await store.send(.hotkeyListenerEvent(.gesture(.startRecording)))
     await store.receive(
-      .pill(.speechModelUnavailable("Downloading Parakeet v2 · 42%")),
+      .pill(.notice(.speechModelUnavailable("Downloading Parakeet v2 · 42%"))),
     )
   }
 }

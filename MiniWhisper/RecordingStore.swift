@@ -67,7 +67,7 @@ private let performanceLogger = Logger(
       case levelChanged(Float)
       case completed(CanonicalRecording)
       case discarded
-      case failed
+      case failed(AudioCaptureError)
     }
   }
 
@@ -203,6 +203,8 @@ private let performanceLogger = Logger(
           return .none
         }
 
+        // A start already discarded has told its caller everything it needs to know.
+        let wasDiscarded = state.phase == .starting(.cancel)
         state.phase = .cancelling
         state.latestLevel = 0
         state.captureError = error
@@ -217,7 +219,7 @@ private let performanceLogger = Logger(
           } else {
             .send(.captureCancelled(generation))
           }
-        return .concatenate(.send(.delegate(.failed)), cleanup)
+        return .concatenate(wasDiscarded ? .none : .send(.delegate(.failed(error))), cleanup)
       case let .captureEventsFinished(generation):
         guard generation == state.captureGeneration else {
           return .none

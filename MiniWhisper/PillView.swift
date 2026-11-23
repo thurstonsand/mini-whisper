@@ -12,7 +12,9 @@ struct PillView: View {
 
   var body: some View {
     ZStack {
-      if let presentation = store.presentation {
+      // A dismissed pill stays laid out while it fades: removing it would collapse the panel to
+      // its padding at once, and the exit would play inside a sliver of window.
+      if let presentation = store.presentation ?? exiting?.presentation {
         ZStack {
           content(for: presentation)
           semanticState(for: presentation)
@@ -43,9 +45,16 @@ struct PillView: View {
           }
         }
         .opacity(
-          store.isFadingOut ? 0 : 1,
+          store.isFadingOut || store.presentation == nil ? 0 : 1,
         )
+        .scaleEffect(store.presentation == nil ? 0.96 : 1)
+        .accessibilityHidden(store.presentation == nil)
         .transition(.opacity.combined(with: .scale(scale: 0.96)))
+      }
+    }
+    .onChange(of: Shown(store), initial: true) { _, shown in
+      if shown.presentation != nil {
+        exiting = shown
       }
     }
     .fixedSize(horizontal: true, vertical: false)
@@ -54,8 +63,8 @@ struct PillView: View {
     .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { widthChanged($0) }
     .animation(.easeOut(duration: 0.16), value: presentationKind)
     .animation(.easeIn(duration: 0.18), value: store.isFadingOut)
-    .animation(.easeOut(duration: 0.16), value: store.destination)
-    .animation(.easeOut(duration: 0.16), value: store.submits)
+    .animation(.easeOut(duration: 0.16), value: shown.destination)
+    .animation(.easeOut(duration: 0.16), value: shown.submits)
     .task(id: store.bounceCount) {
       guard store.bounceCount > 0 else {
         return
@@ -79,8 +88,15 @@ struct PillView: View {
   }
 
   @State private var bounceScale = 1.0
+  @State private var exiting: Shown?
+
   @State private var shakeTrigger = 0
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+  /// What a dismissed pill keeps on screen while it fades: the store clears all of it at once.
+  private var shown: Shown {
+    store.presentation == nil ? exiting ?? Shown(store) : Shown(store)
+  }
 
   private var shakeAmplitude: CGFloat {
     copiedOnly && !reduceMotion ? 1 : 0
@@ -112,7 +128,7 @@ struct PillView: View {
   }
 
   @ViewBuilder private var submits: some View {
-    if store.submits {
+    if shown.submits {
       Image(systemName: "return")
         .font(.callout)
         .foregroundStyle(.secondary)
@@ -123,7 +139,7 @@ struct PillView: View {
   }
 
   @ViewBuilder private var deliveryStatus: some View {
-    if let destination = store.destination {
+    if let destination = shown.destination {
       HStack(spacing: 6) {
         Image(systemName: "arrow.right")
           .accessibilityHidden(true)
@@ -174,7 +190,7 @@ struct PillView: View {
           )
           .font(.callout.weight(.medium))
           .foregroundStyle(Color(nsColor: .labelColor))
-          if store.destination == nil {
+          if shown.destination == nil {
             submits
           }
         }
@@ -220,16 +236,16 @@ struct PillView: View {
       )
       .fontWeight(.medium)
       .foregroundStyle(Color(nsColor: .labelColor))
-      if store.destination == nil {
+      if shown.destination == nil {
         submits
       }
       if polishing.isSkipRevealed {
         // Once the dictation submits, Return is the key that skips its cleanup, and submits it.
         let skipComponents =
-          store.submits
+          shown.submits
             ? HotkeyDisplayName.components(keyCodes: [36], modifiers: [])
             : polishing.skipComponents
-        let skipAction = store.submits ? "Submit now" : "Paste now"
+        let skipAction = shown.submits ? "Submit now" : "Paste now"
         Divider().frame(height: 16)
         SemanticText(
           skipAction,
@@ -254,7 +270,8 @@ struct PillView: View {
     case .copiedToClipboard,
          .noReceiver:
       Image(systemName: "clipboard").foregroundStyle(.secondary)
-    case .cancelledSavedToHistory:
+    case .cancelled,
+         .cancelledSavedToHistory:
       Image(systemName: "xmark").foregroundStyle(.secondary)
     case .noSpeechDetected:
       Image(systemName: "waveform.slash").foregroundStyle(.secondary)
@@ -262,8 +279,13 @@ struct PillView: View {
       Image(systemName: "clipboard").foregroundStyle(.secondary)
     case .speechModelUnavailable:
       Image(systemName: "info.circle").foregroundStyle(.secondary)
+    case .microphoneAccessOff,
+         .recordingFailed:
+      Image(systemName: "mic.slash").foregroundStyle(.secondary)
     case .cleanupUnavailable,
-         .dictionarySaveFailed:
+         .dictionarySaveFailed,
+         .transcriptionFailed,
+         .pasteFailed:
       Image(systemName: "exclamationmark.triangle").foregroundStyle(.secondary)
     }
   }
@@ -330,4 +352,22 @@ private struct PillPhaseDot: View {
   // MARK: Private
 
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
+}
+
+// MARK: - Shown
+
+private struct Shown: Equatable {
+  // MARK: Lifecycle
+
+  init(_ store: StoreOf<PillFeature>) {
+    presentation = store.presentation
+    destination = store.destination
+    submits = store.submits
+  }
+
+  // MARK: Internal
+
+  let presentation: PillFeature.State.Presentation?
+  let destination: String?
+  let submits: Bool
 }

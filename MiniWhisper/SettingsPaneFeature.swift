@@ -38,6 +38,8 @@ private let launchAtLoginLogger = Logger(
     case soundPreview
     case soundPicker
     case repair(Degradation)
+    case revealFile(StoredFile)
+    case resetFile(StoredFile)
     case launchAtLogin
   }
 
@@ -77,6 +79,8 @@ private let launchAtLoginLogger = Logger(
     /// and a view cannot be told to do something twice by a value that stays the same. The count
     /// is the message; nothing reads it but the button.
     var microphoneActivation = 0
+    /// The file whose reset is waiting on the user's confirmation.
+    var pendingReset: StoredFile?
     /// Same message-by-count trick as `microphoneActivation`.
     var soundActivation = 0
     var lastPlayedSound: String?
@@ -133,7 +137,8 @@ private let launchAtLoginLogger = Logger(
     var targets: [Target] {
       switch cursorRow {
       case let .repair(degradation):
-        [.repair(degradation)]
+        degradation.unreadableFile.map { [.revealFile($0), .resetFile($0)] }
+          ?? [.repair(degradation)]
       case let .shortcut(command):
         bindingTargets(for: bindingEditor(command))
       case .microphone:
@@ -185,6 +190,10 @@ private let launchAtLoginLogger = Logger(
     case launchAtLoginUpdated(Bool)
     case launchAtLoginFailed(String)
     case repairTapped(Degradation)
+    case revealFileTapped(StoredFile)
+    case resetFileTapped(StoredFile)
+    case resetFileConfirmed
+    case resetFileCancelled
     case rowMoved(CursorMovement)
     case leftPressed
     case rightPressed
@@ -195,6 +204,8 @@ private let launchAtLoginLogger = Logger(
   enum Delegate: Equatable {
     case microphoneChanged(MicrophoneSelection)
     case repair(Degradation)
+    case revealFile(StoredFile)
+    case resetFile(StoredFile)
   }
 
   @Dependency(\.audioInputDevices) var audioInputDevices
@@ -277,6 +288,20 @@ private let launchAtLoginLogger = Logger(
         return .none
       case let .repairTapped(degradation):
         return .send(.delegate(.repair(degradation)))
+      case let .revealFileTapped(file):
+        return .send(.delegate(.revealFile(file)))
+      case let .resetFileTapped(file):
+        state.pendingReset = file
+        return .none
+      case .resetFileConfirmed:
+        guard let file = state.pendingReset else {
+          return .none
+        }
+        state.pendingReset = nil
+        return .send(.delegate(.resetFile(file)))
+      case .resetFileCancelled:
+        state.pendingReset = nil
+        return .none
       case let .rowMoved(movement):
         let rows = state.rows
         guard let current = rows.firstIndex(of: state.cursorRow) else {
@@ -298,6 +323,10 @@ private let launchAtLoginLogger = Logger(
         switch state.cursorTarget {
         case let .repair(degradation):
           return .send(.repairTapped(degradation))
+        case let .revealFile(file):
+          return .send(.revealFileTapped(file))
+        case let .resetFile(file):
+          return .send(.resetFileTapped(file))
         case let .binding(command, index):
           return send(.bindingTapped(index), to: command)
         case let .recording(command),

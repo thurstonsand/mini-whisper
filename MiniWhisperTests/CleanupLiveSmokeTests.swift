@@ -88,7 +88,7 @@ import TranscriptCleanup
       },
       timeout: .seconds(10),
     )
-    await store.receive(.pill(.cleanupUnavailable), timeout: .seconds(5))
+    await store.receive(.pill(.notice(.cleanupUnavailable)), timeout: .seconds(5))
     await store.skipReceivedActions()
     await store.finish()
 
@@ -211,7 +211,7 @@ import TranscriptCleanup
     )
 
     await store.send(.hotkeyListenerEvent(.gestureInput(.escape)))
-    await store.receive(.pill(.cancelledSavedToHistory), timeout: .seconds(5))
+    await store.receive(.pill(.notice(.cancelledSavedToHistory)), timeout: .seconds(5))
     await store.settleSkippedTail()
 
     let entry = try #require(store.state.history.entries.first)

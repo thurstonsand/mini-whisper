@@ -219,10 +219,10 @@ struct OnboardingTryItPage: View {
 
   private func unavailable(_ message: String, symbol: String) -> some View {
     HStack(alignment: .top, spacing: 12) {
-      Image(systemName: symbol).font(.system(size: 17)).foregroundStyle(Color.accentColor).frame(
+      Image(systemName: symbol).font(.title2).foregroundStyle(Color.accentColor).frame(
         width: 22,
       )
-      Text(message).font(.system(size: 12)).foregroundStyle(.secondary).fixedSize(
+      Text(message).font(.callout).foregroundStyle(.secondary).fixedSize(
         horizontal: false, vertical: true,
       )
     }

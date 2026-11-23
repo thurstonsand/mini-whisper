@@ -69,6 +69,8 @@ import History
           return
         }
         store.send(.engineReadinessUpdated(.parakeet, .downloading(fraction)))
+      case "pill-dismiss":
+        store.send(.pill(.dismiss))
       case "model-ready":
         store.send(.engineReadinessUpdated(.parakeet, .ready))
       case "dictionary-save-failed":

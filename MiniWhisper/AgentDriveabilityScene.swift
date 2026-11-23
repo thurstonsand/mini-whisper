@@ -13,7 +13,6 @@ import TranscriptCleanup
 
 enum PresentedWindow: Equatable {
   case settings(SettingsDestination, initialFocus: SettingsWindowFocus?)
-  case about
 }
 
 #if DEBUG
@@ -44,9 +43,11 @@ enum PresentedWindow: Equatable {
     case settingsSoundsNoAudio = "settings-sounds-no-audio"
     case settingsDegraded = "settings-degraded"
     case settingsKeyMissing = "settings-key-missing"
+    case settingsFilesUnreadable = "settings-files-unreadable"
     case settingsHistory = "settings-history"
     case settingsHistoryTips = "settings-history-tips"
     case settingsHistoryEmpty = "settings-history-empty"
+    case settingsHistoryOff = "settings-history-off"
     case settingsDictionary = "settings-dictionary"
     case settingsDictionaryEmpty = "settings-dictionary-empty"
     case settingsDictionaryUnreadable = "settings-dictionary-unreadable"
@@ -78,6 +79,10 @@ enum PresentedWindow: Equatable {
     case pillCleanupUnavailable = "pill-cleanup-unavailable"
     case pillModelUnavailable = "pill-model-unavailable"
     case pillDictionarySaveFailed = "pill-dictionary-save-failed"
+    case pillMicrophoneAccessOff = "pill-microphone-access-off"
+    case pillRecordingFailed = "pill-recording-failed"
+    case pillTranscriptionFailed = "pill-transcription-failed"
+    case pillPasteFailed = "pill-paste-failed"
     case pillRecordingSelectedInput = "pill-recording-selected-input"
     case pillPolishingLongShortcut = "pill-polishing-long-shortcut"
 
@@ -102,11 +107,13 @@ enum PresentedWindow: Equatable {
       case .settingsMicrophoneUnavailable,
            .settingsSoundsNoAudio,
            .settingsDegraded,
-           .settingsKeyMissing:
+           .settingsKeyMissing,
+           .settingsFilesUnreadable:
         .settings(.settings, initialFocus: nil)
       case .settingsHistory,
            .settingsHistoryTips,
-           .settingsHistoryEmpty:
+           .settingsHistoryEmpty,
+           .settingsHistoryOff:
         .settings(.history, initialFocus: nil)
       case .settingsDictionary,
            .settingsDictionaryEmpty,
@@ -129,7 +136,7 @@ enum PresentedWindow: Equatable {
       case .settingsProfilesKeyboard:
         .settings(.profiles, initialFocus: .detail)
       case .about:
-        .about
+        .settings(.about, initialFocus: nil)
       default:
         nil
       }
@@ -314,6 +321,9 @@ enum PresentedWindow: Equatable {
       case .settingsKeyMissing:
         state.settingsWindow.settingsPane.launchAtLoginRegistered = true
         state.$health.withLock { $0.missingCleanupKey = .google }
+      case .settingsFilesUnreadable:
+        state.settingsWindow.settingsPane.launchAtLoginRegistered = true
+        state.$health.withLock { $0.unreadableFiles = [.settings, .history] }
       case .onboardingTryIt:
         state.onboardingCompleted = false
         present(&state.onboarding,
@@ -354,6 +364,8 @@ enum PresentedWindow: Equatable {
            .settingsDictionaryUnreadable,
            .about:
         break
+      case .settingsHistoryOff:
+        state.$settings.withLock { $0.retention.transcripts = .never }
       case .settingsShortcutsKeyboard:
         state.settingsWindow.interaction.mode = .keyboard
       case .settingsProfiles,
@@ -434,6 +446,14 @@ enum PresentedWindow: Equatable {
         state.pill.presentation = .notice(.speechModelUnavailable(state.health.engineStatusText))
       case .pillDictionarySaveFailed:
         state.pill.presentation = .notice(.dictionarySaveFailed)
+      case .pillMicrophoneAccessOff:
+        state.pill.presentation = .notice(.microphoneAccessOff)
+      case .pillRecordingFailed:
+        state.pill.presentation = .notice(.recordingFailed)
+      case .pillTranscriptionFailed:
+        state.pill.presentation = .notice(.transcriptionFailed)
+      case .pillPasteFailed:
+        state.pill.presentation = .notice(.pasteFailed)
       case .pillRecordingSelectedInput:
         state.pill.showsInputDeviceName = true
         state.pill.presentation = .recording(

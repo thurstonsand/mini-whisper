@@ -165,7 +165,7 @@ import TranscriptCleanup
     await store.send(.hotkeyListenerEvent(.gestureInput(.escape)))
     await store.receive(.hotkeyListenerEvent(.gesture(.cancelAndArchive)))
     await store.receive(.escapeJudged(1, atTarget: true))
-    await store.receive(.pill(.cancelledSavedToHistory)) {
+    await store.receive(.pill(.notice(.cancelledSavedToHistory))) {
       $0.pill.noticeGeneration = 1
       $0.pill.presentation = .notice(.cancelledSavedToHistory)
     }

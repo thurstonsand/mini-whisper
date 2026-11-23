@@ -3,6 +3,7 @@ import ASREngine
 import AudioCapture
 import ComposableArchitecture
 import Foundation
+import History
 import HotkeyListener
 @testable import MiniWhisper
 import ServiceManagement
@@ -343,6 +344,37 @@ private final class Collector<Value: Sendable>: @unchecked Sendable {
 
     await store.send(.copyLastTranscript)
     #expect(copied.values == ["hello there"])
+  }
+
+  @Test func `copy last transcript falls back to history after A relaunch`() async {
+    let copied = Collector<String>()
+    let entry = HistoryEntry(
+      id: UUID(), createdAt: Date(timeIntervalSince1970: 31), targetApp: nil,
+      original: History.Transcription(
+        text: "from last launch", engine: "parakeet-tdt-0.6b-v2",
+        transcribedAt: Date(timeIntervalSince1970: 31),
+      ),
+      delivery: nil, audio: nil,
+    )
+    // A failed transcription keeps its audio and no text; copy reaches past it.
+    let audioOnly = HistoryEntry(
+      id: UUID(), createdAt: Date(timeIntervalSince1970: 40), targetApp: nil, original: nil,
+      delivery: nil, audio: AudioMetadata(durationSeconds: 0.5, byteCount: 32044),
+    )
+    let store = TestStore(
+      initialState: AppFeature.State(
+        history: Shared(value: HistoryLog(entries: [audioOnly, entry])),
+        settings: Shared(value: .defaults),
+      ),
+    ) {
+      AppFeature()
+    } withDependencies: {
+      $0.delivery.copy = { transcript in copied.append(transcript) }
+    }
+
+    #expect(store.state.menuBar.canCopyLastTranscript)
+    await store.send(.copyLastTranscript)
+    #expect(copied.values == ["from last launch"])
   }
 
   @Test func `copy last transcript is inert without A transcript`() async {

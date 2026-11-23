@@ -280,6 +280,27 @@ import Testing
     await store.receive(.delegate(.repair(.modelSetupFailed)))
   }
 
+  /// An unreadable file offers two doors; the destructive one asks before it is opened.
+  @Test func `an unreadable file is revealed at once and reset only once confirmed`() async {
+    var health = AppHealth(accessibilityGranted: true, engineReadiness: .ready)
+    health.unreadableFiles = [.history]
+    let store = TestStore(initialState: makeState(health: health)) { SettingsPaneFeature() }
+
+    #expect(store.state.cursorRow == .repair(.historyFileUnreadable))
+    await store.send(.pressRequested)
+    await store.receive(.revealFileTapped(.history))
+    await store.receive(.delegate(.revealFile(.history)))
+
+    await store.send(.rightPressed) { $0.cursor.target = 1 }
+    await store.send(.pressRequested)
+    await store.receive(.resetFileTapped(.history)) { $0.pendingReset = .history }
+    await store.send(.resetFileCancelled) { $0.pendingReset = nil }
+
+    await store.send(.resetFileTapped(.history)) { $0.pendingReset = .history }
+    await store.send(.resetFileConfirmed) { $0.pendingReset = nil }
+    await store.receive(.delegate(.resetFile(.history)))
+  }
+
   @Test func `A healthy app contributes no repair rows`() {
     #expect(makeState().health.degradations.isEmpty)
     #expect(!makeState().rows.contains {

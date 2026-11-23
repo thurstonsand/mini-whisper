@@ -183,8 +183,33 @@ final class MenuUITests: MiniWhisperUITestCase, SurfaceTagged {
       scene: "about",
       audits: true,
       elements: [
-        contract(.window, "miniwhisper.about.window", "About \(appName)"),
-        contract(.group, "miniwhisper.about.content", "About \(appName)"),
+        contract(.window, "miniwhisper.settings.window", "\(appName) Settings"),
+        contract(.outline, "miniwhisper.settings.sidebar", "Settings sections", "Focused"),
+        contract(
+          .staticText, "miniwhisper.settings.sidebar.settings", "Settings section",
+          "Settings; Not selected",
+        ),
+        contract(
+          .staticText, "miniwhisper.settings.sidebar.history", "History section",
+          "History; Not selected",
+        ),
+        contract(
+          .staticText, "miniwhisper.settings.sidebar.dictionary", "Dictionary section",
+          "Dictionary; Not selected",
+        ),
+        contract(
+          .staticText, "miniwhisper.settings.sidebar.profiles", "Profiles section",
+          "Profiles; Not selected",
+        ),
+        contract(
+          .staticText, "miniwhisper.settings.sidebar.models", "Models section",
+          "Models; Not selected",
+        ),
+        contract(
+          .staticText, "miniwhisper.settings.sidebar.about", "About section",
+          "About; Selected",
+        ),
+        contract(.scrollView, "miniwhisper.about.content", "About \(appName)"),
         contract(.image, "miniwhisper.about.icon", "\(appName) icon"),
         contract(.staticText, "miniwhisper.about.app-name", "Application", appName),
         contract(
@@ -192,32 +217,32 @@ final class MenuUITests: MiniWhisperUITestCase, SurfaceTagged {
           valuePattern: #"^Version [0-9]+\.[0-9]+(?:\.[0-9]+)? \([0-9]+\)$"#,
         ),
         contract(
-          .staticText, "miniwhisper.about.attribution", "Speech recognition attribution",
-          "NVIDIA Parakeet TDT 0.6B v2, licensed under CC BY 4.0",
+          .group, "miniwhisper.about.attribution", "Parakeet TDT 0.6B v2",
         ),
         contract(
           .link, "miniwhisper.about.model-link", "Open the Parakeet TDT 0.6B v2 model page",
           isEnabled: true, isActionable: true,
         ),
         contract(
-          .staticText, "miniwhisper.about.fluid-audio-attribution", "FluidAudio attribution",
-          "FluidAudio, licensed under the Apache License 2.0",
+          .group, "miniwhisper.about.fluid-audio-attribution", "FluidAudio",
         ),
         contract(
           .link, "miniwhisper.about.fluid-audio-link", "Open the FluidAudio project page",
           isEnabled: true, isActionable: true,
         ),
         contract(
-          .staticText, "miniwhisper.about.s1-mini-attribution", "Offline cleanup attribution",
-          "S1-mini by Superwhisper, licensed under the Apache License 2.0; llama.cpp, licensed under the MIT License",
+          .group, "miniwhisper.about.s1-mini-attribution", "S1-mini by Superwhisper",
         ),
         contract(
           .link, "miniwhisper.about.s1-mini-link", "Open the S1-mini model page",
           isEnabled: true, isActionable: true,
         ),
         contract(
-          .button, "miniwhisper.about.close", "Close About \(appName)", isEnabled: true,
-          isActionable: true,
+          .group, "miniwhisper.about.llama-attribution", "llama.cpp",
+        ),
+        contract(
+          .link, "miniwhisper.about.llama-link", "Open the llama.cpp project page",
+          isEnabled: true, isActionable: true,
         ),
       ],
     )

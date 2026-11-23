@@ -172,8 +172,18 @@ private let performanceLogger = Logger(
       MenuBarViewState(
         degradations: health.degradations, engineReadiness: health.engineReadiness,
         engineStatusText: health.engineStatusText, inputDeviceName: inputDeviceName,
-        canCopyLastTranscript: lastTranscript != nil,
+        canCopyLastTranscript: recoverableTranscript != nil,
       )
+    }
+
+    var keepsHistory: Bool {
+      settings.retention.transcripts != .never
+    }
+
+    /// What copy and paste last hand back: this session's transcript, else the newest one history
+    /// kept.
+    var recoverableTranscript: String? {
+      lastTranscript ?? history.entries.lazy.compactMap(\.displayText).first
     }
   }
 
@@ -186,6 +196,8 @@ private let performanceLogger = Logger(
     case historyEntryPrepared(Int, HistoryEntry)
     case historyEntryAbandoned(Int)
     case historyPersistenceFailed(String)
+    case storedFileReadable(StoredFile)
+    case storedFileResetFailed(StoredFile, String)
     case applicationBecameActive
     case recording(RecordingFeature.Action)
     case pill(PillFeature.Action)
@@ -273,7 +285,7 @@ private let performanceLogger = Logger(
       case .settingsWindow(.history(.delegate(.retentionChanged))):
         return .send(.historyMaintenanceRequested)
       case .settingsWindow(.dictionary(.delegate(.quickAddPersistenceFailed))):
-        return .send(.pill(.dictionarySaveFailed))
+        return .send(.pill(.notice(.dictionarySaveFailed)))
       case .settingsWindow(.settingsPane(.task)):
         state.$health.withLock { $0.micStatus = microphonePermission.status() }
         return .none
@@ -281,6 +293,19 @@ private let performanceLogger = Logger(
         return .send(.recording(.microphoneChanged(selection)))
       case let .settingsWindow(.settingsPane(.delegate(.repair(repair)))):
         return .send(.repairRequested(repair))
+      case let .settingsWindow(.settingsPane(.delegate(.revealFile(file)))):
+        return .run { _ in await workspace.reveal(file.url) }
+      case let .settingsWindow(.settingsPane(.delegate(.resetFile(file)))):
+        return resetStoredFile(file, &state)
+      case let .storedFileReadable(file):
+        state.$health.withLock { _ = $0.unreadableFiles.remove(file) }
+        settingsLogger.notice("\(file.name, privacy: .public) is readable again")
+        return file == .history ? .send(.historyMaintenanceRequested) : .none
+      case let .storedFileResetFailed(file, message):
+        settingsLogger.error(
+          "Resetting \(file.name, privacy: .public) failed: \(message, privacy: .public)",
+        )
+        return .none
       case let .settingsWindow(.models(.delegate(.deleteAsset(asset)))):
         return deleteAsset(asset, &state)
       // The child has already made the choice; the app follows it to the engine it names.
@@ -327,6 +352,18 @@ private let performanceLogger = Logger(
       case .settingsWindow:
         return .none
       case .task:
+        state.$health.withLock {
+          if state.$settings.loadError != nil {
+            $0.unreadableFiles.insert(.settings)
+          }
+          if state.$history.loadError != nil {
+            $0.unreadableFiles.insert(.history)
+          }
+        }
+        let watchers = Effect<Action>.merge(
+          state.$settings.loadError == nil ? .none : untilReadable(state.$settings, .settings),
+          state.$history.loadError == nil ? .none : untilReadable(state.$history, .history),
+        )
         if let error = state.$settings.loadError {
           settingsLogger.error(
             """
@@ -348,7 +385,7 @@ private let performanceLogger = Logger(
         state.$health.withLock { $0.engine = state.settings.activeProfile.engine }
         checkCleanupKey(&state)
         return .merge(
-          .send(.recording(.task)), startupEffect(state.health.engine),
+          watchers, .send(.recording(.task)), startupEffect(state.health.engine),
           prepareLocalCleanup(state), .send(.historyMaintenanceRequested),
           seedSettingsFile(state.$settings),
         )
@@ -502,9 +539,8 @@ private let performanceLogger = Logger(
         guard !state.dictationInFlight else {
           return .none
         }
-        guard let transcript = state.lastTranscript ?? state.history.entries.first?.displayText
-        else {
-          return .send(.pill(.noTranscriptToPaste))
+        guard let transcript = state.recoverableTranscript else {
+          return .send(.pill(.notice(.noTranscriptToPaste)))
         }
         return recoveryDeliveryEffect(transcript: transcript)
       case let .recoveryDeliveryCompleted(result):
@@ -518,7 +554,7 @@ private let performanceLogger = Logger(
         case let .copied(fallback):
           logDeliveryFallback(fallback)
           return .merge(
-            .send(.pill(.copiedToClipboard)),
+            .send(.pill(.notice(.copiedToClipboard))),
             playSound(state.settings.soundTheme.resourceName(for: .error)),
           )
         case .noReceiver:
@@ -532,10 +568,11 @@ private let performanceLogger = Logger(
           "Recovery delivery failed: \(failure.message, privacy: .public)",
         )
         return .merge(
-          .send(.pill(.dismiss)), playSound(state.settings.soundTheme.resourceName(for: .error)),
+          .send(.pill(.notice(.pasteFailed))),
+          playSound(state.settings.soundTheme.resourceName(for: .error)),
         )
       case .copyLastTranscript:
-        guard let transcript = state.lastTranscript else {
+        guard let transcript = state.recoverableTranscript else {
           return .none
         }
         return .run { send in
@@ -664,11 +701,17 @@ private let performanceLogger = Logger(
         state.pendingDictation = nil
         state.dictationInFlight = false
         return .send(.pill(.dismiss))
-      case .recording(.delegate(.failed)):
+      case let .recording(.delegate(.failed(error))):
         state.pendingDictation = nil
         state.dictationInFlight = false
+        let notice: PillFeature.State.Presentation.Notice =
+          if case .microphonePermission = error {
+            .microphoneAccessOff
+          } else {
+            .recordingFailed
+          }
         return .merge(
-          .send(.pill(.cancel)),
+          .send(.pill(.notice(notice))),
           playSound(state.settings.soundTheme.resourceName(for: .error)),
         )
       case .recording:
@@ -693,7 +736,8 @@ private let performanceLogger = Logger(
             return advanceToContext(generation, &state)
           }
           return .merge(
-            .send(.pill(.cancelledSavedToHistory)), finishDictation(&state, delivery: nil),
+            .send(.pill(.notice(state.keepsHistory ? .cancelledSavedToHistory : .cancelled))),
+            finishDictation(&state, delivery: nil),
           )
         case .tooShort:
           // The engine logs the measured duration. Below the floor there was no utterance to
@@ -726,7 +770,7 @@ private let performanceLogger = Logger(
         engineLogger.error("Transcription failed: \(message, privacy: .public)")
         let history = finishDictation(&state, delivery: nil)
         return .merge(
-          .send(.pill(.dismiss)), onboardingTryIt(.failed(message), state),
+          .send(.pill(.notice(.transcriptionFailed))), onboardingTryIt(.failed(message), state),
           playSound(state.settings.soundTheme.resourceName(for: .error)),
           history,
         )
@@ -862,7 +906,7 @@ private let performanceLogger = Logger(
           let ready = deliverReadyDictations(&state)
           return .merge(
             ready,
-            .send(.pill(.copiedToClipboard)), history,
+            .send(.pill(.notice(.copiedToClipboard))), history,
             onboardingTryIt(.failed(onboardingFailureMessage), state),
             playSound(state.settings.soundTheme.resourceName(for: .error)),
           )
@@ -888,7 +932,7 @@ private let performanceLogger = Logger(
         }
         return .merge(
           ready,
-          .send(.pill(.dismiss)), onboardingTryIt(.failed(failure.message), state),
+          .send(.pill(.notice(.pasteFailed))), onboardingTryIt(.failed(failure.message), state),
           playSound(state.settings.soundTheme.resourceName(for: .error)), history,
         )
       case let .onboarding(.practiceKeyChanged(isDown, time)):
@@ -1044,7 +1088,7 @@ private let performanceLogger = Logger(
       return .merge(record, .send(.pill(.dismiss)))
     }
     return .merge(
-      record, .send(.pill(.noSpeechDetected)),
+      record, .send(.pill(.notice(.noSpeechDetected))),
       onboardingTryIt(.failed(retryMessage), state),
       playSound(state.settings.soundTheme.resourceName(for: .cancel)),
     )
@@ -1083,6 +1127,43 @@ private let performanceLogger = Logger(
     case .engineKeyMissing,
          .cleanupKeyMissing:
       .send(.settingsWindow(.selectionChanged(.profiles)))
+    case .settingsFileUnreadable,
+         .historyFileUnreadable:
+      .send(.settingsWindow(.selectionChanged(.settings)))
+    }
+  }
+
+  /// Writing over the unreadable file is the reset. The save that lands clears the load error,
+  /// and the file's watcher reports it readable from there.
+  private func resetStoredFile(_ file: StoredFile, _ state: inout State) -> Effect<Action> {
+    switch file {
+    case .settings:
+      state.$settings.withLock { $0 = .defaults }
+      return save(state.$settings, file)
+    case .history:
+      state.$history.withLock { $0 = HistoryLog() }
+      return save(state.$history, file)
+    }
+  }
+
+  private func save(_ shared: Shared<some Sendable>, _ file: StoredFile) -> Effect<Action> {
+    .run { send in
+      do { try await shared.save() } catch {
+        await send(.storedFileResetFailed(file, error.localizedDescription))
+      }
+    }
+  }
+
+  /// A file stops being unreadable however it gets there: a reset, any setting saved over it, or
+  /// a repair by hand that file storage notices and loads.
+  private func untilReadable(
+    _ shared: Shared<some Sendable>, _ file: StoredFile,
+  ) -> Effect<Action> {
+    .run { send in
+      for await isReadable in Observations({ shared.loadError == nil }) where isReadable {
+        await send(.storedFileReadable(file))
+        return
+      }
     }
   }
 
@@ -1333,7 +1414,7 @@ private let performanceLogger = Logger(
       )
     case .copied:
       return .merge(
-        .send(.pill(.copiedToClipboard)),
+        .send(.pill(.notice(.copiedToClipboard))),
         playSound(state.settings.soundTheme.resourceName(for: .error)),
       )
     case .noReceiver:
@@ -1345,9 +1426,9 @@ private let performanceLogger = Logger(
   }
 
   private func noReceiverNotice(settings: HotkeyBindingsSettings) -> PillFeature.Action {
-    .noReceiver(
+    .notice(.noReceiver(
       pasteShortcut: settings.hotkeys(for: .pasteLastTranscript).first?.compactDisplayName,
-    )
+    ))
   }
 
   private func noReceiverOnboardingMessage(for reason: NoReceiverReason) -> String {

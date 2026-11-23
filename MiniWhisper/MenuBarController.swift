@@ -42,11 +42,11 @@ import Metrics
   }
 
   func presentAbout() {
-    aboutWindowController.present()
+    presentSettings(destination: .about)
   }
 
   func presentSettings(
-    destination: SettingsDestination = .settings, initialFocus: SettingsWindowFocus? = nil,
+    destination: SettingsDestination? = nil, initialFocus: SettingsWindowFocus? = nil,
   ) {
     settingsWindowController.present(destination: destination, initialFocus: initialFocus)
   }
@@ -68,7 +68,6 @@ import Metrics
   private let statusItem: NSStatusItem
   private let refreshesStateOnOpen: Bool
   private let menu = NSMenu()
-  private let aboutWindowController = AboutWindowController()
   private let settingsWindowController: SettingsWindowController
   private var renderedIconSymbolName: String?
   private lazy var quickAddView = makeQuickAddView()
@@ -202,6 +201,11 @@ import Metrics
     // A key is typed into the Profiles pane, so the repair is the pane, open.
     if degradation == .engineKeyMissing || degradation == .cleanupKeyMissing {
       presentSettings(destination: .profiles)
+      return
+    }
+    // A file's repair is two choices, and both live on the Settings pane's row.
+    if degradation.unreadableFile != nil {
+      presentSettings(destination: .settings)
       return
     }
     store.send(.repairRequested(degradation))
