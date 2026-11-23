@@ -24,7 +24,7 @@ private let launchAtLoginLogger = Logger(
     case repair(Degradation)
     case shortcut(HotkeyCommand)
     case microphone
-    case sound(SoundCue)
+    case sound
     case launchAtLogin
   }
 
@@ -35,8 +35,8 @@ private let launchAtLoginLogger = Logger(
     case set(HotkeyCommand)
     case recording(HotkeyCommand)
     case microphone
-    case soundPreview(SoundCue)
-    case soundPicker(SoundCue)
+    case soundPreview
+    case soundPicker
     case repair(Degradation)
     case launchAtLogin
   }
@@ -77,9 +77,8 @@ private let launchAtLoginLogger = Logger(
     /// and a view cannot be told to do something twice by a value that stays the same. The count
     /// is the message; nothing reads it but the button.
     var microphoneActivation = 0
-    var soundNames: [String] = []
-    /// Same message-by-count trick as `microphoneActivation`, one counter per pop-up button.
-    var soundActivations: [SoundCue: Int] = [:]
+    /// Same message-by-count trick as `microphoneActivation`.
+    var soundActivation = 0
     var lastPlayedSound: String?
     var launchAtLoginRegistered = false
 
@@ -91,8 +90,7 @@ private let launchAtLoginLogger = Logger(
       health.degradations.map(Row.repair)
         + HotkeyCommand.allCases.map(Row.shortcut)
         + [.microphone]
-        + SoundCue.allCases.map(Row.sound)
-        + [.launchAtLogin]
+        + [.sound, .launchAtLogin]
     }
 
     /// Resolved on read for the same reason `cursorTarget` is: a repair row vanishes the instant
@@ -122,10 +120,6 @@ private let launchAtLoginLogger = Logger(
       }
     }
 
-    var sounds: SoundSettings {
-      settings.sounds
-    }
-
     var unavailableMicrophoneName: String? {
       guard case let .device(uid, lastKnownName) = microphone,
             !inputDevices.devices.contains(where: { $0.uid == uid })
@@ -144,8 +138,8 @@ private let launchAtLoginLogger = Logger(
         bindingTargets(for: bindingEditor(command))
       case .microphone:
         [.microphone]
-      case let .sound(cue):
-        [.soundPicker(cue), .soundPreview(cue)]
+      case .sound:
+        [.soundPicker, .soundPreview]
       case .launchAtLogin:
         [.launchAtLogin]
       }
@@ -184,9 +178,8 @@ private let launchAtLoginLogger = Logger(
     case inputDevicesUpdated(AudioInputDeviceSnapshot)
     case inputLevelUpdated(AudioLevel?)
     case microphoneSelected(MicrophoneSelection)
-    case soundNamesLoaded([String])
-    case soundSelected(SoundCue, String?)
-    case soundReplayRequested(SoundCue)
+    case soundThemeSelected(SoundTheme)
+    case soundPreviewRequested
     case soundPlaybackCompleted(String)
     case launchAtLoginToggled(Bool)
     case launchAtLoginUpdated(Bool)
@@ -208,6 +201,7 @@ private let launchAtLoginLogger = Logger(
   @Dependency(\.audioInputLevels) var audioInputLevels
   @Dependency(\.launchAtLogin) var launchAtLogin
   @Dependency(\.sounds) var sounds
+  @Dependency(\.continuousClock) var clock
 
   var body: some ReducerOf<Self> {
     Reduce { state, action in
@@ -226,9 +220,6 @@ private let launchAtLoginLogger = Logger(
             }
           }.cancellable(id: CancelID.deviceObservation, cancelInFlight: true),
           monitorLevels(selection: state.microphone),
-          .run { send in
-            await send(.soundNamesLoaded(sounds.availableNames()))
-          },
         )
       case .paneClosed:
         state.inputLevel = nil
@@ -261,14 +252,11 @@ private let launchAtLoginLogger = Logger(
         }
         state.$settings.withLock { $0.microphone = selection }
         return microphoneRouteChanged(&state)
-      case let .soundNamesLoaded(names):
-        state.soundNames = names
-        return .none
-      case let .soundSelected(cue, name):
-        state.$settings.withLock { $0.sounds[cue] = name }
-        return play(name)
-      case let .soundReplayRequested(cue):
-        return play(state.sounds[cue])
+      case let .soundThemeSelected(theme):
+        state.$settings.withLock { $0.soundTheme = theme }
+        return preview(theme)
+      case .soundPreviewRequested:
+        return preview(state.settings.soundTheme)
       case let .soundPlaybackCompleted(name):
         state.lastPlayedSound = name
         return .none
@@ -318,10 +306,10 @@ private let launchAtLoginLogger = Logger(
         case .microphone:
           state.microphoneActivation += 1
           return .none
-        case let .soundPreview(cue):
-          return .send(.soundReplayRequested(cue))
-        case let .soundPicker(cue):
-          state.soundActivations[cue, default: 0] += 1
+        case .soundPreview:
+          return .send(.soundPreviewRequested)
+        case .soundPicker:
+          state.soundActivation += 1
           return .none
         case .launchAtLogin:
           return .send(.launchAtLoginToggled(!state.launchAtLoginRegistered))
@@ -350,7 +338,7 @@ private let launchAtLoginLogger = Logger(
 
   // MARK: Private
 
-  private enum CancelID { case deviceObservation, levelMonitoring }
+  private enum CancelID { case deviceObservation, levelMonitoring, soundPreview }
 
   private func send(
     _ action: HotkeyBindingsFeature.Action, to command: HotkeyCommand,
@@ -358,14 +346,21 @@ private let launchAtLoginLogger = Logger(
     .send(.bindingEditors(.element(id: command, action: action)))
   }
 
-  private func play(_ name: String?) -> Effect<Action> {
-    guard let name else {
-      return .none
+  /// A theme is heard the way a dictation hears it: the activate cue, a breath of speaking, then
+  /// the complete cue.
+  private func preview(_ theme: SoundTheme) -> Effect<Action> {
+    guard let activate = theme.resourceName(for: .activate),
+          let complete = theme.resourceName(for: .complete)
+    else {
+      return .cancel(id: CancelID.soundPreview)
     }
     return .run { send in
-      await sounds.play(name)
-      await send(.soundPlaybackCompleted(name))
+      await sounds.play(activate)
+      try await clock.sleep(for: .milliseconds(700))
+      await sounds.play(complete)
+      await send(.soundPlaybackCompleted(complete))
     }
+    .cancellable(id: CancelID.soundPreview, cancelInFlight: true)
   }
 
   /// The route the selection leads to has moved. The prewarmed engine and the meter both point at

@@ -6,122 +6,47 @@ import TranscriptCleanup
 
 // MARK: - SoundCue
 
-/// The four moments a dictation can announce. Each one owns its label, its default sound, and the
-/// identifier slug the settings pane builds its accessibility identifiers from, so adding a cue is
-/// one case rather than an edit in every switch that ever mentioned one.
+/// The four moments a dictation can announce.
 public enum SoundCue: String, CaseIterable, Equatable, Sendable {
   case activate
   case complete
   case cancel
   case error
+}
+
+// MARK: - SoundTheme
+
+/// One family of cues, chosen whole: every theme speaks all four moments in its own voice, so
+/// a dictation never mixes two. Silence is a theme too, the deliberate choice of none.
+public enum SoundTheme: String, CaseIterable, Codable, Equatable, Sendable {
+  case drop
+  case pluck
+  case hum
+  case bloom
+  case silent
 
   // MARK: Public
+
+  public static let `default` = SoundTheme.drop
 
   public var label: String {
     switch self {
-    case .activate:
-      "Activate"
-    case .complete:
-      "Complete"
-    case .cancel:
-      "Cancel"
-    case .error:
-      "Error"
+    case .drop:
+      "Drop"
+    case .pluck:
+      "Pluck"
+    case .hum:
+      "Hum"
+    case .bloom:
+      "Bloom"
+    case .silent:
+      "No audio"
     }
   }
 
-  public var defaultName: String {
-    switch self {
-    case .activate:
-      "Tink"
-    case .complete:
-      "Pop"
-    case .cancel:
-      "Funk"
-    case .error:
-      "Basso"
-    }
-  }
-
-  public var slug: String {
-    rawValue
-  }
-}
-
-// MARK: - SoundSettings
-
-/// One sound name per cue, where absence is silence rather than a missing value.
-public struct SoundSettings: Equatable, Sendable {
-  // MARK: Lifecycle
-
-  public init(activate: String?, complete: String?, cancel: String?, error: String?) {
-    self.activate = activate
-    self.complete = complete
-    self.cancel = cancel
-    self.error = error
-  }
-
-  // MARK: Public
-
-  public static let defaults = SoundSettings(
-    activate: SoundCue.activate.defaultName, complete: SoundCue.complete.defaultName,
-    cancel: SoundCue.cancel.defaultName, error: SoundCue.error.defaultName,
-  )
-  public static let silent = SoundSettings(
-    activate: nil, complete: nil, cancel: nil, error: nil,
-  )
-
-  public var activate: String?
-  public var complete: String?
-  public var cancel: String?
-  public var error: String?
-
-  public subscript(cue: SoundCue) -> String? {
-    get {
-      switch cue {
-      case .activate:
-        activate
-      case .complete:
-        complete
-      case .cancel:
-        cancel
-      case .error:
-        error
-      }
-    }
-    set {
-      switch cue {
-      case .activate:
-        activate = newValue
-      case .complete:
-        complete = newValue
-      case .cancel:
-        cancel = newValue
-      case .error:
-        error = newValue
-      }
-    }
-  }
-}
-
-// MARK: Codable
-
-extension SoundSettings: Codable {
-  private enum CodingKeys: String, CodingKey {
-    case activate
-    case complete
-    case cancel
-    case error
-  }
-
-  /// Hand-written only so silence is written as an explicit null; the synthesized encoding would
-  /// omit the key, which reads as "never configured" rather than "deliberately off".
-  public func encode(to encoder: Encoder) throws {
-    var container = encoder.container(keyedBy: CodingKeys.self)
-    try container.encode(activate, forKey: .activate)
-    try container.encode(complete, forKey: .complete)
-    try container.encode(cancel, forKey: .cancel)
-    try container.encode(error, forKey: .error)
+  /// The bundled sound file for one cue, named `<theme>-<cue>`; silence has none.
+  public func resourceName(for cue: SoundCue) -> String? {
+    self == .silent ? nil : "\(rawValue)-\(cue.rawValue)"
   }
 }
 
@@ -274,14 +199,14 @@ public struct MiniWhisperSettings: Equatable, Sendable {
   // MARK: Lifecycle
 
   public init(
-    bindings: HotkeyBindingsSettings, microphone: MicrophoneSelection, sounds: SoundSettings,
+    bindings: HotkeyBindingsSettings, microphone: MicrophoneSelection, soundTheme: SoundTheme,
     retention: RetentionPolicy, profiles: ProfileSettings, cleanupTimeout: TimeInterval,
     additionalInstructions: String,
   ) {
     precondition(cleanupTimeout > 0)
     self.bindings = bindings
     self.microphone = microphone
-    self.sounds = sounds
+    self.soundTheme = soundTheme
     self.retention = retention
     self.profiles = profiles
     self.cleanupTimeout = cleanupTimeout
@@ -291,14 +216,14 @@ public struct MiniWhisperSettings: Equatable, Sendable {
   // MARK: Public
 
   public static let defaults = MiniWhisperSettings(
-    bindings: .defaults, microphone: .systemDefault, sounds: .defaults, retention: .defaults,
+    bindings: .defaults, microphone: .systemDefault, soundTheme: .default, retention: .defaults,
     profiles: .defaults, cleanupTimeout: CleanupConfiguration.defaultTimeout,
     additionalInstructions: "",
   )
 
   public var bindings: HotkeyBindingsSettings
   public var microphone: MicrophoneSelection
-  public var sounds: SoundSettings
+  public var soundTheme: SoundTheme
   public var retention: RetentionPolicy
   public var profiles: ProfileSettings
 
@@ -356,7 +281,7 @@ extension MiniWhisperSettings: Codable {
   private enum CodingKeys: String, CodingKey {
     case bindings
     case microphone
-    case sounds
+    case soundTheme
     case retention
     case profiles
     case cleanupTimeout
@@ -372,7 +297,7 @@ extension MiniWhisperSettings: Codable {
       ?? .defaults
     microphone = try container.decodeIfPresent(MicrophoneSelection.self, forKey: .microphone)
       ?? .systemDefault
-    sounds = try container.decodeIfPresent(SoundSettings.self, forKey: .sounds) ?? .defaults
+    soundTheme = try container.decodeIfPresent(SoundTheme.self, forKey: .soundTheme) ?? .default
     retention = try container.decodeIfPresent(RetentionPolicy.self, forKey: .retention)
       ?? .defaults
     profiles = try container.decodeIfPresent(ProfileSettings.self, forKey: .profiles)

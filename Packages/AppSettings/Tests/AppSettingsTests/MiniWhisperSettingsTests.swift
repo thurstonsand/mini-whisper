@@ -14,7 +14,7 @@ struct MiniWhisperSettingsTests {
     #expect(
       Set(object.keys) == [
         "additionalInstructions", "bindings", "cleanupTimeout", "microphone",
-        "profiles", "retention", "sounds",
+        "profiles", "retention", "soundTheme",
       ],
     )
     let bindings = try #require(object["bindings"] as? [String: Any])
@@ -42,7 +42,7 @@ struct MiniWhisperSettingsTests {
     )
     #expect(settings.retention == .defaults)
     #expect(settings.microphone == .systemDefault)
-    #expect(settings.sounds == .defaults)
+    #expect(settings.soundTheme == .drop)
     #expect(settings.profiles == .defaults)
     #expect(settings.cleanupTimeout == CleanupConfiguration.defaultTimeout)
   }
@@ -53,14 +53,14 @@ struct MiniWhisperSettingsTests {
 
   @Test func `old and unknown keys are ignored`() throws {
     let data = Data(
-      #"{"hotkeys":[{"modifiers":[]}],"pasteLastTranscriptHotkey":{},"extra":1,"bindings":{"submit":[{"modifiers":["rightOption"]}]}}"#
+      #"{"hotkeys":[{"modifiers":[]}],"pasteLastTranscriptHotkey":{},"extra":1,"bindings":{"submit":[{"modifiers":["rightOption"]}]},"sounds":{"activate":"Tink","complete":null}}"#
         .utf8,
     )
 
     let settings = try SettingsCoding.decode(data)
 
     #expect(settings.bindings == .defaults)
-    #expect(settings.sounds == .defaults)
+    #expect(settings.soundTheme == .drop)
   }
 
   @Test(arguments: ["not json", #"{"bindings":{"activate":[{"modifiers":[]}]}}"#])
@@ -97,9 +97,7 @@ struct MiniWhisperSettingsTests {
         ],
       ),
       microphone: .device(uid: "studio-mic", lastKnownName: "Studio Microphone"),
-      sounds: SoundSettings(
-        activate: "Glass", complete: nil, cancel: "Frog", error: "Submarine",
-      ),
+      soundTheme: .hum,
       retention: RetentionPolicy(transcripts: .ninetyDays, audio: .never),
       profiles: ProfileSettings(
         active: .custom,
@@ -115,19 +113,17 @@ struct MiniWhisperSettingsTests {
     #expect(try SettingsCoding.decode(SettingsCoding.encode(settings)) == settings)
   }
 
-  @Test func `silenced cues are written as explicit nulls`() throws {
+  @Test func `a silent theme is written by name and silences every cue`() throws {
     var settings = MiniWhisperSettings.defaults
-    settings.sounds = SoundSettings(
-      activate: "Glass", complete: nil, cancel: "Frog", error: "Submarine",
-    )
+    settings.soundTheme = .silent
 
     let encoded = try SettingsCoding.encode(settings)
     let object = try #require(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
 
-    let sounds = try #require(object["sounds"] as? [String: Any])
-    #expect(Set(sounds.keys) == ["activate", "complete", "cancel", "error"])
-    #expect(sounds["complete"] is NSNull)
-    #expect(try SettingsCoding.decode(encoded).sounds == settings.sounds)
+    #expect(object["soundTheme"] as? String == "silent")
+    let decoded = try SettingsCoding.decode(encoded).soundTheme
+    #expect(SoundCue.allCases.compactMap(decoded.resourceName(for:)).isEmpty)
+    #expect(SoundTheme.bloom.resourceName(for: .cancel) == "bloom-cancel")
   }
 
   @Test func `microphone selection survives A round trip`() throws {

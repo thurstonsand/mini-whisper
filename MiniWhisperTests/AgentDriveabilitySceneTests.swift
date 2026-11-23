@@ -57,7 +57,8 @@ struct AgentDriveabilitySceneTests {
   }
 
   @Test func `No audio scene seeds state instead of the live settings file`() {
-    #expect(AgentDriveabilityScene.settingsSoundsNoAudio.initialState.settings.sounds.cancel == nil)
+    #expect(AgentDriveabilityScene.settingsSoundsNoAudio.initialState.settings
+      .soundTheme == .silent)
   }
 
   @Test func `permission scenes advance one permission at A time`() {

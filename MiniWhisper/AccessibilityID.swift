@@ -13,35 +13,6 @@ private extension String {
   }
 }
 
-// MARK: - SettingsSoundPart
-
-/// The addressable pieces of one sound row. Naming them keeps the pane from spelling identifier
-/// suffixes by hand, which is how a row and its paint state drift apart.
-enum SettingsSoundPart {
-  case row
-  case rowState
-  case picker
-  case pickerState
-  case preview
-
-  // MARK: Internal
-
-  var suffix: String {
-    switch self {
-    case .row:
-      ""
-    case .rowState:
-      ".state"
-    case .picker:
-      ".picker"
-    case .pickerState:
-      ".picker.state"
-    case .preview:
-      ".preview"
-    }
-  }
-}
-
 // MARK: - AccessibilityID
 
 enum AccessibilityID {
@@ -89,6 +60,11 @@ enum AccessibilityID {
   static let settingsMicrophoneLevel = "miniwhisper.settings.microphone.level"
   static let settingsMicrophoneUnavailable = "miniwhisper.settings.microphone.unavailable"
   static let settingsSoundPlayback = "miniwhisper.settings.sound.playback"
+  static let settingsSoundRow = "miniwhisper.settings.sound"
+  static let settingsSoundRowState = "miniwhisper.settings.sound.state"
+  static let settingsSoundPicker = "miniwhisper.settings.sound.picker"
+  static let settingsSoundPickerState = "miniwhisper.settings.sound.picker.state"
+  static let settingsSoundPreview = "miniwhisper.settings.sound.preview"
   static let settingsLaunchAtLogin = "miniwhisper.settings.launch-at-login"
   static let settingsLaunchAtLoginState = "miniwhisper.settings.launch-at-login.state"
   /// A switch spends its own accessibility value on being on or off, so the one row whose ring
@@ -318,10 +294,6 @@ enum AccessibilityID {
 
   static func settingsPasteLastShortcutBinding(_ index: Int) -> String {
     "miniwhisper.settings.shortcut.paste-last.binding.\(index)"
-  }
-
-  static func settingsSound(_ cue: SoundCue, _ part: SettingsSoundPart) -> String {
-    "miniwhisper.settings.sound.\(cue.slug)\(part.suffix)"
   }
 
   static func historyRow(_ id: UUID) -> String {

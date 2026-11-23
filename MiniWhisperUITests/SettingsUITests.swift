@@ -78,74 +78,20 @@ final class SettingsUITests: MiniWhisperUITestCase, SurfaceTagged {
           .popUpButton, "miniwhisper.settings.microphone.picker", "Microphone input",
           "System Default (MacBook Pro Microphone)", isEnabled: true, isActionable: true,
         ),
-        contract(.group, "miniwhisper.settings.sound.activate", "Activate"),
+        contract(.group, "miniwhisper.settings.sound", "Sound theme"),
         contract(
-          .staticText, "miniwhisper.settings.sound.activate.state", "Activate highlight",
-          "Bar off",
+          .staticText, "miniwhisper.settings.sound.state", "Sound theme highlight", "Bar off",
         ),
         contract(
-          .button, "miniwhisper.settings.sound.activate.preview",
-          "Preview activate sound", "Ring off", isEnabled: true, isActionable: true,
-        ),
-        contract(
-          .popUpButton, "miniwhisper.settings.sound.activate.picker", "Activate sound",
-          "Tink (default)", isEnabled: true, isActionable: true,
-        ),
-        contract(
-          .staticText, "miniwhisper.settings.sound.activate.picker.state",
-          "Activate sound emphasis", "Primary",
-        ),
-        contract(.group, "miniwhisper.settings.sound.complete", "Complete"),
-        contract(
-          .staticText, "miniwhisper.settings.sound.complete.state", "Complete highlight", "Bar off",
-        ),
-        contract(
-          .button, "miniwhisper.settings.sound.complete.preview", "Preview complete sound",
-          "Ring off",
+          .button, "miniwhisper.settings.sound.preview", "Preview sound theme", "Ring off",
           isEnabled: true, isActionable: true,
         ),
         contract(
-          .popUpButton, "miniwhisper.settings.sound.complete.picker", "Complete sound",
-          "Pop (default)",
+          .popUpButton, "miniwhisper.settings.sound.picker", "Sound theme", "Drop (default)",
           isEnabled: true, isActionable: true,
         ),
         contract(
-          .staticText, "miniwhisper.settings.sound.complete.picker.state",
-          "Complete sound emphasis",
-          "Primary",
-        ),
-        contract(.group, "miniwhisper.settings.sound.cancel", "Cancel"),
-        contract(
-          .staticText, "miniwhisper.settings.sound.cancel.state", "Cancel highlight", "Bar off",
-        ),
-        contract(
-          .button, "miniwhisper.settings.sound.cancel.preview", "Preview cancel sound", "Ring off",
-          isEnabled: true, isActionable: true,
-        ),
-        contract(
-          .popUpButton, "miniwhisper.settings.sound.cancel.picker", "Cancel sound",
-          "Funk (default)",
-          isEnabled: true, isActionable: true,
-        ),
-        contract(
-          .staticText, "miniwhisper.settings.sound.cancel.picker.state", "Cancel sound emphasis",
-          "Primary",
-        ),
-        contract(.group, "miniwhisper.settings.sound.error", "Error"),
-        contract(
-          .staticText, "miniwhisper.settings.sound.error.state", "Error highlight", "Bar off",
-        ),
-        contract(
-          .button, "miniwhisper.settings.sound.error.preview", "Preview error sound", "Ring off",
-          isEnabled: true, isActionable: true,
-        ),
-        contract(
-          .popUpButton, "miniwhisper.settings.sound.error.picker", "Error sound",
-          "Basso (default)",
-          isEnabled: true, isActionable: true,
-        ),
-        contract(
-          .staticText, "miniwhisper.settings.sound.error.picker.state", "Error sound emphasis",
+          .staticText, "miniwhisper.settings.sound.picker.state", "Sound theme emphasis",
           "Primary",
         ),
         contract(
@@ -199,12 +145,12 @@ final class SettingsUITests: MiniWhisperUITestCase, SurfaceTagged {
     let app = launch("settings-sounds-no-audio")
     defer { terminate(app) }
 
-    let picker = app.popUpButtons["miniwhisper.settings.sound.cancel.picker"]
-    let preview = app.buttons["miniwhisper.settings.sound.cancel.preview"]
+    let picker = app.popUpButtons["miniwhisper.settings.sound.picker"]
+    let preview = app.buttons["miniwhisper.settings.sound.preview"]
     XCTAssertTrue(picker.awaitExistence(timeout: 5))
     assertValue("No audio", of: picker)
     assertValue(
-      "Secondary", of: app.staticTexts["miniwhisper.settings.sound.cancel.picker.state"],
+      "Secondary", of: app.staticTexts["miniwhisper.settings.sound.picker.state"],
     )
     XCTAssertFalse(preview.isEnabled)
   }

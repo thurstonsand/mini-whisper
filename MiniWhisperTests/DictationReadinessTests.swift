@@ -31,7 +31,7 @@ import Testing
     }
     #expect(store.state.recording.phase == .idle)
     #expect(!store.state.dictationInFlight)
-    #expect(await sounds.recorded == ["Basso"])
+    #expect(await sounds.recorded == ["drop-error"])
     await store.send(.pill(.dismiss)) { $0.pill.presentation = nil }
   }
 

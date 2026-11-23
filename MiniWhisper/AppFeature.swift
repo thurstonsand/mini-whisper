@@ -512,17 +512,19 @@ private let performanceLogger = Logger(
         case let .pasted(restoration):
           logSuccessfulPaste(restoration)
           return .merge(
-            .send(.pill(.dismiss)), playSound(state.settings.sounds.complete),
+            .send(.pill(.dismiss)),
+            playSound(state.settings.soundTheme.resourceName(for: .complete)),
           )
         case let .copied(fallback):
           logDeliveryFallback(fallback)
           return .merge(
-            .send(.pill(.copiedToClipboard)), playSound(state.settings.sounds.error),
+            .send(.pill(.copiedToClipboard)),
+            playSound(state.settings.soundTheme.resourceName(for: .error)),
           )
         case .noReceiver:
           return .merge(
             .send(.pill(noReceiverNotice(settings: state.settings.bindings))),
-            playSound(state.settings.sounds.error),
+            playSound(state.settings.soundTheme.resourceName(for: .error)),
           )
         }
       case let .recoveryDeliveryFailed(failure):
@@ -530,7 +532,7 @@ private let performanceLogger = Logger(
           "Recovery delivery failed: \(failure.message, privacy: .public)",
         )
         return .merge(
-          .send(.pill(.dismiss)), playSound(state.settings.sounds.error),
+          .send(.pill(.dismiss)), playSound(state.settings.soundTheme.resourceName(for: .error)),
         )
       case .copyLastTranscript:
         guard let transcript = state.lastTranscript else {
@@ -572,7 +574,7 @@ private let performanceLogger = Logger(
         return .merge(
           state.onboarding.isPresented
             ? .send(.onboarding(.modelDownloadConsentFailed(failure))) : .none,
-          playSound(state.settings.sounds.error),
+          playSound(state.settings.soundTheme.resourceName(for: .error)),
         )
       case let .agentHistoryReplaced(history):
         state.settingsWindow.history.$log.withLock { $0 = history }
@@ -603,7 +605,7 @@ private let performanceLogger = Logger(
           }
         let failureSound: Effect<Action> =
           if case .failed = readiness, !wasFailed {
-            playSound(state.settings.sounds.error)
+            playSound(state.settings.soundTheme.resourceName(for: .error))
           } else {
             .none
           }
@@ -667,7 +669,7 @@ private let performanceLogger = Logger(
         state.dictationInFlight = false
         return .merge(
           .send(.pill(.cancel)),
-          playSound(state.settings.sounds.error),
+          playSound(state.settings.soundTheme.resourceName(for: .error)),
         )
       case .recording:
         return .none
@@ -725,7 +727,7 @@ private let performanceLogger = Logger(
         let history = finishDictation(&state, delivery: nil)
         return .merge(
           .send(.pill(.dismiss)), onboardingTryIt(.failed(message), state),
-          playSound(state.settings.sounds.error),
+          playSound(state.settings.soundTheme.resourceName(for: .error)),
           history,
         )
       case let .targetCaptured(generation, target):
@@ -850,7 +852,8 @@ private let performanceLogger = Logger(
           let ready = deliverReadyDictations(&state)
           return .merge(
             ready,
-            .send(.pill(pill)), onboardingSuccess, playSound(state.settings.sounds.complete),
+            .send(.pill(pill)), onboardingSuccess,
+            playSound(state.settings.soundTheme.resourceName(for: .complete)),
             history,
           )
         case let .copied(fallback):
@@ -861,7 +864,7 @@ private let performanceLogger = Logger(
             ready,
             .send(.pill(.copiedToClipboard)), history,
             onboardingTryIt(.failed(onboardingFailureMessage), state),
-            playSound(state.settings.sounds.error),
+            playSound(state.settings.soundTheme.resourceName(for: .error)),
           )
         case let .noReceiver(reason):
           let history = finishDeliveredDictation(&state, result: result)
@@ -870,7 +873,7 @@ private let performanceLogger = Logger(
             ready,
             .send(.pill(noReceiverNotice(settings: state.settings.bindings))), history,
             onboardingTryIt(.failed(noReceiverOnboardingMessage(for: reason)), state),
-            playSound(state.settings.sounds.error),
+            playSound(state.settings.soundTheme.resourceName(for: .error)),
           )
         }
       case let .deliveryFailed(generation, failure):
@@ -886,7 +889,7 @@ private let performanceLogger = Logger(
         return .merge(
           ready,
           .send(.pill(.dismiss)), onboardingTryIt(.failed(failure.message), state),
-          playSound(state.settings.sounds.error), history,
+          playSound(state.settings.soundTheme.resourceName(for: .error)), history,
         )
       case let .onboarding(.practiceKeyChanged(isDown, time)):
         guard state.onboarding.isPresented, state.canBeginDictation else {
@@ -1042,7 +1045,8 @@ private let performanceLogger = Logger(
     }
     return .merge(
       record, .send(.pill(.noSpeechDetected)),
-      onboardingTryIt(.failed(retryMessage), state), playSound(state.settings.sounds.cancel),
+      onboardingTryIt(.failed(retryMessage), state),
+      playSound(state.settings.soundTheme.resourceName(for: .cancel)),
     )
   }
 
@@ -1325,14 +1329,17 @@ private let performanceLogger = Logger(
       let notice = dictation?.deliveredNotice ?? .dismiss
       return .merge(
         notice == .dismiss ? .none : .send(.pill(notice)),
-        playSound(state.settings.sounds.complete),
+        playSound(state.settings.soundTheme.resourceName(for: .complete)),
       )
     case .copied:
-      return .merge(.send(.pill(.copiedToClipboard)), playSound(state.settings.sounds.error))
+      return .merge(
+        .send(.pill(.copiedToClipboard)),
+        playSound(state.settings.soundTheme.resourceName(for: .error)),
+      )
     case .noReceiver:
       return .merge(
         .send(.pill(noReceiverNotice(settings: state.settings.bindings))),
-        playSound(state.settings.sounds.error),
+        playSound(state.settings.soundTheme.resourceName(for: .error)),
       )
     }
   }

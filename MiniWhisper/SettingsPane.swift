@@ -36,14 +36,13 @@ struct SettingsPane: View {
         Text("Activation shortcuts: hold to dictate, or double-tap to keep recording hands free.")
       }
 
-      Section("Microphone") {
+      Section {
         MicrophoneRow(store: store)
-      }
-
-      Section("Sounds") {
-        ForEach(SoundCue.allCases, id: \.self) { cue in
-          SoundRow(store: store, cue: cue)
-        }
+        SoundRow(store: store)
+      } header: {
+        Text("Sound")
+      } footer: {
+        Text("Sound effects play when dictation starts, finishes, is cancelled, or fails.")
       }
 
       Section {
@@ -154,7 +153,7 @@ private struct MicrophoneRow: View {
   let store: StoreOf<SettingsWindowFeature>
 
   var body: some View {
-    LabeledContent("Input") {
+    LabeledContent("Microphone") {
       VStack(alignment: .trailing, spacing: 4) {
         HStack(spacing: 8) {
           MicrophoneLevelMeter(level: store.settingsPane.inputLevel)
@@ -250,76 +249,65 @@ private struct SoundRow: View {
   // MARK: Internal
 
   let store: StoreOf<SettingsWindowFeature>
-  let cue: SoundCue
 
   var body: some View {
-    LabeledContent(cue.label) {
+    LabeledContent("Sound effects") {
       HStack(spacing: 8) {
         SettingsPopUpButton(
           options: options, selection: selection,
-          activation: store.settingsPane.soundActivations[cue, default: 0],
-          isRinged: store.state.showsSettingsRing(row, target: .soundPicker(cue)),
-          onSelection: { store.send(.settingsPane(.soundSelected(cue, $0))) },
+          activation: store.settingsPane.soundActivation,
+          isRinged: store.state.showsSettingsRing(.sound, target: .soundPicker),
+          onSelection: { store.send(.settingsPane(.soundThemeSelected($0))) },
         )
         .fixedSize()
-        .accessibilityIdentifier(AccessibilityID.settingsSound(cue, .picker))
-        .accessibilityLabel("\(cue.label) sound")
+        .accessibilityIdentifier(AccessibilityID.settingsSoundPicker)
+        .accessibilityLabel("Sound theme")
         .accessibilityPaintState(
-          AccessibilityID.settingsSound(cue, .pickerState),
-          label: "\(cue.label) sound emphasis",
-          value: selection == nil ? "Secondary" : "Primary",
+          AccessibilityID.settingsSoundPickerState, label: "Sound theme emphasis",
+          value: selection == .silent ? "Secondary" : "Primary",
         )
 
-        Button("Play \(cue.label)", systemImage: "play.circle") {
-          store.send(.settingsPane(.soundReplayRequested(cue)))
+        Button("Preview theme", systemImage: "play.circle") {
+          store.send(.settingsPane(.soundPreviewRequested))
         }
         .labelStyle(.iconOnly)
         .buttonStyle(.borderless)
-        .disabled(selection == nil)
+        .disabled(selection == .silent)
+        .help("Preview theme")
         .focusRing(showsPreviewRing)
-        .accessibilityIdentifier(AccessibilityID.settingsSound(cue, .preview))
-        .accessibilityLabel("Preview \(cue.label.lowercased()) sound")
+        .accessibilityIdentifier(AccessibilityID.settingsSoundPreview)
+        .accessibilityLabel("Preview sound theme")
         .accessibilityValue(showsPreviewRing ? "Ring on" : "Ring off")
       }
     }
-    .modifier(SettingsFormRow(store: store, row: row))
+    .modifier(SettingsFormRow(store: store, row: .sound))
     .accessibilityElement(children: .contain)
-    .accessibilityIdentifier(AccessibilityID.settingsSound(cue, .row))
-    .accessibilityLabel(cue.label)
+    .accessibilityIdentifier(AccessibilityID.settingsSoundRow)
+    .accessibilityLabel("Sound theme")
     .accessibilityPaintState(
-      AccessibilityID.settingsSound(cue, .rowState), label: "\(cue.label) highlight",
-      value: store.state.showsSettingsBar(row) ? "Bar on" : "Bar off",
+      AccessibilityID.settingsSoundRowState, label: "Sound theme highlight",
+      value: store.state.showsSettingsBar(.sound) ? "Bar on" : "Bar off",
     )
   }
 
   // MARK: Private
 
-  private var row: SettingsPaneFeature.Row {
-    .sound(cue)
-  }
-
-  private var selection: String? {
-    store.settingsPane.sounds[cue]
+  private var selection: SoundTheme {
+    store.settingsPane.settings.soundTheme
   }
 
   private var showsPreviewRing: Bool {
-    store.state.showsSettingsRing(row, target: .soundPreview(cue))
+    store.state.showsSettingsRing(.sound, target: .soundPreview)
   }
 
-  /// The inventory is whatever the system reports, but a cue's own default and its current choice
-  /// are always offered: neither returning to default nor seeing where you are may be starved.
-  private var options: [SettingsPopUpButton<String?>.Option] {
-    var names = Set(store.settingsPane.soundNames)
-    names.insert(cue.defaultName)
-    if let selection {
-      names.insert(selection)
+  /// Silence trails the themes, dimmed: it is the absence of a choice rather than one more sound.
+  private var options: [SettingsPopUpButton<SoundTheme>.Option] {
+    SoundTheme.allCases.map {
+      .init(
+        value: $0, title: $0 == .default ? "\($0.label) (default)" : $0.label,
+        isSecondary: $0 == .silent,
+      )
     }
-    let sorted = names.sorted { $0.localizedStandardCompare($1) == .orderedAscending }
-    // Silence leads, dimmed: it is the absence of a choice rather than one more sound.
-    return [.init(value: nil, title: "No audio", isSecondary: true)]
-      + sorted.map {
-        .init(value: $0, title: $0 == cue.defaultName ? "\($0) (default)" : $0)
-      }
   }
 }
 

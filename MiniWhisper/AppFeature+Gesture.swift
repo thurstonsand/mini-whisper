@@ -126,7 +126,7 @@ extension AppFeature {
           ),
           // The machine emits this exactly once per interaction, so the onset cue needs no
           // suppression flag: one interaction, one sound, at the moment the user acted.
-          playSound(state.settings.sounds.activate),
+          playSound(state.settings.soundTheme.resourceName(for: .activate)),
           // Waking a Chromium tree costs far more than delivery can spend, so it happens here.
           .run { _ in await contextCapture.prewarmFrontmostApp() },
           .run { [engine = state.health.engine] send in
@@ -222,7 +222,7 @@ extension AppFeature {
       return .merge(
         .cancel(id: CancelID.delivery(state.transcriptionGeneration)),
         .send(.recording(.stopAndRetain)),
-        playSound(state.settings.sounds.cancel),
+        playSound(state.settings.soundTheme.resourceName(for: .cancel)),
       )
     }
   }
@@ -244,7 +244,8 @@ extension AppFeature {
       .cancel(id: CancelID.cleanup(dictation.generation)),
       .cancel(id: CancelID.delivery(dictation.generation)),
       .send(.hotkeyListenerEvent(.gestureInput(.cleanupEnded))),
-      .send(.pill(.cancelledSavedToHistory)), playSound(state.settings.sounds.cancel),
+      .send(.pill(.cancelledSavedToHistory)),
+      playSound(state.settings.soundTheme.resourceName(for: .cancel)),
       finishDictation(&state, delivery: nil),
     )
   }
@@ -271,7 +272,7 @@ extension AppFeature {
     gestureLogger.notice("Dictation refused: \(status, privacy: .public)")
     return .merge(
       receiveGestureInput(.refused, state: &state), .send(.pill(.speechModelUnavailable(status))),
-      playSound(state.settings.sounds.error),
+      playSound(state.settings.soundTheme.resourceName(for: .error)),
     )
   }
 

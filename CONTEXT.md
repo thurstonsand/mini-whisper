@@ -13,6 +13,7 @@
 - Latch: double-tap the keybind to keep recording without holding; a single tap ends it and transcribes. One capture runs continuously from the first press — the taps never stop it. A lone tap records through the 300 ms double-tap window, then discards wordlessly.
 - Cancel: Escape during a recording plays the cancel cue and skips delivery, but the transcript still lands in history.
 - The activate cue plays once per interaction, at its onset — a double-tap or tap-then-hold never replays it.
+- Sound theme: one family of the four cues — activate, complete, cancel, error — chosen whole in settings: Drop, Pluck, Hum, Bloom, or No audio. The cues are bundled WAVs synthesized by `scripts/generate_sound_themes.py` and kept quiet enough to sit under the work, around −32 dBFS.
 - Silence rejection: preprocessing that keeps silence and near-silence from reaching the engine, so empty recordings never produce hallucinated text.
 - The gate: the silence-rejection implementation — a 500 ms duration floor, then one whole-utterance Silero VAD classification at release; accepted audio passes to the engine unchanged.
 - Engine: an implementation of the transcription protocol in `ASREngine`, chosen by the active profile: Parakeet TDT v2 through pinned FluidAudio on this Mac, or ElevenLabs Scribe v2 hosted. Most accurate's Advanced settings can override Scribe's full speech-to-text URL and model with an ElevenLabs-compatible API; Custom keeps its on-device engine. The gate runs locally before either. whisper.cpp Medium.en is the recorded fallback, not shipped.

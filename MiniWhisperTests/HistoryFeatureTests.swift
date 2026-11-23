@@ -529,7 +529,7 @@ import TranscriptCleanup
         activate: [Hotkey(keyCode: 0, modifiers: [.leftCommand])],
         pasteLastTranscript: HotkeyBindingsSettings.defaults.hotkeys(for: .pasteLastTranscript),
       ),
-      microphone: .systemDefault, sounds: .silent, retention: .defaults, profiles: .defaults,
+      microphone: .systemDefault, soundTheme: .silent, retention: .defaults, profiles: .defaults,
       cleanupTimeout: CleanupConfiguration.defaultTimeout, additionalInstructions: "",
     )
     try SettingsCoding.encode(stored).write(to: settingsURL)
@@ -557,7 +557,7 @@ import TranscriptCleanup
     let persisted = try SettingsCoding.decode(Data(contentsOf: settingsURL))
     #expect(persisted.retention.audio == .ninetyDays)
     #expect(persisted.bindings == stored.bindings)
-    #expect(persisted.sounds == .silent)
+    #expect(persisted.soundTheme == .silent)
   }
 
   @Test func `a shortened limit waits for confirmation before it deletes anything`() async {

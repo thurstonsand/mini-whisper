@@ -154,7 +154,6 @@ import Testing
       $0.audioInputLevels.levels = { _ in AsyncStream { $0.finish() } }
       $0.launchAtLogin.isRegistered = { false }
       $0.microphonePermission.status = { .denied }
-      $0.sounds.availableNames = { [] }
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
 
@@ -863,7 +862,7 @@ import Testing
     }
     await store.send(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
-    #expect(await sounds.recorded == ["Funk"])
+    #expect(await sounds.recorded == ["drop-cancel"])
   }
 
   @Test func `transcription failure degrades engine and does not claim no speech`() async {
@@ -896,7 +895,7 @@ import Testing
       $0.$health.withLock { $0.engineReadiness = .failed("second failure") }
     }
     await store.finish()
-    #expect(await sounds.recorded == ["Basso"])
+    #expect(await sounds.recorded == ["drop-error"])
   }
 
   @Test func `stale transcription cannot dismiss A newer recording`() async {
@@ -951,7 +950,7 @@ import Testing
     )
     await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
-    #expect(await sounds.recorded == ["Pop"])
+    #expect(await sounds.recorded == ["drop-complete"])
   }
 
   @Test func `cancel and archive saves transcript without delivery`() async throws {
@@ -1047,7 +1046,7 @@ import Testing
     await store.receive(.historyEntryPrepared(1, historyEntry))
     await store.send(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
-    #expect(await sounds.recorded == ["Funk"])
+    #expect(await sounds.recorded == ["drop-cancel"])
     #expect(store.state.history.entries == [historyEntry])
     #expect(store.state.onboarding.failureMessage == nil)
   }
@@ -1073,7 +1072,7 @@ import Testing
     await store.send(.transcriptionCompleted(1, outcome)) { $0.dictationInFlight = false }
     await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
-    #expect(await sounds.recorded == ["Funk"])
+    #expect(await sounds.recorded == ["drop-cancel"])
     #expect(store.state.history.entries.isEmpty)
     #expect(store.state.onboarding.failureMessage == nil)
   }
@@ -1250,7 +1249,7 @@ import Testing
     )
     await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
-    #expect(await sounds.recorded == ["Pop"])
+    #expect(await sounds.recorded == ["drop-complete"])
   }
 
   @Test(arguments: [
@@ -1426,7 +1425,7 @@ import Testing
     await store.send(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
 
-    #expect(await sounds.recorded == ["Basso"])
+    #expect(await sounds.recorded == ["drop-error"])
     #expect(await copied.values == ["withhold me"])
     #expect(store.state.history.entries.isEmpty)
   }
@@ -1516,7 +1515,7 @@ import Testing
     }
     await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
-    #expect(await sounds.recorded == ["Pop"])
+    #expect(await sounds.recorded == ["drop-complete"])
   }
 
   @Test func `missing accessibility keeps transcript copied and shows fallback`() async {
@@ -1560,7 +1559,7 @@ import Testing
     }
     await store.send(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
-    #expect(await sounds.recorded == ["Basso"])
+    #expect(await sounds.recorded == ["drop-error"])
   }
 
   @Test func `recording start cues while a later discard stays quiet`() async {
@@ -1600,7 +1599,7 @@ import Testing
     await store.send(.recording(.delegate(.discarded))) { $0.dictationInFlight = false }
     await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
-    #expect(await sounds.recorded == ["Tink"])
+    #expect(await sounds.recorded == ["drop-activate"])
     // Chromium's wake walk belongs to recording start, never to delivery.
     #expect(await prewarms.count == 1)
   }
@@ -1756,8 +1755,8 @@ import Testing
     #expect(await starts.count == 1)
     #expect(await stops.count == 1)
     let recordedSounds = await sounds.recorded
-    #expect(recordedSounds.count(where: { $0 == "Tink" }) == 1)
-    #expect(!recordedSounds.contains("Funk"))
+    #expect(recordedSounds.count(where: { $0 == "drop-activate" }) == 1)
+    #expect(!recordedSounds.contains("drop-cancel"))
   }
 
   @Test func `secure input uses the copied fallback`() async {
@@ -1788,7 +1787,7 @@ import Testing
     }
     await store.send(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
-    #expect(await sounds.recorded == ["Basso"])
+    #expect(await sounds.recorded == ["drop-error"])
   }
 
   @Test func `delivery failure dismisses the pill and plays the error cue`() async {
@@ -1826,13 +1825,13 @@ import Testing
     )
     await store.receive(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
-    #expect(await sounds.recorded == ["Basso"])
+    #expect(await sounds.recorded == ["drop-error"])
   }
 
   @Test func `a silent commit cue suppresses its delivery sound`() async {
     let sounds = SoundRecorder()
     var state = AppFeature.State()
-    state.$settings.withLock { $0.sounds = .silent }
+    state.$settings.withLock { $0.soundTheme = .silent }
     state.awaitingTranscript(generation: 4)
     state.pill.presentation = .transcribing
     let store = TestStore(initialState: state) {

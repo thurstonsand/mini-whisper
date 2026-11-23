@@ -415,7 +415,7 @@ import TranscriptCleanup
     let state = AppFeature.State(
       history: Shared(value: original),
       settings: Shared(value: MiniWhisperSettings(
-        bindings: .defaults, microphone: .systemDefault, sounds: .defaults,
+        bindings: .defaults, microphone: .systemDefault, soundTheme: .default,
         retention: RetentionPolicy(transcripts: .forever, audio: .oneDay),
         profiles: .defaults, cleanupTimeout: 10, additionalInstructions: "",
       )),

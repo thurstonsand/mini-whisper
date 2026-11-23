@@ -67,10 +67,8 @@ import TranscriptCleanup
           continuation.yield(AudioLevel(decibels: -34.8, normalizedPower: 0.42))
         }
       }
-      // Tink is deliberately absent: the scene proves a cue's default remains selectable even
-      // when the system inventory does not report it. What played is read off the pane's own
-      // playback paint state, so the scene only has to keep the machine quiet.
-      dependencies.sounds.availableNames = { ["Basso", "Funk", "Glass", "Pop"] }
+      // What played is read off the pane's own playback paint state, so the scene only has to keep
+      // the machine quiet.
       dependencies.sounds.play = { _ in }
       // The pane's key really is read, stored, and re-read; only the Keychain behind it is the
       // scene's, so a UI run cannot leave a credential on the machine.

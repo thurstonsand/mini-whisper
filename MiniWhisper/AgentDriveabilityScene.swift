@@ -484,7 +484,7 @@ enum PresentedWindow: Equatable {
           uid: "seeded-disconnected-microphone", lastKnownName: "Studio Microphone",
         )
       case .settingsSoundsNoAudio:
-        settings.sounds.cancel = nil
+        settings.soundTheme = .silent
       case .settingsProfiles,
            .settingsProfilesKeyboard:
         settings.profiles.active = .custom

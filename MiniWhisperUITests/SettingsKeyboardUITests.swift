@@ -80,34 +80,27 @@ final class SettingsKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
         XCTAssertTrue(picker.exists)
       },
 
-      Law("Sound rows join the keyboard grammar") { app in
+      Law("The sound row joins the keyboard grammar") { app in
         try require(self.enterDetailAtFirstRow(app))
-        for cue in [
-          "shortcut.paste-last",
-          "microphone",
-          "sound.activate",
-          "sound.complete",
-          "sound.cancel",
-          "sound.error",
-        ] {
+        for row in ["shortcut.paste-last", "microphone", "sound"] {
           app.typeText("j")
-          self.assertValue("Bar on", of: app.staticTexts["miniwhisper.settings.\(cue).state"])
+          self.assertValue("Bar on", of: app.staticTexts["miniwhisper.settings.\(row).state"])
         }
-        app.typeText("kkkkkk")
+        app.typeText("kkk")
         self.assertValue(
           "Bar on", of: app.staticTexts["miniwhisper.settings.shortcut.activate.state"],
         )
       },
 
-      Law("Return opens a sound popup") { app in
+      Law("Return opens the sound theme popup") { app in
         try require(self.enterDetailAtFirstRow(app))
         app.typeText("jjj")
-        self.assertValue(
-          "Bar on", of: app.staticTexts["miniwhisper.settings.sound.activate.state"],
-        )
+        self.assertValue("Bar on", of: app.staticTexts["miniwhisper.settings.sound.state"])
         app.typeKey(.return, modifierFlags: [])
         try require(app.menuItems["No audio"].awaitExistence(timeout: 2))
-        XCTAssertTrue(app.menuItems["Tink (default)"].exists)
+        for theme in ["Drop (default)", "Pluck", "Hum", "Bloom"] {
+          XCTAssertTrue(app.menuItems[theme].exists, theme)
+        }
         app.typeKey(.escape, modifierFlags: [])
         try require(app.menuItems["No audio"].awaitNonExistence())
 
@@ -135,11 +128,13 @@ final class SettingsKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
         self.assertValue("0", of: toggle)
       },
 
-      Law("A sound preview fires the injected client") { app in
-        let preview = app.buttons["miniwhisper.settings.sound.activate.preview"]
+      Law("A theme preview fires the injected client") { app in
+        let preview = app.buttons["miniwhisper.settings.sound.preview"]
         try require(preview.awaitExistence(timeout: 2))
         preview.click()
-        self.assertValue("Tink", of: app.staticTexts["miniwhisper.settings.sound.playback"])
+        self.assertValue(
+          "drop-complete", of: app.staticTexts["miniwhisper.settings.sound.playback"],
+        )
       },
 
       Law("The microphone row answers the pointer") { app in
@@ -172,19 +167,13 @@ final class SettingsKeyboardUITests: MiniWhisperUITestCase, SurfaceTagged {
 
       Law("Keyboard movement continues from the hovered row") { app in
         try require(self.enterDetailAtFirstRow(app))
-        let errorRow = app.groups["miniwhisper.settings.sound.error"]
-        self.hoverAfterEnteringWindow(errorRow, in: app)
-        self.assertValue(
-          "Bar on", of: app.staticTexts["miniwhisper.settings.sound.error.state"],
-        )
+        let soundRow = app.groups["miniwhisper.settings.sound"]
+        self.hoverAfterEnteringWindow(soundRow, in: app)
+        self.assertValue("Bar on", of: app.staticTexts["miniwhisper.settings.sound.state"])
 
         app.typeText("k")
-        self.assertValue(
-          "Bar on", of: app.staticTexts["miniwhisper.settings.sound.cancel.state"],
-        )
-        self.assertValue(
-          "Ring off", of: app.buttons["miniwhisper.settings.sound.cancel.preview"],
-        )
+        self.assertValue("Bar on", of: app.staticTexts["miniwhisper.settings.microphone.state"])
+        self.assertValue("Bar off", of: app.staticTexts["miniwhisper.settings.sound.state"])
       },
     ])
   }
