@@ -1012,10 +1012,10 @@ import Testing
     }
     await store.receive(.recording(.delegate(.completed(recording)))) {
       $0.pendingDictation = AppFeature.PendingDictation(
+        generation: 1, recording: recording, createdAt: Date(timeIntervalSince1970: 31),
         releasedAt: nil, latched: false,
         profile: MiniWhisperSettings.defaults.activeProfile.id,
         screenMode: MiniWhisperSettings.defaults.screenContextMode,
-        generation: 1, recording: recording, createdAt: Date(timeIntervalSince1970: 31),
         engine: "parakeet-tdt-0.6b-v2", original: nil,
         cleanupTarget: MiniWhisperSettings.defaults.cleanupTarget,
       )
@@ -1088,8 +1088,8 @@ import Testing
     state.pill.presentation = .transcribing
     let store = TestStore(initialState: state) {
       AppFeature()
-      $0.date.now = Date(timeIntervalSince1970: 1000)
     } withDependencies: {
+      $0.date.now = Date(timeIntervalSince1970: 1000)
       $0.contextCapture.capture = { _ in
         for await _ in gate {}
         return .unavailable(.noFocusedElement)
@@ -1121,8 +1121,8 @@ import Testing
     state.pill.presentation = .transcribing
     let store = TestStore(initialState: state) {
       AppFeature()
-      $0.date.now = Date(timeIntervalSince1970: 1000)
     } withDependencies: {
+      $0.date.now = Date(timeIntervalSince1970: 1000)
       $0.contextCapture.capture = { _ in
         for await _ in gate {}
         return .unavailable(.noFocusedElement)
@@ -1150,8 +1150,8 @@ import Testing
     state.onboardingCompleted = true
     let store = TestStore(initialState: state) {
       AppFeature()
-      $0.date.now = Date(timeIntervalSince1970: 1000)
     } withDependencies: {
+      $0.date.now = Date(timeIntervalSince1970: 1000)
       $0.contextCapture.capture = { _ in
         for await _ in gate {}
         return .unavailable(.noFocusedElement)
@@ -1323,8 +1323,8 @@ import Testing
     state.transcriptionGeneration = 1
     state.dictationInFlight = true
     state.pendingDictation = AppFeature.PendingDictation(
-      releasedAt: nil, latched: false, profile: .everyday, screenMode: .off,
       generation: 1, recording: recording, createdAt: Date(timeIntervalSince1970: 32),
+      releasedAt: nil, latched: false, profile: .everyday, screenMode: .off,
       engine: "test-engine", original: nil,
     )
     let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
@@ -1501,8 +1501,8 @@ import Testing
     state.pill.presentation = .transcribing
     let store = TestStore(initialState: state) {
       AppFeature()
-      $0.date.now = Date(timeIntervalSince1970: 1000)
     } withDependencies: {
+      $0.date.now = Date(timeIntervalSince1970: 1000)
       $0.sounds.play = { cue in await sounds.record(cue) }
     }
 
@@ -1768,8 +1768,8 @@ import Testing
     state.pill.presentation = .transcribing
     let store = TestStore(initialState: state) {
       AppFeature()
-      $0.date.now = Date(timeIntervalSince1970: 1000)
     } withDependencies: {
+      $0.date.now = Date(timeIntervalSince1970: 1000)
       $0.sounds.play = { cue in await sounds.record(cue) }
       $0.continuousClock = clock
     }
@@ -1837,8 +1837,8 @@ import Testing
     state.pill.presentation = .transcribing
     let store = TestStore(initialState: state) {
       AppFeature()
-      $0.date.now = Date(timeIntervalSince1970: 1000)
     } withDependencies: {
+      $0.date.now = Date(timeIntervalSince1970: 1000)
       $0.sounds.play = { cue in await sounds.record(cue) }
     }
 

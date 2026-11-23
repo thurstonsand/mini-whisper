@@ -544,8 +544,6 @@ private let performanceLogger = Logger(
       case let .copyLastTranscriptFailed(message):
         deliveryLogger.error("Copying the last transcript failed: \(message, privacy: .public)")
         return .none
-      case let .workspaceOpenFailed(message):
-        menuLogger.error("Opening a menu destination failed: \(message, privacy: .public)")
       case let .exportMetrics(detail):
         // History is read only for the debugging export, and only for the text it still keeps.
         let transcripts = detail == .withTranscripts ? state.history.metricsTranscripts : [:]
@@ -559,6 +557,8 @@ private let performanceLogger = Logger(
       case let .metricsExportFailed(message):
         menuLogger.error("Exporting metrics failed: \(message, privacy: .public)")
         return .none
+      case let .workspaceOpenFailed(message):
+        menuLogger.error("Opening a menu destination failed: \(message, privacy: .public)")
         return .none
       case .modelDownloadConsentRecorded:
         guard state.onboarding.isPresented else {
@@ -748,9 +748,9 @@ private let performanceLogger = Logger(
         }
         dictation.capture = capture
         dictation.target = target
+        dictation.contextCapturedAt = now
         state.updateDictation(dictation)
         // Whether a pass is worth attempting at all. Whether one actually runs is the pipeline's
-        dictation.contextCapturedAt = now
         // to decide, and it says so by starting one.
         guard dictation.cleanupTarget != nil else {
           return .send(.cleanupResolved(generation, .passedThrough))

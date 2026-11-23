@@ -21,7 +21,6 @@ enum SettingsSoundPart {
   case row
   case rowState
   case picker
-  static let menuExportMetrics = "miniwhisper.menu.export-metrics"
   case pickerState
   case preview
 
@@ -51,6 +50,7 @@ enum AccessibilityID {
   static let menuStatusItem = "miniwhisper.menu.status-item"
   static let menuStatus = "miniwhisper.menu.status"
   static let menuCopyLastTranscript = "miniwhisper.menu.copy-last-transcript"
+  static let menuExportMetrics = "miniwhisper.menu.export-metrics"
   static let menuQuickAdd = "miniwhisper.menu.quick-add"
   static let menuQuickAddHeader = "miniwhisper.menu.quick-add.header"
   static let menuQuickAddWord = "miniwhisper.menu.quick-add.word"
@@ -208,10 +208,6 @@ enum AccessibilityID {
   static let onboardingTryItText = "miniwhisper.onboarding.try-it.text"
   static let onboardingTryItQuote = "miniwhisper.onboarding.try-it.quote"
   static let onboardingTryItCompletion = "miniwhisper.onboarding.try-it.completion"
-  static func menuExportMetrics(_ detail: MetricsLog.ExportDetail) -> String {
-    "miniwhisper.menu.export-metrics.\(detail.rawValue)"
-  }
-
   static let onboardingTryItCompletionSummary = "miniwhisper.onboarding.try-it.completion-summary"
   static let onboardingTryItGuidance = "miniwhisper.onboarding.try-it.guidance"
   static let onboardingTryItSkip = "miniwhisper.onboarding.try-it.skip"
@@ -235,6 +231,10 @@ enum AccessibilityID {
   static let pillSubmits = "miniwhisper.pill.submits"
 
   static let settingsEngineStatus = "miniwhisper.settings.engine-status"
+
+  static func menuExportMetrics(_ detail: MetricsLog.ExportDetail) -> String {
+    "miniwhisper.menu.export-metrics.\(detail.rawValue)"
+  }
 
   static func onboardingKeyField(_ provider: CredentialProvider) -> String {
     "miniwhisper.onboarding.keys.\(provider.rawValue)"
