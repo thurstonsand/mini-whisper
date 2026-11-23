@@ -219,7 +219,7 @@ private final class EventTapSession<Action: Equatable & Sendable>: @unchecked Se
   private var runLoop: CFRunLoop?
   private var eventTap: CFMachPort?
   private var stopWasRequested = false
-  private var pressedKeys: Set<PhysicalKey> = []
+  private var heldKeys = HeldKeys()
   private var matcher: MultipleChordMatcher<Action>
   private let submitKey: SubmitKeyGate
 
@@ -240,14 +240,25 @@ private final class EventTapSession<Action: Equatable & Sendable>: @unchecked Se
       return Unmanaged.passUnretained(event)
     }
 
-    guard let transition = normalize(type: type, event: event, time: time) else {
+    guard let (releases, transition) = normalize(type: type, event: event, time: time) else {
       return Unmanaged.passUnretained(event)
+    }
+    for release in releases {
+      gestureLogger.notice(
+        "Released a key whose key-up never reached the tap: \(String(describing: release.key), privacy: .public)",
+      )
+      deliver(matcher.receive(release).output)
     }
     // Only a fresh Return press is judged: the owed target's check reads Accessibility.
     matcher.submitKeyArmed = PhysicalKey.submitKeys.contains(transition.key)
       && transition.phase == .down && !transition.isRepeat && submitKey.claimsReturn()
     let match = matcher.receive(transition)
-    switch match.output {
+    deliver(match.output)
+    return match.disposition == .suppress ? nil : Unmanaged.passUnretained(event)
+  }
+
+  private func deliver(_ output: HotkeyMatchOutput<Action>?) {
+    switch output {
     case let .gesture(input),
          let .global(input):
       emit(input)
@@ -256,7 +267,6 @@ private final class EventTapSession<Action: Equatable & Sendable>: @unchecked Se
     case nil:
       break
     }
-    return match.disposition == .suppress ? nil : Unmanaged.passUnretained(event)
   }
 
   private func stopAfterInvalidation() {
@@ -316,7 +326,9 @@ private final class EventTapSession<Action: Equatable & Sendable>: @unchecked Se
     finishStream()
   }
 
-  private func normalize(type: CGEventType, event: CGEvent, time: Duration) -> KeyTransition? {
+  private func normalize(
+    type: CGEventType, event: CGEvent, time: Duration,
+  ) -> (releases: [KeyTransition], transition: KeyTransition)? {
     let keyCode = UInt16(event.getIntegerValueField(.keyboardEventKeycode))
     let key: PhysicalKey
     let phase: KeyPhase
@@ -325,29 +337,27 @@ private final class EventTapSession<Action: Equatable & Sendable>: @unchecked Se
        let modifier = ModifierKey.allCases.first(where: { $0.keyCode == keyCode })
     {
       key = .modifier(modifier)
-      if isModifierDown(modifier, event: event) {
-        pressedKeys.insert(key)
-        phase = .down
-      } else {
-        pressedKeys.remove(key)
-        phase = .up
-      }
+      phase = isModifierDown(modifier, event: event) ? .down : .up
     } else if type == .keyDown {
       key = .keyCode(keyCode)
-      pressedKeys.insert(key)
       phase = .down
     } else if type == .keyUp {
       key = .keyCode(keyCode)
-      pressedKeys.remove(key)
       phase = .up
     } else {
       return nil
     }
 
-    return KeyTransition(
-      key: key, phase: phase, isRepeat: event.getIntegerValueField(.keyboardEventAutorepeat) != 0,
-      pressedAfter: pressedKeys, time: time,
-    )
+    return heldKeys.record(
+      key, phase, isRepeat: event.getIntegerValueField(.keyboardEventAutorepeat) != 0, time: time,
+    ) { held in
+      switch held {
+      case let .modifier(modifier):
+        isModifierDown(modifier, event: event)
+      case let .keyCode(code):
+        CGEventSource.keyState(.hidSystemState, key: code)
+      }
+    }
   }
 
   private func isModifierDown(_ modifier: ModifierKey, event: CGEvent) -> Bool {
@@ -358,7 +368,7 @@ private final class EventTapSession<Action: Equatable & Sendable>: @unchecked Se
 
   private func interrupt(reason: TapDisableReason, reenable: Bool) {
     emit(.monitoringInterrupted)
-    pressedKeys.removeAll()
+    heldKeys.removeAll()
     matcher.interrupt()
     emit(.neutral)
     yield(.monitoringInterrupted(reason))

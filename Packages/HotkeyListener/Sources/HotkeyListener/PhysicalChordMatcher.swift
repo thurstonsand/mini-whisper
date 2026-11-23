@@ -43,6 +43,63 @@ public struct KeyTransition: Equatable, Sendable {
   public let time: Duration
 }
 
+// MARK: - HeldKeys
+
+/// The keys the tap has seen go down and not yet come up. A key-up the tap never sees — Secure
+/// Event Input swallows keys while a password prompt or a locked screen has them — would leave
+/// its key held here for good, and every later chord would read as a conflict with it until a
+/// relaunch. So a key is let go once the keyboard no longer holds it, or once it goes down again.
+struct HeldKeys {
+  // MARK: Internal
+
+  /// How long a key must have been held before the keyboard's word that it is up outranks the
+  /// tap's. The callback can trail the keyboard, so a key-up still queued behind the event in
+  /// hand reads as missing; a backlog of a second disables the tap long before it gets here.
+  static let staleAfter = Duration.seconds(1)
+
+  var keys: Set<PhysicalKey> {
+    Set(downAt.keys)
+  }
+
+  /// The releases owed for keys that came up unseen, in the order to feed them, then `key`'s own
+  /// transition.
+  mutating func record(
+    _ key: PhysicalKey, _ phase: KeyPhase, isRepeat: Bool, time: Duration,
+    isHeld: (PhysicalKey) -> Bool,
+  ) -> (releases: [KeyTransition], transition: KeyTransition) {
+    var releases: [KeyTransition] = []
+    for (held, since) in downAt {
+      let isStale = held == key
+        ? phase == .down && !isRepeat
+        : time - since >= Self.staleAfter && !isHeld(held)
+      if isStale {
+        downAt[held] = nil
+        releases.append(KeyTransition(key: held, phase: .up, pressedAfter: keys, time: time))
+      }
+    }
+    switch phase {
+    case .down:
+      if downAt[key] == nil {
+        downAt[key] = time
+      }
+    case .up:
+      downAt[key] = nil
+    }
+    let transition = KeyTransition(
+      key: key, phase: phase, isRepeat: isRepeat, pressedAfter: keys, time: time,
+    )
+    return (releases, transition)
+  }
+
+  mutating func removeAll() {
+    downAt.removeAll()
+  }
+
+  // MARK: Private
+
+  private var downAt: [PhysicalKey: Duration] = [:]
+}
+
 // MARK: - GestureInput
 
 public enum GestureInput: Equatable, Sendable {

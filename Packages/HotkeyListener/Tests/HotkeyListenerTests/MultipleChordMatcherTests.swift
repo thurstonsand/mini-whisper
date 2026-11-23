@@ -202,6 +202,46 @@ struct MultipleChordMatcherTests {
     #expect(partial.output == nil)
   }
 
+  @Test func `a key-up the tap never saw does not block the next activation`() {
+    var tap = RecordingTap(matcher: gestureMatcher([.testRightOption]))
+
+    // Q goes down; its key-up is lost behind a lock screen.
+    _ = tap.press(.keyCode(12), .down, at: .zero, keyboard: [.keyCode(12)])
+    let option = tap.press(
+      .modifier(.rightOption), .down, at: .seconds(5), keyboard: [.modifier(.rightOption)],
+    )
+
+    #expect(option.gestureInput == .activation(at: .seconds(5)))
+    #expect(tap.held.keys == [.modifier(.rightOption)])
+  }
+
+  /// The callback can trail the keyboard: Q's key-up may still be queued behind this Option.
+  @Test func `a key-up still on its way keeps the chord in conflict`() {
+    var tap = RecordingTap(matcher: gestureMatcher([.testRightOption]))
+
+    _ = tap.press(.keyCode(12), .down, at: .zero, keyboard: [.keyCode(12)])
+    let option = tap.press(
+      .modifier(.rightOption), .down, at: .milliseconds(80), keyboard: [.modifier(.rightOption)],
+    )
+
+    #expect(option.gestureInput == nil)
+    #expect(tap.held.keys == [.keyCode(12), .modifier(.rightOption)])
+  }
+
+  @Test func `a fresh press of a key whose release was lost starts over`() {
+    var tap = RecordingTap(matcher: gestureMatcher([.testRightOption]))
+    let returnKey = PhysicalKey.keyCode(36)
+    tap.matcher.submitKeyArmed = true
+    #expect(tap.press(returnKey, .down, at: .zero, keyboard: [returnKey]).disposition == .suppress)
+    tap.matcher.submitKeyArmed = false
+
+    let repeated = tap.press(returnKey, .down, repeat: true, at: .milliseconds(500), keyboard: [])
+    let fresh = tap.press(returnKey, .down, at: .milliseconds(600), keyboard: [returnKey])
+
+    #expect(repeated.disposition == .suppress)
+    #expect(fresh.disposition == .passThrough)
+  }
+
   // MARK: Private
 
   private enum TestAction: Equatable { case pasteLastTranscript }
@@ -217,6 +257,27 @@ struct MultipleChordMatcherTests {
     time: Duration = .zero,
   ) -> KeyTransition {
     KeyTransition(key: key, phase: phase, pressedAfter: pressedAfter, time: time)
+  }
+}
+
+// MARK: - RecordingTap
+
+/// What the event tap does with each key event: settle the held keys, then route.
+private struct RecordingTap<Action: Equatable & Sendable> {
+  var matcher: MultipleChordMatcher<Action>
+  var held = HeldKeys()
+
+  mutating func press(
+    _ key: PhysicalKey, _ phase: KeyPhase, repeat isRepeat: Bool = false, at time: Duration,
+    keyboard: Set<PhysicalKey>,
+  ) -> RoutedChordMatch<Action> {
+    let (releases, transition) = held.record(
+      key, phase, isRepeat: isRepeat, time: time, isHeld: keyboard.contains,
+    )
+    for release in releases {
+      _ = matcher.receive(release)
+    }
+    return matcher.receive(transition)
   }
 }
 
