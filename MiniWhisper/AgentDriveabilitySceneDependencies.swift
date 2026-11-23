@@ -81,7 +81,7 @@ import TranscriptCleanup
         adopt: { _, _ in },
       )
       dependencies.cleanup = CleanupClient(
-        clean: { _, _, _ in .cleaned("Agent scenes never dictate.") },
+        clean: { _, _, _ in .cleaned("Agent scenes never dictate.", stripped: []) },
         // Each way a Save can fail has an address, a key, or a model that provokes it, so a UI
         // run reaches every failure by typing rather than by a seam.
         verify: { configuration, apiKey in
@@ -114,7 +114,7 @@ import TranscriptCleanup
             .models(["gpt-oss-120b", "gpt-oss-20b"])
           }
         },
-        cleanLocally: { _, _ in .cleaned("Agent scenes never dictate.") },
+        cleanLocally: { _, _ in .cleaned("Agent scenes never dictate.", stripped: []) },
         prepareLocal: {},
         unloadLocal: {},
       )

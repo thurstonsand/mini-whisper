@@ -12,7 +12,10 @@ struct OpenAICompatibleCleanupTests {
       status: 200,
       body: completion("```\nRun the tests.\n```"),
     ))
-    #expect(await client(session: session).clean(request) == .cleaned("Run the tests."))
+    #expect(await client(session: session).clean(request) == .cleaned(
+      "Run the tests.",
+      stripped: [.codeFence],
+    ))
   }
 
   @Test func `the request carries the assembled prompt, the model, and the key`() async throws {

@@ -40,11 +40,10 @@ enum CleanupResolution: Equatable {
   // MARK: Internal
 
   enum Attempt: Equatable {
-    case cleaned(String, seconds: Double)
+    /// `stripped` is the wrappers response shaping peeled off the reply.
+    case cleaned(String, stripped: [ResponseWrapper], seconds: Double)
     case skipped(seconds: Double)
-    /// `rejectsKey` is the endpoint refusing the key it was sent, which outlives the dictation:
-    /// the key reads invalid until a cleanup with it succeeds.
-    case failed(reason: String, seconds: Double, rejectsKey: Bool)
+    case failed(CleanupFailure, seconds: Double)
   }
 }
 
@@ -68,7 +67,12 @@ enum CleanupPlan: Equatable {
 /// record is absent whenever no pass ran — there is nothing to attribute.
 struct ProcessedTranscript: Equatable {
   var outcome: TranscriptionOutcome
-  var cleanup: CleanupRecord?
+  var transcriptionSeconds: Double
+  var cleanupResolution: CleanupResolution?
+
+  var cleanup: CleanupRecord? {
+    cleanupResolution.flatMap(CleanupRecord.init)
+  }
 }
 
 // MARK: - TranscriptPipeline
@@ -136,10 +140,7 @@ struct TranscriptPipeline {
     // A key the Keychain refuses is a cleanup failure and says so. No request leaves, so the
     // pill never flashes a phase that is not happening.
     case let .keyUnreadable(configuration):
-      return .attempted(
-        configuration,
-        .failed(reason: "keyUnreadable", seconds: 0, rejectsKey: false),
-      )
+      return .attempted(configuration, .failed(.keyUnreadable, seconds: 0))
     case let .runnable(configuration, apiKey):
       await requestStarting(configuration)
       return await clean(
@@ -175,14 +176,20 @@ struct TranscriptPipeline {
     _ recording: CanonicalRecording, engine: SpeechEngine, dictionary: TranscriptionDictionary,
     conditioning: CleanupConditioning, target: CleanupTarget?,
   ) async throws -> ProcessedTranscript {
+    let started = date.now
     let outcome = try await transcribe(recording, engine: engine, dictionary: dictionary)
+    let seconds = date.now.timeIntervalSince(started)
     guard case let .transcript(transcript) = outcome else {
-      return ProcessedTranscript(outcome: outcome, cleanup: nil)
+      return ProcessedTranscript(
+        outcome: outcome, transcriptionSeconds: seconds, cleanupResolution: nil,
+      )
     }
     let resolution = await resolveCleanup(
       transcript, conditioning: conditioning, target: target,
     )
-    return ProcessedTranscript(outcome: outcome, cleanup: resolution.flatMap(CleanupRecord.init))
+    return ProcessedTranscript(
+      outcome: outcome, transcriptionSeconds: seconds, cleanupResolution: resolution,
+    )
   }
 
   // MARK: Private
@@ -193,16 +200,19 @@ struct TranscriptPipeline {
   ) -> CleanupResolution? {
     let seconds = date.now.timeIntervalSince(started)
     switch outcome {
-    case let .cleaned(cleaned):
+    case let .cleaned(cleaned, stripped):
       pipelineLogger.notice("Cleaned in \(seconds, format: .fixed(precision: 2))s")
-      return .attempted(configuration, .cleaned(cleaned, seconds: seconds))
+      if !stripped.isEmpty {
+        pipelineLogger.notice(
+          "Cleanup reply shaped: \(stripped.map(\.rawValue).joined(separator: ", "), privacy: .public)",
+        )
+      }
+      return .attempted(configuration, .cleaned(cleaned, stripped: stripped, seconds: seconds))
     case .cancelled:
       return nil
     case let .failed(failure):
       pipelineLogger.error("Cleanup failed: \(failure.localizedDescription, privacy: .public)")
-      return .attempted(configuration, .failed(
-        reason: failure.historyDetail, seconds: seconds, rejectsKey: failure.rejectsKey,
-      ))
+      return .attempted(configuration, .failed(failure, seconds: seconds))
     }
   }
 }

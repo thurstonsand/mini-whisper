@@ -5,7 +5,8 @@ import Foundation
 /// What one cleanup pass produced. Cancellation is not a failure: any activation press resolves a
 /// pending cleanup as a skip, so it is the most ordinary non-success there is.
 public enum CleanupOutcome: Equatable, Sendable {
-  case cleaned(String)
+  /// The text to deliver, and the wrappers response shaping peeled off to reach it.
+  case cleaned(String, stripped: [ResponseWrapper])
   case cancelled
   case failed(CleanupFailure)
 }
@@ -45,6 +46,8 @@ public enum CleanupFailure: Error, Equatable, LocalizedError, Sendable {
   case degenerateResponse(DegenerateResponse)
   /// The model on this Mac could not run.
   case localModel(String)
+  /// The Keychain refused to hand over the key, so no request ever left.
+  case keyUnreadable
 
   // MARK: Public
 
@@ -76,6 +79,8 @@ public enum CleanupFailure: Error, Equatable, LocalizedError, Sendable {
       "Cleanup response was unusable: \(reason.description)"
     case let .localModel(message):
       "Local cleanup failed: \(message)"
+    case .keyUnreadable:
+      "The cleanup key could not be read from the Keychain"
     }
   }
 }

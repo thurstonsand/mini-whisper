@@ -1,5 +1,24 @@
 import Foundation
 
+// MARK: - ResponseWrapper
+
+/// One kind of wrapper response shaping strips from around a model's answer.
+public enum ResponseWrapper: String, CaseIterable, Codable, CodingKeyRepresentable, Sendable {
+  case reasoningBlock
+  case answerTag
+  case codeFence
+  case leadingLabel
+  case quotation
+}
+
+// MARK: - ShapedResponse
+
+public struct ShapedResponse: Equatable, Sendable {
+  public let text: String
+  /// Every wrapper peeled off, in the order shaping removed them; a kind repeats each time.
+  public let stripped: [ResponseWrapper]
+}
+
 // MARK: - CleanupResponseShaping
 
 /// Conforms a completion at the edge. No prompt makes a model's compliance a protocol, so the
@@ -14,35 +33,42 @@ public enum CleanupResponseShaping {
   public static let runawayLengthMultiple = 4
   public static let runawayLengthSlack = 200
 
-  public static func shape(_ raw: String) -> String {
+  public static func shape(_ raw: String) -> ShapedResponse {
     var text = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+    var stripped: [ResponseWrapper] = []
     // Wrappers nest — a label around a fence around a quotation — so each pass peels one layer
     // and the loop stops as soon as a pass finds nothing left to peel.
     for _ in 0 ..< maximumWrapperDepth {
-      var peeled = strippingReasoningTags(text).trimmingCharacters(in: .whitespacesAndNewlines)
-      peeled = strippingCodeFence(peeled).trimmingCharacters(in: .whitespacesAndNewlines)
-      peeled = strippingLeadingLabel(peeled).trimmingCharacters(in: .whitespacesAndNewlines)
-      peeled = strippingQuotationWrapper(peeled).trimmingCharacters(in: .whitespacesAndNewlines)
+      var peeled = strippingReasoningTags(text, &stripped)
+        .trimmingCharacters(in: .whitespacesAndNewlines)
+      peeled = strippingCodeFence(peeled, &stripped)
+        .trimmingCharacters(in: .whitespacesAndNewlines)
+      peeled = strippingLeadingLabel(peeled, &stripped)
+        .trimmingCharacters(in: .whitespacesAndNewlines)
+      peeled = strippingQuotationWrapper(peeled, &stripped)
+        .trimmingCharacters(in: .whitespacesAndNewlines)
       guard peeled != text else {
-        return text
+        break
       }
       text = peeled
     }
-    return text
+    return ShapedResponse(text: text, stripped: stripped)
   }
 
-  /// The shaped text, or why it cannot be delivered.
-  public static func conform(_ raw: String,
-                             transcript: String) -> Result<String, DegenerateResponse>
-  {
+  /// The shaped response, or why it cannot be delivered.
+  public static func conform(
+    _ raw: String, transcript: String,
+  ) -> Result<ShapedResponse, DegenerateResponse> {
     let shaped = shape(raw)
-    guard !shaped.isEmpty else {
+    guard !shaped.text.isEmpty else {
       return .failure(.empty)
     }
     guard
-      shaped.count <= transcript.count * runawayLengthMultiple + runawayLengthSlack
+      shaped.text.count <= transcript.count * runawayLengthMultiple + runawayLengthSlack
     else {
-      return .failure(.runaway(cleanedLength: shaped.count, transcriptLength: transcript.count))
+      return .failure(
+        .runaway(cleanedLength: shaped.text.count, transcriptLength: transcript.count),
+      )
     }
     return .success(shaped)
   }
@@ -58,11 +84,14 @@ public enum CleanupResponseShaping {
   ]
 
   /// Reasoning blocks are dropped whole; a wrapper the model put the answer inside is unwrapped.
-  private static func strippingReasoningTags(_ text: String) -> String {
+  private static func strippingReasoningTags(
+    _ text: String, _ stripped: inout [ResponseWrapper],
+  ) -> String {
     var text = text
     for tag in reasoningTags {
       while let block = enclosedRange(of: tag, in: text) {
         text.removeSubrange(block.outer)
+        stripped.append(.reasoningBlock)
       }
     }
     for tag in outputTags {
@@ -71,6 +100,7 @@ public enum CleanupResponseShaping {
          text[block.outer.upperBound...].trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
       {
         text = String(text[block.inner])
+        stripped.append(.answerTag)
       }
     }
     return text
@@ -90,7 +120,9 @@ public enum CleanupResponseShaping {
   }
 
   /// Only a fence around the entire answer is a wrapper. A fence in the middle is dictated code.
-  private static func strippingCodeFence(_ text: String) -> String {
+  private static func strippingCodeFence(
+    _ text: String, _ stripped: inout [ResponseWrapper],
+  ) -> String {
     var lines = text.components(separatedBy: "\n")
     guard lines.count >= 2, lines[0].hasPrefix("```"), lines[lines.count - 1].hasPrefix("```"),
           !lines[0].dropFirst(3).contains("`")
@@ -99,10 +131,13 @@ public enum CleanupResponseShaping {
     }
     lines.removeFirst()
     lines.removeLast()
+    stripped.append(.codeFence)
     return lines.joined(separator: "\n")
   }
 
-  private static func strippingLeadingLabel(_ text: String) -> String {
+  private static func strippingLeadingLabel(
+    _ text: String, _ stripped: inout [ResponseWrapper],
+  ) -> String {
     guard let colon = text.firstIndex(of: ":") else {
       return text
     }
@@ -111,6 +146,7 @@ public enum CleanupResponseShaping {
     guard leadingLabels.contains(where: { label == $0 || label == "here is the \($0)" }) else {
       return text
     }
+    stripped.append(.leadingLabel)
     // A bold label closes its emphasis after the colon: `**Cleaned transcript:** text`.
     let remainder = text[text.index(after: colon)...]
     guard text.hasPrefix("*") else {
@@ -121,7 +157,9 @@ public enum CleanupResponseShaping {
 
   /// A wrapper is a pair of quotes around everything with no bare copy of that quote inside; a
   /// speaker who dictated a quotation keeps it.
-  private static func strippingQuotationWrapper(_ text: String) -> String {
+  private static func strippingQuotationWrapper(
+    _ text: String, _ stripped: inout [ResponseWrapper],
+  ) -> String {
     let pairs: [(Character, Character)] = [("\"", "\""), ("'", "'"), ("“", "”"), ("‘", "’")]
     guard let first = text.first, let last = text.last, text.count >= 2,
           let pair = pairs.first(where: { $0.0 == first && $0.1 == last })
@@ -132,6 +170,7 @@ public enum CleanupResponseShaping {
     guard !inner.contains(pair.0), !inner.contains(pair.1) else {
       return text
     }
+    stripped.append(.quotation)
     return String(inner)
   }
 }

@@ -69,8 +69,9 @@ if CommandLine.arguments.count == 3 {
     var outcome: CleanupOutcome = .cancelled
     let elapsed = await clock.measure { outcome = await client.clean(sample.request) }
     switch outcome {
-    case let .cleaned(text):
+    case let .cleaned(text, stripped):
       print("cleaned: \(text)")
+      print("stripped: \(stripped.map(\.rawValue))")
     case .cancelled:
       print("cancelled")
     case let .failed(failure):
@@ -105,10 +106,11 @@ print(MockEndpoint.wrappedReply)
 
 print("\n=== OUTCOME ===")
 switch await client.clean(request) {
-case let .cleaned(text):
+case let .cleaned(text, stripped):
   print("cleaned: \(text)")
 case .cancelled:
   print("cancelled")
+  print("stripped: \(stripped.map(\.rawValue))")
 case let .failed(failure):
   print("failed: \(failure.localizedDescription)")
 }

@@ -1,6 +1,7 @@
 import AppKit
 import AppSettings
 import ComposableArchitecture
+import Metrics
 
 @MainActor final class MenuBarController: NSObject, NSMenuDelegate {
   // MARK: Lifecycle
@@ -142,6 +143,7 @@ import ComposableArchitecture
     )
 
     menu.addItem(quickAddItem)
+    menu.addItem(exportMetricsItem())
 
     menu.addItem(.separator())
     let settingsItem = item(
@@ -207,6 +209,39 @@ import ComposableArchitecture
 
   @objc private func copyLastTranscript() {
     store.send(.copyLastTranscript)
+  }
+
+  /// Each export lands in the app's Exports folder and opens in Finder.
+  private func exportMetricsItem() -> NSMenuItem {
+    let submenu = NSMenu()
+    let choices: [(MetricsLog.ExportDetail, String)] = [
+      (.anonymized, "Anonymized"),
+      (.identified, "With Identifiers"),
+      (.withTranscripts, "With Transcripts (Debugging)"),
+    ]
+    for (detail, title) in choices {
+      let choice = item(
+        title: title, identifier: AccessibilityID.menuExportMetrics(detail), label: title,
+        action: #selector(exportMetrics),
+      )
+      choice.representedObject = detail.rawValue
+      submenu.addItem(choice)
+    }
+    let parent = item(
+      title: "Export Metrics", identifier: AccessibilityID.menuExportMetrics,
+      label: "Export Metrics", action: nil,
+    )
+    parent.submenu = submenu
+    return parent
+  }
+
+  @objc private func exportMetrics(_ sender: NSMenuItem) {
+    guard let raw = sender.representedObject as? String,
+          let detail = MetricsLog.ExportDetail(rawValue: raw)
+    else {
+      preconditionFailure("An export row was built without its detail")
+    }
+    store.send(.exportMetrics(detail))
   }
 
   @objc private func showSettings() {

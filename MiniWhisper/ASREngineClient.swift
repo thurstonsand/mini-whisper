@@ -34,6 +34,15 @@ import SpeechDictionary
 }
 
 extension ProfileSettings {
+  /// The host of an overridden Scribe endpoint, which `identity` puts ahead of the model name.
+  func customScribeHost(_ engine: SpeechEngine) -> String? {
+    let configuration = scribeConfiguration
+    guard engine == .scribe, configuration != .scribe else {
+      return nil
+    }
+    return configuration.endpoint.host() ?? "hosted"
+  }
+
   var scribeConfiguration: HostedASREngine.Configuration {
     let factory = HostedASREngine.Configuration.scribe
     return .init(endpoint: scribeOverride?.endpoint ?? factory.endpoint,

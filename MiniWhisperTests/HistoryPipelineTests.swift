@@ -6,6 +6,7 @@ import FieldContext
 import Foundation
 import History
 import HotkeyListener
+import Metrics
 @testable import MiniWhisper
 import Sharing
 import Testing
@@ -83,13 +84,18 @@ import TranscriptCleanup
     #expect(store.state.history.entries == [entry])
   }
 
-  @Test func `no speech creates no history entry`() async {
+  @Test func `no speech creates no history entry, only a metrics line`() async {
     var state = historyState()
     state.transcriptionGeneration = 1
     state.pill.presentation = .transcribing
     state.pendingDictation = pendingDictation(generation: 1)
+    let lines = StringRecorder()
     let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
+      $0.date.now = Date(timeIntervalSince1970: 1000)
       $0.continuousClock = TestClock()
+      $0.metrics.record = { record in
+        await lines.record(String(decoding: try! MetricsLog.line(record), as: UTF8.self))
+      }
     }
 
     await store.send(.transcriptionCompleted(1, .noSpeech)) {
@@ -102,6 +108,11 @@ import TranscriptCleanup
     await store.send(.pill(.dismiss)) { $0.pill.presentation = nil }
     await store.finish()
     #expect(store.state.history.entries.isEmpty)
+    // The gate's refusal still counts, so the rejection rate has a denominator.
+    let line = await lines.values.only
+    #expect(line?.contains(#""outcome":"no_speech""#) == true)
+    #expect(line?.contains(#""id""#) == false)
+    #expect(line?.contains(#""text""#) == false)
   }
 
   @Test func `too short creates no history entry`() async {
@@ -109,7 +120,9 @@ import TranscriptCleanup
     state.transcriptionGeneration = 1
     state.pill.presentation = .transcribing
     state.pendingDictation = pendingDictation(generation: 1)
-    let store = TestStore(initialState: state) { AppFeature() }
+    let store = TestStore(initialState: state) { AppFeature() } withDependencies: {
+      $0.date.now = Date(timeIntervalSince1970: 1000)
+    }
 
     await store.send(.transcriptionCompleted(1, .tooShort)) {
       $0.pendingDictation = nil
@@ -130,6 +143,7 @@ import TranscriptCleanup
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
+      $0.date.now = Date(timeIntervalSince1970: 1000)
       $0.historyClient.writeAudio = { _, savedID in
         #expect(savedID == id)
         return metadata
@@ -167,6 +181,7 @@ import TranscriptCleanup
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
+      $0.date.now = Date(timeIntervalSince1970: 1000)
       $0.uuid = .constant(id)
     }
     store.exhaustivity = .off(showSkippedAssertions: false)
@@ -201,6 +216,7 @@ import TranscriptCleanup
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
+      $0.date.now = Date(timeIntervalSince1970: 1000)
       $0.historyClient.writeAudio = { _, _ in throw HistoryPipelineTestError.audioWriteFailed }
       $0.uuid = .constant(UUID())
     }
@@ -265,6 +281,7 @@ import TranscriptCleanup
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
+      $0.date.now = Date(timeIntervalSince1970: 1000)
       $0.historyClient.writeAudio = { _, _ in
         await writes.record()
         return AudioMetadata(durationSeconds: 1, byteCount: 1)
@@ -332,6 +349,7 @@ import TranscriptCleanup
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
+      $0.date.now = Date(timeIntervalSince1970: 1000)
       $0.asrEngine.prepareForActivation = { _ in AsyncStream { _ in } }
       $0.audioCapture.currentInputDeviceName = { _ in "Test Microphone" }
       $0.audioCapture.start = { _ in
@@ -565,6 +583,7 @@ import TranscriptCleanup
     let store = TestStore(initialState: state) {
       AppFeature()
     } withDependencies: {
+      $0.date.now = Date(timeIntervalSince1970: 1000)
       $0.historyClient.writeAudio = { recording, id in try vault.write(recording, id: id) }
       $0.historyClient.deleteAudio = { ids in try vault.delete(ids) }
       $0.historyClient.reconcile = { log in try vault.reconcile(log) }
@@ -600,6 +619,7 @@ private func pendingDictation(
 ) -> AppFeature.PendingDictation {
   AppFeature.PendingDictation(
     generation: generation, recording: recording, createdAt: createdAt,
+    releasedAt: nil, latched: false, profile: .everyday, screenMode: .off,
     engine: "test-engine@revision", original: nil,
   )
 }

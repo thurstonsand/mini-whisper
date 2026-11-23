@@ -3,6 +3,7 @@ import ASREngine
 import ComposableArchitecture
 import Foundation
 import History
+import Metrics
 import OSLog
 import SpeechDictionary
 import SwiftUI
@@ -107,7 +108,7 @@ import TranscriptCleanup
     case deleteFailed(UUID, String)
     case retranscribeTapped(UUID)
     case retranscriptionCompleted(UUID, SpeechEngine, ProcessedTranscript)
-    case retranscriptionFailed(UUID, String)
+    case retranscriptionFailed(UUID, SpeechEngine, String)
     case storagePresentationChanged(Bool)
     case retentionProposed(RetentionPolicy.Key, RetentionTTL)
     case retentionReductionCancelled
@@ -130,6 +131,7 @@ import TranscriptCleanup
   @Dependency(\.date.now) var now
   @Dependency(\.delivery) var delivery
   @Dependency(\.historyClient) var historyClient
+  @Dependency(\.metrics) var metrics
   @Dependency(\.historyPlayback) var playback
 
   var body: some ReducerOf<Self> {
@@ -263,7 +265,7 @@ import TranscriptCleanup
               target: target,
             )
             await send(.retranscriptionCompleted(id, engine, processed))
-          } catch { await send(.retranscriptionFailed(id, error.localizedDescription)) }
+          } catch { await send(.retranscriptionFailed(id, engine, error.localizedDescription)) }
         }
       case let .retranscriptionCompleted(id, engine, processed):
         state.retranscribingEntryIDs.remove(id)
@@ -283,7 +285,20 @@ import TranscriptCleanup
             }
           state.retranscriptionFailures[id] = message
           historyLogger.error("History re-transcription failed: \(message, privacy: .public)")
-          return .none
+          let outcome: DictationMetrics.Outcome =
+            switch processed.outcome {
+            case .tooShort:
+              .tooShort
+            case .noSpeech:
+              .noSpeech
+            case .engineEmpty:
+              .engineEmpty
+            case .transcript:
+              .transcribed
+            }
+          return recordRetranscription(
+            id, outcome: outcome, engine: engine, processed: processed, state: state,
+          )
         }
         state.$log.withLock {
           $0.entries[index].addRetranscription(
@@ -293,12 +308,19 @@ import TranscriptCleanup
             ),
           )
         }
-        return save(state.$log)
-      case let .retranscriptionFailed(id, message):
+        return .merge(
+          save(state.$log),
+          recordRetranscription(
+            id, outcome: .transcribed, engine: engine, processed: processed, state: state,
+          ),
+        )
+      case let .retranscriptionFailed(id, engine, message):
         state.retranscribingEntryIDs.remove(id)
         state.retranscriptionFailures[id] = message
         historyLogger.error("History re-transcription failed: \(message, privacy: .public)")
-        return .none
+        return recordRetranscription(
+          id, outcome: .transcriptionFailed, engine: engine, processed: nil, state: state,
+        )
       case let .storagePresentationChanged(presented):
         state.isStoragePresented = presented
         return .none
@@ -324,6 +346,30 @@ import TranscriptCleanup
   }
 
   // MARK: Private
+
+  /// A re-transcription's metrics line. Its pass is the transcription's place on the entry, which
+  /// only a pass History kept has.
+  private func recordRetranscription(
+    _ id: UUID, outcome: DictationMetrics.Outcome, engine: SpeechEngine,
+    processed: ProcessedTranscript?, state: State,
+  ) -> Effect<Action> {
+    guard let entry = state.log.entries.first(where: { $0.id == id }) else {
+      return .none
+    }
+    let pass = outcome == .transcribed ? entry.retranscriptions.count : nil
+    return .run { [
+      at = now, profile = state.settings.activeProfile.id, identity = asrEngine.identity(engine),
+      host = state.settings.profiles.customScribeHost(engine),
+      vocabulary = state.dictionary.vocabulary.count,
+    ] _ in
+      await metrics.record(
+        .retranscription(
+          of: entry, pass: pass, outcome: outcome, at: at, profile: profile, engine: identity,
+          engineHost: host, processed: processed, vocabulary: vocabulary,
+        ),
+      )
+    }
+  }
 
   /// A copy takes what the row is showing, which is what the peek changes: ⌥ held copies the
   /// transcript, exactly as the row reads under the same key.

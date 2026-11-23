@@ -113,6 +113,7 @@ extension AppFeature {
       }
       var started = dictation
       started.isDelivering = true
+      started.deliveryStartedAt = now
       state.updateDictation(started)
       effects.append(
         .run { send in

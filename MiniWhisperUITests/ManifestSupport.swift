@@ -177,6 +177,8 @@ let menuKnownIdentifiers: Set<String> = [
   "miniwhisper.menu.quick-add", "miniwhisper.menu.quick-add.header",
   "miniwhisper.menu.quick-add.word", "miniwhisper.menu.quick-add.disclosure",
   "miniwhisper.menu.quick-add.misspelling", "miniwhisper.menu.quick-add.submit",
-  "miniwhisper.menu.quick-add.failure", "miniwhisper.menu.settings",
+  "miniwhisper.menu.quick-add.failure", "miniwhisper.menu.export-metrics",
+  "miniwhisper.menu.export-metrics.anonymized", "miniwhisper.menu.export-metrics.identified",
+  "miniwhisper.menu.export-metrics.with-transcripts", "miniwhisper.menu.settings",
   "miniwhisper.menu.about", "miniwhisper.menu.quit",
 ]

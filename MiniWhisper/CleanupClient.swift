@@ -70,8 +70,8 @@ extension CleanupClient: DependencyKey {
             // The same edge a hosted reply passes: empty or runaway text never replaces what
             // was heard.
             switch CleanupResponseShaping.conform(raw, transcript: transcript) {
-            case let .success(cleaned):
-              return .cleaned(cleaned)
+            case let .success(shaped):
+              return .cleaned(shaped.text, stripped: shaped.stripped)
             case let .failure(reason):
               return .failed(.degenerateResponse(reason))
             }

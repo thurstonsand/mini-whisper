@@ -33,8 +33,8 @@ public struct OpenAICompatibleCleanup: Sendable {
     switch await completion(messages: messages, timeout: configuration.timeout) {
     case let .succeeded(content):
       switch CleanupResponseShaping.conform(content, transcript: request.transcript) {
-      case let .success(cleaned):
-        return .cleaned(cleaned)
+      case let .success(shaped):
+        return .cleaned(shaped.text, stripped: shaped.stripped)
       case let .failure(reason):
         return .failed(.degenerateResponse(reason))
       }

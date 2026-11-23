@@ -35,6 +35,8 @@
 		60A5000E000000000000A50E /* AudioCapture in Frameworks */ = {isa = PBXBuildFile; productRef = 60A5000F000000000000A50F /* AudioCapture */; };
 		60D10001000000000000D101 /* SpeechDictionary in Frameworks */ = {isa = PBXBuildFile; productRef = 60D10002000000000000D102 /* SpeechDictionary */; };
 		60D10003000000000000D103 /* SpeechDictionary in Frameworks */ = {isa = PBXBuildFile; productRef = 60D10004000000000000D104 /* SpeechDictionary */; };
+		60E70001000000000000E701 /* Metrics in Frameworks */ = {isa = PBXBuildFile; productRef = 60E70002000000000000E702 /* Metrics */; };
+		60E70003000000000000E703 /* Metrics in Frameworks */ = {isa = PBXBuildFile; productRef = 60E70004000000000000E704 /* Metrics */; };
 		60292D0F2EF609C9009AD5D1 /* DependenciesMacros in Frameworks */ = {isa = PBXBuildFile; productRef = 60292D0E2EF609C9009AD5D1 /* DependenciesMacros */; };
 /* End PBXBuildFile section */
 
@@ -69,6 +71,7 @@
 		60AB0005000000000000AB05 /* ModelLibrary */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = ModelLibrary; sourceTree = "<group>"; };
 		60AC0005000000000000AC05 /* LocalCleanup */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = LocalCleanup; sourceTree = "<group>"; };
 		60D10005000000000000D105 /* SpeechDictionary */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = SpeechDictionary; sourceTree = "<group>"; };
+		60E70005000000000000E705 /* Metrics */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Metrics; sourceTree = "<group>"; };
 		604379AF2EF6153500B83635 /* justfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = justfile; sourceTree = "<group>"; };
 		604379B02EF6153C00B83635 /* Bootstrap-Guide.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "Bootstrap-Guide.md"; sourceTree = "<group>"; };
 		604379B12EF6153C00B83635 /* Scaffolding.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Scaffolding.md; sourceTree = "<group>"; };
@@ -128,6 +131,7 @@
 				60FC0001000000000000FC01 /* FieldContext in Frameworks */,
 				60A50001000000000000A501 /* AppSettings in Frameworks */,
 				60A50006000000000000A506 /* History in Frameworks */,
+				60E70001000000000000E701 /* Metrics in Frameworks */,
 				60AB0001000000000000AB01 /* ModelLibrary in Frameworks */,
 				60AC0001000000000000AC01 /* LocalCleanup in Frameworks */,
 				60D10001000000000000D101 /* SpeechDictionary in Frameworks */,
@@ -144,6 +148,7 @@
 				60B60004000000000000B604 /* IdentifiedCollections in Frameworks */,
 				A11111111111111111111111 /* Dependencies in Frameworks */,
 				60A50008000000000000A508 /* History in Frameworks */,
+				60E70003000000000000E703 /* Metrics in Frameworks */,
 				60FC0004000000000000FC04 /* FieldContext in Frameworks */,
 				60FC0006000000000000FC06 /* CleanupTestSupport in Frameworks */,
 				60D10003000000000000D103 /* SpeechDictionary in Frameworks */,
@@ -206,6 +211,7 @@
 				60FC0003000000000000FC03 /* FieldContext */,
 				60A50003000000000000A503 /* AppSettings */,
 				60A50005000000000000A505 /* History */,
+				60E70005000000000000E705 /* Metrics */,
 				60AB0005000000000000AB05 /* ModelLibrary */,
 				60AC0005000000000000AC05 /* LocalCleanup */,
 				60D10005000000000000D105 /* SpeechDictionary */,
@@ -274,6 +280,7 @@
 				60FC0002000000000000FC02 /* FieldContext */,
 				60A50002000000000000A502 /* AppSettings */,
 				60A50007000000000000A507 /* History */,
+				60E70002000000000000E702 /* Metrics */,
 				60AB0002000000000000AB02 /* ModelLibrary */,
 				60AC0002000000000000AC02 /* LocalCleanup */,
 				60D10002000000000000D102 /* SpeechDictionary */,
@@ -306,6 +313,7 @@
 				60B60005000000000000B605 /* IdentifiedCollections */,
 				A11333333333333333333333 /* Dependencies */,
 				60A50009000000000000A509 /* History */,
+				60E70004000000000000E704 /* Metrics */,
 				60FC0005000000000000FC05 /* FieldContext */,
 				60FC0007000000000000FC07 /* CleanupTestSupport */,
 				60D10004000000000000D104 /* SpeechDictionary */,
@@ -1101,6 +1109,14 @@
 		60A5000F000000000000A50F /* AudioCapture */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = AudioCapture;
+		};
+		60E70002000000000000E702 /* Metrics */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Metrics;
+		};
+		60E70004000000000000E704 /* Metrics */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Metrics;
 		};
 		60FC0002000000000000FC02 /* FieldContext */ = {
 			isa = XCSwiftPackageProductDependency;

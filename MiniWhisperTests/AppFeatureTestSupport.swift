@@ -5,6 +5,7 @@ import FieldContext
 import Foundation
 import History
 import HotkeyListener
+import Metrics
 @testable import MiniWhisper
 
 // MARK: - Test hotkeys
@@ -113,5 +114,22 @@ extension DeliveryTarget {
   /// and for tests whose delivery is stubbed.
   static func inApp(_ app: TargetApp, processID: pid_t = 1) -> DeliveryTarget {
     DeliveryTarget(app: app, processID: processID, window: nil, element: nil, pane: nil)
+  }
+}
+
+extension Array {
+  /// The one element, or nil when there are none or several.
+  var only: Element? {
+    count == 1 ? first : nil
+  }
+}
+
+// MARK: - MetricsRecorder
+
+actor MetricsRecorder {
+  private(set) var records: [DictationMetrics] = []
+
+  func record(_ record: DictationMetrics) {
+    records.append(record)
   }
 }

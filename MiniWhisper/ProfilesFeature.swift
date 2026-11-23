@@ -1034,7 +1034,8 @@ private let profilesPaneLogger = Logger(
       )
     case .degenerateResponse,
          .malformedResponse,
-         .localModel:
+         .localModel,
+         .keyUnreadable:
       return Failure(
         field: .endpoint, message: "That endpoint didn’t answer like an OpenAI-compatible one.",
       )

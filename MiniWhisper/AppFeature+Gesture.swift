@@ -4,7 +4,9 @@ import AudioCapture
 import ComposableArchitecture
 import History
 import HotkeyListener
+import Metrics
 import OSLog
+import SpeechDictionary
 import TranscriptCleanup
 
 private let gestureLogger = Logger(subsystem: "com.thurstonsand.MiniWhisper", category: "gesture")
@@ -74,6 +76,20 @@ extension AppFeature {
       // A dictation with words is never dropped by the next one: it steps into the background
       // and finishes there. Only one still transcribing gives way, as the press means try again.
       let replaced = detachPendingDictation(&state)
+      // A dictation already finishing has written its line; any other ends here, unheard.
+      let replacedLine: Effect<Action> =
+        if let replaced, !replaced.isFinishing {
+          .run { [finishedAt = now, vocabulary = state.dictionary.vocabulary.count] _ in
+            await metrics.record(
+              .dictation(
+                replaced, id: nil, outcome: .cancelled, finishedAt: finishedAt, detached: false,
+                delivery: nil, vocabulary: vocabulary,
+              ),
+            )
+          }
+        } else {
+          .none
+        }
       state.transcriptionGeneration += 1
       state.dictationWasCancelled = false
       state.pendingDictation = nil
@@ -81,6 +97,8 @@ extension AppFeature {
       state.activationScreen = state.settings.readsScreen
         ? ActivationScreen(generation: state.transcriptionGeneration, read: .pending) : nil
       state.recordingSubmits = false
+      state.recordingReleasedAt = nil
+      state.recordingLatched = false
       state.dictationInFlight = true
       state.pill.showsInputDeviceName = state.settings.microphone != .systemDefault
       if state.historyMaintenance == .running {
@@ -97,8 +115,9 @@ extension AppFeature {
         ),
         .merge(
           .cancel(id: CancelID.transcription),
-          replaced.map { .cancel(id: CancelID.cleanup($0)) } ?? .none,
-          replaced.map { .cancel(id: CancelID.delivery($0)) } ?? .none,
+          replaced.map { .cancel(id: CancelID.cleanup($0.generation)) } ?? .none,
+          replaced.map { .cancel(id: CancelID.delivery($0.generation)) } ?? .none,
+          replacedLine,
           .cancel(id: CancelID.recoveryDelivery), .cancel(id: CancelID.historyMaintenance),
           .send(.recording(.startRecording)),
           captureTargetEffect(
@@ -121,11 +140,13 @@ extension AppFeature {
          .stopAndSubmit:
       performanceLogger.notice("benchmark recording-release-received")
       state.recordingSubmits = event == .stopAndSubmit
+      state.recordingReleasedAt = now
       return .merge(
         .send(.recording(.stopAndRetain)),
         state.recordingSubmits ? .send(.pill(.submitQueued)) : .none,
       )
     case .latchEngaged:
+      state.recordingLatched = true
       return .send(.pill(.latchEngaged))
     case .discardRecording:
       // Totally silent: a misfire, an expired lone tap, or an interruption never happened as far
@@ -214,8 +235,8 @@ extension AppFeature {
     else {
       return .none
     }
-    dictation.cleanupRecord = CleanupRecord(
-      .attempted(configuration, .skipped(seconds: dictation.elapsedCleanup(now))),
+    dictation.cleanupResolution = .attempted(
+      configuration, .skipped(seconds: dictation.elapsedCleanup(now)),
     )
     state.pendingDictation = dictation
     state.dictationWasCancelled = true
@@ -255,14 +276,14 @@ extension AppFeature {
   }
 
   /// Moves the dictation in the pill into the background if it has words to deliver, and
-  /// answers the generation of one that had none and so must be cancelled instead.
-  private func detachPendingDictation(_ state: inout State) -> Int? {
+  /// answers the one that had none and so must be cancelled instead.
+  private func detachPendingDictation(_ state: inout State) -> PendingDictation? {
     guard let dictation = state.pendingDictation else {
       return nil
     }
     state.pendingDictation = nil
     guard dictation.original != nil else {
-      return dictation.generation
+      return dictation
     }
     state.backgroundDictations[dictation.generation] = dictation
     gestureLogger.notice("Dictation \(dictation.generation) detached")
@@ -277,8 +298,8 @@ extension AppFeature {
     else {
       return .none
     }
-    dictation.cleanupRecord = CleanupRecord(
-      .attempted(configuration, .skipped(seconds: dictation.elapsedCleanup(now))),
+    dictation.cleanupResolution = .attempted(
+      configuration, .skipped(seconds: dictation.elapsedCleanup(now)),
     )
     dictation.readyText = transcript
     state.updateDictation(dictation)

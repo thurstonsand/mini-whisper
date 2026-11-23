@@ -40,7 +40,10 @@ import TranscriptCleanup
         1,
         .attempted(
           smokeConfiguration(endpoint.baseURL, timeout: 5),
-          .cleaned("Run swift test --filter cleanup, then report back.", seconds: 0),
+          .cleaned(
+            "Run swift test --filter cleanup, then report back.",
+            stripped: [.reasoningBlock, .leadingLabel, .codeFence], seconds: 0,
+          ),
         ),
       ),
       timeout: .seconds(10),
@@ -77,16 +80,12 @@ import TranscriptCleanup
 
     await store.send(.transcriptionCompleted(1, .transcript("deliver me as heard")))
     await store.receive(
-      .cleanupResolved(
-        1,
-        .attempted(
-          smokeConfiguration(deadURL, timeout: 5), .failed(
-            reason: "unreachable",
-            seconds: 0,
-            rejectsKey: false,
-          ),
-        ),
-      ),
+      { action in
+        guard case .cleanupResolved(1, .attempted(_, .failed(.unreachable, _))) = action else {
+          return false
+        }
+        return true
+      },
       timeout: .seconds(10),
     )
     await store.receive(.pill(.cleanupUnavailable), timeout: .seconds(5))
@@ -267,7 +266,10 @@ private let smokeContext = FocusedTextContext(
   state.pill.presentation = .transcribing
   state.pendingDictation = AppFeature.PendingDictation(
     generation: 1, recording: CanonicalRecording(samples: [0.25]),
-    createdAt: Date(timeIntervalSince1970: 100), engine: "test-engine@revision", original: nil,
+    createdAt: Date(timeIntervalSince1970: 100), releasedAt: nil, latched: false,
+    profile: .everyday,
+    screenMode: .off,
+    engine: "test-engine@revision", original: nil,
     cleanupTarget: settings.cleanupTarget,
   )
   let store = TestStore(initialState: state) {

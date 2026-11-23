@@ -42,6 +42,11 @@ enum Channel {
   static let settingsFile = supportDirectory.appending(path: "settings.json")
   static let dictionaryFile = supportDirectory.appending(path: "dictionary.json")
   static let modelListingsFile = supportDirectory.appending(path: "model-listings.json")
+  /// One line per engine pass, for the user to export and share; never read back.
+  static let metricsFile = supportDirectory.appending(path: "metrics.jsonl")
+  static let metricsExportDirectory = supportDirectory.appending(
+    path: "Exports", directoryHint: .isDirectory,
+  )
   static let historyDirectory = supportDirectory.appending(
     path: "History", directoryHint: .isDirectory,
   )

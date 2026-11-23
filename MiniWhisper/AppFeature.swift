@@ -6,6 +6,7 @@ import FieldContext
 import Foundation
 import History
 import HotkeyListener
+import Metrics
 import ModelLibrary
 import OSLog
 import SpeechDictionary
@@ -120,6 +121,8 @@ private let performanceLogger = Logger(
     var detachedByPress: Int?
     /// The recording in progress was ended by a submit press; its dictation inherits that.
     var recordingSubmits = false
+    var recordingReleasedAt: Date?
+    var recordingLatched = false
     var dictationInFlight = false
     var historyMaintenance = HistoryMaintenanceState.idle
     @Shared var history: HistoryLog
@@ -200,6 +203,8 @@ private let performanceLogger = Logger(
     case repairRequested(Degradation)
     case copyLastTranscript
     case copyLastTranscriptFailed(String)
+    case exportMetrics(MetricsLog.ExportDetail)
+    case metricsExportFailed(String)
     case workspaceOpenFailed(String)
     case modelDownloadConsentRecorded
     case modelDownloadConsentRecordingFailed(String)
@@ -242,6 +247,7 @@ private let performanceLogger = Logger(
   @Dependency(\.hotkeyListener) var hotkeyListener
   @Dependency(\.microphonePermission) var microphonePermission
   @Dependency(\.keychain) var keychain
+  @Dependency(\.metrics) var metrics
   @Dependency(\.modelDownloadConsent) var modelDownloadConsent
   @Dependency(\.modelLibrary) var modelLibrary
   @Dependency(\.cleanup) var cleanup
@@ -540,6 +546,19 @@ private let performanceLogger = Logger(
         return .none
       case let .workspaceOpenFailed(message):
         menuLogger.error("Opening a menu destination failed: \(message, privacy: .public)")
+      case let .exportMetrics(detail):
+        // History is read only for the debugging export, and only for the text it still keeps.
+        let transcripts = detail == .withTranscripts ? state.history.metricsTranscripts : [:]
+        return .run { send in
+          do {
+            try await workspace.reveal(metrics.export(detail, transcripts))
+          } catch {
+            await send(.metricsExportFailed(error.localizedDescription))
+          }
+        }
+      case let .metricsExportFailed(message):
+        menuLogger.error("Exporting metrics failed: \(message, privacy: .public)")
+        return .none
         return .none
       case .modelDownloadConsentRecorded:
         guard state.onboarding.isPresented else {
@@ -598,7 +617,11 @@ private let performanceLogger = Logger(
         let engine = state.health.engine
         state.pendingDictation = PendingDictation(
           generation: generation, recording: recording, createdAt: now,
-          engine: asrEngine.identity(engine), original: nil,
+          releasedAt: state.recordingReleasedAt, latched: state.recordingLatched,
+          profile: state.settings.activeProfile.id,
+          screenMode: state.settings.screenContextMode,
+          engine: asrEngine.identity(engine),
+          engineHost: state.settings.profiles.customScribeHost(engine), original: nil,
           cleanupTarget: state.settings.cleanupTarget,
         )
         let submits = state.recordingSubmits
@@ -673,11 +696,11 @@ private let performanceLogger = Logger(
         case .tooShort:
           // The engine logs the measured duration. Below the floor there was no utterance to
           // report, so this end is always wordless.
-          return abandonDictation(&state, retryMessage: nil)
+          return abandonDictation(&state, outcome: .tooShort, retryMessage: nil)
         case .noSpeech:
           engineLogger.notice("Gate rejected recording: no speech")
           return abandonDictation(
-            &state,
+            &state, outcome: .noSpeech,
             retryMessage: Self.noSpeechRetryMessage(
               hotkeys: state.settings.bindings.hotkeys(for: .activate),
             ),
@@ -685,7 +708,8 @@ private let performanceLogger = Logger(
         case .engineEmpty:
           engineLogger.notice("Engine accepted speech but returned an empty transcript")
           return abandonDictation(
-            &state, retryMessage: "The speech model returned no text. Try a longer phrase.",
+            &state, outcome: .engineEmpty,
+            retryMessage: "The speech model returned no text. Try a longer phrase.",
           )
         }
       case let .transcriptionFailed(generation, message):
@@ -726,6 +750,7 @@ private let performanceLogger = Logger(
         dictation.target = target
         state.updateDictation(dictation)
         // Whether a pass is worth attempting at all. Whether one actually runs is the pipeline's
+        dictation.contextCapturedAt = now
         // to decide, and it says so by starting one.
         guard dictation.cleanupTarget != nil else {
           return .send(.cleanupResolved(generation, .passedThrough))
@@ -777,9 +802,9 @@ private let performanceLogger = Logger(
         else {
           return .none
         }
-        let record = CleanupRecord(resolution)
         noteKeyVerdict(resolution, state: &state)
-        dictation.cleanupRecord = record
+        dictation.cleanupResolution = resolution
+        let record = dictation.cleanupRecord
         let text = record?.cleanedText ?? transcript
         dictation.readyText = text
         state.updateDictation(dictation)
@@ -994,14 +1019,29 @@ private let performanceLogger = Logger(
   /// Every way a dictation ends without words. Nothing is delivered and nothing reaches History;
   /// a retry message is the only thing that separates them, and an Escape suppresses even that —
   /// the cancel cue has already played and said what happened.
-  private func abandonDictation(_ state: inout State, retryMessage: String?) -> Effect<Action> {
+  private func abandonDictation(
+    _ state: inout State, outcome: DictationMetrics.Outcome, retryMessage: String?,
+  ) -> Effect<Action> {
+    let record: Effect<Action> =
+      if let dictation = state.pendingDictation {
+        .run { [finishedAt = now, vocabulary = state.dictionary.vocabulary.count] _ in
+          await metrics.record(
+            .dictation(
+              dictation, id: nil, outcome: outcome, finishedAt: finishedAt, detached: false,
+              delivery: nil, vocabulary: vocabulary,
+            ),
+          )
+        }
+      } else {
+        .none
+      }
     state.pendingDictation = nil
     state.dictationInFlight = false
     guard let retryMessage, !state.dictationWasCancelled else {
-      return .send(.pill(.dismiss))
+      return .merge(record, .send(.pill(.dismiss)))
     }
     return .merge(
-      .send(.pill(.noSpeechDetected)),
+      record, .send(.pill(.noSpeechDetected)),
       onboardingTryIt(.failed(retryMessage), state), playSound(state.settings.sounds.cancel),
     )
   }
@@ -1128,7 +1168,7 @@ private let performanceLogger = Logger(
     switch attempt {
     case .cleaned:
       state.$health.withLock { _ = $0.rejectedKeys.remove(slot) }
-    case let .failed(_, _, rejectsKey) where rejectsKey:
+    case let .failed(failure, _) where failure.rejectsKey:
       state.$health.withLock { _ = $0.rejectedKeys.insert(slot) }
     case .failed,
          .skipped:

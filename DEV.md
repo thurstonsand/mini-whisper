@@ -54,6 +54,7 @@ On a Mac without a usable microphone, such as one with its lid closed, real dict
 - `Packages/TranscriptCleanup` — the OpenAI-compatible client
 - `Packages/HotkeyListener` — event pipeline routing action-bound bindings and the chord recorder
 - `Packages/History` — history log model, retention policy, and the audio vault
+- `Packages/Metrics` — the per-dictation `metrics.jsonl` record, its text-shape measures, and the export with or without transcripts
 - `Packages/AppSettings` — the `settings.json` model and store, the profile lineup, aggregating settings from the feature packages
 
 Design principle: the app target is a thin shell; business logic lives in packages. Features (`@Reducer`) orchestrate, clients (`@DependencyClient`) wrap system boundaries, pure decision logic gets plain unit tests in its package.

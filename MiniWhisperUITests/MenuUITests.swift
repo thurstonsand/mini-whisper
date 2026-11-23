@@ -26,6 +26,21 @@ final class MenuUITests: MiniWhisperUITestCase, SurfaceTagged {
           isEnabled: true, isActionable: true,
         ),
         contract(
+          .menuItem, "miniwhisper.menu.export-metrics", "Export Metrics", isEnabled: true,
+          isActionable: true,
+        ),
+        contract(
+          .menuItem, "miniwhisper.menu.export-metrics.anonymized", "Anonymized", isEnabled: true,
+        ),
+        contract(
+          .menuItem, "miniwhisper.menu.export-metrics.identified", "With Identifiers",
+          isEnabled: true,
+        ),
+        contract(
+          .menuItem, "miniwhisper.menu.export-metrics.with-transcripts",
+          "With Transcripts (Debugging)", isEnabled: true,
+        ),
+        contract(
           .menuItem, "miniwhisper.menu.settings", "Settings", isEnabled: true,
           isActionable: true,
         ),
@@ -65,6 +80,21 @@ final class MenuUITests: MiniWhisperUITestCase, SurfaceTagged {
         contract(
           .button, "miniwhisper.menu.quick-add.header", "Add to Dictionary…",
           isEnabled: true, isActionable: true,
+        ),
+        contract(
+          .menuItem, "miniwhisper.menu.export-metrics", "Export Metrics", isEnabled: true,
+          isActionable: true,
+        ),
+        contract(
+          .menuItem, "miniwhisper.menu.export-metrics.anonymized", "Anonymized", isEnabled: true,
+        ),
+        contract(
+          .menuItem, "miniwhisper.menu.export-metrics.identified", "With Identifiers",
+          isEnabled: true,
+        ),
+        contract(
+          .menuItem, "miniwhisper.menu.export-metrics.with-transcripts",
+          "With Transcripts (Debugging)", isEnabled: true,
         ),
         contract(
           .menuItem, "miniwhisper.menu.settings", "Settings", isEnabled: true,
@@ -108,6 +138,21 @@ final class MenuUITests: MiniWhisperUITestCase, SurfaceTagged {
         contract(
           .button, "miniwhisper.menu.quick-add.submit", "Add to Dictionary", isEnabled: true,
           isActionable: true,
+        ),
+        contract(
+          .menuItem, "miniwhisper.menu.export-metrics", "Export Metrics", isEnabled: true,
+          isActionable: true,
+        ),
+        contract(
+          .menuItem, "miniwhisper.menu.export-metrics.anonymized", "Anonymized", isEnabled: true,
+        ),
+        contract(
+          .menuItem, "miniwhisper.menu.export-metrics.identified", "With Identifiers",
+          isEnabled: true,
+        ),
+        contract(
+          .menuItem, "miniwhisper.menu.export-metrics.with-transcripts",
+          "With Transcripts (Debugging)", isEnabled: true,
         ),
         contract(
           .menuItem, "miniwhisper.menu.settings", "Settings", isEnabled: true,

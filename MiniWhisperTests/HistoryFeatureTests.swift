@@ -6,6 +6,7 @@ import FieldContext
 import Foundation
 import History
 import HotkeyListener
+import Metrics
 @testable import MiniWhisper
 import SpeechDictionary
 import Testing
@@ -315,7 +316,10 @@ import TranscriptCleanup
     await store.receive(
       .retranscriptionCompleted(
         entry.id, .parakeet,
-        ProcessedTranscript(outcome: .transcript("Second opinion"), cleanup: nil),
+        ProcessedTranscript(
+          outcome: .transcript("Second opinion"), transcriptionSeconds: 0,
+          cleanupResolution: .passedThrough,
+        ),
       ),
     ) {
       $0.retranscribingEntryIDs.remove(entry.id)
@@ -326,6 +330,65 @@ import TranscriptCleanup
       }
     }
     #expect(store.state.log.entries[0].original?.text == "Original text")
+  }
+
+  /// A failed re-run never reaches History, so its line claims no pass; the success after it
+  /// takes pass 1, and only that line is joined to the text a debugging export adds.
+  @Test func `a failed re-run claims no pass, so export joins text only to the one History kept`()
+    async throws
+  {
+    let entry = makeEntry(text: "Original text")
+    let date = Date(timeIntervalSince1970: 1_700_000_100)
+    let attempts = LockIsolatedCounter()
+    let lines = MetricsRecorder()
+    let store = TestStore(initialState: makeState([entry])) { HistoryFeature() } withDependencies: {
+      $0.date.now = date
+      $0.historyClient.loadAudio = { _ in CanonicalRecording(samples: [0]) }
+      $0.asrEngine.identity = { _ in "second-engine" }
+      $0.asrEngine.submit = { _, _, _ in
+        guard await attempts.next() > 0 else {
+          throw RetranscriptionTestError.engineDown
+        }
+        return .transcript("Second opinion")
+      }
+      $0.metrics.record = { await lines.record($0) }
+    }
+    store.exhaustivity = .off
+
+    await store.send(.retranscribeTapped(entry.id))
+    await store.receive {
+      if case .retranscriptionFailed = $0 {
+        true
+      } else {
+        false
+      }
+    }
+    await store.send(.retranscribeTapped(entry.id))
+    await store.receive {
+      if case .retranscriptionCompleted = $0 {
+        true
+      } else {
+        false
+      }
+    }
+    await store.finish()
+
+    let recorded = await lines.records
+    #expect(recorded.map(\.pass) == [nil, 1])
+    #expect(recorded.map(\.outcome) == [.transcriptionFailed, .transcribed])
+
+    var data = Data()
+    for record in recorded {
+      try data.append(MetricsLog.line(record))
+    }
+    let exported = try MetricsLog.export(
+      data, detail: .withTranscripts, transcripts: store.state.log.metricsTranscripts,
+    )
+    let objects = try exported.split(separator: 0x0A).map {
+      try #require(JSONSerialization.jsonObject(with: $0) as? [String: Any])
+    }
+    #expect(objects[0]["debug_text"] == nil)
+    #expect((objects[1]["debug_text"] as? [String: Any])?["raw"] as? String == "Second opinion")
   }
 
   /// A re-run is a dictation minus the delivery: the same two legs, conditioned by the facts the
@@ -357,15 +420,15 @@ import TranscriptCleanup
         #expect(request.targetBundleID == "com.apple.dt.Xcode")
         #expect(configuration.model == "gpt-oss-120b")
         #expect(apiKey == "sk-test")
-        return .cleaned("Second opinion.")
+        return .cleaned("Second opinion.", stripped: [])
       }
     }
 
-    let processed = ProcessedTranscript(
-      outcome: .transcript("um second opinion"),
-      cleanup: CleanupRecord(
-        disposition: .cleaned("Second opinion."), model: "gpt-oss-120b",
-        endpoint: gatewayEndpoint, durationSeconds: 0,
+    let processed = try ProcessedTranscript(
+      outcome: .transcript("um second opinion"), transcriptionSeconds: 0,
+      cleanupResolution: .attempted(
+        #require(configuredCleanup.cleanupTarget).configuration,
+        .cleaned("Second opinion.", stripped: [], seconds: 0),
       ),
     )
     await store.send(.retranscribeTapped(entry.id)) {
@@ -416,7 +479,10 @@ import TranscriptCleanup
     await store.receive(
       .retranscriptionCompleted(
         entry.id, .parakeet,
-        ProcessedTranscript(outcome: .transcript("second opinion"), cleanup: nil),
+        ProcessedTranscript(
+          outcome: .transcript("second opinion"), transcriptionSeconds: 0,
+          cleanupResolution: .passedThrough,
+        ),
       ),
     ) {
       $0.retranscribingEntryIDs.remove(entry.id)
@@ -618,4 +684,25 @@ private func makeEntry(
     delivery: Delivery(text: cleaned ?? text, method: .pasted, detail: nil),
     audio: AudioMetadata(durationSeconds: 4.2, byteCount: 268_800),
   )
+}
+
+// MARK: - RetranscriptionTestError
+
+private enum RetranscriptionTestError: Error {
+  case engineDown
+}
+
+// MARK: - LockIsolatedCounter
+
+private actor LockIsolatedCounter {
+  // MARK: Internal
+
+  func next() -> Int {
+    defer { count += 1 }
+    return count
+  }
+
+  // MARK: Private
+
+  private var count = 0
 }

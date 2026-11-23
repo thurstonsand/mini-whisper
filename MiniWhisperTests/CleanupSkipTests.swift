@@ -39,7 +39,10 @@ import TranscriptCleanup
     // The detached dictation's cleanup answers while the next one is still recording.
     await store.send(
       .cleanupResolved(
-        1, .attempted(skipConfiguration, .cleaned("deliver me as heard.", seconds: 4)),
+        1, .attempted(
+          skipConfiguration,
+          .cleaned("deliver me as heard.", stripped: [], seconds: 4),
+        ),
       ),
     )
     await store.skipReceivedActions()
@@ -115,7 +118,10 @@ import TranscriptCleanup
 
     await store.send(
       .cleanupResolved(
-        1, .attempted(skipConfiguration, .cleaned("deliver me as heard.", seconds: 4)),
+        1, .attempted(
+          skipConfiguration,
+          .cleaned("deliver me as heard.", stripped: [], seconds: 4),
+        ),
       ),
     )
     await store.skipReceivedActions()
@@ -226,7 +232,10 @@ import TranscriptCleanup
 
     await store.send(
       .cleanupResolved(
-        1, .attempted(skipConfiguration, .cleaned("deliver me as heard.", seconds: 4)),
+        1, .attempted(
+          skipConfiguration,
+          .cleaned("deliver me as heard.", stripped: [], seconds: 4),
+        ),
       ),
     )
     await store.finish()
@@ -272,7 +281,10 @@ import TranscriptCleanup
     // The endpoint's answer arrives late, for a dictation nothing is waiting on any more.
     await store.send(
       .cleanupResolved(
-        1, .attempted(skipConfiguration, .cleaned("Deliver me as heard.", seconds: 2)),
+        1, .attempted(
+          skipConfiguration,
+          .cleaned("Deliver me as heard.", stripped: [], seconds: 2),
+        ),
       ),
     )
     await store.skipInFlightEffects()
@@ -311,7 +323,10 @@ private let skipConfiguration = CleanupConfiguration(
 private func skippedTail(_ generation: Int, _ text: String) -> AppFeature.PendingDictation {
   var dictation = AppFeature.PendingDictation(
     generation: generation, recording: CanonicalRecording(samples: [0.25]),
-    createdAt: Date(timeIntervalSince1970: 100), engine: "test-engine@revision",
+    createdAt: Date(timeIntervalSince1970: 100), releasedAt: nil, latched: false,
+    profile: .everyday,
+    screenMode: .off,
+    engine: "test-engine@revision",
     original: History.Transcription(
       text: text, engine: "test-engine@revision", transcribedAt: Date(timeIntervalSince1970: 150),
     ),
@@ -319,7 +334,7 @@ private func skippedTail(_ generation: Int, _ text: String) -> AppFeature.Pendin
   dictation.capture = .unavailable(.noFocusedElement)
   dictation.target = editor
   dictation.cleanup = skipConfiguration
-  dictation.cleanupRecord = CleanupRecord(.attempted(skipConfiguration, .skipped(seconds: 2)))
+  dictation.cleanupResolution = .attempted(skipConfiguration, .skipped(seconds: 2))
   dictation.isDelivering = true
   return dictation
 }
@@ -365,7 +380,10 @@ private func pasted(_ text: String) -> AppFeature.DeliveryResult {
   // request that has already gone out.
   var pending = AppFeature.PendingDictation(
     generation: 1, recording: CanonicalRecording(samples: [0.25]),
-    createdAt: Date(timeIntervalSince1970: 100), engine: "test-engine@revision",
+    createdAt: Date(timeIntervalSince1970: 100), releasedAt: nil, latched: false,
+    profile: .everyday,
+    screenMode: .off,
+    engine: "test-engine@revision",
     original: History.Transcription(
       text: "deliver me as heard", engine: "test-engine@revision",
       transcribedAt: Date(timeIntervalSince1970: 150),

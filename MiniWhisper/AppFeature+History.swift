@@ -4,7 +4,9 @@ import ComposableArchitecture
 import FieldContext
 import Foundation
 import History
+import Metrics
 import OSLog
+import SpeechDictionary
 import TranscriptCleanup
 
 // MARK: - History state
@@ -16,9 +18,17 @@ extension AppFeature {
   struct PendingDictation: Equatable {
     var generation: Int
     var recording: CanonicalRecording
+    /// When the recording was closed and handed over.
     var createdAt: Date
+    /// The press or tap that ended the recording, which can be a long way ahead of `createdAt`
+    /// for a capture still draining; nil for a recording that ended some other way.
+    var releasedAt: Date?
+    var latched: Bool
+    var profile: ProfileID
+    var screenMode: ScreenContextMode
     var engine: String
-    /// What the engine said, and only that. Cleanup's rewrite is kept apart in `cleanupRecord`
+    var engineHost: String?
+    /// What the engine said, and only that. Cleanup's rewrite is kept apart in `cleanupResolution`
     /// and joined to the transcription when the entry is written.
     var original: History.Transcription?
     /// The active profile's cleanup, resolved when the recording ended — the same moment the
@@ -36,18 +46,24 @@ extension AppFeature {
     /// The configuration a request actually went out with, so a pane edit mid-flight cannot
     /// rewrite history — and so that a non-nil value means a request is genuinely in flight.
     var cleanup: CleanupConfiguration?
+    var contextCapturedAt: Date?
     var cleanupStartedAt: Date?
-    var cleanupRecord: CleanupRecord?
+    var cleanupResolution: CleanupResolution?
     /// The text this dictation delivers, settled once cleanup resolves or is skipped; a cleanup
     /// answering after that has nothing to change.
     var readyText: String?
     /// Return follows the paste: the press that ended this dictation, or a later tap, asked.
     var submits = false
     var isDelivering = false
+    var deliveryStartedAt: Date?
     var isFinishing = false
 
     var fieldContext: FocusedTextContext? {
       capture?.focusedTextContext
+    }
+
+    var cleanupRecord: CleanupRecord? {
+      cleanupResolution.flatMap(CleanupRecord.init)
     }
 
     var screenCapture: ScreenCapture? {
@@ -108,14 +124,33 @@ extension AppFeature {
     guard var dictation = state.dictation(generation), !dictation.isFinishing else {
       return .none
     }
+    let outcome: DictationMetrics.Outcome =
+      if delivery != nil {
+        .delivered
+      } else if dictation.original == nil {
+        .transcriptionFailed
+      } else if dictation.isDelivering {
+        .deliveryFailed
+      } else {
+        .cancelled
+      }
+    let measure: @Sendable (PendingDictation, UUID?) -> DictationMetrics = {
+      [finishedAt = now, detached = !state.isForeground(generation),
+       vocabulary = state.dictionary.vocabulary.count] terminal, id in
+      DictationMetrics.dictation(
+        terminal, id: id, outcome: outcome, finishedAt: finishedAt, detached: detached,
+        delivery: delivery, vocabulary: vocabulary,
+      )
+    }
     guard dictation.original != nil || state.storesAudio else {
       state.removeDictation(generation)
-      return .none
+      return .run { [dictation] _ in await metrics.record(measure(dictation, nil)) }
     }
     dictation.isFinishing = true
     state.updateDictation(dictation)
     return archiveEffect(
       dictation, targetApp: targetApp, delivery: delivery, storesAudio: state.storesAudio,
+      measure: measure,
     ) { entry in
       entry.map { .historyEntryPrepared(generation, $0) } ?? .historyEntryAbandoned(generation)
     }
@@ -125,6 +160,7 @@ extension AppFeature {
   /// the dictation left nothing durable behind and the caller should forget it.
   private func archiveEffect(
     _ terminal: PendingDictation, targetApp: TargetApp?, delivery: Delivery?, storesAudio: Bool,
+    measure: @escaping @Sendable (PendingDictation, UUID?) -> DictationMetrics,
     completion: @escaping @Sendable (HistoryEntry?) -> Action,
   ) -> Effect<Action> {
     let id = uuid()
@@ -141,6 +177,7 @@ extension AppFeature {
             "History audio write failed: \(error.localizedDescription, privacy: .public)",
           )
           guard terminal.original != nil else {
+            await metrics.record(measure(terminal, nil))
             await send(completion(nil))
             return
           }
@@ -167,6 +204,7 @@ extension AppFeature {
         screenContext: terminal.screenContext, delivery: delivery, audio: audio,
         screenshot: screenshot,
       )
+      await metrics.record(measure(terminal, id))
       await send(completion(entry))
     }
   }
@@ -233,14 +271,14 @@ extension CleanupRecord {
     let disposition: CleanupDisposition
     let seconds: Double
     switch attempt {
-    case let .cleaned(text, elapsed):
+    case let .cleaned(text, _, elapsed):
       disposition = .cleaned(text)
       seconds = elapsed
     case let .skipped(elapsed):
       disposition = .skipped
       seconds = elapsed
-    case let .failed(reason, elapsed, _):
-      disposition = .failed(reason)
+    case let .failed(failure, elapsed):
+      disposition = .failed(failure.historyDetail)
       seconds = elapsed
     }
     self.init(
@@ -278,6 +316,8 @@ extension CleanupFailure {
       "degenerateResponse"
     case .localModel:
       "localModel"
+    case .keyUnreadable:
+      "keyUnreadable"
     }
   }
 }

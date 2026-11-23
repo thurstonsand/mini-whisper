@@ -5,11 +5,14 @@ import Testing
 
 struct CleanupResponseShapingTests {
   @Test func `plain text survives untouched`() {
-    #expect(CleanupResponseShaping.shape("Run the tests.") == "Run the tests.")
+    #expect(
+      CleanupResponseShaping.shape("Run the tests.")
+        == ShapedResponse(text: "Run the tests.", stripped: []),
+    )
   }
 
   @Test func `surrounding whitespace goes`() {
-    #expect(CleanupResponseShaping.shape("\n  Run the tests.\n\n") == "Run the tests.")
+    #expect(CleanupResponseShaping.shape("\n  Run the tests.\n\n").text == "Run the tests.")
   }
 
   @Test(arguments: [
@@ -17,12 +20,12 @@ struct CleanupResponseShapingTests {
     "```text\nRun the tests.\n```",
     "```markdown\nRun the tests.\n```"
   ]) func `a fence around the whole answer is a wrapper`(raw: String) {
-    #expect(CleanupResponseShaping.shape(raw) == "Run the tests.")
+    #expect(CleanupResponseShaping.shape(raw).text == "Run the tests.")
   }
 
   @Test func `a fence inside the answer is dictated content`() {
     let dictated = "Run this:\n```\nswift test\n```\nthen report."
-    #expect(CleanupResponseShaping.shape(dictated) == dictated)
+    #expect(CleanupResponseShaping.shape(dictated).text == dictated)
   }
 
   @Test(arguments: [
@@ -30,24 +33,26 @@ struct CleanupResponseShapingTests {
     "'Run the tests.'",
     "“Run the tests.”"
   ]) func `a quotation wrapper is stripped`(raw: String) {
-    #expect(CleanupResponseShaping.shape(raw) == "Run the tests.")
+    #expect(CleanupResponseShaping.shape(raw).text == "Run the tests.")
   }
 
   @Test func `a quotation the speaker dictated is kept`() {
     let quoted = "\"Ship it,\" she said, \"today.\""
-    #expect(CleanupResponseShaping.shape(quoted) == quoted)
-    #expect(CleanupResponseShaping.shape("It's Tom's turn") == "It's Tom's turn")
+    #expect(CleanupResponseShaping.shape(quoted).text == quoted)
+    #expect(CleanupResponseShaping.shape("It's Tom's turn").text == "It's Tom's turn")
   }
 
   @Test func `reasoning tags are dropped whole`() {
     let raw = "<think>The speaker said dash dash help.</think>\nUse --help."
-    #expect(CleanupResponseShaping.shape(raw) == "Use --help.")
+    #expect(CleanupResponseShaping.shape(raw).text == "Use --help.")
   }
 
   @Test func `an answer wrapper is unwrapped`() {
-    #expect(CleanupResponseShaping.shape("<answer>Run the tests.</answer>") == "Run the tests.")
+    #expect(CleanupResponseShaping.shape("<answer>Run the tests.</answer>")
+      .text == "Run the tests.")
     #expect(
-      CleanupResponseShaping.shape("<thinking>hm</thinking><output>Run it.</output>") == "Run it.",
+      CleanupResponseShaping.shape("<thinking>hm</thinking><output>Run it.</output>")
+        .text == "Run it.",
     )
   }
 
@@ -57,23 +62,27 @@ struct CleanupResponseShapingTests {
     "Here is the cleaned text: Run the tests.",
     "**Cleaned transcript:** Run the tests."
   ]) func `a leading label is stripped`(raw: String) {
-    #expect(CleanupResponseShaping.shape(raw) == "Run the tests.")
+    #expect(CleanupResponseShaping.shape(raw).text == "Run the tests.")
   }
 
   @Test func `an ordinary colon is not a label`() {
     let raw = "Remember: bring the tickets."
-    #expect(CleanupResponseShaping.shape(raw) == raw)
+    #expect(CleanupResponseShaping.shape(raw).text == raw)
   }
 
   @Test func `wrappers nest`() {
     let raw = "<think>reasoning</think>\nCleaned transcript:\n```\n\"Run the tests.\"\n```"
-    #expect(CleanupResponseShaping.shape(raw) == "Run the tests.")
+    #expect(
+      CleanupResponseShaping.shape(raw) == ShapedResponse(
+        text: "Run the tests.", stripped: [.reasoningBlock, .leadingLabel, .codeFence, .quotation],
+      ),
+    )
   }
 
   @Test func `conforming returns the shaped text`() {
     #expect(
       CleanupResponseShaping.conform("```\nRun the tests.\n```", transcript: "run the tests")
-        == .success("Run the tests."),
+        == .success(ShapedResponse(text: "Run the tests.", stripped: [.codeFence])),
     )
   }
 
@@ -101,7 +110,7 @@ struct CleanupResponseShapingTests {
     let transcript = "hey"
     #expect(
       CleanupResponseShaping.conform("Hey — are we still on for six?", transcript: transcript)
-        == .success("Hey — are we still on for six?"),
+        == .success(ShapedResponse(text: "Hey — are we still on for six?", stripped: [])),
     )
   }
 }

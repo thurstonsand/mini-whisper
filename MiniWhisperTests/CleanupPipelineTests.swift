@@ -5,6 +5,7 @@ import ComposableArchitecture
 import FieldContext
 import Foundation
 import History
+import Metrics
 @testable import MiniWhisper
 import ModelLibrary
 import Sharing
@@ -16,6 +17,7 @@ import TranscriptCleanup
 @MainActor struct CleanupPipelineTests {
   @Test func `the cleaned text is what delivers, and the entry records the pass`() async throws {
     let id = try #require(UUID(uuidString: "00000000-0000-0000-0000-0000000000C1"))
+    let lines = StringRecorder()
     let store = cleanupStore(cleanup: .configured) {
       $0.cleanup.clean = { request, configuration, apiKey in
         #expect(request.transcript == "dash dash help")
@@ -23,13 +25,16 @@ import TranscriptCleanup
         #expect(request.focusedTextContext?.before == "$ ")
         #expect(configuration.model == "gpt-oss-120b")
         #expect(apiKey == "sk-test")
-        return .cleaned("--help")
+        return .cleaned("--help", stripped: [.leadingLabel, .codeFence])
       }
       $0.delivery.deliver = { text, _, _ in
         #expect(text == "--help")
         return .pasted(.restored)
       }
       $0.uuid = .constant(id)
+      $0.metrics.record = { record in
+        await lines.record(String(decoding: try! MetricsLog.line(record), as: UTF8.self))
+      }
     }
 
     await store.send(.transcriptionCompleted(1, .transcript("dash dash help")))
@@ -40,7 +45,13 @@ import TranscriptCleanup
       )
     }
     await store.receive(
-      .cleanupResolved(1, .attempted(configuration, .cleaned("--help", seconds: 0))),
+      .cleanupResolved(
+        1,
+        .attempted(
+          configuration,
+          .cleaned("--help", stripped: [.leadingLabel, .codeFence], seconds: 0),
+        ),
+      ),
     )
     await store.receive(
       .deliveryCompleted(
@@ -64,6 +75,21 @@ import TranscriptCleanup
           durationSeconds: 0,
         ),
     )
+
+    // One line for the dictation, joined to its entry by id, carrying the shape of each text
+    // and the wrappers shaping stripped, but none of the words.
+    let line = try #require(await lines.values.only)
+    #expect(line.contains(#""id":"00000000-0000-0000-0000-0000000000C1""#))
+    #expect(line.contains(#""outcome":"delivered""#))
+    #expect(line.contains(#""stripped":["leadingLabel","codeFence"]"#))
+    #expect(line.contains(#""raw":{"chars":14,"end":"none","first":"lower","upper":0,"words":3}"#))
+    #expect(line
+      .contains(#""cleaned":{"chars":6,"end":"none","first":"lower","upper":0,"words":1}"#))
+    #expect(line.contains(#""kind":"gui""#))
+    #expect(line.contains(#""outcome":"available""#))
+    #expect(line.contains(#""transcribe":100000"#))
+    #expect(!line.contains("dash dash help"))
+    #expect(!line.contains("--help"))
   }
 
   /// A short dictation can be transcribed and its field read before the screen read that started
@@ -87,7 +113,7 @@ import TranscriptCleanup
       $0.asrEngine.submit = { _, _, _ in .transcript("clean up plan dot key unreadable") }
       $0.cleanup.clean = { request, _, _ in
         await requests.record(request)
-        return .cleaned("CleanupPlan.keyUnreadable")
+        return .cleaned("CleanupPlan.keyUnreadable", stripped: [])
       }
       $0.delivery.deliver = { _, _, _ in .pasted(.restored) }
     }
@@ -123,7 +149,7 @@ import TranscriptCleanup
       $0.cleanup.clean = { _, configuration, _ in
         #expect(configuration.endpoint == endpoint)
         #expect(configuration.model == "gpt-oss-120b")
-        return .cleaned("--help")
+        return .cleaned("--help", stripped: [])
       }
       $0.delivery.deliver = { _, _, _ in .pasted(.restored) }
     }
@@ -160,9 +186,7 @@ import TranscriptCleanup
     }
     await store.receive(
       .cleanupResolved(
-        1, .attempted(configuration, .failed(
-          reason: failure.historyDetail, seconds: 0, rejectsKey: failure.rejectsKey,
-        )),
+        1, .attempted(configuration, .failed(failure, seconds: 0)),
       ),
     )
     await store.receive(
@@ -201,10 +225,7 @@ import TranscriptCleanup
     await store.receive(.contextCaptured(1, .available(fieldContext), .inApp(ghostty)))
     await store.receive(
       .cleanupResolved(
-        1, .attempted(
-          configuration,
-          .failed(reason: "keyUnreadable", seconds: 0, rejectsKey: false),
-        ),
+        1, .attempted(configuration, .failed(.keyUnreadable, seconds: 0)),
       ),
     )
     await store.skipReceivedActions()
@@ -220,7 +241,7 @@ import TranscriptCleanup
     let store = cleanupStore(cleanup: .keyless) {
       $0.cleanup.clean = { _, _, apiKey in
         sentKey.value = apiKey
-        return .cleaned("--help")
+        return .cleaned("--help", stripped: [])
       }
       $0.delivery.deliver = { _, _, _ in .pasted(.restored) }
     }
@@ -285,7 +306,7 @@ import TranscriptCleanup
         #expect(timeout == MiniWhisperSettings.defaults.cleanupTimeout)
         #expect(installed, "A missing model must never be asked to clean")
         #expect(transcript == "dash dash help")
-        return .cleaned("--help")
+        return .cleaned("--help", stripped: [])
       }
       $0.delivery.deliver = { _, _, _ in .pasted(.restored) }
     }
@@ -303,7 +324,7 @@ import TranscriptCleanup
   @Test func `paste last recovers the cleaned text the dictation delivered`() async {
     let delivered = DeliveredTexts()
     let store = cleanupStore(cleanup: .configured) {
-      $0.cleanup.clean = { _, _, _ in .cleaned("--help") }
+      $0.cleanup.clean = { _, _, _ in .cleaned("--help", stripped: []) }
       $0.delivery.deliver = { text, _, _ in
         await delivered.record(text)
         return .pasted(.restored)
@@ -332,7 +353,7 @@ import TranscriptCleanup
     }
 
     await store.send(
-      .cleanupResolved(0, .attempted(configuration, .cleaned("--help", seconds: 1))),
+      .cleanupResolved(0, .attempted(configuration, .cleaned("--help", stripped: [], seconds: 1))),
     )
     await store.finish()
     #expect(store.state.history.entries.isEmpty)
@@ -403,7 +424,10 @@ private let fieldContext = FocusedTextContext(
   state.pill.presentation = .transcribing
   state.pendingDictation = AppFeature.PendingDictation(
     generation: 1, recording: CanonicalRecording(samples: [0.25]),
-    createdAt: Date(timeIntervalSince1970: 100), engine: "test-engine@revision", original: nil,
+    createdAt: Date(timeIntervalSince1970: 100), releasedAt: nil, latched: false,
+    profile: .everyday,
+    screenMode: .off,
+    engine: "test-engine@revision", original: nil,
     cleanupTarget: settings.cleanupTarget,
   )
   // A read that started at the press, which the recording hands to its dictation as it ends.

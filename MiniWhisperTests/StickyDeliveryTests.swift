@@ -196,7 +196,10 @@ private func dictation(
 ) -> AppFeature.PendingDictation {
   var dictation = AppFeature.PendingDictation(
     generation: generation, recording: CanonicalRecording(samples: [0.25]),
-    createdAt: Date(timeIntervalSince1970: 100), engine: "test-engine", original: nil,
+    createdAt: Date(timeIntervalSince1970: 100), releasedAt: nil, latched: false,
+    profile: .everyday,
+    screenMode: .off,
+    engine: "test-engine", original: nil,
   )
   dictation.target = target
   return dictation

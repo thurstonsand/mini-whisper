@@ -1,5 +1,6 @@
 import AppSettings
 import Foundation
+import Metrics
 import ModelLibrary
 
 private extension String {
@@ -20,6 +21,7 @@ enum SettingsSoundPart {
   case row
   case rowState
   case picker
+  static let menuExportMetrics = "miniwhisper.menu.export-metrics"
   case pickerState
   case preview
 
@@ -206,6 +208,10 @@ enum AccessibilityID {
   static let onboardingTryItText = "miniwhisper.onboarding.try-it.text"
   static let onboardingTryItQuote = "miniwhisper.onboarding.try-it.quote"
   static let onboardingTryItCompletion = "miniwhisper.onboarding.try-it.completion"
+  static func menuExportMetrics(_ detail: MetricsLog.ExportDetail) -> String {
+    "miniwhisper.menu.export-metrics.\(detail.rawValue)"
+  }
+
   static let onboardingTryItCompletionSummary = "miniwhisper.onboarding.try-it.completion-summary"
   static let onboardingTryItGuidance = "miniwhisper.onboarding.try-it.guidance"
   static let onboardingTryItSkip = "miniwhisper.onboarding.try-it.skip"
