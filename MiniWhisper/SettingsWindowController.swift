@@ -15,6 +15,10 @@ import SwiftUI
     destination: SettingsDestination = .settings, initialFocus: SettingsWindowFocus? = nil,
   ) {
     store.send(.selectionChanged(destination))
+    // A menu bar app has no Dock tile, so app switchers have nothing to show for its one real
+    // window. It borrows a regular app's presence (Dock icon, menu bar, ⌘-Tab) for exactly as
+    // long as the settings window is open.
+    NSApp.setActivationPolicy(.regular)
     if let window {
       NSApp.activate(ignoringOtherApps: true)
       window.makeKeyAndOrderFront(nil)
@@ -61,7 +65,10 @@ import SwiftUI
       return
     }
     window = nil
+    // Focus goes back before the Dock icon does: an app dropping to accessory while still active
+    // leaves the menu bar showing its menus over whatever comes forward next.
     handback.giveBack()
+    NSApp.setActivationPolicy(.accessory)
   }
 
   // MARK: Private

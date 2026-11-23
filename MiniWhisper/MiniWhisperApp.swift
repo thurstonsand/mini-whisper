@@ -11,6 +11,18 @@ import SwiftUI
 
   var body: some Scene {
     Settings { EmptyView() }
+      // The app menu only shows while the settings window lends the app a Dock icon. Its stock
+      // About and Settings items would open SwiftUI's panel and this empty scene, so both route
+      // to the app's own windows instead.
+      .commands {
+        CommandGroup(replacing: .appInfo) {
+          Button("About \(Channel.name)") { appDelegate.presentAbout() }
+        }
+        CommandGroup(replacing: .appSettings) {
+          Button("Settings…") { appDelegate.presentSettings() }
+            .keyboardShortcut(",")
+        }
+      }
   }
 }
 
@@ -95,6 +107,14 @@ import SwiftUI
       return
     }
     store.send(.applicationBecameActive)
+  }
+
+  func presentAbout() {
+    menuBarController.presentAbout()
+  }
+
+  func presentSettings() {
+    menuBarController.presentSettings()
   }
 
   // MARK: Private
