@@ -41,6 +41,7 @@ enum AccessibilityID {
   static let settingsSidebarDictionary = "miniwhisper.settings.sidebar.dictionary"
   static let settingsSidebarProfiles = "miniwhisper.settings.sidebar.profiles"
   static let settingsSidebarModels = "miniwhisper.settings.sidebar.models"
+  static let settingsSidebarChangelog = "miniwhisper.settings.sidebar.changelog"
   static let settingsSidebarAbout = "miniwhisper.settings.sidebar.about"
   static let settingsShortcutRow = "miniwhisper.settings.shortcut.activate"
   static let settingsShortcutRowState = "miniwhisper.settings.shortcut.activate.state"
@@ -103,6 +104,7 @@ enum AccessibilityID {
   static let dictionaryMisspelling = "miniwhisper.dictionary.misspelling"
   static let dictionarySave = "miniwhisper.dictionary.save"
 
+  static let changelogContent = "miniwhisper.changelog.content"
   static let aboutContent = "miniwhisper.about.content"
   static let aboutIcon = "miniwhisper.about.icon"
   static let aboutAppName = "miniwhisper.about.app-name"

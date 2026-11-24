@@ -38,6 +38,7 @@
 		60E70001000000000000E701 /* Metrics in Frameworks */ = {isa = PBXBuildFile; productRef = 60E70002000000000000E702 /* Metrics */; };
 		60E70003000000000000E703 /* Metrics in Frameworks */ = {isa = PBXBuildFile; productRef = 60E70004000000000000E704 /* Metrics */; };
 		60292D0F2EF609C9009AD5D1 /* DependenciesMacros in Frameworks */ = {isa = PBXBuildFile; productRef = 60292D0E2EF609C9009AD5D1 /* DependenciesMacros */; };
+		60C40002000000000000C402 /* RELEASE.md in Resources */ = {isa = PBXBuildFile; fileRef = 60C40001000000000000C401 /* RELEASE.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -79,6 +80,7 @@
 		604379B42EF6153C00B83635 /* Suggested starting point.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "Suggested starting point.md"; sourceTree = "<group>"; };
 		604379B72EF6154500B83635 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		604379B82EF6154C00B83635 /* .swiftformat */ = {isa = PBXFileReference; lastKnownFileType = text; path = ".swiftformat"; sourceTree = "<group>"; };
+		60C40001000000000000C401 /* RELEASE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = RELEASE.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -181,6 +183,7 @@
 				604379B62EF6153C00B83635 /* docs */,
 				604379B72EF6154500B83635 /* .gitignore */,
 				604379B82EF6154C00B83635 /* .swiftformat */,
+				60C40001000000000000C401 /* RELEASE.md */,
 			);
 			sourceTree = "<group>";
 		};
@@ -404,6 +407,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				60C40002000000000000C402 /* RELEASE.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

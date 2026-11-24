@@ -15,6 +15,7 @@ import Testing
         .dictionary,
         .profiles,
         .models,
+        .changelog,
         .about,
       ],
     )
@@ -92,5 +93,39 @@ import Testing
     #expect(!store.showsDictionaryKeyboardCursor(.vocabulary("Alpha")))
     #expect(store.showsSettingsBar(.shortcut(.activate)))
     #expect(!store.showsSettingsRing(.shortcut(.activate), target: .binding(.activate, 0)))
+  }
+
+  @Test func `bundled RELEASE markdown parses into changelog releases`() {
+    let changelog = Channel.bundledChangelog
+    let stableReleases = changelog.visibleReleases(includeUnreleased: false)
+
+    #expect(!stableReleases.isEmpty)
+    #expect(stableReleases.contains { $0.id == "0.4.0" })
+    #expect(stableReleases.contains { $0.id == "0.1.0" })
+    #expect(!stableReleases.contains { $0.isUnreleased })
+  }
+
+  @Test func `changelog section headers match each channel`() {
+    let unreleased = Changelog.Release(kind: .unreleased)
+    let version = Changelog.Release(kind: .version("0.4.0"))
+
+    #expect(ChangelogPane.sectionTitle(for: unreleased, channelKind: .nightly) == "Nightly")
+    #expect(
+      ChangelogPane.badge(for: unreleased, channelKind: .nightly, installedVersion: "0.4.1")
+        == "Installed",
+    )
+    #expect(ChangelogPane.sectionTitle(for: unreleased, channelKind: .dev) == "Dev")
+    #expect(
+      ChangelogPane.badge(for: unreleased, channelKind: .dev, installedVersion: "1.0")
+        == "Installed",
+    )
+    #expect(ChangelogPane.sectionTitle(for: version, channelKind: .release) == "0.4.0")
+    #expect(
+      ChangelogPane.badge(for: version, channelKind: .release, installedVersion: "0.4.0")
+        == "Installed",
+    )
+    #expect(
+      ChangelogPane.badge(for: version, channelKind: .nightly, installedVersion: "0.4.1") == nil,
+    )
   }
 }

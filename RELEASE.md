@@ -2,6 +2,28 @@
 
 # Release notes
 
+## Unreleased
+
+### Added
+
+- A Changelog pane in Settings to read release notes inside the app.
+- Sound themes (Drop, Pluck, Hum, Bloom, or No audio) replace per-cue system sounds, with a preview button in Settings.
+- Local dictation metrics (`metrics.jsonl`) and Export Metrics in the menu bar.
+
+### Changed
+
+- About now lives in the Settings window sidebar, and Settings remembers its position and size.
+- Opening Settings shows a Dock icon and appears in ⌘-Tab until the window closes.
+- Failed recordings, transcriptions, pastes, and unreadable settings or history files now surface clear notices and repair actions.
+- When transcript history is set to Never, dictations are no longer written to disk.
+- Switching Settings panes and scrolling long History lists is significantly faster.
+
+### Fixed
+
+- The activation shortcut no longer gets stuck when a key release is swallowed behind a password prompt or the lock screen.
+- Additional cleanup instructions are followed more reliably when Expanded context is enabled.
+- Copy Last Transcript stays available after relaunching by falling back to History.
+
 ## 0.4.0
 
 MiniWhisper now reads the window you dictate into to spell what's on screen, delivers to where you started even after you've moved on, and sends what you said with Return.

@@ -224,6 +224,9 @@ extension XCTestCase {
       }
     }
     app.launchEnvironment["MINIWHISPER_AGENT_SCENE"] = scene
+    if let appearance = ProcessInfo.processInfo.environment["MINIWHISPER_AGENT_APPEARANCE"] {
+      app.launchEnvironment["MINIWHISPER_AGENT_APPEARANCE"] = appearance
+    }
     app.launchEnvironment.merge(environment) { _, requested in requested }
     app.launchEnvironment["MINIWHISPER_AGENT_COMMAND_FILE"] = agentCommandFileURL.path
     app.launchEnvironment["MINIWHISPER_AGENT_DICTIONARY_FILE"] = agentDictionaryFileURL.path

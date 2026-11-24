@@ -13,7 +13,8 @@ Use this skill when preparing or publishing a MiniWhisper release.
 - Push `main` before creating a stable tag so nightly artifacts publish first.
 - Assume the release starts from a stable committed state. Do not repeat verification the user already performed.
 - Do not push the stable tag until the user explicitly approves stable publishing.
-- Stable releases are `vX.Y.Z` tags; release notes come from the matching `RELEASE.md` section.
+- Stable releases are `vX.Y.Z` tags; release notes come from the matching `RELEASE.md` section, which is also bundled into the app for the Changelog settings pane.
+- User-facing changes accumulate under `## Unreleased` at the top of `RELEASE.md`. Nightly builds show `## Unreleased` in-app and publish it on GitHub prereleases; stable releases omit `## Unreleased` in-app. When cutting a stable release `vX.Y.Z`, promote `## Unreleased` into `## X.Y.Z` (with a short summary paragraph) and leave a fresh `## Unreleased` heading above it.
 - Versions follow semantic versioning: a release with any new feature (an `Added` entry), a raised floor (a higher minimum Pi, Node, OS, or other dependency version), or anything breaking is at least minor, and breaking is major from 1.0 on; patch is only for fixes and dependency updates.
 - Binary nightly releases are unique prereleases named `nightly-<version>-nightly-<run>-<sha>`, using the latest stable version as their base.
 - Stable tags are immutable. Never force-push a stable release tag.

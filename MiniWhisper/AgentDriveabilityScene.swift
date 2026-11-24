@@ -64,6 +64,7 @@ enum PresentedWindow: Equatable {
     case settingsModels = "settings-models"
     case settingsModelsStates = "settings-models-states"
     case settingsModelsKeyMissing = "settings-models-key-missing"
+    case changelog
     case about
     case pillRecording = "pill-recording"
     case pillRecordingStarting = "pill-recording-starting"
@@ -135,6 +136,8 @@ enum PresentedWindow: Equatable {
         .settings(.models, initialFocus: nil)
       case .settingsProfilesKeyboard:
         .settings(.profiles, initialFocus: .detail)
+      case .changelog:
+        .settings(.changelog, initialFocus: nil)
       case .about:
         .settings(.about, initialFocus: nil)
       default:
@@ -362,6 +365,7 @@ enum PresentedWindow: Equatable {
            .settingsDictionary,
            .settingsDictionaryEmpty,
            .settingsDictionaryUnreadable,
+           .changelog,
            .about:
         break
       case .settingsHistoryOff:

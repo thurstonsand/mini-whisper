@@ -22,7 +22,7 @@
 - Onboarding: the app's only modal flow, run once — welcome with the profile choice, the profile's keys, sequential permissions with an optional Screen Recording grant for Expanded context, activation-shortcut choice, model download/compile/prewarm, and one real try-it dictation; the welcome button records bandwidth consent and starts a durable background download of every model the profile needs, resumed across relaunches.
 - Channel: one of the three apps this project builds — dev, nightly, release. Each is its own bundle identifier, its own name in System Settings, and its own application support directory, so grants and state never cross.
 - Settings file: `settings.json` in the running channel's application support directory. Every setting is backed by that file.
-- The settings window: the app's only non-modal window, and its one home for everything that is not a dictation: configurable settings, history, dictionary, profiles, models, and About. While it is open the app takes a Dock icon, a menu bar, and a place in ⌘-Tab, and gives them up when it closes; otherwise MiniWhisper lives only in the menu bar.
+- The settings window: the app's only non-modal window, and its one home for everything that is not a dictation: configurable settings, history, dictionary, profiles, models, changelog, and About. While it is open the app takes a Dock icon, a menu bar, and a place in ⌘-Tab, and gives them up when it closes; otherwise MiniWhisper lives only in the menu bar.
 - The dictionary: the user's custom vocabulary.
 - Boost: recognition-time vocabulary biasing via a CTC helper model.
 - Field context: the text around the insertion point of the focused field.

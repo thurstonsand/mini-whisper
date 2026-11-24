@@ -206,6 +206,10 @@ final class MenuUITests: MiniWhisperUITestCase, SurfaceTagged {
           "Models; Not selected",
         ),
         contract(
+          .staticText, "miniwhisper.settings.sidebar.changelog", "Changelog section",
+          "Changelog; Not selected",
+        ),
+        contract(
           .staticText, "miniwhisper.settings.sidebar.about", "About section",
           "About; Selected",
         ),

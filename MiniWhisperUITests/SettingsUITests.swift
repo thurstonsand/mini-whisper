@@ -35,6 +35,10 @@ final class SettingsUITests: MiniWhisperUITestCase, SurfaceTagged {
           "Models; Not selected",
         ),
         contract(
+          .staticText, "miniwhisper.settings.sidebar.changelog", "Changelog section",
+          "Changelog; Not selected",
+        ),
+        contract(
           .staticText, "miniwhisper.settings.sidebar.about", "About section",
           "About; Not selected",
         ),
@@ -114,6 +118,50 @@ final class SettingsUITests: MiniWhisperUITestCase, SurfaceTagged {
           "Open at login ring", "Ring off",
         ),
       ],
+    )
+  }
+
+  @MainActor func testChangelogAccessibilityManifest() throws {
+    try assertManifest(
+      scene: "changelog",
+      audits: true,
+      elements: [
+        contract(.window, "miniwhisper.settings.window", "\(appName) Settings"),
+        contract(.outline, "miniwhisper.settings.sidebar", "Settings sections", "Focused"),
+        contract(
+          .staticText, "miniwhisper.settings.sidebar.settings", "Settings section",
+          "Settings; Not selected",
+        ),
+        contract(
+          .staticText, "miniwhisper.settings.sidebar.history", "History section",
+          "History; Not selected",
+        ),
+        contract(
+          .staticText, "miniwhisper.settings.sidebar.dictionary", "Dictionary section",
+          "Dictionary; Not selected",
+        ),
+        contract(
+          .staticText, "miniwhisper.settings.sidebar.profiles", "Profiles section",
+          "Profiles; Not selected",
+        ),
+        contract(
+          .staticText, "miniwhisper.settings.sidebar.models", "Models section",
+          "Models; Not selected",
+        ),
+        contract(
+          .staticText, "miniwhisper.settings.sidebar.changelog", "Changelog section",
+          "Changelog; Selected",
+        ),
+        contract(
+          .staticText, "miniwhisper.settings.sidebar.about", "About section",
+          "About; Not selected",
+        ),
+        contract(.scrollView, "miniwhisper.changelog.content", "Changelog"),
+      ],
+      mutation: { app in
+        let window = app.windows["miniwhisper.settings.window"]
+        self.recordScreenshot("changelog-top", screenshot: window.screenshot())
+      },
     )
   }
 

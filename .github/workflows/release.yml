@@ -218,13 +218,21 @@ jobs:
             git push origin "refs/tags/$TAG"
           fi
 
+          notes_file="/tmp/mini-whisper-nightly-notes.md"
+          scripts/extract-release-notes.sh --unreleased > "$notes_file"
+          if [[ -s "$notes_file" ]]; then
+            printf '\nAutomated nightly build for %s.\n' "$GITHUB_SHA" >> "$notes_file"
+          else
+            printf 'Automated release for %s.\n' "$GITHUB_SHA" > "$notes_file"
+          fi
+
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release edit "$TAG" \
               --target "$GITHUB_SHA" \
               --title "$TAG" \
               --prerelease \
               --latest=false \
-              --notes "Automated release for ${GITHUB_SHA}."
+              --notes-file "$notes_file"
             gh release upload "$TAG" dist/* --clobber
           else
             gh release create "$TAG" dist/* \
@@ -233,7 +241,7 @@ jobs:
               --title "$TAG" \
               --prerelease \
               --latest=false \
-              --notes "Automated release for ${GITHUB_SHA}."
+              --notes-file "$notes_file"
           fi
 
   update-homebrew-tap:

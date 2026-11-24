@@ -10,6 +10,18 @@ import SpeechDictionary
 /// single source of truth for which one this is, exactly as it is for the TCC grants, so the name
 /// the user reads in the menu and in System Settings is the name that owns the files below it.
 enum Channel {
+  enum Kind: Equatable {
+    case dev
+    case nightly
+    case release
+
+    // MARK: Internal
+
+    var includesUnreleasedChangelog: Bool {
+      self != .release
+    }
+  }
+
   static let name: String = {
     guard let name = Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String else {
       fatalError("CFBundleName is missing; the running channel cannot be named")
@@ -24,15 +36,39 @@ enum Channel {
     return identifier
   }()
 
-  static let version: String = {
+  static let kind: Kind =
+    if bundleIdentifier.hasSuffix(".dev") {
+      .dev
+    } else if bundleIdentifier.hasSuffix(".nightly") {
+      .nightly
+    } else {
+      .release
+    }
+
+  static let shortVersion: String = {
     guard let shortVersion = Bundle.main.object(
-            forInfoDictionaryKey: "CFBundleShortVersionString",
-          ) as? String,
-          let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
+      forInfoDictionaryKey: "CFBundleShortVersionString",
+    ) as? String
     else {
-      fatalError("The application version is missing from the bundle")
+      fatalError("CFBundleShortVersionString is missing from the bundle")
+    }
+    return shortVersion
+  }()
+
+  static let version: String = {
+    guard let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String else {
+      fatalError("CFBundleVersion is missing from the bundle")
     }
     return "\(shortVersion) (\(build))"
+  }()
+
+  static let bundledChangelog: Changelog = {
+    guard let url = Bundle.main.url(forResource: "RELEASE", withExtension: "md"),
+          let markdown = try? String(contentsOf: url, encoding: .utf8)
+    else {
+      return .empty
+    }
+    return Changelog.parse(markdown)
   }()
 
   static let supportDirectory = FileManager.default.urls(

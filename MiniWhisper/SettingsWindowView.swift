@@ -15,11 +15,13 @@ struct SettingsWindowView: View {
       List(selection: selection) {
         destinationRow(.settings)
         Section {
-          ForEach(SettingsDestination.allCases.dropFirst().dropLast()) { destination in
-            destinationRow(destination)
-          }
+          destinationRow(.history)
+          destinationRow(.dictionary)
+          destinationRow(.profiles)
+          destinationRow(.models)
         }
         Section {
+          destinationRow(.changelog)
           destinationRow(.about)
         }
       }
@@ -218,7 +220,8 @@ struct SettingsWindowView: View {
         press: { store.send(.models(.pressRequested)) },
         escape: { store.send(.models(.previewCleared)) },
       )
-    case .about:
+    case .changelog,
+         .about:
       WindowKeyActions(left: { setFocus(.sidebar) })
     }
   }
@@ -280,6 +283,7 @@ struct SettingsWindowView: View {
       store.send(.models(.task))
     case .history,
          .dictionary,
+         .changelog,
          .about:
       break
     }
@@ -295,6 +299,7 @@ struct SettingsWindowView: View {
       store.send(.models(.paneDisappeared))
     case .history,
          .dictionary,
+         .changelog,
          .about:
       break
     }
@@ -390,6 +395,8 @@ private struct StablePane: View, Equatable {
       ProfilesPane(store: store)
     case .models:
       ModelsPane(store: store)
+    case .changelog:
+      ChangelogPane()
     case .about:
       AboutPane()
     }
