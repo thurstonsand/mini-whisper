@@ -10,8 +10,8 @@ A custom Polly menu bar icon with clearer status indicators.
 
 ### Changed
 
-- Replaced the generic microphone menu bar icon with Polly’s silhouette, with a crescent badge on Nightly builds so Release and Nightly stay easy to tell apart.
-- Degraded states now show an orange badge in the menu bar distinguishing missing permissions, missing speech models, missing API keys, and other errors that need attention.
+- Replaced the generic microphone menu bar icon with Polly’s silhouette.
+- Degraded states now show an orange badge in the menu bar.
 
 ## 0.5.0
 
