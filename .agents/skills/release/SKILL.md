@@ -13,11 +13,19 @@ Use this skill when preparing or publishing a MiniWhisper release.
 - Push `main` before creating a stable tag so nightly artifacts publish first.
 - Assume the release starts from a stable committed state. Do not repeat verification the user already performed.
 - Do not push the stable tag until the user explicitly approves stable publishing.
-- Stable releases are `vX.Y.Z` tags; release notes come from the matching `RELEASE.md` section, which is also bundled into the app for the Changelog settings pane.
-- User-facing changes accumulate under `## Unreleased` at the top of `RELEASE.md`. Nightly builds show `## Unreleased` in-app and publish it on GitHub prereleases; stable releases omit `## Unreleased` in-app. When cutting a stable release `vX.Y.Z`, promote `## Unreleased` into `## X.Y.Z` (with a short summary paragraph) and leave a fresh `## Unreleased` heading above it.
+- Stable releases are `vX.Y.Z` tags; release notes come from the matching `RELEASE.md` section, which is also bundled directly into the app for the Changelog settings pane.
 - Versions follow semantic versioning: a release with any new feature (an `Added` entry), a raised floor (a higher minimum Pi, Node, OS, or other dependency version), or anything breaking is at least minor, and breaking is major from 1.0 on; patch is only for fixes and dependency updates.
 - Binary nightly releases are unique prereleases named `nightly-<version>-nightly-<run>-<sha>`, using the latest stable version as their base.
 - Stable tags are immutable. Never force-push a stable release tag.
+
+## Writing release notes (`RELEASE.md`)
+
+`RELEASE.md` is **user-facing** — it is rendered inside MiniWhisper’s Settings → Changelog pane, not just on GitHub. Curate every entry strictly for people using the product, not people reading the code:
+
+- **Include only user-facing changes** in plain, scannable prose — what changed for the person using the app, not how it was implemented.
+- **Exclude developer/codebase details:** tests and UI-test infrastructure, internal refactors or architecture changes, CI/signing/packaging/Homebrew cask plumbing, dev-only tooling (`mise`, linters, Dev channel internals), internal filenames, and routine dependency updates that don’t change user-visible behavior.
+- **Lead notable releases with a short headline** directly below `## X.Y.Z` (one concise sentence summarizing the release’s highlights), followed by `### Added`, `### Changed`, and `### Fixed` sections as needed.
+- **Unreleased lifecycle:** user-facing changes accumulate under `## Unreleased` at the top of `RELEASE.md` as commits land. Nightly builds display `## Unreleased` in-app (headed `Nightly`) and publish its body on GitHub prereleases; stable Release builds omit `## Unreleased` in-app. Treat `## Unreleased` as a working draft, not something sacred — when cutting `vX.Y.Z`, audit every entry against the user-facing standard above and freely rewrite, combine, or delete anything that doesn’t serve the end user well before promoting it to `## X.Y.Z` with a headline and leaving a fresh empty `## Unreleased` heading above it.
 
 ## Release channels
 
