@@ -86,6 +86,26 @@ import Testing
     // Custom's cleanup starts off.
     #expect(plug(.custom, .cleanup) == nil)
   }
+
+  @Test func `leaving the pane clears its preview and stops watching assets`() async {
+    let (stream, _) = AsyncStream.makeStream(of: [ModelAsset: AssetState].self)
+    let state = ModelsFeature.State(
+      settings: Shared(value: .defaults), health: Shared(value: AppHealth()),
+    )
+    let store = TestStore(initialState: state) { ModelsFeature() } withDependencies: {
+      $0.modelLibrary.states = { stream }
+      $0.keychain.read = { _ in nil }
+    }
+
+    await store.send(.task)
+    await store.receive(.storedKeysRead([])) { $0.storedKeys = [] }
+    await store.send(.cursorHovered(.profile(.offline))) {
+      $0.cursor = .profile(.offline)
+      $0.previewProfile = .offline
+    }
+    await store.send(.paneDisappeared) { $0.previewProfile = nil }
+    await store.finish()
+  }
 }
 
 private let installed: [ModelAsset: AssetState] = Dictionary(

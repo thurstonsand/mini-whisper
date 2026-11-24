@@ -124,12 +124,17 @@ enum DictionaryFieldCopy {
     }
 
     var visibleEntries: [Entry] {
-      entries.filter { !usesReducedEmphasis($0) }
-        + (isVocabularyExpanded ? entries.filter { usesReducedEmphasis($0) } : [])
+      let all = entries
+      return all.filter { !usesReducedEmphasis($0) }
+        + (isVocabularyExpanded ? all.filter { usesReducedEmphasis($0) } : [])
     }
 
     var cursorEntry: Entry? {
-      visibleEntries.first { $0.id == cursor } ?? visibleEntries.first
+      let entries = visibleEntries
+      if let cursor, let match = entries.first(where: { $0.id == cursor }) {
+        return match
+      }
+      return entries.first
     }
 
     func usesReducedEmphasis(_ entry: Entry) -> Bool {

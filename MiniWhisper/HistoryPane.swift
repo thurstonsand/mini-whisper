@@ -10,33 +10,59 @@ struct HistoryPane: View {
 
   let store: StoreOf<SettingsWindowFeature>
 
-  var searchFocus: FocusState<Bool>.Binding
-
   var body: some View {
-    @Bindable var store = store
-    GeometryReader { geometry in
-      List {
-        ForEach(sections) { section in
-          Section {
-            ForEach(section.entries) { entry in
-              HistoryRow(store: store, entry: entry, isCompact: geometry.size.width < 620)
-                .id(entry.id)
-                .background {
-                  if entry.id == tipEntry?.id {
-                    Color.clear.popoverTip(currentTip, arrowEdge: .top)
-                  }
-                }
-            }
-          } header: {
-            Text(section.title).padding(.leading, 6)
+    let filtered = store.history.filteredEntries
+    let effectiveLimit = resolvedVisibleLimit(in: filtered)
+    let windowedEntries = filtered.count > effectiveLimit
+      ? Array(filtered.prefix(effectiveLimit))
+      : filtered
+    let hasMore = filtered.count > windowedEntries.count
+    let sections = Self.sections(from: windowedEntries)
+    let tipEntry = tipsReady ? Self.tipEntry(in: windowedEntries) : nil
+    let tipEntryID = tipEntry?.id
+    let tip: any Tip? = tipEntry.flatMap { currentTip(for: $0) }
+    List {
+      ForEach(sections) { section in
+        Section {
+          ForEach(section.entries) { entry in
+            HistoryRow(
+              store: store, entry: entry, isCompact: isCompact,
+              tip: entry.id == tipEntryID ? tip : nil,
+            )
+            .id(entry.id)
           }
+        } header: {
+          Text(section.title).padding(.leading, 6)
         }
       }
-      .listStyle(.plain)
+      if hasMore {
+        Color.clear
+          .frame(height: 1)
+          .listRowSeparator(.hidden)
+          .accessibilityHidden(true)
+          .onAppear { visibleLimit += Self.pageSize }
+      }
     }
+    .listStyle(.plain)
+    .onGeometryChange(for: Bool.self) { $0.size.width < 620 } action: { isCompact = $0 }
     .stableSettingsListRowHeight()
     .focusEffectDisabled()
-    .keyboardCursorScroll(store: store, cursor: visibleCursor)
+    .keyboardCursorScroll(
+      store: store, destination: .history, cursor: visibleCursor(in: filtered),
+    )
+    .task {
+      guard !tipsReady else {
+        return
+      }
+      _ = HistoryTips.group
+      tipsReady = true
+    }
+    .onChange(of: store.history.cursor) { _, cursor in
+      expandWindowIfNeeded(for: cursor, in: store.history.filteredEntries)
+    }
+    .onChange(of: store.history.search) { _, _ in
+      visibleLimit = Self.initialLimit
+    }
     .overlay {
       if store.history.log.entries.isEmpty, store.history.retention.transcripts == .never {
         ContentUnavailableView {
@@ -49,14 +75,10 @@ struct HistoryPane: View {
           "No History", systemImage: "clock.arrow.circlepath",
           description: Text("Your dictations will appear here."),
         )
-      } else if store.history.filteredEntries.isEmpty {
+      } else if filtered.isEmpty {
         ContentUnavailableView.search(text: store.history.search)
       }
     }
-    .searchable(
-      text: $store.history.search.sending(\.history.searchChanged), prompt: "Search transcripts",
-    )
-    .searchFocused(searchFocus)
     .onChange(of: store.history.isRevealingRawText) { _, revealed in
       if revealed, store.history.filteredEntries.contains(where: { $0.revealedText != nil }) {
         HistoryRawTip().invalidate(reason: .actionPerformed)
@@ -67,39 +89,26 @@ struct HistoryPane: View {
         HistoryCopyTip().invalidate(reason: .actionPerformed)
       }
     }
-    .toolbar {
-      Button("Keep Dictations…", systemImage: "clock.badge.xmark") {
-        store.send(.history(.storagePresentationChanged(true)))
-      }
-      .labelStyle(.titleAndIcon)
-      .help("Choose how long to keep transcripts and audio")
-      .accessibilityIdentifier(AccessibilityID.historyStorage)
-      .popover(
-        isPresented: $store.history
-          .isStoragePresented
-          .sending(\.history.storagePresentationChanged),
-        arrowEdge: .bottom,
-      ) {
-        HistoryStorageForm(store: store)
-      }
-    }
   }
 
   // MARK: Private
 
-  private var tipEntry: HistoryEntry? {
-    store.history.filteredEntries.first { $0.revealedText != nil }
-      ?? store.history.filteredEntries.first { $0.displayText != nil }
+  private static let initialLimit = 50
+  private static let pageSize = 100
+  private static let cursorLookahead = 20
+
+  @State private var isCompact = false
+  @State private var tipsReady = false
+  @State private var visibleLimit = initialLimit
+
+  private static func tipEntry(in entries: [HistoryEntry]) -> HistoryEntry? {
+    entries.first { $0.revealedText != nil }
+      ?? entries.first { $0.displayText != nil }
   }
 
-  private var currentTip: any Tip? {
-    let group = HistoryTips.group
-    return tipEntry?.revealedText == nil ? HistoryCopyTip() : group.currentTip
-  }
-
-  private var sections: [HistoryDaySection] {
+  private static func sections(from entries: [HistoryEntry]) -> [HistoryDaySection] {
     let calendar = Calendar.autoupdatingCurrent
-    let grouped = Dictionary(grouping: store.history.filteredEntries) {
+    let grouped = Dictionary(grouping: entries) {
       calendar.startOfDay(for: $0.createdAt)
     }
     return grouped.keys.sorted(by: >).map { day in
@@ -111,17 +120,7 @@ struct HistoryPane: View {
     }
   }
 
-  /// A cursor filtered out by the search is not on screen to scroll to.
-  private var visibleCursor: UUID? {
-    guard let cursor = store.history.cursor,
-          store.history.filteredEntries.contains(where: { $0.id == cursor })
-    else {
-      return nil
-    }
-    return cursor
-  }
-
-  private func dayTitle(_ date: Date, calendar: Calendar) -> String {
+  private static func dayTitle(_ date: Date, calendar: Calendar) -> String {
     if calendar.isDateInToday(date) {
       return "Today"
     }
@@ -129,6 +128,41 @@ struct HistoryPane: View {
       return "Yesterday"
     }
     return date.formatted(.dateTime.month(.wide).day().year())
+  }
+
+  private func currentTip(for entry: HistoryEntry) -> any Tip? {
+    let group = HistoryTips.group
+    return entry.revealedText == nil ? HistoryCopyTip() : group.currentTip
+  }
+
+  private func resolvedVisibleLimit(in entries: [HistoryEntry]) -> Int {
+    guard let cursor = store.history.cursor,
+          let index = entries.firstIndex(where: { $0.id == cursor }),
+          index + Self.cursorLookahead > visibleLimit
+    else {
+      return visibleLimit
+    }
+    return index + Self.cursorLookahead
+  }
+
+  private func expandWindowIfNeeded(for cursor: UUID?, in entries: [HistoryEntry]) {
+    guard let cursor,
+          let index = entries.firstIndex(where: { $0.id == cursor }),
+          index + Self.cursorLookahead > visibleLimit
+    else {
+      return
+    }
+    visibleLimit = max(visibleLimit + Self.pageSize, index + Self.cursorLookahead)
+  }
+
+  /// A cursor filtered out by the search is not on screen to scroll to.
+  private func visibleCursor(in entries: [HistoryEntry]) -> UUID? {
+    guard let cursor = store.history.cursor,
+          entries.contains(where: { $0.id == cursor })
+    else {
+      return nil
+    }
+    return cursor
   }
 }
 
@@ -247,23 +281,31 @@ private struct HistoryRow: View {
   let store: StoreOf<SettingsWindowFeature>
   let entry: HistoryEntry
   let isCompact: Bool
+  let tip: any Tip?
 
   var body: some View {
-    Group {
+    let isCopied = store.history.copiedEntryID == entry.id
+    let isPointed = store.interaction.mode == .mouse && store.interaction.focus == .detail
+      && store.history.cursor == entry.id
+    let showsKeyboardCursor = store.showsHistoryKeyboardCursor(entry.id)
+    let showsGrey = !isCopied && (isPointed || showsKeyboardCursor)
+    // A concrete unary container (not `Group`) keeps `List` statically aware that each row is
+    // one cell so off-screen rows stay virtualized instead of evaluating eagerly during diffing.
+    VStack(alignment: .leading, spacing: 0) {
       if isCompact {
         VStack(alignment: .leading, spacing: 6) {
           transcript
           HStack(spacing: 8) {
             metadata
             Spacer(minLength: 0)
-            accessories
+            accessories(isPointed: isPointed, isCopied: isCopied)
           }
         }
       } else {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
           metadata
           transcript
-          accessories
+          accessories(isPointed: isPointed, isCopied: isCopied)
         }
       }
     }
@@ -274,7 +316,12 @@ private struct HistoryRow: View {
       RoundedRectangle(cornerRadius: 8)
         .fill(.tint)
         .opacity(isCopied ? 0.18 : 0)
-        .animation(copyTintAnimation, value: isCopied)
+        .animation(copyTintAnimation(isCopied: isCopied), value: isCopied)
+    }
+    .background {
+      if let tip {
+        Color.clear.popoverTip(tip, arrowEdge: .top)
+      }
     }
     // A row whose content is a custom layout leaves the separator to guess where the text
     // begins, and it guesses from the trailing accessory — which is what leaves stubs beside
@@ -287,7 +334,9 @@ private struct HistoryRow: View {
       guard entry.displayText != nil else {
         return
       }
-      store.send(.pointerMoved)
+      if store.interaction.mode != .mouse {
+        store.send(.pointerMoved)
+      }
       store.send(.history(.rowTapped(entry.id)))
     }
     .windowPointerMovement(store: store) {
@@ -306,39 +355,12 @@ private struct HistoryRow: View {
 
   // MARK: Private
 
-  private var isPointed: Bool {
-    store.interaction.mode == .mouse && store.interaction.focus == .detail
-      && store.history.cursor == entry.id
-  }
-
-  private var showsGrey: Bool {
-    !isCopied && (isPointed || showsKeyboardCursor)
-  }
-
-  private var showsKeyboardCursor: Bool {
-    store.state.showsHistoryKeyboardCursor(entry.id)
-  }
-
-  private var isCopied: Bool {
-    store.history.copiedEntryID == entry.id
-  }
-
   private var isRevealed: Bool {
     store.history.isRevealingRawText && entry.revealedText != nil
   }
 
   private var isPlaying: Bool {
     store.history.playingEntryID == entry.id
-  }
-
-  /// The confirmation arrives at once and leaves slowly; the duration underneath waits out that
-  /// exit before returning, so the two are never on screen together.
-  private var copyTintAnimation: Animation? {
-    isCopied ? nil : .easeOut(duration: 0.5)
-  }
-
-  private var durationAnimation: Animation {
-    isCopied ? .easeOut(duration: 0.15) : .easeIn(duration: 0.25).delay(0.5)
   }
 
   private var failure: String? {
@@ -366,13 +388,6 @@ private struct HistoryRow: View {
     return isRevealed ? AnyShapeStyle(.secondary) : AnyShapeStyle(.primary)
   }
 
-  private var playbackSymbol: String {
-    if isPlaying {
-      return "stop.fill"
-    }
-    return isPointed ? "play.fill" : "waveform"
-  }
-
   private var transcript: some View {
     Text(rowText)
       .fixedSize(horizontal: false, vertical: true)
@@ -391,36 +406,6 @@ private struct HistoryRow: View {
     }
     .font(.callout)
     .foregroundStyle(.secondary)
-  }
-
-  private var accessories: some View {
-    HStack(spacing: 8) {
-      if entry.revealedText != nil {
-        Image(systemName: "wand.and.sparkles")
-          .font(.callout)
-          .foregroundStyle(.secondary)
-          .frame(width: 20)
-          .opacity(isRevealed ? 0 : 1)
-          .help("Cleaned up. Hold ⌥ to see the raw transcript.")
-          .accessibilityLabel("Cleaned up")
-          .accessibilityIdentifier(AccessibilityID.historyCleaned(entry.id))
-      } else {
-        Color.clear.frame(width: 20, height: 1).accessibilityHidden(true)
-      }
-      if entry.audio != nil {
-        Button(isPlaying ? "Stop" : "Play", systemImage: playbackSymbol) {
-          store.send(.history(.playTapped(entry.id)))
-        }
-        .labelStyle(.iconOnly)
-        .buttonStyle(.borderless)
-        .frame(width: 20)
-        .foregroundStyle(isPointed ? AnyShapeStyle(.primary) : AnyShapeStyle(.secondary))
-        .help(isPlaying ? "Stop the recording" : "Play the recording")
-      } else {
-        Color.clear.frame(width: 20, height: 1).accessibilityHidden(true)
-      }
-      accessory.frame(width: 70, alignment: .trailing)
-    }
   }
 
   @ViewBuilder private var menuItems: some View {
@@ -451,14 +436,44 @@ private struct HistoryRow: View {
     }
   }
 
-  private var accessory: some View {
+  private func accessories(isPointed: Bool, isCopied: Bool) -> some View {
+    HStack(spacing: 8) {
+      if entry.revealedText != nil {
+        Image(systemName: "wand.and.sparkles")
+          .font(.callout)
+          .foregroundStyle(.secondary)
+          .frame(width: 20)
+          .opacity(isRevealed ? 0 : 1)
+          .help("Cleaned up. Hold ⌥ to see the raw transcript.")
+          .accessibilityLabel("Cleaned up")
+          .accessibilityIdentifier(AccessibilityID.historyCleaned(entry.id))
+      } else {
+        Color.clear.frame(width: 20, height: 1).accessibilityHidden(true)
+      }
+      if entry.audio != nil {
+        Button(isPlaying ? "Stop" : "Play", systemImage: playbackSymbol(isPointed: isPointed)) {
+          store.send(.history(.playTapped(entry.id)))
+        }
+        .labelStyle(.iconOnly)
+        .buttonStyle(.borderless)
+        .frame(width: 20)
+        .foregroundStyle(isPointed ? AnyShapeStyle(.primary) : AnyShapeStyle(.secondary))
+        .help(isPlaying ? "Stop the recording" : "Play the recording")
+      } else {
+        Color.clear.frame(width: 20, height: 1).accessibilityHidden(true)
+      }
+      accessory(isPointed: isPointed, isCopied: isCopied).frame(width: 70, alignment: .trailing)
+    }
+  }
+
+  private func accessory(isPointed: Bool, isCopied: Bool) -> some View {
     ZStack(alignment: .trailing) {
       Label("Copied", systemImage: "checkmark")
         .font(.callout)
         .foregroundStyle(.tint)
         .fixedSize()
         .opacity(isCopied ? 1 : 0)
-        .animation(copyTintAnimation, value: isCopied)
+        .animation(copyTintAnimation(isCopied: isCopied), value: isCopied)
         .accessibilityIdentifier(AccessibilityID.historyCopied(entry.id))
         .accessibilityHidden(!isCopied)
 
@@ -473,8 +488,25 @@ private struct HistoryRow: View {
         }
       }
       .opacity(isCopied ? 0 : 1)
-      .animation(durationAnimation, value: isCopied)
+      .animation(durationAnimation(isCopied: isCopied), value: isCopied)
     }
+  }
+
+  /// The confirmation arrives at once and leaves slowly; the duration underneath waits out that
+  /// exit before returning, so the two are never on screen together.
+  private func copyTintAnimation(isCopied: Bool) -> Animation? {
+    isCopied ? nil : .easeOut(duration: 0.5)
+  }
+
+  private func durationAnimation(isCopied: Bool) -> Animation {
+    isCopied ? .easeOut(duration: 0.15) : .easeIn(duration: 0.25).delay(0.5)
+  }
+
+  private func playbackSymbol(isPointed: Bool) -> String {
+    if isPlaying {
+      return "stop.fill"
+    }
+    return isPointed ? "play.fill" : "waveform"
   }
 }
 
@@ -490,6 +522,30 @@ private struct HistoryMoreMenu<Content: View>: View {
     .menuStyle(.borderlessButton)
     .menuIndicator(.hidden)
     .fixedSize()
+  }
+}
+
+// MARK: - HistoryStorageToolbarButton
+
+struct HistoryStorageToolbarButton: View {
+  let store: StoreOf<SettingsWindowFeature>
+
+  var body: some View {
+    @Bindable var store = store
+    Button("Keep Dictations…", systemImage: "clock.badge.xmark") {
+      store.send(.history(.storagePresentationChanged(true)))
+    }
+    .labelStyle(.titleAndIcon)
+    .help("Choose how long to keep transcripts and audio")
+    .accessibilityIdentifier(AccessibilityID.historyStorage)
+    .popover(
+      isPresented: $store.history
+        .isStoragePresented
+        .sending(\.history.storagePresentationChanged),
+      arrowEdge: .bottom,
+    ) {
+      HistoryStorageForm(store: store)
+    }
   }
 }
 

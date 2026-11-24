@@ -35,8 +35,34 @@ struct SettingsWindowView: View {
       .accessibilityLabel("Settings sections")
       .accessibilityValue(focusedColumn == .sidebar ? "Focused" : "Not focused")
     } detail: {
-      ZStack {
-        detail.navigationTitle(store.selection.rawValue)
+      DeckLayout {
+        ForEach(SettingsDestination.allCases) { destination in
+          if destination == store.selection || visitedDestinations.contains(destination) {
+            let isSelected = destination == store.selection
+            StablePane(destination: destination, store: store)
+              .equatable()
+              .opacity(isSelected ? 1 : 0)
+              .allowsHitTesting(isSelected)
+              .accessibilityHidden(!isSelected)
+              .zIndex(isSelected ? 1 : 0)
+          }
+        }
+      }
+      .background {
+        if store.selection == .history {
+          HistorySearchBridge(store: store, searchFocus: $isHistorySearchFocused)
+        }
+      }
+      .navigationTitle(store.selection.rawValue)
+      .toolbar {
+        if store.selection == .history {
+          ToolbarItem {
+            HistoryStorageToolbarButton(store: store)
+          }
+        }
+        if store.selection == .dictionary {
+          DictionaryToolbarItems(store: store)
+        }
       }
       .focusable()
       .focusEffectDisabled()
@@ -66,6 +92,16 @@ struct SettingsWindowView: View {
         .frame(width: 0, height: 0)
     }
     .environment(pointerTracker)
+    .onAppear {
+      visitedDestinations.insert(store.selection)
+      activatePane(store.selection)
+    }
+    .onChange(of: store.selection) { previous, current in
+      visitedDestinations.insert(current)
+      deactivatePane(previous)
+      activatePane(current)
+    }
+    .onDisappear { deactivatePane(store.selection) }
     .onChange(of: focusedColumn) { _, focus in synchronizeFocus(focus) }
     // The other half of the mirror: a hover moves focus in the store, and @FocusState is the only
     // thing that can make it real. Assigning a value it already holds ends the round trip.
@@ -86,6 +122,7 @@ struct SettingsWindowView: View {
   @FocusState private var isHistorySearchFocused: Bool
   @State private var hasAppliedInitialFocus = false
   @State private var pointerTracker = WindowPointerTracker()
+  @State private var visitedDestinations: Set<SettingsDestination> = []
 
   /// `List` selection is optional and the window's never is, so this is the only place the two
   /// shapes meet: a deselection is simply not a destination change.
@@ -217,23 +254,6 @@ struct SettingsWindowView: View {
     isHistorySearchFocused || store.profiles.isEditingField
   }
 
-  @ViewBuilder private var detail: some View {
-    switch store.selection {
-    case .settings:
-      SettingsPane(store: store)
-    case .history:
-      HistoryPane(store: store, searchFocus: $isHistorySearchFocused)
-    case .dictionary:
-      DictionaryPane(store: store)
-    case .profiles:
-      ProfilesPane(store: store)
-    case .models:
-      ModelsPane(store: store)
-    case .about:
-      AboutPane()
-    }
-  }
-
   private func destinationRow(_ destination: SettingsDestination) -> some View {
     Label {
       Text(destination.rawValue)
@@ -248,6 +268,36 @@ struct SettingsWindowView: View {
       Image(systemName: destination.symbolName)
     }
     .tag(destination)
+  }
+
+  private func activatePane(_ destination: SettingsDestination) {
+    switch destination {
+    case .settings:
+      store.send(.settingsPane(.task))
+    case .profiles:
+      store.send(.profiles(.task))
+    case .models:
+      store.send(.models(.task))
+    case .history,
+         .dictionary,
+         .about:
+      break
+    }
+  }
+
+  private func deactivatePane(_ destination: SettingsDestination) {
+    switch destination {
+    case .settings:
+      store.send(.settingsPane(.paneClosed))
+    case .profiles:
+      store.send(.profiles(.paneDisappeared))
+    case .models:
+      store.send(.models(.paneDisappeared))
+    case .history,
+         .dictionary,
+         .about:
+      break
+    }
   }
 
   private func editDictionaryCursor() {
@@ -290,6 +340,82 @@ struct SettingsWindowView: View {
       return
     }
     let next = min(max(current + offset, 0), destinations.count - 1)
+    guard destinations[next] != store.selection else {
+      return
+    }
     store.send(.selectionChanged(destinations[next]))
+  }
+}
+
+// MARK: - DeckLayout
+
+/// Stacks mounted panes to fill the detail column without asking inactive siblings for
+/// `sizeThatFits` on every selection change (which `ZStack` does across all children).
+private struct DeckLayout: Layout {
+  func sizeThatFits(
+    proposal: ProposedViewSize, subviews _: Subviews, cache _: inout (),
+  ) -> CGSize {
+    proposal.replacingUnspecifiedDimensions()
+  }
+
+  func placeSubviews(
+    in bounds: CGRect, proposal _: ProposedViewSize, subviews: Subviews, cache _: inout (),
+  ) {
+    let size = ProposedViewSize(bounds.size)
+    for subview in subviews {
+      subview.place(at: bounds.origin, anchor: .topLeading, proposal: size)
+    }
+  }
+}
+
+// MARK: - StablePane
+
+/// Shields a mounted pane from re-evaluating its body whenever `SettingsWindowView` re-renders for
+/// a sidebar selection change. Each pane's own `@ObservableState` reads still invalidate it
+/// directly
+/// when its state changes.
+private struct StablePane: View, Equatable {
+  let destination: SettingsDestination
+  let store: StoreOf<SettingsWindowFeature>
+
+  var body: some View {
+    switch destination {
+    case .settings:
+      SettingsPane(store: store)
+    case .history:
+      HistoryPane(store: store)
+    case .dictionary:
+      DictionaryPane(store: store)
+    case .profiles:
+      ProfilesPane(store: store)
+    case .models:
+      ModelsPane(store: store)
+    case .about:
+      AboutPane()
+    }
+  }
+
+  static func == (lhs: Self, rhs: Self) -> Bool {
+    lhs.destination == rhs.destination && lhs.store === rhs.store
+  }
+}
+
+// MARK: - HistorySearchBridge
+
+private struct HistorySearchBridge: View {
+  let store: StoreOf<SettingsWindowFeature>
+  var searchFocus: FocusState<Bool>.Binding
+
+  var body: some View {
+    @Bindable var store = store
+    Color.clear
+      .frame(width: 0, height: 0)
+      .allowsHitTesting(false)
+      .accessibilityHidden(true)
+      .searchable(
+        text: $store.history.search.sending(\.history.searchChanged),
+        prompt: "Search transcripts",
+      )
+      .searchFocused(searchFocus)
   }
 }

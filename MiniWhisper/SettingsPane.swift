@@ -53,14 +53,16 @@ struct SettingsPane: View {
     }
     .formStyle(.grouped)
     .focusEffectDisabled()
-    .keyboardCursorScroll(store: store, cursor: store.settingsPane.cursorRow)
+    .keyboardCursorScroll(
+      store: store,
+      destination: .settings,
+      cursor: store.settingsPane.cursorRow,
+    )
     // Playback leaves no mark on screen, so the pane carries one probe saying what was last heard.
     .accessibilityPaintState(
       AccessibilityID.settingsSoundPlayback, label: "Sound playback",
       value: store.settingsPane.lastPlayedSound ?? "None",
     )
-    .task { store.send(.settingsPane(.task)) }
-    .onDisappear { store.send(.settingsPane(.paneClosed)) }
     .alert(
       "Reset \(store.settingsPane.pendingReset?.name ?? "")?", isPresented: resetPending,
       presenting: store.settingsPane.pendingReset,
@@ -115,17 +117,17 @@ private struct RepairRow: View {
       if let file = degradation.unreadableFile {
         HStack {
           Button("Show in Finder") { store.send(.settingsPane(.revealFileTapped(file))) }
-            .focusRing(store.state.showsSettingsRing(row, target: .revealFile(file)))
+            .focusRing(store.showsSettingsRing(row, target: .revealFile(file)))
             .accessibilityIdentifier(AccessibilityID.settingsRepairReveal(degradation))
           Button("Reset to Defaults…") { store.send(.settingsPane(.resetFileTapped(file))) }
-            .focusRing(store.state.showsSettingsRing(row, target: .resetFile(file)))
+            .focusRing(store.showsSettingsRing(row, target: .resetFile(file)))
             .accessibilityIdentifier(AccessibilityID.settingsRepairReset(degradation))
         }
       } else {
         Button(presentation.title) {
           store.send(.settingsPane(.repairTapped(degradation)))
         }
-        .focusRing(store.state.showsSettingsRing(row, target: .repair(degradation)))
+        .focusRing(store.showsSettingsRing(row, target: .repair(degradation)))
         .accessibilityIdentifier(AccessibilityID.settingsRepairAction(degradation))
         .accessibilityLabel(presentation.title)
       }
@@ -159,7 +161,7 @@ private struct LaunchAtLoginRow: View {
   let store: StoreOf<SettingsWindowFeature>
 
   var body: some View {
-    let showsRing = store.state.showsSettingsRing(.launchAtLogin, target: .launchAtLogin)
+    let showsRing = store.showsSettingsRing(.launchAtLogin, target: .launchAtLogin)
     LabeledContent("Open at login") {
       SettingsSwitch(
         isOn: store.settingsPane.launchAtLoginRegistered, label: "Open at login",
@@ -171,7 +173,7 @@ private struct LaunchAtLoginRow: View {
     .modifier(SettingsFormRow(store: store, row: .launchAtLogin))
     .accessibilityPaintState(
       AccessibilityID.settingsLaunchAtLoginState, label: "Open at login highlight",
-      value: store.state.showsSettingsBar(.launchAtLogin) ? "Bar on" : "Bar off",
+      value: store.showsSettingsBar(.launchAtLogin) ? "Bar on" : "Bar off",
     )
     .accessibilityPaintState(
       AccessibilityID.settingsLaunchAtLoginRing, label: "Open at login ring",
@@ -191,12 +193,12 @@ private struct MicrophoneRow: View {
     LabeledContent("Microphone") {
       VStack(alignment: .trailing, spacing: 4) {
         HStack(spacing: 8) {
-          MicrophoneLevelMeter(level: store.settingsPane.inputLevel)
+          MicrophoneLevelMeter(store: store)
           SettingsPopUpButton(
             options: options,
             selection: store.settingsPane.microphone,
             activation: store.settingsPane.microphoneActivation,
-            isRinged: store.state.showsSettingsRing(.microphone, target: .microphone),
+            isRinged: store.showsSettingsRing(.microphone, target: .microphone),
             onSelection: { store.send(.settingsPane(.microphoneSelected($0))) },
           )
           .fixedSize()
@@ -221,7 +223,7 @@ private struct MicrophoneRow: View {
     .accessibilityLabel("Microphone")
     .accessibilityPaintState(
       AccessibilityID.settingsMicrophoneRowState, label: "Microphone highlight",
-      value: store.state.showsSettingsBar(.microphone) ? "Bar on" : "Bar off",
+      value: store.showsSettingsBar(.microphone) ? "Bar on" : "Bar off",
     )
   }
 
@@ -255,12 +257,14 @@ private struct MicrophoneRow: View {
 
 // MARK: - MicrophoneLevelMeter
 
+/// Observes the 30 Hz meter on its own so level ticks never re-evaluate the microphone row or its
+/// pop-up button.
 private struct MicrophoneLevelMeter: View {
-  // MARK: Internal
-
-  let level: AudioLevel?
+  let store: StoreOf<SettingsWindowFeature>
 
   var body: some View {
+    let level = store.settingsPane.inputLevel
+    let paintedLevel = level?.normalizedPower ?? 0
     AudioLevelBars(level: paintedLevel)
       .opacity(level == nil ? 0.5 : 1)
       .accessibilityHidden(true)
@@ -269,12 +273,6 @@ private struct MicrophoneLevelMeter: View {
         label: level == nil ? "Microphone input level, inactive" : "Microphone input level",
         value: String(paintedLevel),
       )
-  }
-
-  // MARK: Private
-
-  private var paintedLevel: Float {
-    level?.normalizedPower ?? 0
   }
 }
 
@@ -291,7 +289,7 @@ private struct SoundRow: View {
         SettingsPopUpButton(
           options: options, selection: selection,
           activation: store.settingsPane.soundActivation,
-          isRinged: store.state.showsSettingsRing(.sound, target: .soundPicker),
+          isRinged: store.showsSettingsRing(.sound, target: .soundPicker),
           onSelection: { store.send(.settingsPane(.soundThemeSelected($0))) },
         )
         .fixedSize()
@@ -321,7 +319,7 @@ private struct SoundRow: View {
     .accessibilityLabel("Sound theme")
     .accessibilityPaintState(
       AccessibilityID.settingsSoundRowState, label: "Sound theme highlight",
-      value: store.state.showsSettingsBar(.sound) ? "Bar on" : "Bar off",
+      value: store.showsSettingsBar(.sound) ? "Bar on" : "Bar off",
     )
   }
 
@@ -332,7 +330,7 @@ private struct SoundRow: View {
   }
 
   private var showsPreviewRing: Bool {
-    store.state.showsSettingsRing(.sound, target: .soundPreview)
+    store.showsSettingsRing(.sound, target: .soundPreview)
   }
 
   /// Silence trails the themes, dimmed: it is the absence of a choice rather than one more sound.
@@ -392,7 +390,7 @@ private struct ShortcutRow: View {
     .accessibilityLabel("\(label) shortcut")
     .accessibilityPaintState(
       rowStateAccessibilityID, label: "\(label) shortcut highlight",
-      value: store.state.showsSettingsBar(row) ? "Bar on" : "Bar off",
+      value: store.showsSettingsBar(row) ? "Bar on" : "Bar off",
     )
   }
 
@@ -495,7 +493,7 @@ private struct ShortcutRow: View {
   }
 
   private func showsRing(_ target: SettingsPaneFeature.Target) -> Bool {
-    store.state.showsSettingsRing(row, target: target)
+    store.showsSettingsRing(row, target: target)
   }
 }
 
@@ -516,8 +514,8 @@ private struct SettingsFormRow: ViewModifier {
           .frame(width: 3)
           .padding(.vertical, 4)
           .offset(x: -10)
-          .opacity(store.state.showsSettingsBar(row) ? 1 : 0)
-          .animation(.easeOut(duration: 0.12), value: store.state.showsSettingsBar(row))
+          .opacity(store.showsSettingsBar(row) ? 1 : 0)
+          .animation(.easeOut(duration: 0.12), value: store.showsSettingsBar(row))
       }
       .contentShape(.rect)
       .id(row)

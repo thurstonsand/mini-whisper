@@ -171,6 +171,7 @@ private let modelsPaneLogger = Logger(
 
   enum Action: Equatable {
     case task
+    case paneDisappeared
     case assetsUpdated([ModelAsset: AssetState])
     case storedKeysRead(Set<CredentialSlot>)
     case cursorHovered(Row)
@@ -226,7 +227,11 @@ private let modelsPaneLogger = Logger(
             }
           }
           await send(.storedKeysRead(stored))
-        })
+        }
+        .cancellable(id: CancelID.keys, cancelInFlight: true))
+      case .paneDisappeared:
+        state.previewProfile = nil
+        return .merge(.cancel(id: CancelID.assets), .cancel(id: CancelID.keys))
       case let .assetsUpdated(assets):
         state.assets = assets
         return .none
@@ -304,6 +309,7 @@ private let modelsPaneLogger = Logger(
 
   private enum CancelID {
     case assets
+    case keys
   }
 
   private func move(_ state: inout State, to row: Row) {

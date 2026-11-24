@@ -67,7 +67,7 @@ enum SettingsWindowFocus: Hashable {
 
 /// Focus and last-input ownership are one window-level contract. Panes supply only whether a row
 /// is their cursor; this decides whether keyboard paint is allowed to exist at all.
-struct SettingsWindowInteraction: Equatable {
+@ObservableState struct SettingsWindowInteraction: Equatable {
   enum Mode: Equatable {
     case keyboard
     case mouse
@@ -80,8 +80,8 @@ struct SettingsWindowInteraction: Equatable {
     mode == .keyboard && focus == .detail
   }
 
-  func showsKeyboardCursor(_ matchesCursor: Bool) -> Bool {
-    keyboardDrivesDetail && matchesCursor
+  func showsKeyboardCursor(_ matchesCursor: @autoclosure () -> Bool) -> Bool {
+    keyboardDrivesDetail && matchesCursor()
   }
 }
 
@@ -124,11 +124,38 @@ struct SettingsWindowInteraction: Equatable {
     var models: ModelsFeature.State
 
     func showsHistoryKeyboardCursor(_ id: UUID) -> Bool {
-      interaction.showsKeyboardCursor(history.cursorEntry?.id == id)
+      guard interaction.keyboardDrivesDetail else {
+        return false
+      }
+      if let cursor = history.cursor {
+        let entries = history.filteredEntries
+        if cursor == id {
+          return entries.contains(where: { $0.id == id })
+        }
+        // Only the first visible entry can fall back when `cursor` is filtered out or deleted.
+        guard entries.first?.id == id else {
+          return false
+        }
+        return !entries.contains(where: { $0.id == cursor })
+      }
+      return history.filteredEntries.first?.id == id
     }
 
     func showsDictionaryKeyboardCursor(_ id: DictionaryFeature.EntryID) -> Bool {
-      interaction.showsKeyboardCursor(dictionary.cursorEntry?.id == id)
+      guard interaction.keyboardDrivesDetail else {
+        return false
+      }
+      if let cursor = dictionary.cursor {
+        let entries = dictionary.visibleEntries
+        if cursor == id {
+          return entries.contains(where: { $0.id == id })
+        }
+        guard entries.first?.id == id else {
+          return false
+        }
+        return !entries.contains(where: { $0.id == cursor })
+      }
+      return dictionary.visibleEntries.first?.id == id
     }
 
     /// A focused detail column always shows where its single row cursor is; input mode only
@@ -183,7 +210,9 @@ struct SettingsWindowInteraction: Equatable {
     Reduce { state, action in
       switch action {
       case let .selectionChanged(selection):
-        state.selection = selection
+        if state.selection != selection {
+          state.selection = selection
+        }
         return .none
       case .dictionary(.showVocabularySettings):
         state.profiles.cursor = ProfilesFeature.Cursor(row: .boostsVocabulary)
@@ -212,13 +241,19 @@ struct SettingsWindowInteraction: Equatable {
           .send(.profiles(.editTapped(field))),
         )
       case let .focusChanged(focus):
-        state.interaction.focus = focus
+        if state.interaction.focus != focus {
+          state.interaction.focus = focus
+        }
         return .none
       case .keyboardModeEntered:
-        state.interaction.mode = .keyboard
+        if state.interaction.mode != .keyboard {
+          state.interaction.mode = .keyboard
+        }
         return .none
       case .pointerMoved:
-        state.interaction.mode = .mouse
+        if state.interaction.mode != .mouse {
+          state.interaction.mode = .mouse
+        }
         return .none
       // The pointer landing on a row is the detail column being driven, so it claims focus the
       // same way an arrow key would. Nobody types and mouses at once, so there is nothing to steal.
@@ -227,7 +262,9 @@ struct SettingsWindowInteraction: Equatable {
            .dictionary(.cursorHovered),
            .profiles(.cursorHovered),
            .models(.cursorHovered):
-        state.interaction.focus = .detail
+        if state.interaction.focus != .detail {
+          state.interaction.focus = .detail
+        }
         return .none
       case .dictionary,
            .history,
@@ -237,5 +274,78 @@ struct SettingsWindowInteraction: Equatable {
         return .none
       }
     }
+  }
+}
+
+// MARK: - Fine-grained store queries
+
+/// Reads only the specific properties needed for cursor paint rather than `store.state`, which
+/// would subscribe every row in every pane to every mutation across the entire window.
+extension StoreOf<SettingsWindowFeature> {
+  func showsHistoryKeyboardCursor(_ id: UUID) -> Bool {
+    let store = self
+    guard store.interaction.keyboardDrivesDetail else {
+      return false
+    }
+    if let cursor = store.history.cursor {
+      let entries = store.history.filteredEntries
+      if cursor == id {
+        return entries.contains(where: { $0.id == id })
+      }
+      guard entries.first?.id == id else {
+        return false
+      }
+      return !entries.contains(where: { $0.id == cursor })
+    }
+    return store.history.filteredEntries.first?.id == id
+  }
+
+  func showsDictionaryKeyboardCursor(_ id: DictionaryFeature.EntryID) -> Bool {
+    let store = self
+    guard store.interaction.keyboardDrivesDetail else {
+      return false
+    }
+    if let cursor = store.dictionary.cursor {
+      let entries = store.dictionary.visibleEntries
+      if cursor == id {
+        return entries.contains(where: { $0.id == id })
+      }
+      guard entries.first?.id == id else {
+        return false
+      }
+      return !entries.contains(where: { $0.id == cursor })
+    }
+    return store.dictionary.visibleEntries.first?.id == id
+  }
+
+  func showsSettingsBar(_ row: SettingsPaneFeature.Row) -> Bool {
+    let store = self
+    return store.interaction.focus == .detail && store.settingsPane.cursorRow == row
+  }
+
+  func showsSettingsRing(
+    _ row: SettingsPaneFeature.Row, target: SettingsPaneFeature.Target,
+  ) -> Bool {
+    let store = self
+    return store.interaction.showsKeyboardCursor(
+      store.settingsPane.cursorRow == row && store.settingsPane.cursorTarget == target,
+    )
+  }
+
+  func showsProfilesBar(_ row: ProfilesFeature.Row) -> Bool {
+    let store = self
+    return store.interaction.focus == .detail && store.profiles.cursorRow == row
+  }
+
+  func showsProfilesRing(_ row: ProfilesFeature.Row, target: ProfilesFeature.Target) -> Bool {
+    let store = self
+    return store.interaction.showsKeyboardCursor(
+      store.profiles.cursorRow == row && store.profiles.cursorTarget == target,
+    )
+  }
+
+  func showsModelsRing(_ asset: ModelAsset) -> Bool {
+    let store = self
+    return store.interaction.showsKeyboardCursor(store.models.cursorRow == .asset(asset))
   }
 }

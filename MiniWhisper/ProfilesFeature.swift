@@ -566,14 +566,20 @@ private let profilesPaneLogger = Logger(
               }
             }
             await send(.storedKeysRead(stored))
-          },
+          }
+          .cancellable(id: CancelID.keys, cancelInFlight: true),
           refreshListing(state),
         ))
       // Leaving the pane is leaving the edit: a draft nobody can see is not one to keep.
       case .paneDisappeared:
         state.isCleanupExpanded = false
         state.isSpeechExpanded = false
-        return discardEditor(&state)
+        return .merge(
+          discardEditor(&state),
+          .cancel(id: CancelID.assets),
+          .cancel(id: CancelID.refresh),
+          .cancel(id: CancelID.keys),
+        )
       case let .storedKeysRead(keys):
         state.storedKeys = keys
         return .none
@@ -979,6 +985,7 @@ private let profilesPaneLogger = Logger(
     case listing
     case refresh
     case assets
+    case keys
   }
 
   private static let customSlot = CredentialSlot(profile: .custom, provider: .endpoint)

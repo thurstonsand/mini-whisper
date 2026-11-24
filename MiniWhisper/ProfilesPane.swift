@@ -50,20 +50,21 @@ struct ProfilesPane: View {
     }
     .formStyle(.grouped)
     .focusEffectDisabled()
-    .keyboardCursorScroll(store: store, cursor: profiles.cursorRow)
+    .keyboardCursorScroll(store: store, destination: .profiles, cursor: profiles.cursorRow)
     // Whether a field is being typed in decides whether the window's letters are the pane's
     // grammar, and nothing else on screen says which it is.
     .accessibilityPaintState(
       AccessibilityID.profilesEditing, label: "Profiles editing",
       value: profiles.editingField.map { "Editing \($0)" } ?? "Idle",
     )
-    .task { store.send(.profiles(.task)) }
-    .onDisappear { store.send(.profiles(.paneDisappeared)) }
     // Asked once the Keychain has been read, so the question does not change under the reader.
     .alert(
       "Everyday now cleans up with Gemini",
       isPresented: Binding(
-        get: { haikuRetirement != nil && profiles.storedKeys != nil }, set: { _ in },
+        get: {
+          store.selection == .profiles && haikuRetirement != nil && profiles.storedKeys != nil
+        },
+        set: { _ in },
       ),
     ) {
       Button(hasGoogleKey ? "Switch to Gemini" : "Add a Google Key") {
@@ -188,7 +189,7 @@ private struct PickerRow: View {
       SettingsPopUpButton(
         options: options, selection: store.profiles.profile.id,
         activation: store.profiles.profileActivation,
-        isRinged: store.state.showsProfilesRing(.profile, target: .profile),
+        isRinged: store.showsProfilesRing(.profile, target: .profile),
         onSelection: { store.send(.profiles(.profileSelected($0))) },
       )
       .fixedSize()
@@ -254,7 +255,7 @@ private struct ProfileAssetControl: View {
       Button(asset == .gate ? "Download Speech Gate" : "Download") {
         store.send(.profiles(.downloadTapped(asset)))
       }
-      .focusRing(store.state.showsProfilesRing(row, target: .download(asset)))
+      .focusRing(store.showsProfilesRing(row, target: .download(asset)))
       .accessibilityIdentifier("miniwhisper.profiles.\(asset.rawValue).download")
     case .installed,
          nil:
@@ -324,7 +325,7 @@ private struct AdvancedRow: View {
       .buttonStyle(.bordered)
       .accessibilityIdentifier(speech ? "miniwhisper.profiles.speech-advanced" : AccessibilityID
         .profilesAdvanced)
-      .focusRing(store.state.showsProfilesRing(
+      .focusRing(store.showsProfilesRing(
         speech ? .speechAdvanced : .advanced,
         target: speech ? .speechAdvanced : .advanced,
       ))
@@ -376,7 +377,7 @@ private struct SpeechConnectionRows: View {
         ProfilesTextField(
           value: value, prompt: "", identifier: AccessibilityID.profilesField(field), label: label,
           focus: .init(request: editor.focusRequest, isRequested: editor.focus == field),
-          isRinged: store.state.showsProfilesRing(row, target: .field(field)),
+          isRinged: store.showsProfilesRing(row, target: .field(field)),
           onChange: onChange,
           onFocusChange: { store.send(.profiles(.fieldFocusChanged(row, $0))) },
         )
@@ -448,7 +449,7 @@ private struct ValueRow: View {
           .lineLimit(1)
           .truncationMode(.middle)
         Button(edit) { store.send(.profiles(.editTapped(field))) }
-          .focusRing(store.state.showsProfilesRing(row, target: .edit(field)))
+          .focusRing(store.showsProfilesRing(row, target: .edit(field)))
           .accessibilityIdentifier(AccessibilityID.profilesEdit(field))
           .accessibilityLabel("\(edit) \(label)")
         if isOverridden {
@@ -459,7 +460,7 @@ private struct ValueRow: View {
           }
           .buttonStyle(.borderless)
           .help("Reset to Default")
-          .focusRing(store.state.showsProfilesRing(row, target: .reset(field)))
+          .focusRing(store.showsProfilesRing(row, target: .reset(field)))
           .accessibilityIdentifier(AccessibilityID.profilesReset(field))
           .accessibilityLabel("Reset to Default")
         }
@@ -488,7 +489,7 @@ private struct NotSetUpRows: View {
     // all, and the click lands in the middle of the row.
     LabeledContent("Clean up transcripts") {
       Button("Set Up…") { store.send(.profiles(.editTapped(.endpoint))) }
-        .focusRing(store.state.showsProfilesRing(.actions, target: .setUp))
+        .focusRing(store.showsProfilesRing(.actions, target: .setUp))
         .accessibilityIdentifier(AccessibilityID.profilesSetUp)
     }
     .modifier(ProfilesFormRow(store: store, row: .actions))
@@ -517,7 +518,7 @@ private struct EditorRows: View {
               value: editor.endpointText, prompt: "https://gateway.example/v1",
               identifier: AccessibilityID.profilesField(.endpoint), label: "Address",
               focus: focus(.endpoint),
-              isRinged: store.state.showsProfilesRing(.endpoint, target: .field(.endpoint)),
+              isRinged: store.showsProfilesRing(.endpoint, target: .field(.endpoint)),
               onChange: { store.send(.profiles(.endpointEdited($0))) },
               onFocusChange: { store.send(.profiles(.fieldFocusChanged(.endpoint, $0))) },
             )
@@ -536,7 +537,7 @@ private struct EditorRows: View {
                 value: editor.customModel, prompt: "gpt-oss-120b",
                 identifier: AccessibilityID.profilesCustomModel, label: "Model ID",
                 focus: focus(.model),
-                isRinged: store.state.showsProfilesRing(.customModel, target: .customModel),
+                isRinged: store.showsProfilesRing(.customModel, target: .customModel),
                 onChange: { store.send(.profiles(.customModelEdited($0))) },
                 onFocusChange: { store.send(.profiles(.fieldFocusChanged(.customModel, $0))) },
               )
@@ -589,7 +590,7 @@ private struct KeyFieldRow: View {
           prompt: stored.map { $0 + String(repeating: "•", count: 12) } ?? slot.provider.keyPrompt,
           identifier: AccessibilityID.profilesField(field), label: keyLabel(slot),
           focus: .init(request: editor.focusRequest, isRequested: editor.focus == field),
-          isRinged: store.state.showsProfilesRing(row, target: .field(field)),
+          isRinged: store.showsProfilesRing(row, target: .field(field)),
           onChange: onChange,
           onFocusChange: { store.send(.profiles(.fieldFocusChanged(row, $0))) },
         )
@@ -633,7 +634,7 @@ private struct ModelRow: View {
           SettingsPopUpButton(
             options: options, selection: editor.modelChoice,
             activation: store.profiles.modelActivation,
-            isRinged: store.state.showsProfilesRing(.model, target: .field(.model)),
+            isRinged: store.showsProfilesRing(.model, target: .field(.model)),
             onSelection: { store.send(.profiles(.modelSelected($0))) },
           )
           .fixedSize()
@@ -641,7 +642,7 @@ private struct ModelRow: View {
           .accessibilityLabel("Model")
           Button("Load Models") { store.send(.profiles(.loadModelsTapped)) }
             .disabled(editor.listing == .loading)
-            .focusRing(store.state.showsProfilesRing(.model, target: .loadModels))
+            .focusRing(store.showsProfilesRing(.model, target: .loadModels))
             .accessibilityIdentifier(AccessibilityID.profilesLoadModels)
         }
         if editor.modelChoice != .custom {
@@ -690,13 +691,13 @@ private struct ActionsRow: View {
         .foregroundStyle(.secondary)
       }
       Button("Cancel") { store.send(.profiles(.cancelTapped)) }
-        .focusRing(store.state.showsProfilesRing(.actions, target: .cancel))
+        .focusRing(store.showsProfilesRing(.actions, target: .cancel))
         .accessibilityIdentifier(AccessibilityID.profilesCancel)
       Button("Save") { store.send(.profiles(.saveTapped)) }
         .buttonStyle(.borderedProminent)
         .keyboardShortcut(.defaultAction)
         .disabled(editor.isChecking)
-        .focusRing(store.state.showsProfilesRing(.actions, target: .save))
+        .focusRing(store.showsProfilesRing(.actions, target: .save))
         .accessibilityIdentifier(AccessibilityID.profilesSave)
     }
     .modifier(ProfilesFormRow(store: store, row: .actions))
@@ -726,7 +727,7 @@ private struct EnabledRow: View {
   let store: StoreOf<SettingsWindowFeature>
 
   var body: some View {
-    let showsRing = store.state.showsProfilesRing(.enabled, target: .enabled)
+    let showsRing = store.showsProfilesRing(.enabled, target: .enabled)
     LabeledContent("Clean up transcripts") {
       SettingsSwitch(
         isOn: store.profiles.settings.profiles.custom.cleanupEnabled, label: "Clean up transcripts",
@@ -759,7 +760,7 @@ private struct BoostsVocabularyRow: View {
         identifier: AccessibilityID.profilesBoostsVocabulary,
         onChange: { store.send(.profiles(.boostsVocabularyToggled($0))) },
       )
-      .focusRing(store.state.showsProfilesRing(.boostsVocabulary, target: .boostsVocabulary))
+      .focusRing(store.showsProfilesRing(.boostsVocabulary, target: .boostsVocabulary))
     } label: {
       Text("Boost vocabulary")
       if custom.boostsVocabulary, store.profiles.profile.cleanup != .none {
@@ -786,7 +787,7 @@ private struct TimeoutRow: View {
       SettingsPopUpButton(
         options: options, selection: store.profiles.timeout,
         activation: store.profiles.timeoutActivation,
-        isRinged: store.state.showsProfilesRing(.timeout, target: .timeout),
+        isRinged: store.showsProfilesRing(.timeout, target: .timeout),
         onSelection: { store.send(.profiles(.timeoutSelected($0))) },
       )
       .fixedSize()
@@ -820,7 +821,7 @@ private struct ReasoningRow: View {
       SettingsPopUpButton(
         options: options, selection: leg.reasoningEffort,
         activation: store.profiles.reasoningActivation,
-        isRinged: store.state.showsProfilesRing(.reasoning, target: .reasoning),
+        isRinged: store.showsProfilesRing(.reasoning, target: .reasoning),
         onSelection: { store.send(.profiles(.reasoningSelected($0))) },
       )
       .fixedSize()
@@ -857,7 +858,7 @@ private struct InstructionsRow: View {
           claimsOnAppear: false,
         ),
         reservedLines: 3,
-        isRinged: store.state.showsProfilesRing(.instructions, target: .instructions),
+        isRinged: store.showsProfilesRing(.instructions, target: .instructions),
         onChange: { store.send(.profiles(.instructionsEdited($0))) },
         onFocusChange: { store.send(.profiles(.fieldFocusChanged(.instructions, $0))) },
       )
@@ -883,14 +884,14 @@ private struct ExpandedContextRow: View {
           Button("Allow Screen Recording…") {
             store.send(.profiles(.grantScreenRecordingTapped))
           }
-          .focusRing(store.state.showsProfilesRing(.expandedContext, target: .grantScreenRecording))
+          .focusRing(store.showsProfilesRing(.expandedContext, target: .grantScreenRecording))
           .accessibilityIdentifier(AccessibilityID.profilesGrantScreenRecording)
         }
         SettingsPopUpButton(
           options: options,
           selection: store.profiles.screenContextMode,
           activation: store.profiles.screenContextActivation,
-          isRinged: store.state.showsProfilesRing(.expandedContext, target: .expandedContext),
+          isRinged: store.showsProfilesRing(.expandedContext, target: .expandedContext),
           onSelection: { store.send(.profiles(.screenContextSelected($0))) },
         )
         .fixedSize()
@@ -907,7 +908,7 @@ private struct ExpandedContextRow: View {
         }
         .buttonStyle(.borderless)
         .foregroundStyle(.secondary)
-        .focusRing(store.state.showsProfilesRing(.expandedContext, target: .screenContextInfo))
+        .focusRing(store.showsProfilesRing(.expandedContext, target: .screenContextInfo))
         .accessibilityIdentifier(AccessibilityID.profilesExpandedContextInfo)
         .accessibilityLabel("About Expanded context")
         .popover(
@@ -924,6 +925,9 @@ private struct ExpandedContextRow: View {
     .onReceive(
       NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification),
     ) { _ in
+      guard store.selection == .profiles else {
+        return
+      }
       store.send(.profiles(.screenRecordingRefreshed))
     }
     .modifier(ProfilesFormRow(store: store, row: .expandedContext))
@@ -1081,8 +1085,8 @@ private struct ProfilesFormRow: ViewModifier {
           .frame(width: 3)
           .padding(.vertical, 4)
           .offset(x: -10)
-          .opacity(store.state.showsProfilesBar(row) ? 1 : 0)
-          .animation(.easeOut(duration: 0.12), value: store.state.showsProfilesBar(row))
+          .opacity(store.showsProfilesBar(row) ? 1 : 0)
+          .animation(.easeOut(duration: 0.12), value: store.showsProfilesBar(row))
       }
       .contentShape(.rect)
       .id(row)
@@ -1091,7 +1095,7 @@ private struct ProfilesFormRow: ViewModifier {
       }
       .accessibilityPaintState(
         AccessibilityID.profilesRowState(row), label: "\(row) highlight",
-        value: store.state.showsProfilesBar(row) ? "Bar on" : "Bar off",
+        value: store.showsProfilesBar(row) ? "Bar on" : "Bar off",
       )
   }
 }

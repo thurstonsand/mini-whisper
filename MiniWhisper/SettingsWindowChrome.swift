@@ -49,7 +49,9 @@ private struct WindowKeys: ViewModifier {
         return press(actions.press) ? .handled : .ignored
       }
       .onKeyPress(.tab) {
-        store.send(.keyboardModeEntered)
+        if store.interaction.mode != .keyboard {
+          store.send(.keyboardModeEntered)
+        }
         return .ignored
       }
       .background {
@@ -108,7 +110,9 @@ private struct WindowKeys: ViewModifier {
     guard let action else {
       return false
     }
-    store.send(.keyboardModeEntered)
+    if store.interaction.mode != .keyboard {
+      store.send(.keyboardModeEntered)
+    }
     action()
     return true
   }
@@ -139,7 +143,9 @@ private struct WindowPointerMovement: ViewModifier {
       guard let pointerLocation = pointerTracker.location, pointerLocation != location else {
         return
       }
-      store.send(.pointerMoved)
+      if store.interaction.mode != .mouse {
+        store.send(.pointerMoved)
+      }
       onMove()
     }
   }
@@ -155,6 +161,7 @@ private struct KeyboardCursorScroll<Cursor: Hashable>: ViewModifier {
   // MARK: Internal
 
   let store: StoreOf<SettingsWindowFeature>
+  let destination: SettingsDestination
   let cursor: Cursor?
 
   func body(content: Content) -> some View {
@@ -163,13 +170,15 @@ private struct KeyboardCursorScroll<Cursor: Hashable>: ViewModifier {
         // Only the keyboard moves the viewport. A hover already happened somewhere visible, and
         // scrolling under the pointer would move the row out from under it.
         .onChange(of: cursor) { _, cursor in
-          guard store.interaction.mode == .keyboard else {
+          guard store.selection == destination, store.interaction.mode == .keyboard else {
             return
           }
           scroll(proxy, to: cursor)
         }
         .onChange(of: store.interaction.focus) { _, focus in
-          guard focus == .detail, store.interaction.mode == .keyboard else {
+          guard store.selection == destination, focus == .detail,
+                store.interaction.mode == .keyboard
+          else {
             return
           }
           scroll(proxy, to: cursor)
@@ -206,14 +215,13 @@ private struct SettingsListRowHeight: ViewModifier {
   let grows: Bool
 
   func body(content: Content) -> some View {
-    Group {
-      if grows {
-        content.frame(minHeight: SettingsListRowMetrics.contentHeight, alignment: .top)
-      } else {
-        content.frame(height: SettingsListRowMetrics.contentHeight)
-      }
-    }
-    .padding(.vertical, SettingsListRowMetrics.verticalPadding)
+    content
+      .frame(
+        minHeight: SettingsListRowMetrics.contentHeight,
+        maxHeight: grows ? nil : SettingsListRowMetrics.contentHeight,
+        alignment: grows ? .top : .center,
+      )
+      .padding(.vertical, SettingsListRowMetrics.verticalPadding)
   }
 }
 
@@ -268,9 +276,10 @@ extension View {
 
   /// Apply to the scrolling container itself; every row it holds must carry `.id(cursor)`.
   func keyboardCursorScroll(
-    store: StoreOf<SettingsWindowFeature>, cursor: some Hashable?,
+    store: StoreOf<SettingsWindowFeature>, destination: SettingsDestination,
+    cursor: some Hashable?,
   ) -> some View {
-    modifier(KeyboardCursorScroll(store: store, cursor: cursor))
+    modifier(KeyboardCursorScroll(store: store, destination: destination, cursor: cursor))
   }
 
   func windowPointerMovement(

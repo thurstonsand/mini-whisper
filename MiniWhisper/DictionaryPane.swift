@@ -12,13 +12,11 @@ struct DictionaryPane: View {
 
   var body: some View {
     @Bindable var store = store
+    let entries = store.dictionary.entries
     Form {
       if store.dictionary.refusalReason == nil {
         Section {
-          ForEach(store.dictionary
-            .entries
-            .filter { !store.dictionary.usesReducedEmphasis($0) })
-          { entry in
+          ForEach(entries.filter { !store.dictionary.usesReducedEmphasis($0) }) { entry in
             DictionaryRow(store: store, entry: entry)
           }
         }
@@ -45,10 +43,7 @@ struct DictionaryPane: View {
                 .accessibilityIdentifier("miniwhisper.dictionary.vocabulary-settings")
             }
             if store.dictionary.isVocabularyExpanded {
-              ForEach(store.dictionary
-                .entries
-                .filter { store.dictionary.usesReducedEmphasis($0) })
-              { entry in
+              ForEach(entries.filter { store.dictionary.usesReducedEmphasis($0) }) { entry in
                 DictionaryRow(store: store, entry: entry)
               }
             }
@@ -58,23 +53,8 @@ struct DictionaryPane: View {
     }
     .formStyle(.grouped)
     .focusEffectDisabled()
-    .keyboardCursorScroll(store: store, cursor: store.dictionary.cursor)
-    .overlay { emptyState }
-    .toolbar {
-      Picker("Sort", selection: $store.dictionary.sort.sending(\.dictionary.sortChanged)) {
-        ForEach(DictionaryFeature.Sort.allCases, id: \.self) { sort in
-          Text(sort.rawValue).tag(sort)
-        }
-      }
-      .labelsHidden()
-      .pickerStyle(.menu)
-
-      Button("Add Entry", systemImage: "plus") {
-        store.send(.dictionary(.addRequested))
-      }
-      .disabled(store.dictionary.refusalReason != nil)
-      .accessibilityIdentifier(AccessibilityID.dictionaryAdd)
-    }
+    .keyboardCursorScroll(store: store, destination: .dictionary, cursor: store.dictionary.cursor)
+    .overlay { emptyState(isEmpty: entries.isEmpty) }
     .sheet(isPresented: draftPresented) {
       DictionaryEditSheet(store: store)
     }
@@ -93,7 +73,7 @@ struct DictionaryPane: View {
     )
   }
 
-  @ViewBuilder private var emptyState: some View {
+  @ViewBuilder private func emptyState(isEmpty: Bool) -> some View {
     if store.dictionary.refusalReason != nil {
       ContentUnavailableView {
         Label(
@@ -113,11 +93,38 @@ struct DictionaryPane: View {
         Button("Show in Finder") { store.send(.dictionary(.revealFileRequested)) }
         Button("Try Again") { store.send(.dictionary(.reloadRequested)) }
       }
-    } else if store.dictionary.entries.isEmpty {
+    } else if isEmpty {
       ContentUnavailableView(
         "No Dictionary Entries", systemImage: "character.book.closed",
         description: Text("Add words and corrections to improve your transcripts."),
       )
+    }
+  }
+}
+
+// MARK: - DictionaryToolbarItems
+
+struct DictionaryToolbarItems: ToolbarContent {
+  let store: StoreOf<SettingsWindowFeature>
+
+  var body: some ToolbarContent {
+    @Bindable var store = store
+    ToolbarItem {
+      Picker("Sort", selection: $store.dictionary.sort.sending(\.dictionary.sortChanged)) {
+        ForEach(DictionaryFeature.Sort.allCases, id: \.self) { sort in
+          Text(sort.rawValue).tag(sort)
+        }
+      }
+      .labelsHidden()
+      .pickerStyle(.menu)
+    }
+
+    ToolbarItem {
+      Button("Add Entry", systemImage: "plus") {
+        store.send(.dictionary(.addRequested))
+      }
+      .disabled(store.dictionary.refusalReason != nil)
+      .accessibilityIdentifier(AccessibilityID.dictionaryAdd)
     }
   }
 }
@@ -131,6 +138,11 @@ private struct DictionaryRow: View {
   let entry: DictionaryFeature.Entry
 
   var body: some View {
+    let usesReducedEmphasis = store.dictionary.usesReducedEmphasis(entry)
+    let isPointed = store.interaction.mode == .mouse && store.interaction.focus == .detail
+      && store.dictionary.cursor == entry.id
+    let showsKeyboardCursor = store.showsDictionaryKeyboardCursor(entry.id)
+    let showsGrey = isPointed || showsKeyboardCursor
     HStack(spacing: 8) {
       switch entry.kind {
       case .vocabulary:
@@ -149,7 +161,7 @@ private struct DictionaryRow: View {
 
       Spacer(minLength: 8)
 
-      if isPointed || showsKeyboardCursor {
+      if showsGrey {
         Button("Delete", systemImage: "trash", role: .destructive) {
           store.send(.dictionary(.deleteRequested(entry.id)))
         }
@@ -163,7 +175,9 @@ private struct DictionaryRow: View {
     .settingsRowHighlight(showsGrey, outset: .groupedFormRowHighlight)
     .contentShape(.rect)
     .onTapGesture {
-      store.send(.pointerMoved)
+      if store.interaction.mode != .mouse {
+        store.send(.pointerMoved)
+      }
       store.send(.dictionary(.editRequested(entry.id)))
     }
     .windowPointerMovement(store: store) {
@@ -179,23 +193,6 @@ private struct DictionaryRow: View {
   }
 
   // MARK: Private
-
-  private var usesReducedEmphasis: Bool {
-    store.dictionary.usesReducedEmphasis(entry)
-  }
-
-  private var isPointed: Bool {
-    store.interaction.mode == .mouse && store.interaction.focus == .detail
-      && store.dictionary.cursor == entry.id
-  }
-
-  private var showsGrey: Bool {
-    isPointed || showsKeyboardCursor
-  }
-
-  private var showsKeyboardCursor: Bool {
-    store.state.showsDictionaryKeyboardCursor(entry.id)
-  }
 
   private var accessibilityLabel: String {
     switch entry.kind {

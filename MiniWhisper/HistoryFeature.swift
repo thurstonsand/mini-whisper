@@ -71,7 +71,10 @@ import TranscriptCleanup
     /// copies that.
     var cursorEntry: HistoryEntry? {
       let entries = filteredEntries
-      return entries.first { $0.id == cursor } ?? entries.first
+      if let cursor, let match = entries.first(where: { $0.id == cursor }) {
+        return match
+      }
+      return entries.first
     }
 
     /// Moves the cursor off `id` before it disappears: to the row that takes its place, or to the

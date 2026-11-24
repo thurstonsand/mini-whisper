@@ -50,6 +50,8 @@ struct SettingsPopUpButton<Value: Equatable>: NSViewRepresentable {
     // MARK: Internal
 
     var options: [Option] = []
+    var appliedOptions: [Option]?
+    var appliedSelectionIndex: Int?
     var activation: Int
     var onSelection: (Value) -> Void
 
@@ -104,63 +106,75 @@ struct SettingsPopUpButton<Value: Equatable>: NSViewRepresentable {
   }
 
   func updateNSView(_ button: Control, context: Context) {
-    button.isEnabled = context.environment.isEnabled
-    button.isRinged = isRinged
-    button.needsDisplay = true
+    if button.isEnabled != context.environment.isEnabled {
+      button.isEnabled = context.environment.isEnabled
+    }
+    if button.isRinged != isRinged {
+      button.isRinged = isRinged
+      button.needsDisplay = true
+    }
     context.coordinator.options = options
     context.coordinator.onSelection = onSelection
-    if button.itemTitles != options.map(\.title) {
-      button.removeAllItems()
-      for option in options {
-        button.addItem(withTitle: option.title)
+    let selectedIndex = options.firstIndex(where: { $0.value == selection })
+    if context.coordinator.appliedOptions != options
+      || context.coordinator.appliedSelectionIndex != selectedIndex
+    {
+      context.coordinator.appliedOptions = options
+      context.coordinator.appliedSelectionIndex = selectedIndex
+      if button.itemTitles != options.map(\.title) {
+        button.removeAllItems()
+        for option in options {
+          button.addItem(withTitle: option.title)
+        }
       }
-    }
-    if let selectedIndex = options.firstIndex(where: { $0.value == selection }) {
-      button.selectItem(at: selectedIndex)
-    }
-    for (index, option) in options.enumerated() {
-      button.item(at: index)?.isEnabled = option.isEnabled
-    }
-    // A secondary choice dims only while it is the selection, so the collapsed control reads
-    // quiet without the open menu ever showing a greyed row that looks disabled.
-    for (index, option) in options.enumerated() where option.isSecondary {
-      guard let item = button.item(at: index) else {
-        continue
+      if let selectedIndex {
+        button.selectItem(at: selectedIndex)
       }
-      let wanted: NSAttributedString? =
-        index == button.indexOfSelectedItem
-          ? NSAttributedString(
-            string: option.title, attributes: [.foregroundColor: NSColor.secondaryLabelColor],
-          ) : nil
-      if item.attributedTitle != wanted {
-        item.attributedTitle = wanted
+      for (index, option) in options.enumerated() {
+        button.item(at: index)?.isEnabled = option.isEnabled
       }
-    }
-    for (index, option) in options.enumerated() where option.symbol != nil || option.status != nil {
-      guard let item = button.item(at: index) else {
-        continue
+      // A secondary choice dims only while it is the selection, so the collapsed control reads
+      // quiet without the open menu ever showing a greyed row that looks disabled.
+      for (index, option) in options.enumerated() where option.isSecondary {
+        guard let item = button.item(at: index) else {
+          continue
+        }
+        let wanted: NSAttributedString? =
+          index == button.indexOfSelectedItem
+            ? NSAttributedString(
+              string: option.title, attributes: [.foregroundColor: NSColor.secondaryLabelColor],
+            ) : nil
+        if item.attributedTitle != wanted {
+          item.attributedTitle = wanted
+        }
       }
-      let font = button.font ?? .systemFont(ofSize: NSFont.systemFontSize)
-      let title = NSMutableAttributedString()
-      // Inline rather than the item's image: the cell pins an image to the far edge, away from a
-      // right-aligned title.
-      let isProblem = option.status?.isProblem == true
-      if let symbol = isProblem ? "exclamationmark.triangle.fill" : option.symbol,
-         let image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil)?
-           .withSymbolConfiguration(
-             NSImage.SymbolConfiguration(pointSize: font.pointSize, weight: .regular)
-               .applying(.init(paletteColors: [isProblem ? .systemOrange : .labelColor])),
-           )
+      for (index, option) in options.enumerated() where option.symbol != nil || option.status != nil
       {
-        let attachment = NSTextAttachment()
-        attachment.image = image
-        title.append(NSAttributedString(attachment: attachment))
-        title.append(NSAttributedString(string: " ", attributes: [.font: font]))
-      }
-      title.append(NSAttributedString(string: option.title, attributes: [.font: font]))
-      item.setAccessibilityHelp(option.status?.text)
-      if item.attributedTitle != title {
-        item.attributedTitle = title
+        guard let item = button.item(at: index) else {
+          continue
+        }
+        let font = button.font ?? .systemFont(ofSize: NSFont.systemFontSize)
+        let title = NSMutableAttributedString()
+        // Inline rather than the item's image: the cell pins an image to the far edge, away from a
+        // right-aligned title.
+        let isProblem = option.status?.isProblem == true
+        if let symbol = isProblem ? "exclamationmark.triangle.fill" : option.symbol,
+           let image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil)?
+             .withSymbolConfiguration(
+               NSImage.SymbolConfiguration(pointSize: font.pointSize, weight: .regular)
+                 .applying(.init(paletteColors: [isProblem ? .systemOrange : .labelColor])),
+             )
+        {
+          let attachment = NSTextAttachment()
+          attachment.image = image
+          title.append(NSAttributedString(attachment: attachment))
+          title.append(NSAttributedString(string: " ", attributes: [.font: font]))
+        }
+        title.append(NSAttributedString(string: option.title, attributes: [.font: font]))
+        item.setAccessibilityHelp(option.status?.text)
+        if item.attributedTitle != title {
+          item.attributedTitle = title
+        }
       }
     }
     // Only a click opens a pop-up button, so Return on this row arrives as a changed count.

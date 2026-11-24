@@ -26,7 +26,6 @@ struct ModelsPane: View {
         store.send(.models(.pointerExited))
       }
     }
-    .onDisappear { store.send(.models(.previewCleared)) }
     .alert(
       "Delete \(models.pendingDeletion?.name ?? "")?", isPresented: deletionPending,
       presenting: models.pendingDeletion,
@@ -42,7 +41,6 @@ struct ModelsPane: View {
         Text("\(models.settings.activeProfile.name) can’t transcribe until it’s downloaded again.")
       }
     }
-    .task { store.send(.models(.task)) }
   }
 
   // MARK: Private
@@ -103,7 +101,7 @@ struct ModelsPane: View {
       }
       .padding(20)
     }
-    .keyboardCursorScroll(store: store, cursor: models.cursorRow)
+    .keyboardCursorScroll(store: store, destination: .models, cursor: models.cursorRow)
   }
 
   private var compact: some View {
@@ -155,7 +153,7 @@ struct ModelsPane: View {
       }
     }
     .formStyle(.grouped)
-    .keyboardCursorScroll(store: store, cursor: models.cursorRow)
+    .keyboardCursorScroll(store: store, destination: .models, cursor: models.cursorRow)
   }
 
   private func hosted(
@@ -565,7 +563,7 @@ private struct AssetStatus: View {
   let asset: ModelAsset
 
   var body: some View {
-    let isRinged = store.state.showsModelsRing(asset)
+    let isRinged = store.showsModelsRing(asset)
     HStack(spacing: 8) {
       switch store.models.assets[asset] {
       case let .installed(bytes):
