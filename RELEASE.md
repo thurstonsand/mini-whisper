@@ -4,6 +4,15 @@
 
 ## Unreleased
 
+## 0.5.1
+
+A custom Polly menu bar icon with clearer status indicators.
+
+### Changed
+
+- Replaced the generic microphone menu bar icon with Polly’s silhouette, with a crescent badge on Nightly builds so Release and Nightly stay easy to tell apart.
+- Degraded states now show an orange badge in the menu bar distinguishing missing permissions, missing speech models, missing API keys, and other errors that need attention.
+
 ## 0.5.0
 
 Sound themes, an in-app Changelog, faster Settings and History, and clearer error recovery.
