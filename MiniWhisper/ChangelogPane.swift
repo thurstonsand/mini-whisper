@@ -7,14 +7,18 @@ import SwiftUI
 struct ChangelogPane: View {
   // MARK: Lifecycle
 
+  init() {
+    releases = Self.defaultReleases
+  }
+
   init(
-    changelog: Changelog = Channel.bundledChangelog,
+    changelog: Changelog,
     channelKind: Channel.Kind = Channel.kind,
     installedVersion: String = Channel.shortVersion,
   ) {
-    releases = changelog.visibleReleases(includeUnreleased: channelKind.includesUnreleasedChangelog)
-    self.channelKind = channelKind
-    self.installedVersion = installedVersion
+    releases = Self.renderReleases(
+      from: changelog, channelKind: channelKind, installedVersion: installedVersion,
+    )
   }
 
   // MARK: Internal
@@ -31,13 +35,8 @@ struct ChangelogPane: View {
             if index > 0 {
               Divider()
             }
-            ReleaseBlock(
-              title: Self.sectionTitle(for: release, channelKind: channelKind),
-              release: release,
-              badge: Self.badge(
-                for: release, channelKind: channelKind, installedVersion: installedVersion,
-              ),
-            )
+            ReleaseBlock(release: release)
+              .equatable()
           }
         }
         .padding(.horizontal, 32)
@@ -79,27 +78,78 @@ struct ChangelogPane: View {
 
   // MARK: Private
 
-  private let releases: [Changelog.Release]
-  private let channelKind: Channel.Kind
-  private let installedVersion: String
+  /// Parsed and formatted once per process on first visit to Changelog, so Markdown parsing never
+  /// runs inside SwiftUI's view body on resizes or appearance changes.
+  private static let defaultReleases = renderReleases(
+    from: Channel.bundledChangelog,
+    channelKind: Channel.kind,
+    installedVersion: Channel.shortVersion,
+  )
+
+  private let releases: [RenderedRelease]
+
+  private static func renderReleases(
+    from changelog: Changelog, channelKind: Channel.Kind, installedVersion: String,
+  ) -> [RenderedRelease] {
+    changelog
+      .visibleReleases(includeUnreleased: channelKind.includesUnreleasedChangelog)
+      .map { release in
+        RenderedRelease(
+          id: release.id,
+          title: sectionTitle(for: release, channelKind: channelKind),
+          badge: badge(for: release, channelKind: channelKind, installedVersion: installedVersion),
+          summary: release.summary.map(inlineMarkdown),
+          sections: release.sections.map { section in
+            RenderedSection(
+              id: section.id,
+              title: section.title,
+              items: section.items.map(inlineMarkdown),
+            )
+          },
+        )
+      }
+  }
+
+  private static func inlineMarkdown(_ text: String) -> AttributedString {
+    (try? AttributedString(
+      markdown: text,
+      options: AttributedString.MarkdownParsingOptions(
+        interpretedSyntax: .inlineOnlyPreservingWhitespace,
+      ),
+    )) ?? AttributedString(text)
+  }
+}
+
+// MARK: - RenderedRelease
+
+private struct RenderedRelease: Equatable, Identifiable {
+  let id: String
+  let title: String
+  let badge: String?
+  let summary: AttributedString?
+  let sections: [RenderedSection]
+}
+
+// MARK: - RenderedSection
+
+private struct RenderedSection: Equatable, Identifiable {
+  let id: String
+  let title: String
+  let items: [AttributedString]
 }
 
 // MARK: - ReleaseBlock
 
-private struct ReleaseBlock: View {
-  // MARK: Internal
-
-  let title: String
-  let release: Changelog.Release
-  let badge: String?
+private struct ReleaseBlock: View, Equatable {
+  let release: RenderedRelease
 
   var body: some View {
     VStack(alignment: .leading, spacing: 14) {
       HStack(alignment: .firstTextBaseline, spacing: 10) {
-        Text(title)
+        Text(release.title)
           .font(.title2.weight(.semibold))
           .monospacedDigit()
-        if let badge {
+        if let badge = release.badge {
           Text(badge)
             .font(.subheadline)
             .foregroundStyle(.secondary)
@@ -108,7 +158,7 @@ private struct ReleaseBlock: View {
       .accessibilityElement(children: .combine)
 
       if let summary = release.summary {
-        Text(Self.inlineMarkdown(summary))
+        Text(summary)
           .foregroundStyle(.secondary)
           .lineSpacing(2)
           .fixedSize(horizontal: false, vertical: true)
@@ -129,7 +179,7 @@ private struct ReleaseBlock: View {
                   Text("•")
                     .foregroundStyle(.tertiary)
                     .accessibilityHidden(true)
-                  Text(Self.inlineMarkdown(item))
+                  Text(item)
                     .lineSpacing(2)
                     .fixedSize(horizontal: false, vertical: true)
                 }
@@ -140,16 +190,5 @@ private struct ReleaseBlock: View {
       }
     }
     .frame(maxWidth: 580, alignment: .leading)
-  }
-
-  // MARK: Private
-
-  private static func inlineMarkdown(_ text: String) -> AttributedString {
-    (try? AttributedString(
-      markdown: text,
-      options: AttributedString.MarkdownParsingOptions(
-        interpretedSyntax: .inlineOnlyPreservingWhitespace,
-      ),
-    )) ?? AttributedString(text)
   }
 }
