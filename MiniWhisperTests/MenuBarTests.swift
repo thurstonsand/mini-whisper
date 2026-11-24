@@ -1,3 +1,4 @@
+import AppKit
 import AppSettings
 import ASREngine
 import AudioCapture
@@ -417,5 +418,120 @@ private final class Collector<Value: Sendable>: @unchecked Sendable {
     #expect(LaunchAtLoginClient.isRegistered(.requiresApproval))
     #expect(!LaunchAtLoginClient.isRegistered(.notRegistered))
     #expect(!LaunchAtLoginClient.isRegistered(.notFound))
+  }
+}
+
+// MARK: - MenuBarIconTests
+
+@MainActor struct MenuBarIconTests {
+  // MARK: Internal
+
+  @Test func `every degradation maps to its visual category`() {
+    #expect(MenuBarIcon.DegradedCategory(degradation: nil) == nil)
+    #expect(MenuBarIcon.DegradedCategory(degradation: .accessibilityDenied) == .permissions)
+    #expect(MenuBarIcon.DegradedCategory(degradation: .microphoneAccessDenied) == .permissions)
+    #expect(MenuBarIcon.DegradedCategory(degradation: .modelMissing) == .model)
+    #expect(MenuBarIcon.DegradedCategory(degradation: .gateMissing) == .model)
+    #expect(MenuBarIcon.DegradedCategory(degradation: .modelSetupFailed) == .model)
+    #expect(MenuBarIcon.DegradedCategory(degradation: .engineKeyMissing) == .credential)
+    #expect(MenuBarIcon.DegradedCategory(degradation: .cleanupKeyMissing) == .credential)
+    #expect(MenuBarIcon.DegradedCategory(degradation: .hotkeyTapDead) == .error)
+    #expect(MenuBarIcon.DegradedCategory(degradation: .settingsFileUnreadable) == .error)
+    #expect(MenuBarIcon.DegradedCategory(degradation: .historyFileUnreadable) == .error)
+  }
+
+  @Test func `healthy icons are templates and degraded icons keep their warning colour`() {
+    let healthy = MenuBarIcon.image(
+      for: .init(channel: .release, degraded: nil), accessibilityName: "MiniWhisper",
+    )
+    #expect(healthy.size == MenuBarIcon.iconSize)
+    #expect(healthy.isTemplate)
+    #expect(healthy.accessibilityDescription == "MiniWhisper")
+
+    for category in MenuBarIcon.DegradedCategory.allCases {
+      let degraded = MenuBarIcon.image(
+        for: .init(channel: .nightly, degraded: category), accessibilityName: "MiniWhisper Nightly",
+      )
+      #expect(degraded.size == MenuBarIcon.iconSize)
+      #expect(!degraded.isTemplate)
+      #expect(degraded
+        .accessibilityDescription == "MiniWhisper Nightly, \(category.accessibilitySuffix)")
+    }
+  }
+
+  @Test func `the three channels render distinct silhouettes`() {
+    let release = rasterize(
+      MenuBarIcon.image(for: .init(channel: .release, degraded: nil)),
+      dark: false,
+    )
+    let nightly = rasterize(
+      MenuBarIcon.image(for: .init(channel: .nightly, degraded: nil)),
+      dark: false,
+    )
+    let dev = rasterize(MenuBarIcon.image(for: .init(channel: .dev, degraded: nil)), dark: false)
+
+    #expect(release != nightly)
+    #expect(release != dev)
+    #expect(nightly != dev)
+  }
+
+  @Test func `each degraded category renders a distinct orange badge and adapts to appearance`() {
+    let healthyDark = rasterize(
+      MenuBarIcon.image(for: .init(channel: .nightly, degraded: nil)), dark: true,
+    )
+    var renderedByCategory: [MenuBarIcon.DegradedCategory: Data] = [:]
+
+    for category in MenuBarIcon.DegradedCategory.allCases {
+      let image = MenuBarIcon.image(for: .init(channel: .nightly, degraded: category))
+      let light = rasterize(image, dark: false)
+      let dark = rasterize(image, dark: true)
+
+      #expect(dark != healthyDark)
+      #expect(light != dark)
+      #expect(containsOrangePixel(light))
+      #expect(containsOrangePixel(dark))
+      renderedByCategory[category] = dark
+    }
+
+    #expect(Set(renderedByCategory.values).count == MenuBarIcon.DegradedCategory.allCases.count)
+  }
+
+  // MARK: Private
+
+  private func rasterize(_ image: NSImage, dark: Bool) -> Data {
+    let pixels = 36
+    let rep = NSBitmapImageRep(
+      bitmapDataPlanes: nil, pixelsWide: pixels, pixelsHigh: pixels, bitsPerSample: 8,
+      samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB,
+      bytesPerRow: 0, bitsPerPixel: 0,
+    )!
+    rep.size = MenuBarIcon.iconSize
+    let appearance = NSAppearance(named: dark ? .darkAqua : .aqua)!
+    appearance.performAsCurrentDrawingAppearance {
+      NSGraphicsContext.saveGraphicsState()
+      NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
+      image.draw(
+        in: NSRect(origin: .zero, size: MenuBarIcon.iconSize), from: .zero, operation: .sourceOver,
+        fraction: 1.0,
+      )
+      NSGraphicsContext.restoreGraphicsState()
+    }
+    return Data(bytes: rep.bitmapData!, count: rep.bytesPerRow * pixels)
+  }
+
+  private func containsOrangePixel(_ rgba: Data) -> Bool {
+    rgba.withUnsafeBytes { raw in
+      let bytes = raw.bindMemory(to: UInt8.self)
+      for i in stride(from: 0, to: bytes.count, by: 4) {
+        let r = Int(bytes[i])
+        let g = Int(bytes[i + 1])
+        let b = Int(bytes[i + 2])
+        let a = Int(bytes[i + 3])
+        if a > 120, r > 180, g > 70, g < 190, b < 60 {
+          return true
+        }
+      }
+      return false
+    }
   }
 }

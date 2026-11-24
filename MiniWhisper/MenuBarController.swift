@@ -24,7 +24,7 @@ import Metrics
     menu.delegate = self
     statusItem.menu = menu
     observeIcon()
-    renderIcon(store.state.health.isDegraded)
+    renderIcon(store.state.health.degradations.first)
   }
 
   // MARK: Internal
@@ -69,7 +69,7 @@ import Metrics
   private let refreshesStateOnOpen: Bool
   private let menu = NSMenu()
   private let settingsWindowController: SettingsWindowController
-  private var renderedIconSymbolName: String?
+  private var renderedIcon: MenuBarIcon.Descriptor?
   private lazy var quickAddView = makeQuickAddView()
   private lazy var quickAddItem: NSMenuItem = {
     let item = NSMenuItem(title: "Add to Dictionary…", action: nil, keyEquivalent: "")
@@ -79,32 +79,34 @@ import Metrics
     return item
   }()
 
-  /// Only whether the app is broken is watched, and `renderIcon` drops a repeat of the symbol it
-  /// already drew — a download's progress does retrigger this, but it cannot repaint anything.
-  /// Reading the menu's wording here would instead rebuild every string in a closed menu.
+  /// Only the highest-priority degradation category is watched, and `renderIcon` drops a repeat of
+  /// the descriptor it already drew — a download's progress does retrigger this, but it cannot
+  /// repaint anything. Reading the menu's wording here would instead rebuild every string in a
+  /// closed menu.
   private func observeIcon() {
     withObservationTracking {
-      _ = self.store.state.health.isDegraded
+      _ = self.store.state.health.degradations.first
     } onChange: { [weak self] in
       Task { @MainActor [weak self] in
         guard let self else {
           return
         }
         observeIcon()
-        renderIcon(store.state.health.isDegraded)
+        renderIcon(store.state.health.degradations.first)
       }
     }
   }
 
-  private func renderIcon(_ isDegraded: Bool) {
-    let symbolName = isDegraded ? "mic.slash" : "mic"
-    guard symbolName != renderedIconSymbolName else {
+  private func renderIcon(_ primaryDegradation: Degradation?) {
+    let descriptor = MenuBarIcon.Descriptor(
+      channel: Channel.kind,
+      degraded: MenuBarIcon.DegradedCategory(degradation: primaryDegradation),
+    )
+    guard descriptor != renderedIcon else {
       return
     }
-    renderedIconSymbolName = symbolName
-    let image = NSImage(systemSymbolName: symbolName, accessibilityDescription: Channel.name)
-    image?.isTemplate = true
-    statusItem.button?.image = image
+    renderedIcon = descriptor
+    statusItem.button?.image = MenuBarIcon.image(for: descriptor)
   }
 
   private func rebuild(_ menu: NSMenu, state: MenuBarViewState) {
