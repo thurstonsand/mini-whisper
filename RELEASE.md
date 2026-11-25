@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Scaled the menu bar icon up to fill the menu bar height more cleanly.
+
 ## 0.5.1
 
 A custom Polly menu bar icon with clearer status indicators.

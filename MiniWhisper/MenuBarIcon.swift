@@ -68,12 +68,12 @@ enum MenuBarIcon {
     var symbolPointSize: CGFloat {
       switch self {
       case .model:
-        8.2
+        10.0
       case .permissions,
            .credential:
-        8.5
+        10.4
       case .error:
-        8.6
+        10.5
       }
     }
 
@@ -98,7 +98,10 @@ enum MenuBarIcon {
     let degraded: DegradedCategory?
   }
 
-  static let iconSize = CGSize(width: 18, height: 18)
+  /// Uses macOS's full 22 pt `NSStatusBar.system.thickness` canvas while keeping every silhouette,
+  /// channel badge, and degraded badge safely inset so nothing clips on standard displays or inside
+  /// the clicked status-item highlight.
+  static let iconSize = CGSize(width: 22, height: 22)
 
   static func image(for descriptor: Descriptor,
                     accessibilityName: String = Channel.name) -> NSImage
@@ -210,8 +213,8 @@ enum MenuBarIcon {
     let degradedRect = degradedSymbol.map { symbol -> CGRect in
       let size = symbol.size
       return CGRect(
-        x: inset.minX - 0.5,
-        y: inset.maxY - size.height + 0.5,
+        x: inset.minX,
+        y: inset.maxY - size.height,
         width: size.width,
         height: size.height,
       )
@@ -240,7 +243,7 @@ enum MenuBarIcon {
 
     if let symbol = degradedSymbol, let symRect = degradedRect {
       // Contour-hugging transparent halo around the exact SF Symbol silhouette.
-      let haloRadius: CGFloat = 1.25
+      let haloRadius: CGFloat = 1.45
       let steps = 12
       for i in 0 ..< steps {
         let angle = (CGFloat(i) / CGFloat(steps)) * .pi * 2
@@ -264,8 +267,8 @@ enum MenuBarIcon {
       break
 
     case .nightly:
-      let cx: CGFloat = 80
-      let cy: CGFloat = 80
+      let cx: CGFloat = 79
+      let cy: CGFloat = 79
       let outerR: CGFloat = 21.5
       let moonR: CGFloat = 16
       drawNormalized(in: ctx, rect: rect) { c in
@@ -297,7 +300,7 @@ enum MenuBarIcon {
         c.saveGState()
         c.setBlendMode(.clear)
         let halo = CGPath(
-          roundedRect: CGRect(x: 50, y: 56, width: 52, height: 46),
+          roundedRect: CGRect(x: 49, y: 53, width: 50, height: 45),
           cornerWidth: 13, cornerHeight: 13, transform: nil,
         )
         c.addPath(halo)
@@ -305,25 +308,25 @@ enum MenuBarIcon {
         c.restoreGState()
 
         c.setStrokeColor(ink.cgColor)
-        c.setLineWidth(8.2)
+        c.setLineWidth(8.0)
         c.setLineCap(.round)
         c.setLineJoin(.round)
         // Left curly brace `{`
-        c.move(to: CGPoint(x: 70, y: 63))
-        c.addQuadCurve(to: CGPoint(x: 64, y: 71), control: CGPoint(x: 64, y: 63))
-        c.addLine(to: CGPoint(x: 64, y: 75))
-        c.addLine(to: CGPoint(x: 58, y: 79.5))
-        c.addLine(to: CGPoint(x: 64, y: 84))
-        c.addLine(to: CGPoint(x: 64, y: 88))
-        c.addQuadCurve(to: CGPoint(x: 70, y: 96), control: CGPoint(x: 64, y: 96))
+        c.move(to: CGPoint(x: 69, y: 60))
+        c.addQuadCurve(to: CGPoint(x: 63, y: 68), control: CGPoint(x: 63, y: 60))
+        c.addLine(to: CGPoint(x: 63, y: 72))
+        c.addLine(to: CGPoint(x: 57, y: 76.5))
+        c.addLine(to: CGPoint(x: 63, y: 81))
+        c.addLine(to: CGPoint(x: 63, y: 85))
+        c.addQuadCurve(to: CGPoint(x: 69, y: 93), control: CGPoint(x: 63, y: 93))
         // Right curly brace `}`
-        c.move(to: CGPoint(x: 84, y: 63))
-        c.addQuadCurve(to: CGPoint(x: 90, y: 71), control: CGPoint(x: 90, y: 63))
-        c.addLine(to: CGPoint(x: 90, y: 75))
-        c.addLine(to: CGPoint(x: 96, y: 79.5))
-        c.addLine(to: CGPoint(x: 90, y: 84))
-        c.addLine(to: CGPoint(x: 90, y: 88))
-        c.addQuadCurve(to: CGPoint(x: 84, y: 96), control: CGPoint(x: 90, y: 96))
+        c.move(to: CGPoint(x: 82, y: 60))
+        c.addQuadCurve(to: CGPoint(x: 88, y: 68), control: CGPoint(x: 88, y: 60))
+        c.addLine(to: CGPoint(x: 88, y: 72))
+        c.addLine(to: CGPoint(x: 94, y: 76.5))
+        c.addLine(to: CGPoint(x: 88, y: 81))
+        c.addLine(to: CGPoint(x: 88, y: 85))
+        c.addQuadCurve(to: CGPoint(x: 82, y: 93), control: CGPoint(x: 88, y: 93))
         c.strokePath()
       }
     }

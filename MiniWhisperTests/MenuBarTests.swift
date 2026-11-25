@@ -463,12 +463,15 @@ private final class Collector<Value: Sendable>: @unchecked Sendable {
     let release = rasterize(
       MenuBarIcon.image(for: .init(channel: .release, degraded: nil)),
       dark: false,
-    )
+    ).rgba
     let nightly = rasterize(
       MenuBarIcon.image(for: .init(channel: .nightly, degraded: nil)),
       dark: false,
-    )
-    let dev = rasterize(MenuBarIcon.image(for: .init(channel: .dev, degraded: nil)), dark: false)
+    ).rgba
+    let dev = rasterize(
+      MenuBarIcon.image(for: .init(channel: .dev, degraded: nil)),
+      dark: false,
+    ).rgba
 
     #expect(release != nightly)
     #expect(release != dev)
@@ -478,13 +481,13 @@ private final class Collector<Value: Sendable>: @unchecked Sendable {
   @Test func `each degraded category renders a distinct orange badge and adapts to appearance`() {
     let healthyDark = rasterize(
       MenuBarIcon.image(for: .init(channel: .nightly, degraded: nil)), dark: true,
-    )
+    ).rgba
     var renderedByCategory: [MenuBarIcon.DegradedCategory: Data] = [:]
 
     for category in MenuBarIcon.DegradedCategory.allCases {
       let image = MenuBarIcon.image(for: .init(channel: .nightly, degraded: category))
-      let light = rasterize(image, dark: false)
-      let dark = rasterize(image, dark: true)
+      let light = rasterize(image, dark: false).rgba
+      let dark = rasterize(image, dark: true).rgba
 
       #expect(dark != healthyDark)
       #expect(light != dark)
@@ -496,10 +499,29 @@ private final class Collector<Value: Sendable>: @unchecked Sendable {
     #expect(Set(renderedByCategory.values).count == MenuBarIcon.DegradedCategory.allCases.count)
   }
 
+  @Test func `no channel or degraded variant clips against the 22 pt canvas edges`() {
+    let channels: [Channel.Kind] = [.release, .nightly, .dev]
+    let categories: [MenuBarIcon.DegradedCategory?] = [nil] + MenuBarIcon.DegradedCategory.allCases
+    for channel in channels {
+      for category in categories {
+        let bitmap = rasterize(
+          MenuBarIcon.image(for: .init(channel: channel, degraded: category)), dark: false,
+        )
+        #expect(!hasOpaqueBorderPixel(
+          bitmap.rgba,
+          size: pixelSize,
+          bytesPerRow: bitmap.bytesPerRow,
+        ))
+      }
+    }
+  }
+
   // MARK: Private
 
-  private func rasterize(_ image: NSImage, dark: Bool) -> Data {
-    let pixels = 36
+  private let pixelSize = Int(MenuBarIcon.iconSize.width * 2)
+
+  private func rasterize(_ image: NSImage, dark: Bool) -> (rgba: Data, bytesPerRow: Int) {
+    let pixels = pixelSize
     let rep = NSBitmapImageRep(
       bitmapDataPlanes: nil, pixelsWide: pixels, pixelsHigh: pixels, bitsPerSample: 8,
       samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB,
@@ -516,7 +538,26 @@ private final class Collector<Value: Sendable>: @unchecked Sendable {
       )
       NSGraphicsContext.restoreGraphicsState()
     }
-    return Data(bytes: rep.bitmapData!, count: rep.bytesPerRow * pixels)
+    return (Data(bytes: rep.bitmapData!, count: rep.bytesPerRow * pixels), rep.bytesPerRow)
+  }
+
+  private func hasOpaqueBorderPixel(_ rgba: Data, size: Int, bytesPerRow: Int) -> Bool {
+    rgba.withUnsafeBytes { raw in
+      let bytes = raw.bindMemory(to: UInt8.self)
+      for i in 0 ..< size {
+        let edges = [
+          (i, 0), (i, size - 1),
+          (0, i), (size - 1, i),
+        ]
+        for (x, y) in edges {
+          let alpha = bytes[y * bytesPerRow + x * 4 + 3]
+          if alpha > 20 {
+            return true
+          }
+        }
+      }
+      return false
+    }
   }
 
   private func containsOrangePixel(_ rgba: Data) -> Bool {
