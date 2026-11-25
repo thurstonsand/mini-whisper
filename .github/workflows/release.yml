@@ -320,6 +320,8 @@ jobs:
 
             app "${app_name}.app"
 
+            uninstall quit: "${bundle_id}"
+
             # This also removes the downloaded speech model.
             zap trash: [
               "~/Library/Application Support/${app_name}",
