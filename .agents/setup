@@ -9,7 +9,7 @@ if command -v mise >/dev/null 2>&1; then
   mise_bin="$(command -v mise)"
 else
   echo "Installing mise"
-  curl -fsSL https://mise.run | sh
+  curl -fsSL https://mise.run | MISE_SELF_UPDATE_MINIMUM_RELEASE_AGE=3d sh
   mise_bin="$HOME/.local/bin/mise"
 fi
 
